@@ -1,0 +1,29 @@
+╔══════════════════════════════════════╗
+║     NEXA Photo Agent v1.0           ║
+║     Kurulum ve Kullanım             ║
+╚══════════════════════════════════════╝
+
+KURULUM:
+1. Bu klasörü bilgisayarınıza kopyalayın (örn: C:\NexaAgent\)
+2. nexa-config.txt dosyasını açın ve:
+   - NEXA_URL: Sunucu adresinizi yazın
+   - NEXA_TOKEN: Admin token'ınızı yapıştırın
+   - WATCH_FOLDER: Fotoğrafların bulunduğu klasörü yazın
+
+KULLANIM:
+1. nexa-photo-agent.exe dosyasına ÇİFT TIKLAYIN
+2. Açılan siyah pencerede "İzleme başladı" yazısını görene kadar bekleyin
+3. Fotoğrafları WATCH_FOLDER klasörüne barkod ismiyle koyun
+   Örnek: C:\NexaPhotos\8691234567890.jpg
+4. Agent otomatik olarak fotoğrafı algılar, barkodu okur ve NEXA'ya yükler
+
+NOTLAR:
+- PC'niz 7/24 açık kalmalıdır. PC kapandığında fotoğraf yükleme durur.
+- Fotoğraf dosya adı = ürün barkodu olmalıdır
+- Desteklenen formatlar: .jpg, .jpeg, .png, .webp, .gif, .bmp
+- Her başarılı yükleme loglanır, aynı dosya tekrar yüklenmez
+
+SORUN GİDERME:
+- Pencere açılıp hemen kapanıyorsa: nexa-config.txt'yi kontrol edin
+- "Klasör bulunamadı" hatası: WATCH_FOLDER'da yazdığınız klasörü oluşturun
+- "Token geçersiz" hatası: NEXA_TOKEN'u güncelleyin

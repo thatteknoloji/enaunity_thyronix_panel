@@ -1,0 +1,1911 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String          @id @default(cuid())
+  email     String          @unique
+  name      String
+  password  String
+  role      String          @default("user")
+  dealerId  String?
+  dealer    Dealer?         @relation(fields: [dealerId], references: [id])
+  adminRoleId String?
+  adminRole   AdminRole?    @relation(fields: [adminRoleId], references: [id])
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+  orders    Order[]
+  cart      Cart?
+  reviews   Review[]
+  productAccountLinks ProductAccountLink[]
+  appearance          UserAppearance?
+}
+
+model UserAppearance {
+  id            String   @id @default(cuid())
+  userId        String   @unique
+  theme         String   @default("dark")
+  accent        String   @default("orange")
+  compactMode   Boolean  @default(false)
+  reducedMotion Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model AdminRole {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String   @default("")
+  permissions String   @default("[]")
+  isSystem    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  users       User[]
+}
+
+model AdminLog {
+  id        String   @id @default(cuid())
+  userId    String
+  userName  String
+  action    String
+  target    String   @default("")
+  detail    String   @default("")
+  ip        String   @default("")
+  createdAt DateTime @default(now())
+}
+
+model Product {
+  id                String                @id @default(cuid())
+  name              String
+  slug              String                @default("") @unique
+  description       String
+  price             Float
+  costPrice         Float                 @default(0)
+  image             String                @default("/placeholder.svg")
+  images            String                @default("[]")
+  category          String                @default("general")
+  subcategory       String                @default("")
+  brand             String                @default("")
+  sku               String                @default("")
+  barcode           String                @default("")
+  modelCode         String                @default("")
+  specs             String                @default("[]")
+  weight            Float                 @default(0)
+  dimensions        String                @default("")
+  tags              String                @default("")
+  stock             Int                   @default(0)
+  minStockLevel     Int                   @default(0)
+  maxStockLevel     Int                   @default(0)
+  minOrderQuantity  Int                   @default(1)
+  backorderable     Boolean               @default(false)
+  eta               String                @default("")
+  createdAt         DateTime              @default(now())
+  updatedAt         DateTime              @updatedAt
+  orderItems        OrderItem[]
+  cartItems         CartItem[]
+  priceListEntries  PriceList[]
+  catalogRestrictions CatalogRestriction[]
+  stockMovements    StockMovement[]
+  warehouseStocks   ProductWarehouse[]
+  quoteItems        QuoteItem[]
+  tieredPrices      TieredPrice[]
+  dealerPrices      DealerPrice[]
+  returnItems       ReturnItem[]
+  campaignProducts  CampaignProduct[]
+  bundleItems       BundleItem[]
+  shippingConfigs   ShippingConfig[]
+  variants          Variant[]
+  variantGroups     VariantGroup[]
+  reviews           Review[]
+  stockCountItems   StockCountItem[]
+  favoriteProducts  FavoriteProduct[]
+  savedCartItems    SavedCartItem[]
+}
+
+model VariantGroup {
+  id         String          @id @default(cuid())
+  productId  String
+  product    Product         @relation(fields: [productId], references: [id])
+  name       String
+  sortOrder  Int             @default(0)
+  options    VariantOption[]
+  createdAt DateTime @default(now())
+}
+
+model Campaign {
+  id            String            @id @default(cuid())
+  name          String
+  description   String            @default("")
+  type          String            // bogo, bundle, quantity_discount, free_shipping, category_discount, first_order, loyalty
+  discountType  String            @default("percentage") // percentage, fixed
+  discountValue Float             @default(0)
+  minAmount     Float             @default(0)
+  maxDiscount   Float             @default(0)
+  minQuantity   Int               @default(0)
+  bundlePrice   Float             @default(0)
+  startsAt      DateTime?
+  endsAt        DateTime?
+  active        Boolean           @default(true)
+  targetType    String            @default("all") // all, users, dealers, dealerGroups
+  targetIds     String            @default("[]")  // JSON array of IDs
+  categoryScope String            @default("[]")  // JSON array for category_discount
+  orderCountMin     Int          @default(0)
+  freeShipping      Boolean      @default(false)
+  badge         String            @default("")
+  badgeColor    String            @default("#e50914")
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+  products      CampaignProduct[]
+}
+
+model CampaignProduct {
+  id         String    @id @default(cuid())
+  campaignId String
+  campaign   Campaign  @relation(fields: [campaignId], references: [id])
+  type       String    @default("buy") // buy, get
+  productId  String
+  product    Product   @relation(fields: [productId], references: [id])
+  quantity   Int       @default(1)
+
+  @@unique([campaignId, type, productId])
+}
+
+model VariantOption {
+  id        String       @id @default(cuid())
+  groupId   String
+  group     VariantGroup @relation(fields: [groupId], references: [id])
+  value     String
+  sortOrder Int          @default(0)
+}
+
+model Variant {
+  id         String   @id @default(cuid())
+  productId  String
+  product    Product  @relation(fields: [productId], references: [id])
+  sku        String   @default("")
+  barcode    String   @default("")
+  price      Float    @default(0)
+  stock      Int      @default(0)
+  options    String   @default("[]")
+  image      String   @default("")
+  active     Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model Category {
+  id         String     @id @default(cuid())
+  name       String
+  slug       String     @unique
+  parentId   String?
+  parent     Category?  @relation("CategoryChildren", fields: [parentId], references: [id])
+  children   Category[] @relation("CategoryChildren")
+  image      String     @default("")
+  sortOrder  Int        @default(0)
+  active     Boolean    @default(true)
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+}
+
+model ApiKey {
+  id         String   @id @default(cuid())
+  dealerId   String?
+  dealer     Dealer?  @relation(fields: [dealerId], references: [id])
+  key        String   @unique
+  name       String   @default("")
+  rateLimit  Int      @default(60)
+  lastUsed   DateTime?
+  active     Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model TieredPrice {
+  id         String   @id @default(cuid())
+  productId  String
+  product    Product  @relation(fields: [productId], references: [id])
+  minQuantity Int
+  price      Float
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@unique([productId, minQuantity])
+}
+
+model Order {
+  id         String      @id @default(cuid())
+  userId     String
+  user       User        @relation(fields: [userId], references: [id])
+  dealerId   String?
+  dealer     Dealer?     @relation(fields: [dealerId], references: [id])
+  subUserId  String?
+  subUser    SubUser?    @relation(fields: [subUserId], references: [id])
+  items      OrderItem[]
+  total      Float
+  discount   Float       @default(0)
+  couponId   String?
+  coupon     Coupon?     @relation(fields: [couponId], references: [id])
+  status     String      @default("pending")
+  notes      String      @default("")
+  address    String
+  trackingNumber String  @default("")
+  carrier    String      @default("")
+  hasBackorder Boolean   @default(false)
+  paymentTermDays Int    @default(0)
+  paymentTermRate Float  @default(0)
+  orderNumber        String   @default("")
+  marketplace        String   @default("")
+  marketplaceOrderId String   @default("")
+  sourceType         String   @default("B2B")
+  thyronixRef        String   @default("")
+  totalCost          Float    @default(0)
+  totalProfit        Float    @default(0)
+  fulfillmentStatus  String   @default("")
+  customerName       String   @default("")
+  customerPhone      String   @default("")
+  customerCity       String   @default("")
+  metadataJson       String   @default("{}")
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+  payments   Payment[]
+  stockMovements StockMovement[]
+  statusHistory  OrderStatusHistory[]
+  returnRequests ReturnRequest[]
+  dealerTransactions DealerTransaction[]
+  attachments      OrderAttachment[]
+  costItems        DealerCostItem[]
+  accountTransactions DealerAccountTransaction[] @relation("CoreOrderAccountTx")
+  shipments        DealerShipment[] @relation("CoreOrderShipments")
+  warehouseMovements DealerWarehouseMovement[] @relation("CoreOrderWarehouse")
+  invoices         Invoice[]
+
+  @@index([dealerId])
+  @@index([marketplaceOrderId])
+  @@index([fulfillmentStatus])
+  @@index([sourceType])
+  @@index([orderNumber])
+}
+
+model OrderStatusHistory {
+  id        String   @id @default(cuid())
+  orderId   String
+  order     Order    @relation(fields: [orderId], references: [id])
+  status    String
+  note      String   @default("")
+  changedBy String   @default("system") // system, dealer, admin
+  createdAt DateTime @default(now())
+}
+
+model OrderItem {
+  id                   String   @id @default(cuid())
+  orderId              String
+  order                Order    @relation(fields: [orderId], references: [id])
+  productId            String?
+  product              Product? @relation(fields: [productId], references: [id])
+  productCatalogItemId String?
+  productCatalogItem   ProductCatalogItem? @relation(fields: [productCatalogItemId], references: [id], onDelete: SetNull)
+  name                 String   @default("")
+  quantity             Int
+  price                Float
+  sku                  String   @default("")
+  barcode              String   @default("")
+  costPrice            Float    @default(0)
+  profitAmount         Float    @default(0)
+  thyronixProductId    String   @default("")
+  sourceType           String   @default("")
+  metadataJson         String   @default("{}")
+}
+
+model Cart {
+  id     String     @id @default(cuid())
+  userId String     @unique
+  user   User       @relation(fields: [userId], references: [id])
+  items  CartItem[]
+}
+
+model CartItem {
+  id        String  @id @default(cuid())
+  cartId    String
+  cart      Cart    @relation(fields: [cartId], references: [id])
+  productId String
+  product   Product @relation(fields: [productId], references: [id])
+  variantId String  @default("")
+  quantity  Int
+}
+
+model PartnerApplication {
+  id            String   @id @default(cuid())
+  partnerType   String
+  name          String
+  title         String
+  email         String
+  phone         String
+  company       String
+  website       String   @default("")
+  location      String
+  companySize   String
+  markets       String
+  portfolio     String   @default("")
+  techLevel     String   @default("")
+  motivation    String   @default("")
+  files         String   @default("[]")
+  kvkk          Boolean  @default(false)
+  status        String   @default("pending")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model DealerGroup {
+  id                  String   @id @default(cuid())
+  name                String   @unique
+  discountRate        Float    @default(0)
+  creditLimit         Float    @default(0)
+  allowNegativeBalance Boolean @default(false)
+  minOrderAmount      Float    @default(0)
+  paymentDays         Int      @default(0)
+  rules               String   @default("{}")
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+  dealers             Dealer[]
+}
+
+model Dealer {
+  id              String             @id @default(cuid())
+  name            String
+  title           String
+  email           String             @unique
+  phone           String
+  company         String
+  website         String             @default("")
+  location        String
+  companySize     String
+  markets         String
+  discountRate    Float              @default(0)
+  group           String             @default("bronze")
+  dealerGroup     DealerGroup?       @relation(fields: [group], references: [name])
+  creditLimit     Float              @default(0)
+  openingBalance  Float              @default(0)
+  balance         Float              @default(0)
+  allowNegative   Boolean            @default(false)
+  taxNumber       String             @default("")
+  taxOffice       String             @default("")
+  billingAddress  String             @default("")
+  shippingAddress String             @default("")
+  logo            String             @default("")
+  status          String             @default("active")
+  orders          Order[]
+  users           User[]
+  payments        Payment[]
+  quotes          Quote[]
+  notifications   Notification[]
+  subUsers        SubUser[]
+  dealerPrices    DealerPrice[]
+  paymentTerm     PaymentTerm?
+  dealerTransactions DealerTransaction[]
+  returnRequests  ReturnRequest[]
+  apiKeys         ApiKey[]
+  favoriteProducts FavoriteProduct[]
+  savedCarts       SavedCart[]
+  assignments      DealerAssignment[]
+  addresses        Address[]
+  dealerContracts  DealerContract[]
+  dealerDocuments  DealerDocument[]
+  invoices         Invoice[]
+  telegramChatId   String             @default("")
+  marketplaceConnections MarketplaceConnection[]
+  dealerOrders           DealerOrder[]
+  dealerAccount          DealerAccount?
+  dealerAccountTransactions DealerAccountTransaction[]
+  dealerStatements       DealerStatement[]
+  dealerWarehouseMovements DealerWarehouseMovement[]
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+}
+
+model DealerPrice {
+  id        String   @id @default(cuid())
+  dealerId  String
+  dealer    Dealer   @relation(fields: [dealerId], references: [id])
+  productId String
+  product   Product  @relation(fields: [productId], references: [id])
+  price     Float
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([dealerId, productId])
+}
+
+model PriceList {
+  id        String   @id @default(cuid())
+  group     String
+  productId String
+  product   Product  @relation(fields: [productId], references: [id])
+  price     Float
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([group, productId])
+}
+
+model CatalogRestriction {
+  id        String   @id @default(cuid())
+  group     String
+  productId String
+  product   Product  @relation(fields: [productId], references: [id])
+  createdAt DateTime @default(now())
+
+  @@unique([group, productId])
+}
+
+model Payment {
+  id        String   @id @default(cuid())
+  dealerId  String
+  dealer    Dealer   @relation(fields: [dealerId], references: [id])
+  orderId   String?
+  order     Order?   @relation(fields: [orderId], references: [id])
+  invoiceId String?
+  invoice   Invoice? @relation(fields: [invoiceId], references: [id], onDelete: SetNull)
+  amount    Float
+  type      String   @default("payment")
+  status    String   @default("COMPLETED")
+  note      String   @default("")
+  createdAt DateTime @default(now())
+
+  @@index([invoiceId])
+  @@index([dealerId])
+}
+
+model StockMovement {
+  id          String     @id @default(cuid())
+  productId   String
+  product     Product    @relation(fields: [productId], references: [id])
+  warehouseId String?
+  warehouse   Warehouse? @relation(fields: [warehouseId], references: [id], onDelete: SetNull)
+  type        String     // IN, OUT, RESERVE, RELEASE_RESERVE, RETURN, ADJUSTMENT, TRANSFER (+ legacy: entry, exit, adjustment, return)
+  quantity    Int
+  note        String     @default("")
+  orderId     String?
+  order       Order?     @relation(fields: [orderId], references: [id])
+  createdAt   DateTime   @default(now())
+
+  @@index([productId])
+  @@index([orderId])
+  @@index([type])
+  @@index([warehouseId])
+}
+
+model Warehouse {
+  id        String             @id @default(cuid())
+  name      String
+  location  String             @default("")
+  isDefault Boolean            @default(false)
+  stocks    ProductWarehouse[]
+  stockCounts StockCount[]
+  stockMovements StockMovement[]
+  createdAt DateTime           @default(now())
+  updatedAt DateTime           @updatedAt
+}
+
+model ProductWarehouse {
+  id          String    @id @default(cuid())
+  productId   String
+  product     Product   @relation(fields: [productId], references: [id])
+  warehouseId String
+  warehouse   Warehouse @relation(fields: [warehouseId], references: [id])
+  stock       Int       @default(0)
+
+  @@unique([productId, warehouseId])
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String?
+  dealerId  String?
+  dealer    Dealer?  @relation(fields: [dealerId], references: [id])
+  title     String
+  message   String
+  type      String   @default("info")
+  read      Boolean  @default(false)
+  link      String   @default("")
+  createdAt DateTime @default(now())
+}
+
+model Quote {
+  id             String      @id @default(cuid())
+  dealerId       String
+  dealer         Dealer      @relation(fields: [dealerId], references: [id])
+  items          QuoteItem[]
+  status         String      @default("pending") // pending, approved, rejected, countered
+  note           String      @default("")
+  adminNote      String      @default("")
+  total          Float       @default(0)
+  validUntil     DateTime?
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+}
+
+model QuoteItem {
+  id        String  @id @default(cuid())
+  quoteId   String
+  quote     Quote   @relation(fields: [quoteId], references: [id])
+  productId String
+  product   Product @relation(fields: [productId], references: [id])
+  quantity  Int
+  price     Float   @default(0)
+}
+
+model Coupon {
+  id          String   @id @default(cuid())
+  code        String   @unique
+  type        String   @default("percentage") // percentage, fixed
+  value       Float    // 10 = %10 or 100 = 100TL
+  minAmount   Float    @default(0)
+  maxDiscount Float    @default(0) // 0 = unlimited
+  usageLimit  Int      @default(0) // 0 = unlimited
+  usageCount  Int      @default(0)
+  active      Boolean  @default(true)
+  expiresAt   DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  orders      Order[]
+}
+
+model SubUser {
+  id        String   @id @default(cuid())
+  dealerId  String
+  dealer    Dealer   @relation(fields: [dealerId], references: [id])
+  name      String
+  email     String   @unique
+  password  String
+  role      String   @default("orderer") // viewer, orderer, admin
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  orders    Order[]
+}
+
+model PaymentTerm {
+  id        String   @id @default(cuid())
+  dealerId  String   @unique
+  dealer    Dealer   @relation(fields: [dealerId], references: [id])
+  days      Int      @default(30)
+  rate      Float    @default(0)
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model ReturnRequest {
+  id        String       @id @default(cuid())
+  dealerId  String
+  dealer    Dealer       @relation(fields: [dealerId], references: [id])
+  orderId   String?
+  order     Order?       @relation(fields: [orderId], references: [id])
+  reason    String       @default("")
+  status    String       @default("pending")
+  adminNote String       @default("")
+  items     ReturnItem[]
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+}
+
+model ReturnItem {
+  id        String        @id @default(cuid())
+  requestId String
+  request   ReturnRequest @relation(fields: [requestId], references: [id])
+  productId String
+  product   Product       @relation(fields: [productId], references: [id])
+  quantity  Int
+  price     Float         @default(0)
+}
+
+model DealerTransaction {
+  id           String   @id @default(cuid())
+  dealerId     String
+  dealer       Dealer   @relation(fields: [dealerId], references: [id])
+  type         String
+  amount       Float
+  orderId      String?
+  order        Order?   @relation(fields: [orderId], references: [id])
+  note         String   @default("")
+  balanceAfter Float    @default(0)
+  createdAt   DateTime @default(now())
+}
+
+model ThyronixAiSuggestion {
+  id              String   @id @default(cuid())
+  productId       String
+  taskType        String   // title_optimize, description_generate, category_suggest, attribute_extract, quality_improve
+  originalValue   String   @default("")
+  suggestedValue  String
+  status          String   @default("pending") // pending, accepted, rejected, applied
+  providerId      String   @default("")
+  model           String   @default("")
+  tokenUsage      Int      @default(0)
+  cost            Float    @default(0)
+  fieldLocked     Boolean  @default(false)
+  createdAt       DateTime @default(now())
+  appliedAt       DateTime?
+  rejectedAt      DateTime?
+  @@index([productId])
+  @@index([status])
+  @@index([productId, status])
+}
+
+model ThyronixAiJob {
+  id              String   @id @default(cuid())
+  name            String
+  taskType        String
+  status          String   @default("pending") // pending, running, paused, completed, failed, cancelled
+  totalProducts   Int      @default(0)
+  processedCount  Int      @default(0)
+  successCount    Int      @default(0)
+  failedCount     Int      @default(0)
+  estimatedTokens Int      @default(0)
+  estimatedCost   Float    @default(0)
+  actualTokens    Int      @default(0)
+  actualCost      Float    @default(0)
+  providerId      String   @default("")
+  model           String   @default("")
+  filterQuery     String   @default("")
+  startedAt       DateTime?
+  completedAt     DateTime?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model Review {
+  id        String   @id @default(cuid())
+  productId String
+  product   Product  @relation(fields: [productId], references: [id])
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  rating    Int
+  comment   String   @default("")
+  approved  Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+model Contract {
+  id        String          @id @default(cuid())
+  title     String
+  slug      String          @unique
+  content   String          @default("")
+  type      String          @default("page")
+  active    Boolean         @default(true)
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+  dealerContracts DealerContract[]
+}
+
+model DealerContract {
+  id         String   @id @default(cuid())
+  dealerId   String
+  dealer     Dealer   @relation(fields: [dealerId], references: [id])
+  contractId String
+  contract   Contract @relation(fields: [contractId], references: [id])
+  status     String   @default("pending") // pending, approved, rejected
+  assignedBy String   @default("") // admin name
+  readAt     DateTime?
+  respondedAt DateTime?
+  note       String   @default("")
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@unique([dealerId, contractId])
+}
+
+model Address {
+  id        String   @id @default(cuid())
+  dealerId  String
+  dealer    Dealer   @relation(fields: [dealerId], references: [id])
+  label     String   @default("") // e.g. "İş Adresim", "Depo"
+  type      String   @default("shipping") // billing, shipping
+  fullAddress String
+  city      String   @default("")
+  district  String   @default("")
+  zipCode   String   @default("")
+  phone     String   @default("")
+  isDefault Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model DealerDocument {
+  id        String   @id @default(cuid())
+  dealerId  String
+  dealer    Dealer   @relation(fields: [dealerId], references: [id])
+  title     String   @default("")
+  type      String   @default("other") // tax_levy, signature_circular, trade_registry, other
+  fileUrl   String
+  fileName  String   @default("")
+  fileSize  Int      @default(0)
+  status    String   @default("pending") // pending, approved, rejected
+  adminNote String   @default("")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model FooterSettings {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     String   @default("")
+  updatedAt DateTime @updatedAt
+}
+
+model Page {
+  id        String   @id @default(cuid())
+  title     String
+  slug      String   @unique
+  content   String   @default("")
+  active    Boolean  @default(true)
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model OrderAttachment {
+  id        String   @id @default(cuid())
+  orderId   String
+  order     Order    @relation(fields: [orderId], references: [id])
+  fileName  String
+  fileUrl   String
+  fileType  String   @default("image")
+  fileSize  Int      @default(0)
+  createdAt DateTime @default(now())
+}
+
+model Bundle {
+  id          String       @id @default(cuid())
+  name        String
+  description String       @default("")
+  price       Float        @default(0)
+  image       String       @default("")
+  active      Boolean      @default(true)
+  items       BundleItem[]
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+}
+
+model BundleItem {
+  id        String  @id @default(cuid())
+  bundleId  String
+  bundle    Bundle  @relation(fields: [bundleId], references: [id])
+  productId String
+  product   Product @relation(fields: [productId], references: [id])
+  quantity  Int     @default(1)
+}
+
+model StockCount {
+  id         String           @id @default(cuid())
+  name       String
+  warehouseId String?
+  warehouse  Warehouse?       @relation(fields: [warehouseId], references: [id])
+  status     String           @default("draft") // draft, in_progress, completed, cancelled
+  notes      String           @default("")
+  items      StockCountItem[]
+  createdAt  DateTime         @default(now())
+  updatedAt  DateTime         @updatedAt
+}
+
+model StockCountItem {
+  id           String      @id @default(cuid())
+  countId      String
+  count        StockCount  @relation(fields: [countId], references: [id])
+  productId    String
+  product      Product     @relation(fields: [productId], references: [id])
+  systemStock  Int         @default(0)
+  actualStock  Int?
+  difference   Int         @default(0)
+  note         String      @default("")
+}
+
+model ShippingConfig {
+  id          String   @id @default(cuid())
+  type        String   @default("category")
+  category    String?
+  productId   String?
+  product     Product? @relation(fields: [productId], references: [id])
+  carrier     String   @default("Yurtiçi Kargo")
+  basePrice   Float    @default(0)
+  perDesi     Float    @default(0)
+  freeOver    Float    @default(0)
+  manualPrice Float    @default(0)
+  freeShipping Boolean  @default(false)
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([type, category, productId])
+}
+
+model FavoriteProduct {
+  id        String   @id @default(cuid())
+  dealerId  String
+  dealer    Dealer   @relation(fields: [dealerId], references: [id])
+  productId String
+  product   Product  @relation(fields: [productId], references: [id])
+  createdAt DateTime @default(now())
+
+  @@unique([dealerId, productId])
+}
+
+model SavedCart {
+  id        String          @id @default(cuid())
+  dealerId  String
+  dealer    Dealer          @relation(fields: [dealerId], references: [id])
+  name      String
+  items     SavedCartItem[]
+  total     Float           @default(0)
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+}
+
+model SavedCartItem {
+  id        String    @id @default(cuid())
+  savedCartId String
+  savedCart SavedCart @relation(fields: [savedCartId], references: [id], onDelete: Cascade)
+  productId String
+  product   Product   @relation(fields: [productId], references: [id])
+  quantity  Int
+}
+
+model WebhookEndpoint {
+  id        String    @id @default(cuid())
+  name      String
+  url       String
+  events    String    @default("[]") // JSON array of event types
+  secret    String    @default("")
+  active    Boolean   @default(true)
+  lastCall  DateTime?
+  lastStatus Int?
+  failCount Int       @default(0)
+  logs      WebhookLog[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model ApprovalRule {
+  id          String   @id @default(cuid())
+  name        String
+  minAmount   Float    @default(0)
+  maxAmount   Float    @default(0)
+  categories  String   @default("[]") // JSON array: [] = all categories
+  dealerGroups String  @default("[]") // JSON array: [] = all groups
+  minItemCount Int     @default(0)
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model DealerAssignment {
+  id        String   @id @default(cuid())
+  adminId   String
+  adminName String   @default("")
+  dealerId  String
+  dealer    Dealer   @relation(fields: [dealerId], references: [id])
+  createdAt DateTime @default(now())
+
+  @@unique([adminId, dealerId])
+}
+
+model WebhookLog {
+  id         String   @id @default(cuid())
+  endpointId String
+  endpoint   WebhookEndpoint @relation(fields: [endpointId], references: [id], onDelete: Cascade)
+  event      String
+  status     Int
+  request    String   @default("")
+  response   String   @default("")
+  duration   Int      @default(0)
+  createdAt   DateTime @default(now())
+}
+
+// ═══════════════════════════════════════════
+// DEALER APPROVAL + MODULE LICENSE MODELS
+// ═══════════════════════════════════════════
+
+model DealerApproval {
+  id             String   @id @default(cuid())
+  dealerId       String   @unique
+  status         String   @default("PENDING_PROFILE") // PENDING_PROFILE, PENDING_DOCUMENTS, PENDING_PAYMENT, PENDING_ADMIN_APPROVAL, ACTIVE, REJECTED, SUSPENDED
+  companyName    String   @default("")
+  taxNumber      String   @default("")
+  taxOffice      String   @default("")
+  phone          String   @default("")
+  address        String   @default("")
+  documentStatus String   @default("PENDING") // PENDING, APPROVED, REJECTED
+  paymentStatus  String   @default("PENDING") // PENDING, PAID, FAILED, MANUAL_REVIEW
+  adminNote      String   @default("")
+  rejectedReason String   @default("")
+  approvedAt     DateTime?
+  rejectedAt     DateTime?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+model ModulePlan {
+  id            String   @id @default(cuid())
+  moduleKey     String   // ENA_COMMERCE, THYRONIX, HIVE, HIVE_PRO
+  planKey       String   // starter, pro, enterprise, growth, dominance
+  name          String
+  description   String   @default("")
+  monthlyPrice  Float    @default(0)
+  yearlyPrice   Float    @default(0)
+  currency      String   @default("TRY")
+  featuresJson  String   @default("[]")  // JSON array of feature strings
+  limitsJson    String   @default("{}")  // JSON: {"maxProducts":1000,"maxFeeds":5,...}
+  isActive      Boolean  @default(true)
+  sortOrder     Int      @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model ModuleLicense {
+  id              String   @id @default(cuid())
+  dealerId        String
+  moduleKey       String   // ENA_COMMERCE, THYRONIX, HIVE, HIVE_PRO
+  planKey         String   @default("")
+  status          String   @default("INACTIVE") // INACTIVE, TRIAL, PENDING_PAYMENT, PENDING_APPROVAL, ACTIVE, SUSPENDED, CANCELLED, EXPIRED
+  trialEndsAt     DateTime?
+  startsAt        DateTime?
+  endsAt          DateTime?
+  usageLimitJson  String   @default("{}")
+  metadataJson    String   @default("{}")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model ModulePayment {
+  id                String   @id @default(cuid())
+  dealerId          String
+  moduleKey         String
+  planKey           String
+  amount            Float    @default(0)
+  currency          String   @default("TRY")
+  status            String   @default("PENDING") // PENDING, PAID, FAILED, REFUNDED, CANCELLED, MANUAL_REVIEW
+  provider          String   @default("manual")  // manual, stripe, iyzico
+  providerReference String   @default("")
+  paymentType       String   @default("one_time") // one_time, subscription
+  invoiceUrl        String   @default("")
+  paidAt            DateTime?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+}
+
+model AdminActivityLog {
+  id           String   @id @default(cuid())
+  adminUserId  String
+  action       String
+  targetType   String   @default("")
+  targetId     String   @default("")
+  ipAddress    String   @default("")
+  userAgent    String   @default("")
+  metadataJson String   @default("{}")
+  createdAt    DateTime @default(now())
+}
+
+// ═══════════════════════════════════════════
+// PRODUCT ACCOUNT LINKING (Identity Bridge)
+// ═══════════════════════════════════════════
+
+model ProductExternalUser {
+  id           String   @id @default(cuid())
+  productType  String   // THYRONIX, HIVE
+  email        String
+  username     String   @default("")
+  password     String
+  name         String   @default("")
+  status       String   @default("ACTIVE")
+  metadataJson String   @default("{}")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  links        ProductAccountLink[]
+
+  @@unique([productType, email])
+  @@index([productType, username])
+}
+
+model ProductAccountLink {
+  id               String   @id @default(cuid())
+  enaUserId        String
+  productType      String   // THYRONIX, HIVE
+  externalUserId   String
+  externalEmail    String   @default("")
+  externalUsername String   @default("")
+  status           String   @default("PENDING") // PENDING, LINKED, DISABLED, DELETED
+  linkedAt         DateTime?
+  lastLoginAt      DateTime?
+  metadataJson     String   @default("{}")
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  enaUser          User                 @relation(fields: [enaUserId], references: [id], onDelete: Cascade)
+  externalUser     ProductExternalUser  @relation(fields: [externalUserId], references: [id], onDelete: Cascade)
+
+  @@unique([enaUserId, productType])
+  @@index([productType, status])
+  @@index([externalUserId])
+}
+
+model ThyronixSessionBridge {
+  id             String   @id @default(cuid())
+  dealerId       String   @default("")
+  enaUserId      String
+  thyronixUserId String
+  lastLoginAt    DateTime @default(now())
+  createdAt      DateTime @default(now())
+
+  @@index([dealerId])
+  @@index([enaUserId])
+  @@index([thyronixUserId])
+  @@index([lastLoginAt])
+}
+
+model HiveSessionBridge {
+  id          String   @id @default(cuid())
+  dealerId    String   @default("")
+  enaUserId   String
+  hiveUserId  String
+  workspaceId String   @default("")
+  lastLoginAt DateTime @default(now())
+  createdAt   DateTime @default(now())
+
+  @@index([dealerId])
+  @@index([enaUserId])
+  @@index([hiveUserId])
+  @@index([workspaceId])
+  @@index([lastLoginAt])
+}
+
+// ── NEXA Models ──
+
+enum ThyronixTenantScope {
+  GLOBAL
+  DEALER
+}
+
+enum ThyronixOwnerType {
+  ADMIN
+  DEALER
+}
+
+model ThyronixSource {
+  id           String   @id @default(cuid())
+  name         String
+  xmlUrl       String
+  type         String   @default("xml")
+  inputFormat  String   @default("custom_xml")
+  fieldMapping String?  // JSON: custom field mapping overrides
+  fixedValues  String?  // JSON: fixed values {brand:"X", weight:"4"}
+  interval     Int      @default(60)
+  status      String   @default("active")
+  lastSync    DateTime?
+  productCount Int     @default(0)
+  errorLog    String?
+  dealerId     String?
+  tenantScope  ThyronixTenantScope @default(GLOBAL)
+  ownerType    ThyronixOwnerType   @default(ADMIN)
+  createdAt   DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  products  ThyronixProduct[]
+  @@index([status])
+  @@index([name])
+  @@index([dealerId])
+  @@index([tenantScope])
+}
+
+model ThyronixProduct {
+  id              String   @id @default(cuid())
+  sourceId        String
+  source          ThyronixSource @relation(fields: [sourceId], references: [id], onDelete: Cascade)
+
+  externalId      String
+  name            String
+  description     String?
+  brand           String?
+  category        String?
+  barcode         String?
+  stockCode       String?
+  modelCode       String?
+  price           Float    @default(0)
+  discountedPrice Float?
+  stock           Int      @default(0)
+  images          String?
+  currency        String   @default("TRY")
+  variantData     String?  // JSON: variant array from source XML
+
+  status          String   @default("active")
+  lockedFields    String?
+  confidence      Float?
+  dealerId        String?
+  tenantScope     ThyronixTenantScope @default(GLOBAL)
+  ownerType       ThyronixOwnerType   @default(ADMIN)
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@unique([sourceId, externalId])
+  @@index([status])
+  @@index([barcode])
+  @@index([stockCode])
+  @@index([modelCode])
+  @@index([category])
+  @@index([brand])
+  @@index([price])
+  @@index([stock])
+  @@index([createdAt])
+  @@index([sourceId, barcode])
+  @@index([sourceId, stockCode])
+  @@index([sourceId, modelCode])
+  @@index([sourceId, status])
+  @@index([sourceId, createdAt])
+  @@index([name])
+  @@index([dealerId])
+  @@index([tenantScope])
+}
+
+model ThyronixFeed {
+  id            String    @id @default(cuid())
+  name          String
+  channel       String
+  status        String    @default("active")
+  productCount  Int       @default(0)
+  url           String?
+  interval      Int       @default(60)
+  outputFormat  String    @default("jetteknoloji")
+  mergeStrategy String    @default("lowest_price")
+  schedule      Int       @default(24)
+  lastPublished DateTime?
+  dealerId      String?
+  tenantScope   ThyronixTenantScope @default(GLOBAL)
+  ownerType     ThyronixOwnerType   @default(ADMIN)
+  createdAt     DateTime  @default(now())
+  updatedAt    DateTime @updatedAt
+  @@index([status])
+  @@index([dealerId])
+  @@index([tenantScope])
+}
+
+model ThyronixRule {
+  id           String   @id @default(cuid())
+  name         String
+  description  String?
+  priority     Int      @default(0)
+  field        String
+  operator     String
+  value        String
+  action       String
+  actionValue  String?
+  status       String   @default("active")
+  affectedCount Int     @default(0)
+  dealerId      String?
+  tenantScope   ThyronixTenantScope @default(GLOBAL)
+  ownerType     ThyronixOwnerType   @default(ADMIN)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  @@index([status])
+  @@index([dealerId])
+  @@index([tenantScope])
+}
+
+model ThyronixSyncLog {
+  id          String   @id @default(cuid())
+  type        String
+  referenceId String?
+  status      String
+  message     String?
+  productCount Int?
+  duration    Int?
+  createdAt   DateTime @default(now())
+  @@index([type])
+  @@index([createdAt])
+  @@index([type, createdAt])
+}
+
+model ThyronixExclusion {
+  id        String   @id @default(cuid())
+  type      String
+  value     String
+  reason    String?
+  dealerId  String?
+  tenantScope ThyronixTenantScope @default(GLOBAL)
+  ownerType   ThyronixOwnerType   @default(ADMIN)
+  createdAt DateTime @default(now())
+  @@index([dealerId])
+  @@index([tenantScope])
+}
+
+model ThyronixBrandMapping {
+  id           String   @id @default(cuid())
+  sourceBrand  String
+  targetBrand  String
+  sourceId     String?  // optional: apply only to a specific source
+  status       String   @default("active")
+  affectedCount Int     @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model ThyronixCategoryMapping {
+  id              String   @id @default(cuid())
+  sourceCategory  String
+  targetCategory  String
+  targetSubCategory String?  // optional sub-category
+  sourceId        String?
+  status          String   @default("active")
+  affectedCount   Int      @default(0)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model ThyronixSnapshot {
+  id            String   @id @default(cuid())
+  label         String
+  type          String   @default("sync")  // sync, bulk, rule, manual
+  feedId        String?
+  sourceId      String?
+  productCount  Int
+  activeCount   Int
+  passiveCount  Int
+  errorCount    Int
+  warningCount  Int
+  snapshotData  String?  // JSON blob for restore data
+  createdAt     DateTime @default(now())
+  @@index([sourceId])
+  @@index([createdAt])
+  @@index([sourceId, createdAt])
+}
+
+model Invoice {
+  id            String   @id @default(cuid())
+  number        String   @unique
+  type          String   @default("invoice")
+  status        String   @default("draft")
+  sourceType    String   @default("MANUAL")
+  paymentStatus String   @default("UNPAID")
+  paidAmount    Float    @default(0)
+  orderId       String?
+  order         Order?   @relation(fields: [orderId], references: [id], onDelete: SetNull)
+  dealerId      String?
+  dealer        Dealer?  @relation(fields: [dealerId], references: [id])
+  currency      String   @default("TRY")
+  subtotal      Float    @default(0)
+  taxRate       Float    @default(20)
+  taxAmount     Float    @default(0)
+  discount      Float    @default(0)
+  total         Float    @default(0)
+  dueDate       DateTime?
+  notes         String   @default("")
+  emailSent     Boolean  @default(false)
+  emailSentAt   DateTime?
+  pdfUrl        String   @default("")
+  items         InvoiceItem[]
+  payments      Payment[]
+  accountTransactions DealerAccountTransaction[]
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([orderId])
+  @@index([dealerId])
+  @@index([paymentStatus])
+  @@index([sourceType])
+}
+
+model InvoiceItem {
+  id          String   @id @default(cuid())
+  invoiceId   String
+  invoice     Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  productId   String?
+  productName String
+  description String   @default("")
+  quantity    Int      @default(1)
+  unitPrice   Float    @default(0)
+  total       Float    @default(0)
+  createdAt   DateTime @default(now())
+}
+
+model MarketplaceConnection {
+  id                String              @id @default(cuid())
+  dealerId          String
+  dealer            Dealer              @relation(fields: [dealerId], references: [id], onDelete: Cascade)
+  platform          String              @default("TRENDYOL")
+  sellerId          String              @default("")
+  storeId           String              @default("")
+  supplierId        String              @default("")
+  apiKey            String
+  apiSecret         String              @default("")
+  matchMethod       String              @default("product_name")
+  connectionStatus  String              @default("DISCONNECTED")
+  active            Boolean             @default(true)
+  lastSyncAt        DateTime?
+  lastError         String              @default("")
+  orders            MarketplaceOrder[]
+  syncLogs          MarketplaceSyncLog[]
+  webhookEvents     MarketplaceWebhookEvent[]
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+
+  @@index([dealerId])
+  @@index([platform])
+  @@index([connectionStatus])
+}
+
+model MarketplaceOrder {
+  id               String                  @id @default(cuid())
+  connectionId     String
+  connection       MarketplaceConnection   @relation(fields: [connectionId], references: [id], onDelete: Cascade)
+  platform         String
+  platformOrderId  String
+  customerName     String                  @default("")
+  customerPhone    String                  @default("")
+  customerAddress  String                  @default("")
+  customerCity     String                  @default("")
+  totalAmount      Float                   @default(0)
+  status           String                  @default("new")
+  processed        Boolean                 @default(false)
+  dealerOrderId    String?
+  items            MarketplaceOrderItem[]
+  createdAt        DateTime                @default(now())
+  updatedAt        DateTime                @updatedAt
+}
+
+model MarketplaceOrderItem {
+  id               String              @id @default(cuid())
+  orderId          String
+  order            MarketplaceOrder    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productName      String
+  barcode          String              @default("")
+  quantity         Int                 @default(1)
+  unitPrice        Float               @default(0)
+  total            Float               @default(0)
+  productImage     String              @default("")
+  productCategory  String              @default("")
+  productSku       String              @default("")
+  matchedProductId String              @default("")
+  catalogItemId    String              @default("")
+  thyronixProductId String           @default("")
+  originalProductName String           @default("")
+}
+
+model ThyronixAiProvider {
+  id              String   @id @default(cuid())
+  name            String
+  provider        String   // openai, claude, gemini, deepseek, openrouter, custom, ollama
+  apiKeyEncrypted String   // AES encrypted
+  endpoint        String   @default("")
+  model           String   @default("gpt-4o")
+  temperature     Float    @default(0.7)
+  maxTokens       Int      @default(4096)
+  systemPrompt    String   @default("")
+  isDefault       Boolean  @default(false)
+  status          String   @default("active") // active, error, disabled
+  lastTested      DateTime?
+  testResult      String   @default("")
+  totalTokens     Int      @default(0)
+  totalCost       Float    @default(0)
+  usages          ThyronixAiUsage[]
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model ThyronixAiUsage {
+  id          String   @id @default(cuid())
+  providerId  String
+  aiProvider  ThyronixAiProvider @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  task        String   // title_optimize, description_generate, category_suggest, etc.
+  productId   String   @default("")
+  model       String
+  promptTokens Int    @default(0)
+  completionTokens Int @default(0)
+  totalTokens Int     @default(0)
+  cost        Float   @default(0)
+  duration    Int     @default(0) // ms
+  status      String  @default("success")
+  error       String  @default("")
+  createdAt   DateTime @default(now())
+}
+
+model BankTransferNotification {
+  id              String   @id @default(cuid())
+  dealerId        String
+  modulePaymentId String
+  senderName      String   @default("")
+  bankName        String   @default("")
+  amount          Float    @default(0)
+  receiptUrl      String   @default("")
+  note            String   @default("")
+  status          String   @default("PENDING")
+  reviewedByAdminId String @default("")
+  reviewedAt      DateTime?
+  createdAt       DateTime @default(now())
+}
+
+model PaymentWebhookLog {
+  id                String   @id @default(cuid())
+  provider          String
+  eventType         String   @default("")
+  providerReference String   @default("")
+  payloadJson       String   @default("{}")
+  status            String   @default("PENDING")
+  errorMessage      String   @default("")
+  createdAt         DateTime @default(now())
+}
+
+model HiveAccessToken {
+  id        String   @id @default(cuid())
+  dealerId  String
+  userId    String   @default("")
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+}
+
+model HiveWorkspace {
+  id           String   @id @default(cuid())
+  dealerId     String   @unique
+  enaUserId    String   @default("")
+  ownerUserId  String   @default("")
+  name         String
+  status       String   @default("ACTIVE")
+  settingsJson String   @default("{}")
+  createdAt    DateTime @default(now())
+
+  @@index([enaUserId])
+  @@index([ownerUserId])
+}
+
+// ── Ecosystem Product Showcase CMS ──
+
+model ProductShowcase {
+  id               String   @id @default(cuid())
+  name             String
+  slug             String   @unique
+  status           String   @default("ACTIVE") // ACTIVE, COMING_SOON, HIDDEN, ARCHIVED
+  sortOrder        Int      @default(0)
+  isFeatured       Boolean  @default(false)
+  icon             String   @default("Zap")
+  themeColor       String   @default("#3b82f6")
+  accentColor      String   @default("#60a5fa")
+  shortDescription String   @default("")
+  longDescription  String   @default("")
+  monthlyPrice     Float?
+  yearlyPrice      Float?
+  ctaText          String   @default("Keşfet")
+  ctaUrl           String   @default("")
+  productUrl       String   @default("")
+  heroTitle        String   @default("")
+  heroSubtitle     String   @default("")
+  heroDescription  String   @default("")
+  comingSoonText   String   @default("Yakında")
+  featuresSectionTitle String @default("Özellikler")
+  plansSectionTitle    String @default("Paketler")
+  faqSectionTitle      String @default("Sık Sorulan Sorular")
+  gallerySectionTitle  String @default("Galeri")
+  maxCardChips     Int      @default(8)
+  showPriceOnCard  Boolean  @default(false)
+  linkTarget       String   @default("_self")
+  featuresJson     String   @default("[]")
+  faqJson          String   @default("[]")
+  plansJson        String   @default("[]")
+  galleryJson      String   @default("[]")
+  badgeText        String   @default("")
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@index([status])
+  @@index([sortOrder])
+  @@index([isFeatured])
+}
+
+model EcosystemShowcaseSettings {
+  id               String   @id @default("default")
+  enabled          Boolean  @default(true)
+  badgeText        String   @default("ENAUNITY Ecosystem")
+  title            String   @default("Profesyonel ticaret ve büyüme ekosistemi")
+  description      String   @default("Bir panele değil; B2B ticaret, ürün operasyonu ve dijital büyüme motorlarından oluşan entegre bir platforma giriyorsunuz.")
+  columns          Int      @default(3)
+  anchorId         String   @default("ecosystem")
+  bgPrimaryColor   String   @default("#3b82f6")
+  bgSecondaryColor String   @default("#8b5cf6")
+  paddingTop       String   @default("24")
+  paddingBottom    String   @default("28")
+  updatedAt        DateTime @updatedAt
+}
+
+model ThyronixWorkspaceSettings {
+  id                  String   @id @default(cuid())
+  dealerId            String   @unique
+  onboardingCompleted Boolean  @default(false)
+  onboardingStep      Int      @default(0)
+  onboardingJson      String   @default("{}")
+  automationJson      String   @default("{}")
+  teamJson            String   @default("[]")
+  checklistJson       String   @default("{}")
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  @@index([dealerId])
+}
+
+// ── Product Library ──
+
+model ProductCatalog {
+  id            String   @id @default(cuid())
+  name          String
+  slug          String   @unique
+  description   String   @default("")
+  status        String   @default("DRAFT")
+  productCount  Int      @default(0)
+  supplierCount Int      @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  items         ProductCatalogItem[]
+  suppliers     ProductSupplier[]
+
+  @@index([status])
+}
+
+model ProductSupplier {
+  id           String   @id @default(cuid())
+  name         String
+  slug         String   @unique
+  type         String   @default("XML")
+  contactName  String   @default("")
+  contactEmail String   @default("")
+  xmlUrl       String   @default("")
+  notes        String   @default("")
+  status       String   @default("ACTIVE")
+  catalogId    String?
+  catalog      ProductCatalog? @relation(fields: [catalogId], references: [id], onDelete: SetNull)
+  items        ProductCatalogItem[]
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([catalogId])
+  @@index([type])
+}
+
+model ProductCatalogItem {
+  id             String   @id @default(cuid())
+  catalogId      String
+  supplierId     String?
+  barcode        String   @default("")
+  sku            String   @default("")
+  name           String
+  brand          String   @default("")
+  category       String   @default("")
+  price          Float    @default(0)
+  salePrice      Float    @default(0)
+  stock          Int      @default(0)
+  vatRate        Float    @default(20)
+  imagesJson     String   @default("[]")
+  attributesJson String   @default("{}")
+  status         String   @default("ACTIVE")
+  catalog        ProductCatalog  @relation(fields: [catalogId], references: [id], onDelete: Cascade)
+  supplier       ProductSupplier? @relation(fields: [supplierId], references: [id], onDelete: SetNull)
+  orderItems     DealerOrderItem[]
+  coreOrderItems OrderItem[]
+  warehouseMovements DealerWarehouseMovement[]
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([catalogId])
+  @@index([supplierId])
+  @@index([barcode])
+  @@index([sku])
+  @@index([brand])
+  @@index([category])
+}
+
+model ProductPackage {
+  id            String   @id @default(cuid())
+  name          String
+  slug          String   @unique
+  description   String   @default("")
+  productCount  Int      @default(0)
+  catalogIds    String   @default("[]")
+  licenseLevel  String   @default("FREE")
+  monthlyPrice  Float    @default(0)
+  yearlyPrice   Float    @default(0)
+  oneTimePrice  Float?
+  billingType   String   @default("FREE")
+  badgeText     String?
+  isFeatured    Boolean  @default(false)
+  isNew         Boolean  @default(false)
+  isBestSeller  Boolean  @default(false)
+  publishedAt   DateTime?
+  isFree        Boolean  @default(false)
+  thyronixReady Boolean  @default(false)
+  status        String   @default("DRAFT")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  access        ProductPackageAccess[]
+  logs          ProductDistributionLog[]
+
+  @@index([status])
+  @@index([licenseLevel])
+  @@index([billingType])
+}
+
+model ProductPackageAccess {
+  id        String   @id @default(cuid())
+  packageId String
+  dealerId  String
+  status    String   @default("ACTIVE")
+  grantedAt DateTime @default(now())
+  grantedBy String   @default("system")
+  package   ProductPackage @relation(fields: [packageId], references: [id], onDelete: Cascade)
+
+  @@unique([packageId, dealerId])
+  @@index([dealerId])
+  @@index([status])
+}
+
+model ProductImportJob {
+  id             String   @id @default(cuid())
+  type           String
+  status         String   @default("PENDING")
+  sourceUrl      String   @default("")
+  fileName       String   @default("")
+  catalogId      String?
+  supplierId     String?
+  productCount   Int      @default(0)
+  addedCount     Int      @default(0)
+  updatedCount   Int      @default(0)
+  removedCount   Int      @default(0)
+  unchangedCount Int      @default(0)
+  reportJson     String   @default("{}")
+  errorMessage   String   @default("")
+  durationMs     Int      @default(0)
+  mappingJson    String   @default("{}")
+  createdBy      String   @default("")
+  startedAt      DateTime?
+  completedAt    DateTime?
+  createdAt      DateTime @default(now())
+
+  @@index([status])
+  @@index([catalogId])
+  @@index([createdAt])
+}
+
+model ProductDistributionLog {
+  id        String   @id @default(cuid())
+  packageId String
+  dealerId  String
+  format    String
+  userId    String   @default("")
+  userEmail String   @default("")
+  ipAddress String   @default("")
+  userAgent String   @default("")
+  package   ProductPackage @relation(fields: [packageId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@index([dealerId])
+  @@index([packageId])
+  @@index([createdAt])
+}
+
+// ── Fulfillment & Dealer Accounting ──
+
+model DealerOrder {
+  id                 String   @id @default(cuid())
+  orderNumber        String   @unique
+  dealerId           String
+  dealer             Dealer   @relation(fields: [dealerId], references: [id])
+  customerName       String   @default("")
+  customerPhone      String   @default("")
+  customerCity       String   @default("")
+  marketplace        String   @default("")
+  marketplaceOrderId String   @default("")
+  status             String   @default("NEW")
+  totalAmount        Float    @default(0)
+  totalCost          Float    @default(0)
+  totalProfit        Float    @default(0)
+  sourceType         String   @default("MANUAL")
+  thyronixRef        String   @default("")
+  items              DealerOrderItem[]
+  shipments          DealerShipment[]
+  costItems          DealerCostItem[]
+  accountTransactions DealerAccountTransaction[]
+  warehouseMovements DealerWarehouseMovement[]
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  @@index([dealerId])
+  @@index([status])
+  @@index([marketplaceOrderId])
+  @@index([createdAt])
+  @@unique([dealerId, marketplace, marketplaceOrderId])
+}
+
+model DealerOrderItem {
+  id                String   @id @default(cuid())
+  orderId           String
+  order             DealerOrder @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId         String?
+  catalogItem       ProductCatalogItem? @relation(fields: [productId], references: [id], onDelete: SetNull)
+  thyronixProductId String   @default("")
+  sku               String   @default("")
+  barcode           String   @default("")
+  name              String
+  quantity          Int      @default(1)
+  salePrice         Float    @default(0)
+  costPrice         Float    @default(0)
+  profitAmount      Float    @default(0)
+  createdAt         DateTime @default(now())
+
+  @@index([orderId])
+  @@index([productId])
+}
+
+model DealerShipment {
+  id             String   @id @default(cuid())
+  orderId        String?
+  order          DealerOrder? @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  coreOrderId    String?
+  coreOrder      Order?   @relation("CoreOrderShipments", fields: [coreOrderId], references: [id], onDelete: Cascade)
+  cargoCompany   String   @default("")
+  trackingNumber String   @default("")
+  desi           Float    @default(0)
+  shippingCost   Float    @default(0)
+  status         String   @default("PENDING")
+  deliveredAt    DateTime?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([orderId])
+  @@index([coreOrderId])
+  @@index([trackingNumber])
+}
+
+model DealerCostItem {
+  id          String   @id @default(cuid())
+  orderId     String?
+  order       DealerOrder? @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  coreOrderId String?
+  coreOrder   Order?   @relation(fields: [coreOrderId], references: [id], onDelete: Cascade)
+  type        String
+  title       String
+  amount      Float    @default(0)
+  notes       String   @default("")
+  createdAt   DateTime @default(now())
+
+  @@index([orderId])
+  @@index([coreOrderId])
+  @@index([type])
+}
+
+model DealerAccount {
+  id             String   @id @default(cuid())
+  dealerId       String   @unique
+  dealer         Dealer   @relation(fields: [dealerId], references: [id])
+  currentBalance Float    @default(0)
+  creditLimit    Float    @default(0)
+  availableLimit Float    @default(0)
+  riskLevel      String   @default("LOW")
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  transactions   DealerAccountTransaction[]
+  statements     DealerStatement[]
+
+  @@index([dealerId])
+}
+
+model DealerAccountTransaction {
+  id           String   @id @default(cuid())
+  accountId    String
+  account      DealerAccount @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  dealerId     String
+  dealer       Dealer   @relation(fields: [dealerId], references: [id])
+  orderId      String?
+  order        DealerOrder? @relation(fields: [orderId], references: [id], onDelete: SetNull)
+  coreOrderId  String?
+  coreOrder    Order?   @relation("CoreOrderAccountTx", fields: [coreOrderId], references: [id], onDelete: SetNull)
+  invoiceId    String?
+  invoice      Invoice? @relation(fields: [invoiceId], references: [id], onDelete: SetNull)
+  type         String
+  title        String   @default("")
+  debit        Float    @default(0)
+  credit       Float    @default(0)
+  balanceAfter Float    @default(0)
+  notes        String   @default("")
+  createdAt    DateTime @default(now())
+
+  @@index([accountId])
+  @@index([dealerId])
+  @@index([orderId])
+  @@index([coreOrderId])
+  @@index([invoiceId])
+  @@index([createdAt])
+}
+
+model DealerStatement {
+  id             String   @id @default(cuid())
+  accountId      String
+  account        DealerAccount @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  dealerId       String
+  dealer         Dealer   @relation(fields: [dealerId], references: [id])
+  periodYear     Int
+  periodMonth    Int
+  openingBalance Float    @default(0)
+  closingBalance Float    @default(0)
+  totalDebit     Float    @default(0)
+  totalCredit    Float    @default(0)
+  linesJson      String   @default("[]")
+  generatedAt    DateTime @default(now())
+
+  @@unique([dealerId, periodYear, periodMonth])
+  @@index([dealerId])
+}
+
+model DealerWarehouseMovement {
+  id             String   @id @default(cuid())
+  dealerId       String
+  dealer         Dealer   @relation(fields: [dealerId], references: [id])
+  orderId        String?
+  order          DealerOrder? @relation(fields: [orderId], references: [id], onDelete: SetNull)
+  coreOrderId    String?
+  coreOrder      Order?   @relation("CoreOrderWarehouse", fields: [coreOrderId], references: [id], onDelete: SetNull)
+  productId      String?
+  catalogItem    ProductCatalogItem? @relation(fields: [productId], references: [id], onDelete: SetNull)
+  sku            String   @default("")
+  location       String   @default("MAIN")
+  stock          Int      @default(0)
+  reservedStock  Int      @default(0)
+  availableStock Int      @default(0)
+  movementType   String
+  quantity       Int      @default(0)
+  notes          String   @default("")
+  createdAt      DateTime @default(now())
+
+  @@index([dealerId])
+  @@index([orderId])
+  @@index([coreOrderId])
+  @@index([sku])
+  @@index([location])
+}
+
+// ── Marketplace Hub ──
+
+model MarketplaceSyncLog {
+  id            String   @id @default(cuid())
+  connectionId  String
+  connection    MarketplaceConnection @relation(fields: [connectionId], references: [id], onDelete: Cascade)
+  marketplace   String
+  status        String   @default("RUNNING")
+  startedAt     DateTime @default(now())
+  completedAt   DateTime?
+  newOrders     Int      @default(0)
+  updatedOrders Int      @default(0)
+  errorCount    Int      @default(0)
+  errorMessage  String   @default("")
+  detailsJson   String   @default("{}")
+  createdAt     DateTime @default(now())
+
+  @@index([connectionId])
+  @@index([createdAt])
+}
+
+model MarketplaceWebhookEvent {
+  id           String   @id @default(cuid())
+  connectionId String?
+  connection   MarketplaceConnection? @relation(fields: [connectionId], references: [id], onDelete: SetNull)
+  marketplace  String
+  eventType    String
+  payloadJson  String   @default("{}")
+  status       String   @default("RECEIVED")
+  errorMessage String   @default("")
+  createdAt    DateTime @default(now())
+
+  @@index([marketplace])
+  @@index([eventType])
+  @@index([createdAt])
+}

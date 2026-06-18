@@ -1,0 +1,151 @@
+export const ALL_PERMISSIONS = {
+  dashboard: { label: "Dashboard", group: "Genel" },
+
+  products_view: { label: "Ürünleri Görüntüle", group: "Ürün Yönetimi" },
+  products_create: { label: "Ürün Ekle", group: "Ürün Yönetimi" },
+  products_edit: { label: "Ürün Düzenle", group: "Ürün Yönetimi" },
+  products_delete: { label: "Ürün Sil", group: "Ürün Yönetimi" },
+  products_bulk: { label: "Toplu Ürün İşlemleri", group: "Ürün Yönetimi" },
+
+  categories_view: { label: "Kategorileri Görüntüle", group: "Ürün Yönetimi" },
+  categories_manage: { label: "Kategori Yönet", group: "Ürün Yönetimi" },
+
+  dealers_view: { label: "Bayileri Görüntüle", group: "Bayi Yönetimi" },
+  dealers_create: { label: "Bayi Ekle", group: "Bayi Yönetimi" },
+  dealers_edit: { label: "Bayi Düzenle", group: "Bayi Yönetimi" },
+  dealers_delete: { label: "Bayi Sil", group: "Bayi Yönetimi" },
+  dealer_groups_manage: { label: "Bayi Gruplarını Yönet", group: "Bayi Yönetimi" },
+  dealer_prices_manage: { label: "Özel Fiyatları Yönet", group: "Bayi Yönetimi" },
+  catalog_restrictions: { label: "Katalog Kısıtlamaları", group: "Bayi Yönetimi" },
+
+  orders_view: { label: "Siparişleri Görüntüle", group: "Sipariş & Finans" },
+  orders_approve: { label: "Sipariş Onayla", group: "Sipariş & Finans" },
+  orders_cancel: { label: "Sipariş İptal Et", group: "Sipariş & Finans" },
+  orders_ship: { label: "Sipariş Sevk Et", group: "Sipariş & Finans" },
+  orders_backorder: { label: "Ön Sipariş Yönetimi", group: "Sipariş & Finans" },
+
+  payments_view: { label: "Ödemeleri Görüntüle", group: "Sipariş & Finans" },
+  payments_manage: { label: "Ödeme Yönet", group: "Sipariş & Finans" },
+
+  returns_view: { label: "İadeleri Görüntüle", group: "Sipariş & Finans" },
+  returns_manage: { label: "İade Yönet", group: "Sipariş & Finans" },
+
+  campaigns_manage: { label: "Kampanya Yönet", group: "Sipariş & Finans" },
+  coupons_manage: { label: "Kupon Yönet", group: "Sipariş & Finans" },
+  quotes_manage: { label: "Teklif Yönet", group: "Sipariş & Finans" },
+
+  stock_view: { label: "Stok Görüntüle", group: "Stok & Depo" },
+  stock_manage: { label: "Stok Yönet (Giriş/Çıkış/Sayım)", group: "Stok & Depo" },
+  stock_transfer: { label: "Depolar Arası Transfer", group: "Stok & Depo" },
+  warehouses_manage: { label: "Depo Yönet", group: "Stok & Depo" },
+  shipping_manage: { label: "Kargo Yönetimi", group: "Stok & Depo" },
+
+  admin_users: { label: "Admin Kullanıcılarını Yönet", group: "Kullanıcılar" },
+  admin_roles: { label: "Rolleri Yönet", group: "Kullanıcılar" },
+  admin_notifications: { label: "Bildirimleri Görüntüle", group: "Kullanıcılar" },
+  admin_logs_view: { label: "Admin Loglarını Görüntüle", group: "Kullanıcılar" },
+
+  dealer_transactions_view: { label: "Bakiye Hareketlerini Görüntüle", group: "Sipariş & Finans" },
+
+  marketplace_view: { label: "Pazar Yeri Entegrasyonu", group: "Genel" },
+  invoices_view: { label: "Faturaları Görüntüle", group: "Sipariş & Finans" },
+  thyronix_view: { label: "Thyronix Yönetimini Görüntüle", group: "Premium Ürünler" },
+  hive_view: { label: "HIVE Yönetimini Görüntüle", group: "Premium Ürünler" },
+  hive_manage: { label: "HIVE Yönet", group: "Premium Ürünler" },
+  hive_integrations: { label: "HIVE Entegrasyonları", group: "Premium Ürünler" },
+  hive_logs: { label: "HIVE Logları", group: "Premium Ürünler" },
+
+  reports_view: { label: "Raporları Görüntüle", group: "Raporlar" },
+  reports_export: { label: "Rapor Dışa Aktar", group: "Raporlar" },
+
+  settings_view: { label: "Ayarları Görüntüle", group: "Ayarlar" },
+  settings_manage: { label: "Ayarları Yönet", group: "Ayarlar" },
+  ecosystem_view: { label: "Ecosystem Showcase Görüntüle", group: "Ecosystem" },
+  ecosystem_manage: { label: "Ecosystem Showcase Yönet", group: "Ecosystem" },
+} as const;
+
+export type PermissionKey = keyof typeof ALL_PERMISSIONS;
+
+export function hasPermission(permissions: string[] | undefined, permission: PermissionKey): boolean {
+  if (!permissions || permissions.length === 0) return false;
+  if (permissions.includes("*")) return true;
+  return permissions.includes(permission);
+}
+
+export function hasAnyPermission(permissions: string[] | undefined, ...perms: PermissionKey[]): boolean {
+  if (!permissions) return false;
+  if (permissions.includes("*")) return true;
+  return perms.some((p) => permissions.includes(p));
+}
+
+export const DEFAULT_ADMIN_PERMISSIONS: PermissionKey[] = [
+  "dashboard",
+  "products_view", "products_create", "products_edit", "products_delete", "products_bulk",
+  "categories_view", "categories_manage",
+  "dealers_view", "dealers_create", "dealers_edit", "dealers_delete",
+  "dealer_groups_manage", "dealer_prices_manage", "catalog_restrictions",
+  "orders_view", "orders_approve", "orders_cancel", "orders_ship", "orders_backorder",
+  "payments_view", "payments_manage",
+  "returns_view", "returns_manage",
+  "campaigns_manage", "coupons_manage", "quotes_manage",
+  "stock_view", "stock_manage", "stock_transfer", "warehouses_manage", "shipping_manage",
+  "admin_users", "admin_roles", "admin_notifications", "admin_logs_view",
+  "dealer_transactions_view",
+  "marketplace_view", "invoices_view", "thyronix_view", "hive_view", "hive_manage", "hive_integrations", "hive_logs",
+  "reports_view", "reports_export",
+  "settings_view", "settings_manage",
+  "ecosystem_view", "ecosystem_manage",
+];
+
+export function getNavPermissionMap(): Record<string, PermissionKey[]> {
+  return {
+    "/admin": ["dashboard"],
+    "/admin/products": ["products_view"],
+    "/admin/categories": ["categories_view"],
+    "/admin/price-lists": ["dealers_view"],
+    "/admin/tiered-prices": ["dealers_view"],
+    "/admin/dealer-prices": ["dealer_prices_manage"],
+    "/admin/catalog-restrictions": ["catalog_restrictions"],
+    "/admin/reviews": ["products_view"],
+    "/admin/bundles": ["products_create"],
+    "/admin/contracts": ["settings_view"],
+    "/admin/footer-settings": ["settings_manage"],
+    "/admin/dealers": ["dealers_view"],
+    "/admin/dealer-groups": ["dealer_groups_manage"],
+    "/admin/partner-applications": ["dealers_view"],
+    "/admin/api-keys": ["dealers_view"],
+    "/admin/orders": ["orders_view"],
+    "/admin/backorders": ["orders_backorder"],
+    "/admin/quotes": ["quotes_manage"],
+    "/admin/coupons": ["coupons_manage"],
+    "/admin/campaigns": ["campaigns_manage"],
+    "/admin/returns": ["returns_view"],
+    "/admin/payments": ["payments_view"],
+    "/admin/stock-movements": ["stock_view"],
+    "/admin/stock-counts": ["stock_manage"],
+    "/admin/stock/scan": ["stock_view"],
+    "/admin/warehouses": ["warehouses_manage"],
+    "/admin/shipping": ["shipping_manage"],
+    "/admin/users": ["admin_users"],
+    "/admin/roles": ["admin_roles"],
+    "/admin/notifications": ["admin_notifications"],
+    "/admin/reports": ["reports_view"],
+    "/admin/approval-rules": ["settings_manage"],
+    "/admin/dealer-assignments": ["dealers_view"],
+    "/admin/sales-rep": ["dealers_view"],
+    "/admin/admin-logs": ["admin_logs_view"],
+    "/admin/dealer-transactions": ["dealer_transactions_view"],
+    "/admin/marketplace": ["marketplace_view"],
+    "/admin/invoices": ["invoices_view"],
+    "/admin/thyronix": ["thyronix_view"],
+    "/admin/nexa": ["thyronix_view"],
+    "/admin/hive": ["hive_view"],
+    "/admin/integrations/thyronix": ["thyronix_view", "hive_integrations"],
+    "/admin/integrations/hive": ["hive_view", "hive_integrations"],
+    "/admin/module-licenses": ["admin_users"],
+    "/admin/payments/module-payments": ["payments_view"],
+    "/admin/customer-products": ["admin_users"],
+    "/admin/product-links": ["admin_users"],
+    "/admin/ecosystem": ["ecosystem_view"],
+  };
+}

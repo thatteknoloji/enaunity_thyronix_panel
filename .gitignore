@@ -1,0 +1,56 @@
+# Dependencies
+node_modules/
+
+# Next.js / Turbo
+.next/
+.turbo/
+out/
+dist/
+build/
+
+# Environment (never commit secrets)
+.env
+.env.*
+!.env.example
+!.env.production.example
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Test / coverage
+coverage/
+.nyc_output/
+
+# Database files
+*.sqlite
+*.sqlite-journal
+*.db
+*.db-journal
+*.db-shm
+*.db-wal
+*.dump
+prisma/dev.db
+prisma/*.db
+prisma/*.db-journal
+
+# Private uploads & backups
+uploads/private/
+public/uploads/private/
+backups/
+
+# IDE / editor
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Misc cache
+node_modules/.cache/
+*.tsbuildinfo

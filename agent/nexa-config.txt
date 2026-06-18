@@ -1,0 +1,13 @@
+# NEXA Photo Agent - Yapılandırma
+# Her satır BİR ayar içerir. # ile başlayan satırlar yorumdur.
+
+# NEXA sunucu adresi (örn: https://enaunity.com veya http://localhost:3333)
+NEXA_URL=http://localhost:3333
+
+# JWT Token (NEXA admin paneline giriş yapıp, tarayıcıdan token'ı kopyalayın)
+# Tarayıcıda F12 → Application → Cookies → token değeri
+NEXA_TOKEN=buraya-token-yazilacak
+
+# İzlenecek fotoğraf klasörü
+# Bu klasöre barkod isimli fotoğrafları koyun (örn: 8691234567890.jpg)
+WATCH_FOLDER=C:\NexaPhotos

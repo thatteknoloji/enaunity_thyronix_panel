@@ -1,0 +1,329 @@
+@import "tailwindcss";
+
+@theme {
+  /* ENA Dealer Platform */
+  --color-ena-red: #e50914;
+  --color-ena-primary: #F27A1A;
+  --color-ena-btn: #F27A1A;
+  --color-ena-dark: #141414;
+  --color-ena-gray: #303030;
+  --color-ena-light: #e8e8e8;
+  --color-ena-card: #1a1a1a;
+  --color-ena-text: #ffffff;
+  --color-ena-border: rgba(255, 255, 255, 0.1);
+  --color-ena-text-muted: #a0a0a0;
+
+  /* THYRONIX – Midnight (default) */
+  --color-nexa-bg: #080c14;
+  --color-nexa-card: #0f1420;
+  --color-nexa-border: #1a2235;
+  --color-nexa-primary: #3385ff;
+  --color-nexa-secondary: #6366f1;
+  --color-nexa-success: #10b981;
+  --color-nexa-warning: #f59e0b;
+  --color-nexa-danger: #ef4444;
+  --color-nexa-text: #f1f5f9;
+  --color-nexa-text-secondary: #94a3b8;
+  --color-nexa-hover: rgba(51, 133, 255, 0.06);
+}
+
+/* ── Light Theme ── */
+[data-theme="light"] {
+  --color-ena-red: #e50914;
+  --color-ena-primary: #e50914;
+  --color-ena-btn: #e50914;
+  --color-ena-dark: #ffffff;
+  --color-ena-gray: #e9ecef;
+  --color-ena-light: #495057;
+  --color-ena-card: #ffffff;
+  --color-ena-text: #1a1a2e;
+  --color-ena-border: rgba(0, 0, 0, 0.12);
+  --color-ena-text-muted: #495057;
+
+  --color-nexa-bg: #f8fafc;
+  --color-nexa-card: #ffffff;
+  --color-nexa-border: #e2e8f0;
+  --color-nexa-primary: #2563eb;
+  --color-nexa-secondary: #6366f1;
+  --color-nexa-success: #059669;
+  --color-nexa-warning: #d97706;
+  --color-nexa-danger: #dc2626;
+  --color-nexa-text: #0f172a;
+  --color-nexa-text-secondary: #475569;
+  --color-nexa-hover: rgba(37, 99, 235, 0.06);
+}
+
+/* ── Sunset Theme (sıcak koyu) ── */
+[data-theme="sunset"] {
+  --color-ena-dark: #1a1410;
+  --color-ena-card: #241a14;
+  --color-ena-border: rgba(255, 255, 255, 0.08);
+  --color-ena-text: #faf5f0;
+  --color-ena-light: #c4b5a5;
+  --color-ena-primary: #f97316;
+
+  --color-nexa-bg: #1a1410;
+  --color-nexa-card: #241a14;
+  --color-nexa-border: #3d2e24;
+  --color-nexa-primary: #f97316;
+  --color-nexa-secondary: #a855f7;
+  --color-nexa-success: #22c55e;
+  --color-nexa-warning: #eab308;
+  --color-nexa-danger: #ef4444;
+  --color-nexa-text: #faf5f0;
+  --color-nexa-text-secondary: #c4b5a5;
+  --color-nexa-hover: rgba(249, 115, 22, 0.08);
+}
+
+/* ── Forest Theme (yeşil koyu) ── */
+[data-theme="forest"] {
+  --color-ena-dark: #0a1612;
+  --color-ena-card: #0f1f18;
+  --color-ena-border: rgba(255, 255, 255, 0.08);
+  --color-ena-text: #ecfdf5;
+  --color-ena-light: #a7c4b5;
+  --color-ena-primary: #10b981;
+
+  --color-nexa-bg: #0a1612;
+  --color-nexa-card: #0f1f18;
+  --color-nexa-border: #1a3d2e;
+  --color-nexa-primary: #10b981;
+  --color-nexa-secondary: #06b6d4;
+  --color-nexa-success: #22c55e;
+  --color-nexa-warning: #eab308;
+  --color-nexa-danger: #ef4444;
+  --color-nexa-text: #ecfdf5;
+  --color-nexa-text-secondary: #a7c4b5;
+  --color-nexa-hover: rgba(16, 185, 129, 0.08);
+}
+
+/* ── Aurora Glass ── */
+[data-theme="aurora-glass"] {
+  --color-ena-dark: #0b0f19;
+  --color-ena-card: rgba(255, 255, 255, 0.06);
+  --color-ena-border: rgba(255, 255, 255, 0.12);
+  --color-ena-text: #f8fafc;
+  --color-ena-light: #94a3b8;
+  --color-ena-gray: rgba(255, 255, 255, 0.08);
+  --color-ena-primary: #8b5cf6;
+
+  --color-nexa-bg: #0b0f19;
+  --color-nexa-card: rgba(255, 255, 255, 0.05);
+  --color-nexa-border: rgba(255, 255, 255, 0.1);
+  --color-nexa-primary: #a78bfa;
+  --color-nexa-secondary: #22d3ee;
+  --color-nexa-success: #34d399;
+  --color-nexa-warning: #fbbf24;
+  --color-nexa-danger: #f87171;
+  --color-nexa-text: #f8fafc;
+  --color-nexa-text-secondary: #94a3b8;
+  --color-nexa-hover: rgba(139, 92, 246, 0.1);
+  --acc-glass: blur(16px);
+}
+
+/* ── Midnight Neon ── */
+[data-theme="midnight-neon"] {
+  --color-ena-dark: #050810;
+  --color-ena-card: #0a1020;
+  --color-ena-border: rgba(0, 255, 200, 0.12);
+  --color-ena-text: #e2f7ff;
+  --color-ena-light: #7dd3fc;
+  --color-ena-gray: #111827;
+  --color-ena-primary: #00ffc8;
+
+  --color-nexa-bg: #050810;
+  --color-nexa-card: #0a1020;
+  --color-nexa-border: rgba(0, 255, 200, 0.15);
+  --color-nexa-primary: #00ffc8;
+  --color-nexa-secondary: #38bdf8;
+  --color-nexa-success: #4ade80;
+  --color-nexa-warning: #facc15;
+  --color-nexa-danger: #fb7185;
+  --color-nexa-text: #e2f7ff;
+  --color-nexa-text-secondary: #7dd3fc;
+  --color-nexa-hover: rgba(0, 255, 200, 0.08);
+}
+
+/* ── Executive White ── */
+[data-theme="executive-white"] {
+  --color-ena-dark: #f6f7f9;
+  --color-ena-card: #ffffff;
+  --color-ena-border: rgba(15, 23, 42, 0.08);
+  --color-ena-text: #0f172a;
+  --color-ena-light: #64748b;
+  --color-ena-gray: #e2e8f0;
+  --color-ena-primary: #2563eb;
+
+  --color-nexa-bg: #f6f7f9;
+  --color-nexa-card: #ffffff;
+  --color-nexa-border: #e2e8f0;
+  --color-nexa-primary: #2563eb;
+  --color-nexa-secondary: #6366f1;
+  --color-nexa-success: #059669;
+  --color-nexa-warning: #d97706;
+  --color-nexa-danger: #dc2626;
+  --color-nexa-text: #0f172a;
+  --color-nexa-text-secondary: #64748b;
+  --color-nexa-hover: rgba(37, 99, 235, 0.06);
+}
+
+/* ── Obsidian Gold ── */
+[data-theme="obsidian-gold"] {
+  --color-ena-dark: #0c0a09;
+  --color-ena-card: #14110e;
+  --color-ena-border: rgba(212, 175, 55, 0.15);
+  --color-ena-text: #faf7f0;
+  --color-ena-light: #c4b5a0;
+  --color-ena-gray: #1c1917;
+  --color-ena-primary: #d4af37;
+
+  --color-nexa-bg: #0c0a09;
+  --color-nexa-card: #14110e;
+  --color-nexa-border: rgba(212, 175, 55, 0.18);
+  --color-nexa-primary: #d4af37;
+  --color-nexa-secondary: #b8860b;
+  --color-nexa-success: #84cc16;
+  --color-nexa-warning: #eab308;
+  --color-nexa-danger: #ef4444;
+  --color-nexa-text: #faf7f0;
+  --color-nexa-text-secondary: #c4b5a0;
+  --color-nexa-hover: rgba(212, 175, 55, 0.1);
+}
+
+/* ── Accent overrides ── */
+[data-accent="red"] { --color-ena-primary: #e50914; --color-ena-btn: #e50914; }
+[data-accent="blue"] { --color-ena-primary: #3b82f6; --color-ena-btn: #3b82f6; }
+[data-accent="purple"] { --color-ena-primary: #8b5cf6; --color-ena-btn: #8b5cf6; }
+[data-accent="emerald"] { --color-ena-primary: #10b981; --color-ena-btn: #10b981; }
+[data-accent="orange"] { --color-ena-primary: #f27a1a; --color-ena-btn: #f27a1a; }
+
+[data-theme="light"][data-accent="red"],
+[data-theme="executive-white"][data-accent="red"] { --color-ena-primary: #dc2626; }
+[data-theme="light"][data-accent="blue"],
+[data-theme="executive-white"][data-accent="blue"] { --color-ena-primary: #2563eb; }
+
+/* ── Account Center semantic tokens (theme-aware) ── */
+:root,
+[data-theme] {
+  --acc-surface: var(--color-ena-card);
+  --acc-surface-muted: color-mix(in srgb, var(--color-ena-card) 70%, var(--color-ena-dark));
+  --acc-elevated: color-mix(in srgb, var(--color-ena-card) 92%, var(--color-ena-text) 8%);
+  --acc-border: var(--color-ena-border);
+  --acc-text: var(--color-ena-text);
+  --acc-muted: var(--color-ena-light);
+  --acc-primary: var(--color-ena-primary);
+  --acc-success: var(--color-nexa-success);
+  --acc-warning: var(--color-nexa-warning);
+  --acc-danger: var(--color-nexa-danger);
+  --acc-info: var(--color-nexa-primary);
+  --acc-overlay: color-mix(in srgb, var(--color-ena-dark) 75%, transparent);
+}
+
+@plugin "@tailwindcss/typography";
+
+@layer base {
+  html { scroll-behavior: smooth; }
+  body {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes expandBar {
+  from { width: 0%; }
+}
+@keyframes marquee {
+  from { transform: translate3d(0, 0, 0); }
+  to { transform: translate3d(-50%, 0, 0); }
+}
+
+@layer utilities {
+  .animate-fade-in-up {
+    animation: fadeInUp 500ms cubic-bezier(0.23, 1, 0.32, 1) both;
+  }
+  .animate-fade-in {
+    animation: fadeIn 300ms ease-out both;
+  }
+  .animate-marquee {
+    animation: marquee var(--marquee-speed, 40s) linear infinite;
+    width: max-content;
+    will-change: transform;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .animate-marquee {
+      animation: none;
+    }
+  }
+  .scrollbar-none {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-none::-webkit-scrollbar { display: none; }
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: #1a2235 transparent;
+  }
+  .scrollbar-thin::-webkit-scrollbar { width: 5px; }
+  .scrollbar-thin::-webkit-scrollbar-track { background: transparent; }
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background-color: #1a2235;
+    border-radius: 3px;
+  }
+
+  /* Account Center utilities */
+  .acc-card {
+    @apply rounded-2xl border border-ena-border bg-ena-card transition-all duration-200;
+  }
+  .acc-card-interactive {
+    @apply rounded-2xl border border-ena-border bg-ena-card transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5;
+  }
+  .acc-surface-muted {
+    background: var(--acc-surface-muted);
+  }
+  .acc-input {
+    @apply w-full rounded-xl border border-ena-border bg-transparent px-3 py-2.5 text-sm text-ena-text placeholder:text-ena-light/40 focus:outline-none focus:ring-2 focus:ring-ena-primary/30 focus:border-ena-primary/50 transition-shadow;
+  }
+  .acc-badge-success {
+    @apply bg-nexa-success/10 text-nexa-success border border-nexa-success/20;
+  }
+  .acc-badge-warning {
+    @apply bg-nexa-warning/10 text-nexa-warning border border-nexa-warning/20;
+  }
+  .acc-badge-danger {
+    @apply bg-nexa-danger/10 text-nexa-danger border border-nexa-danger/20;
+  }
+  .acc-badge-info {
+    @apply bg-nexa-primary/10 text-nexa-primary border border-nexa-primary/20;
+  }
+  .acc-badge-neutral {
+    @apply bg-ena-gray/30 text-ena-light border border-ena-border;
+  }
+  @keyframes accPulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.55; }
+  }
+  .acc-skeleton {
+    @apply animate-pulse rounded-xl bg-ena-gray/40;
+  }
+  .acc-reduced-motion * {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+  .acc-compact .acc-card,
+  .acc-compact .acc-card-interactive {
+    @apply p-4;
+  }
+  [data-theme="aurora-glass"] .acc-card,
+  [data-theme="aurora-glass"] .acc-card-interactive {
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+  }
+}
