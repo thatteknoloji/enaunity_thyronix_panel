@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { requireAdmin } from "@/lib/auth";
-import { parseCampaignPayload } from "@/lib/campaigns/payload";
+import { buildCampaignProductCreates, parseCampaignPayload } from "@/lib/campaigns/payload";
 import { removeCampaignHomeBanner, syncCampaignHomeBanner } from "@/lib/homepage/campaign-banner-sync";
 
 export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -14,14 +14,14 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
 
     await prisma.campaignProduct.deleteMany({ where: { campaignId: id } });
 
-    const productCreates = [
-      ...(buyProducts || []).map((productId: string) => ({ type: "buy", productId, quantity: 1 })),
-      ...(getProducts || []).map((productId: string) => ({ type: "get", productId, quantity: 1 })),
-    ];
+    const productCreates = buildCampaignProductCreates(buyProducts, getProducts);
 
     await prisma.campaign.update({
       where: { id },
-      data: { ...data, products: productCreates.length > 0 ? { create: productCreates } : undefined },
+      data: {
+        ...data,
+        products: productCreates.length > 0 ? { create: productCreates } : undefined,
+      },
     });
 
     await syncCampaignHomeBanner(id);

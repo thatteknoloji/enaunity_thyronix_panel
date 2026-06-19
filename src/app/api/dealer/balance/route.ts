@@ -67,7 +67,10 @@ export async function GET(req: NextRequest) {
           }
         : undefined;
 
-    let transactions: ReturnType<typeof mapAccountTxToLegacyShape>[] = [];
+    let transactions: (
+      | ReturnType<typeof mapAccountTxToLegacyShape>
+      | ReturnType<typeof mapLegacyTx>
+    )[] = [];
     let total = 0;
 
     if (isDealerAccountEngine()) {

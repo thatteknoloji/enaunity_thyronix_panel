@@ -15,6 +15,7 @@ export interface CreatePaymentParams {
   metadata?: {
     paymentId?: string;
     packageId?: string;
+    orderId?: string;
     installmentCount?: number;
     buyer?: { id?: string; name?: string; surname?: string; email?: string; phone?: string };
   };

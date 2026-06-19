@@ -15,7 +15,7 @@ function parseCategoryScope(raw?: string): string[] {
   }
 }
 
-function campaignProductIds(campaign: CampaignLinkSource): string[] {
+function campaignProductIds(campaign: Pick<CampaignLinkSource, "products">): string[] {
   const buy = (campaign.products || []).filter((p) => p.type === "buy").map((p) => p.productId);
   const get = (campaign.products || []).filter((p) => p.type === "get").map((p) => p.productId);
   const ids = buy.length ? buy : get.length ? get : (campaign.products || []).map((p) => p.productId);

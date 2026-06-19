@@ -4,7 +4,7 @@ import type { LicenseLevel } from "./types";
 import { createPaymentIntent } from "@/lib/payments/payment-service";
 import { assertPaymentMethodAllowed, paymentDeadlineFromNow } from "@/lib/payments/payment-method-policy";
 import { notifyBankTransferCreated } from "@/lib/payments/payment-deadline-worker";
-import { resolveProviderKey } from "@/lib/payments/gateway-config";
+import { resolveProviderKey, type ProductLibraryPaymentMethod } from "@/lib/payments/gateway-config";
 import { calculatePaymentTotal, getPaymentSettings } from "@/lib/payments/payment-settings";
 
 const MODULE_KEY = "PRODUCT_LIBRARY";

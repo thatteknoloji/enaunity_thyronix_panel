@@ -140,6 +140,7 @@ export async function approvePayment(paymentId: string): Promise<PaymentResult> 
       await Promise.all(
         order.items.map(async (item) => {
           const product = item.product;
+          if (!product || !item.productId) return;
           const deductQty = product.backorderable
             ? Math.min(item.quantity, product.stock)
             : item.quantity;

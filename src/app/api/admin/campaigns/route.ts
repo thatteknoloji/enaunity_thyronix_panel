@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { requireAdmin } from "@/lib/auth";
-import { parseCampaignPayload } from "@/lib/campaigns/payload";
+import { buildCampaignProductCreates, parseCampaignPayload } from "@/lib/campaigns/payload";
 import { syncCampaignHomeBanner } from "@/lib/homepage/campaign-banner-sync";
 
 export async function GET() {
@@ -22,17 +22,22 @@ export async function POST(req: Request) {
     await requireAdmin();
     const body = await req.json();
     const { buyProducts, getProducts, ...rest } = body;
-    const data = parseCampaignPayload(rest);
+    const scalars = parseCampaignPayload(rest);
+
+    const name = typeof scalars.name === "string" ? scalars.name.trim() : "";
+    const type = typeof scalars.type === "string" ? scalars.type.trim() : "";
+    if (!name || !type) {
+      return NextResponse.json({ success: false, error: "Kampanya adı ve türü gerekli" }, { status: 400 });
+    }
+
+    const productCreates = buildCampaignProductCreates(buyProducts, getProducts);
 
     const campaign = await prisma.campaign.create({
       data: {
-        ...data,
-        products: {
-          create: [
-            ...(buyProducts || []).map((productId: string) => ({ type: "buy", productId, quantity: 1 })),
-            ...(getProducts || []).map((productId: string) => ({ type: "get", productId, quantity: 1 })),
-          ],
-        },
+        ...scalars,
+        name,
+        type,
+        products: productCreates.length > 0 ? { create: productCreates } : undefined,
       },
     });
     await syncCampaignHomeBanner(campaign.id);
