@@ -101,8 +101,20 @@ export async function createProductAccountLink(
   productType: ProductType,
   options?: { username?: string; password?: string; createdFrom?: ProductLinkMetadata["createdFrom"] }
 ) {
-  const access = await assertCanLinkProduct(enaUser, productType);
-  if (!access.ok) throw new Error(access.reason);
+  const isAdminProvision = options?.createdFrom === "admin";
+  if (!isAdminProvision) {
+    const access = await assertCanLinkProduct(enaUser, productType);
+    if (!access.ok) throw new Error(access.reason);
+  } else if (enaUser.dealerId) {
+    const license = await prisma.moduleLicense.findFirst({
+      where: {
+        dealerId: enaUser.dealerId,
+        moduleKey: productType,
+        status: { in: ["ACTIVE", "TRIAL"] },
+      },
+    });
+    if (!license) throw new Error("Aktif lisans bulunamadı — önce lisans tanımlayın");
+  }
 
   const existing = await getActiveLink(enaUser.id, productType);
   if (existing?.status === "LINKED") {

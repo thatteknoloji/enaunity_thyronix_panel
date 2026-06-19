@@ -36,7 +36,7 @@ export function EcosystemShowcaseSection({ settingsOverride, preview }: Props) {
       setSettings(settingsOverride);
       setLoading(false);
     } else {
-      fetch("/api/ecosystem/settings")
+      fetch("/api/ecosystem/settings", { cache: "no-store" })
         .then((r) => r.json())
         .then((d) => { if (d.success) setSettings(d.data); })
         .catch(() => {});
@@ -44,7 +44,7 @@ export function EcosystemShowcaseSection({ settingsOverride, preview }: Props) {
   }, [settingsOverride]);
 
   useEffect(() => {
-    fetch("/api/ecosystem/products")
+    fetch("/api/ecosystem/products", { cache: "no-store" })
       .then((r) => r.json())
       .then((d) => { if (d.success) setProducts(d.data || []); })
       .catch(() => {})

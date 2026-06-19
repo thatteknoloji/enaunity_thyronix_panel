@@ -7,6 +7,7 @@ import { ArrowRight, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { PlatformContent } from "@/lib/ecosystem/platform-content";
 import { ShowcaseIcon, hexToRgb } from "./ShowcaseIcon";
+import { resolvePlanCheckoutUrl } from "@/lib/ecosystem/plan-urls";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 24 },
@@ -260,7 +261,7 @@ export function PlatformLanding({ content }: { content: PlatformContent }) {
       ))}
 
       {/* Plans */}
-      <section className="py-20 border-b border-ena-border">
+      <section id="plans" className="py-20 border-b border-ena-border scroll-mt-20">
         <div className="mx-auto max-w-6xl px-4">
           <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} className="text-center mb-12">
             <h2 className="text-2xl md:text-3xl font-bold text-ena-text">Paketler</h2>
@@ -306,7 +307,7 @@ export function PlatformLanding({ content }: { content: PlatformContent }) {
                   ))}
                 </ul>
                 {plan.ctaUrl && (
-                  <Link href={plan.ctaUrl} className="block mt-6">
+                  <Link href={resolvePlanCheckoutUrl(content.slug, plan, i)} className="block mt-6">
                     <Button variant={plan.highlighted ? "primary" : "outline"} className="w-full group">
                       {plan.ctaText || "Seç"}
                       <ArrowRight size={14} className="ml-1 group-hover:translate-x-0.5 transition-transform" />

@@ -1,7 +1,36 @@
 import { NextResponse } from "next/server";
+import { prisma } from "@/lib/db";
 import { createProviderByKey } from "@/lib/payments/payment-provider-factory";
 import { processPaymentSuccess, processPaymentFailure } from "@/lib/payments/payment-callback-service";
 import { logPaymentWebhook } from "@/lib/payments/webhook-service";
+import { esnekposOrderRef } from "@/lib/payments/esnekpos-provider";
+
+async function resolvePaymentId(paymentId: string, orderRef: string, providerReference: string) {
+  if (paymentId) {
+    const direct = await prisma.modulePayment.findUnique({ where: { id: paymentId } });
+    if (direct) return paymentId;
+  }
+
+  if (providerReference) {
+    const byRef = await prisma.modulePayment.findFirst({
+      where: { providerReference, provider: "ESNEKPOS" },
+      orderBy: { createdAt: "desc" },
+    });
+    if (byRef) return byRef.id;
+  }
+
+  if (orderRef) {
+    const waiting = await prisma.modulePayment.findMany({
+      where: { provider: "ESNEKPOS", status: { in: ["WAITING_PAYMENT", "PENDING", "MANUAL_REVIEW"] } },
+      orderBy: { createdAt: "desc" },
+      take: 100,
+    });
+    const match = waiting.find((p) => esnekposOrderRef(p.id) === orderRef);
+    if (match) return match.id;
+  }
+
+  return paymentId;
+}
 
 async function parseCallbackPayload(req: Request) {
   const url = new URL(req.url);
@@ -37,13 +66,15 @@ async function parseCallbackPayload(req: Request) {
   const paymentId = queryPaymentId || body.paymentId || "";
   const status = (body.STATUS || body.status || "").toUpperCase();
   const returnCode = body.RETURN_CODE || "";
-  const providerReference = body.REFNO || body.ORDER_REF_NUMBER || paymentId;
+  const orderRef = body.ORDER_REF_NUMBER || "";
+  const providerReference = body.REFNO || orderRef || paymentId;
 
-  return { paymentId, status, returnCode, providerReference, body };
+  return { paymentId, status, returnCode, providerReference, orderRef, body };
 }
 
 async function handleCallback(req: Request) {
-  const { paymentId, status, returnCode, providerReference, body } = await parseCallbackPayload(req);
+  const { paymentId: rawPaymentId, status, returnCode, providerReference, orderRef, body } = await parseCallbackPayload(req);
+  const paymentId = await resolvePaymentId(rawPaymentId, orderRef, providerReference);
 
   await logPaymentWebhook({
     provider: "ESNEKPOS",

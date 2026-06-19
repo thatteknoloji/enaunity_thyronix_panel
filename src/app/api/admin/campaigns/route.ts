@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { requireAdmin } from "@/lib/auth";
+import { parseCampaignPayload } from "@/lib/campaigns/payload";
+import { syncCampaignHomeBanner } from "@/lib/homepage/campaign-banner-sync";
 
 export async function GET() {
   try {
@@ -18,7 +20,9 @@ export async function GET() {
 export async function POST(req: Request) {
   try {
     await requireAdmin();
-    const { buyProducts, getProducts, ...data } = await req.json();
+    const body = await req.json();
+    const { buyProducts, getProducts, ...rest } = body;
+    const data = parseCampaignPayload(rest);
 
     const campaign = await prisma.campaign.create({
       data: {
@@ -31,6 +35,7 @@ export async function POST(req: Request) {
         },
       },
     });
+    await syncCampaignHomeBanner(campaign.id);
     return NextResponse.json({ success: true, data: campaign });
   } catch {
     return NextResponse.json({ success: false, error: "Hata" }, { status: 500 });

@@ -22,10 +22,16 @@ interface Transaction {
 
 export default function DealerTransactionsPage() {
   const [items, setItems] = useState<Transaction[]>([]);
+  const [accounts, setAccounts] = useState<any[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [typeFilter, setTypeFilter] = useState("");
+  const [adjDealerId, setAdjDealerId] = useState("");
+  const [adjDirection, setAdjDirection] = useState<"credit" | "debit">("credit");
+  const [adjAmount, setAdjAmount] = useState("");
+  const [adjNote, setAdjNote] = useState("");
+  const [adjSaving, setAdjSaving] = useState(false);
   const size = 50;
 
   const load = async (p = page) => {
@@ -33,9 +39,14 @@ export default function DealerTransactionsPage() {
     try {
       const params = new URLSearchParams({ page: String(p), size: String(size) });
       if (typeFilter) params.set("type", typeFilter);
-      const res = await fetch(`/api/admin/dealer-transactions?${params}`);
+      const [res, accRes] = await Promise.all([
+        fetch(`/api/admin/dealer-transactions?${params}`),
+        fetch("/api/fulfillment/accounts"),
+      ]);
       const d = await res.json();
+      const acc = await accRes.json();
       if (d.success) { setItems(d.data.items); setTotal(d.data.total); }
+      if (acc.success) setAccounts(acc.data || []);
     } catch {}
     setLoading(false);
   };
@@ -65,11 +76,63 @@ export default function DealerTransactionsPage() {
     PRODUCT_PACKAGE_PAYMENT: "Paket Ödemesi",
   };
 
+  const submitAdjustment = async () => {
+    if (!adjDealerId || !adjAmount || !adjNote.trim()) return;
+    setAdjSaving(true);
+    const res = await fetch(`/api/admin/dealers/${adjDealerId}/balance-adjustment`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ direction: adjDirection, amount: adjAmount, note: adjNote }),
+    });
+    const d = await res.json();
+    setAdjSaving(false);
+    if (d.success) {
+      setAdjAmount("");
+      setAdjNote("");
+      load();
+    } else {
+      alert(d.error || "Hata");
+    }
+  };
+
   return (
     <div>
       <div className="flex items-center gap-3 mb-6">
         <Link href="/admin" className="text-gray-400 hover:text-gray-600"><ArrowLeft size={20} /></Link>
         <div><h1 className="text-3xl font-bold text-gray-900">Cari Hareketleri</h1><p className="mt-1 text-sm text-gray-500">DealerAccount kaynaklı bakiye işlem kayıtları</p></div>
+      </div>
+
+      {accounts.length > 0 && (
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+          {accounts.slice(0, 4).map((a: any) => (
+            <div key={a.id} className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+              <p className="text-xs text-gray-500 truncate">{a.dealer?.company || a.dealer?.name || a.dealerId}</p>
+              <p className="text-lg font-bold text-gray-900 mt-1">{formatPrice(a.currentBalance)}</p>
+              <p className="text-[10px] text-gray-400 mt-1">Limit: {formatPrice(a.creditLimit)} · Risk: {a.riskLevel || "—"}</p>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <div className="rounded-xl border border-gray-200 bg-white p-4 mb-6 shadow-sm">
+        <h2 className="text-sm font-semibold text-gray-800 mb-3">Manuel Bakiye Düzeltme</h2>
+        <div className="grid md:grid-cols-5 gap-3">
+          <select className="rounded-lg border border-gray-200 px-3 py-2 text-sm" value={adjDealerId} onChange={(e) => setAdjDealerId(e.target.value)}>
+            <option value="">Bayi seçin</option>
+            {accounts.map((a: any) => (
+              <option key={a.dealerId || a.id} value={a.dealerId}>{a.dealer?.company || a.dealer?.name || a.dealerId}</option>
+            ))}
+          </select>
+          <select className="rounded-lg border border-gray-200 px-3 py-2 text-sm" value={adjDirection} onChange={(e) => setAdjDirection(e.target.value as "credit" | "debit")}>
+            <option value="credit">Bakiye Ekle (+)</option>
+            <option value="debit">Bakiye Düş (-)</option>
+          </select>
+          <input type="number" step="0.01" placeholder="Tutar" className="rounded-lg border border-gray-200 px-3 py-2 text-sm" value={adjAmount} onChange={(e) => setAdjAmount(e.target.value)} />
+          <input placeholder="Açıklama (zorunlu)" className="rounded-lg border border-gray-200 px-3 py-2 text-sm md:col-span-2" value={adjNote} onChange={(e) => setAdjNote(e.target.value)} />
+        </div>
+        <button onClick={submitAdjustment} disabled={adjSaving} className="mt-3 px-4 py-2 rounded-lg bg-gray-900 text-white text-sm disabled:opacity-50">
+          {adjSaving ? "Kaydediliyor..." : "Bakiyeyi Güncelle"}
+        </button>
       </div>
 
       <div className="rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden">

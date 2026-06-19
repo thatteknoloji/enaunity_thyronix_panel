@@ -1,46 +1,106 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { requireDealer } from "@/lib/auth";
+import { requireAuth } from "@/lib/auth";
 import {
   getDealerBalance,
   getAccountSummary,
   mapAccountTxToLegacyShape,
 } from "@/lib/accounting/accounting-service";
-import { getAccountingEngine } from "@/lib/accounting/config";
+import { getAccountingEngine, isDealerAccountEngine } from "@/lib/accounting/config";
+
+function mapLegacyTx(tx: {
+  id: string;
+  type: string;
+  amount: number;
+  note: string;
+  balanceAfter: number;
+  orderId: string | null;
+  createdAt: Date;
+}) {
+  const isCredit = ["payment_credit", "return_credit"].includes(tx.type);
+  return {
+    id: tx.id,
+    type: tx.type === "payment_credit" ? "payment" : tx.type === "order_debit" ? "invoice" : tx.type,
+    amount: tx.amount,
+    note: tx.note,
+    balanceAfter: tx.balanceAfter,
+    orderId: tx.orderId,
+    createdAt: tx.createdAt,
+    debit: isCredit ? 0 : tx.amount,
+    credit: isCredit ? tx.amount : 0,
+    title: tx.note,
+    source: "legacy_balance" as const,
+  };
+}
 
 export async function GET(req: NextRequest) {
   try {
-    const user = await requireDealer();
+    const user = await requireAuth();
+    if (!user.dealerId) {
+      return NextResponse.json(
+        { success: false, error: "Cari hesap yalnızca bayi kullanıcıları içindir." },
+        { status: 403 },
+      );
+    }
+
     const dealer = await prisma.dealer.findUnique({
-      where: { id: user.dealerId! },
+      where: { id: user.dealerId },
       include: { paymentTerm: true },
     });
-    if (!dealer) return NextResponse.json({ success: false, error: "Bayi bulunamadı" }, { status: 404 });
+    if (!dealer) {
+      return NextResponse.json({ success: false, error: "Bayi bulunamadı" }, { status: 404 });
+    }
 
     const { searchParams } = new URL(req.url);
     const from = searchParams.get("from");
     const to = searchParams.get("to");
-    const skip = parseInt(searchParams.get("skip") || "0");
-    const take = parseInt(searchParams.get("take") || "100");
+    const skip = parseInt(searchParams.get("skip") || "0", 10);
+    const take = parseInt(searchParams.get("take") || "100", 10);
 
     const balanceInfo = await getDealerBalance(dealer.id);
 
-    const where: { dealerId: string; createdAt?: { gte?: Date; lte?: Date } } = { dealerId: dealer.id };
-    if (from || to) {
-      where.createdAt = {};
-      if (from) where.createdAt.gte = new Date(from);
-      if (to) where.createdAt.lte = new Date(to + "T23:59:59.999Z");
+    const dateFilter: { gte?: Date; lte?: Date } | undefined =
+      from || to
+        ? {
+            ...(from ? { gte: new Date(from) } : {}),
+            ...(to ? { lte: new Date(`${to}T23:59:59.999Z`) } : {}),
+          }
+        : undefined;
+
+    let transactions: ReturnType<typeof mapAccountTxToLegacyShape>[] = [];
+    let total = 0;
+
+    if (isDealerAccountEngine()) {
+      const where = { dealerId: dealer.id, ...(dateFilter ? { createdAt: dateFilter } : {}) };
+      const [accountTxs, count] = await Promise.all([
+        prisma.dealerAccountTransaction.findMany({
+          where,
+          orderBy: { createdAt: "desc" },
+          skip,
+          take,
+        }),
+        prisma.dealerAccountTransaction.count({ where }),
+      ]);
+      transactions = accountTxs.map(mapAccountTxToLegacyShape);
+      total = count;
     }
 
-    const [accountTxs, total] = await Promise.all([
-      prisma.dealerAccountTransaction.findMany({
-        where,
-        orderBy: { createdAt: "desc" },
-        skip,
-        take,
-      }),
-      prisma.dealerAccountTransaction.count({ where }),
-    ]);
+    if (transactions.length === 0) {
+      const legacyWhere = { dealerId: dealer.id, ...(dateFilter ? { createdAt: dateFilter } : {}) };
+      const [legacyTxs, legacyCount] = await Promise.all([
+        prisma.dealerTransaction.findMany({
+          where: legacyWhere,
+          orderBy: { createdAt: "desc" },
+          skip,
+          take,
+        }),
+        prisma.dealerTransaction.count({ where: legacyWhere }),
+      ]);
+      if (legacyTxs.length > 0) {
+        transactions = legacyTxs.map(mapLegacyTx);
+        total = legacyCount;
+      }
+    }
 
     const summary = await getAccountSummary(dealer.id);
 
@@ -54,13 +114,15 @@ export async function GET(req: NextRequest) {
         availableLimit: balanceInfo.availableLimit,
         riskLevel: balanceInfo.riskLevel,
         paymentTerm: dealer.paymentTerm,
-        transactions: accountTxs.map(mapAccountTxToLegacyShape),
+        transactions,
         total,
         engine: getAccountingEngine(),
         account: summary.account,
       },
     });
-  } catch {
-    return NextResponse.json({ success: false, error: "Yetkisiz" }, { status: 401 });
+  } catch (e) {
+    const message = e instanceof Error ? e.message : "Bakiye bilgisi alınamadı";
+    const status = message === "Unauthorized" ? 401 : message === "Forbidden" ? 403 : 500;
+    return NextResponse.json({ success: false, error: message }, { status });
   }
 }

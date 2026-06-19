@@ -3,8 +3,12 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Plus, Trash2, Save, ArrowLeft, Tag } from "lucide-react";
+import { Plus, Trash2, Save, ArrowLeft, Tag, Layout } from "lucide-react";
 import toast from "react-hot-toast";
+import { MediaSpecGuide } from "@/components/admin/homepage/MediaSpecGuide";
+import { MediaUploadField } from "@/components/admin/homepage/MediaUploadField";
+import { MEDIA_SPECS } from "@/lib/homepage/media-specs";
+import { describeCampaignBannerLink, resolveCampaignBannerLink } from "@/lib/campaigns/banner-link";
 
 const CAMPAIGN_TYPES = [
   { key: "quantity_discount", label: "Çoklu Alım İndirimi", desc: "X adet ürüne % veya ₺ indirim" },
@@ -29,6 +33,7 @@ export default function AdminCampaignsPage() {
   const [dealers, setDealers] = useState<any[]>([]);
   const [dealerGroups, setDealerGroups] = useState<any[]>([]);
   const [users, setUsers] = useState<any[]>([]);
+  const [bannerSlots, setBannerSlots] = useState<{ key: string; label: string }[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -40,6 +45,8 @@ export default function AdminCampaignsPage() {
     targetType: "all", targetIds: "[]", categoryScope: "[]",
     orderCountMin: "0", freeShipping: false, badge: "", badgeColor: "#e50914",
     buyProducts: [] as string[], getProducts: [] as string[],
+    showOnHomepage: false, bannerSlotKey: "after_hero",
+    bannerImageDesktop: "", bannerImageTablet: "", bannerImageMobile: "", bannerLinkUrl: "",
   });
 
   useEffect(() => {
@@ -52,17 +59,24 @@ export default function AdminCampaignsPage() {
         if (d.success) d.data = d.data.filter((u: any) => u.role === "dealer");
         return d;
       }),
-    ]).then(([c, p, d, g, u]) => {
+      fetch("/api/admin/homepage").then(r => r.json()),
+    ]).then(([c, p, d, g, u, home]) => {
       if (c.success) setCampaigns(c.data);
       if (p.success) setProducts(p.data);
       if (d.success) setDealers(d.data);
       if (g.success) setDealerGroups(g.data);
       if (u.success) setUsers(u.data);
+      if (home.success && home.data?.slots) {
+        setBannerSlots(home.data.slots.map((s: { key: string; label: string }) => ({ key: s.key, label: s.label })));
+      }
     }).finally(() => setLoading(false));
   }, []);
 
   const handleSave = async () => {
     if (!form.name.trim()) return toast.error("Kampanya adı gerekli");
+    if (form.showOnHomepage && !form.bannerImageDesktop) {
+      return toast.error("Ana sayfa banner için masaüstü görseli gerekli");
+    }
     setSaving(true);
     const body = {
       ...form,
@@ -86,7 +100,7 @@ export default function AdminCampaignsPage() {
   };
 
   const resetForm = () => {
-    setForm({ name: "", description: "", type: "quantity_discount", discountType: "percentage", discountValue: "10", minAmount: "0", maxDiscount: "0", minQuantity: "2", bundlePrice: "0", startsAt: "", endsAt: "", active: true, targetType: "all", targetIds: "[]", categoryScope: "[]", orderCountMin: "0", freeShipping: false, badge: "", badgeColor: "#e50914", buyProducts: [], getProducts: [] });
+    setForm({ name: "", description: "", type: "quantity_discount", discountType: "percentage", discountValue: "10", minAmount: "0", maxDiscount: "0", minQuantity: "2", bundlePrice: "0", startsAt: "", endsAt: "", active: true, targetType: "all", targetIds: "[]", categoryScope: "[]", orderCountMin: "0", freeShipping: false, badge: "", badgeColor: "#e50914", buyProducts: [], getProducts: [], showOnHomepage: false, bannerSlotKey: "after_hero", bannerImageDesktop: "", bannerImageTablet: "", bannerImageMobile: "", bannerLinkUrl: "" });
     setEditingId(null); setShowForm(false);
   };
 
@@ -136,12 +150,31 @@ export default function AdminCampaignsPage() {
       badge: c.badge, badgeColor: c.badgeColor || "#e50914",
       buyProducts: (c.products || []).filter((p: any) => p.type === "buy").map((p: any) => p.productId),
       getProducts: (c.products || []).filter((p: any) => p.type === "get").map((p: any) => p.productId),
+      showOnHomepage: c.showOnHomepage ?? false,
+      bannerSlotKey: c.bannerSlotKey || "after_hero",
+      bannerImageDesktop: c.bannerImageDesktop || "",
+      bannerImageTablet: c.bannerImageTablet || "",
+      bannerImageMobile: c.bannerImageMobile || "",
+      bannerLinkUrl: c.bannerLinkUrl || "",
     });
     setEditingId(c.id);
     setShowForm(true);
   };
 
   const categories = [...new Set(products.map(p => p.category))];
+
+  const bannerLinkPreview = form.showOnHomepage
+    ? resolveCampaignBannerLink({
+        id: editingId || "yeni",
+        type: form.type,
+        categoryScope: form.categoryScope,
+        bannerLinkUrl: form.bannerLinkUrl,
+        products: [
+          ...form.buyProducts.map((productId) => ({ productId, type: "buy" })),
+          ...form.getProducts.map((productId) => ({ productId, type: "get" })),
+        ],
+      })
+    : null;
 
   return (
     <div>
@@ -270,6 +303,84 @@ export default function AdminCampaignsPage() {
             </div>
           )}
 
+          {/* Ana sayfa banner */}
+          <div className="rounded-xl border border-purple-200 bg-purple-50/50 p-4 space-y-4">
+            <div className="flex items-center gap-2">
+              <Layout size={16} className="text-purple-700" />
+              <h3 className="font-semibold text-purple-950">Ana Sayfa Banner</h3>
+            </div>
+            <MediaSpecGuide variant="banner" />
+            <label className="flex items-center gap-2 text-sm">
+              <input
+                type="checkbox"
+                checked={form.showOnHomepage}
+                onChange={e => setForm({ ...form, showOnHomepage: e.target.checked })}
+              />
+              Bu kampanyayı ana sayfada banner olarak göster
+            </label>
+            {form.showOnHomepage && (
+              <>
+                <div>
+                  <label className="block text-xs font-semibold text-gray-600 uppercase mb-1">Banner konumu</label>
+                  <select
+                    className="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm"
+                    value={form.bannerSlotKey}
+                    onChange={e => setForm({ ...form, bannerSlotKey: e.target.value })}
+                  >
+                    {bannerSlots.map(s => (
+                      <option key={s.key} value={s.key}>{s.label}</option>
+                    ))}
+                    {bannerSlots.length === 0 && <option value="after_hero">Hero Altı</option>}
+                  </select>
+                  <p className="text-xs text-gray-500 mt-1">Kampanya tarihleri banner zamanlamasına otomatik yansır.</p>
+                </div>
+                <MediaUploadField
+                  label="Masaüstü banner *"
+                  value={form.bannerImageDesktop}
+                  onChange={v => setForm({ ...form, bannerImageDesktop: v })}
+                  maxBytes={(MEDIA_SPECS.banner.desktop.maxKb ?? 400) * 1024}
+                />
+                <MediaUploadField
+                  label="Tablet banner"
+                  value={form.bannerImageTablet}
+                  onChange={v => setForm({ ...form, bannerImageTablet: v })}
+                  maxBytes={(MEDIA_SPECS.banner.tablet.maxKb ?? 280) * 1024}
+                />
+                <MediaUploadField
+                  label="Mobil banner"
+                  value={form.bannerImageMobile}
+                  onChange={v => setForm({ ...form, bannerImageMobile: v })}
+                  maxBytes={(MEDIA_SPECS.banner.mobile.maxKb ?? 200) * 1024}
+                />
+                <input
+                  className="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm"
+                  placeholder="Banner tıklama linki (boş = otomatik)"
+                  value={form.bannerLinkUrl}
+                  onChange={e => setForm({ ...form, bannerLinkUrl: e.target.value })}
+                />
+                {bannerLinkPreview && (
+                  <div className="rounded-lg border border-purple-200 bg-white/80 p-3 text-xs space-y-1">
+                    <p className="font-semibold text-purple-900">Otomatik banner linki</p>
+                    <p className="text-purple-800 font-mono break-all">{bannerLinkPreview}</p>
+                    <p className="text-gray-500">
+                      {describeCampaignBannerLink({
+                        id: editingId || "yeni",
+                        type: form.type,
+                        categoryScope: form.categoryScope,
+                        bannerLinkUrl: form.bannerLinkUrl,
+                        products: [
+                          ...form.buyProducts.map((productId) => ({ productId, type: "buy" })),
+                          ...form.getProducts.map((productId) => ({ productId, type: "get" })),
+                        ],
+                      })}
+                      {form.bannerLinkUrl.trim() ? " — özel link girildiği için otomatik devre dışı." : ""}
+                    </p>
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+
           <div className="flex gap-2 pt-2 border-t border-gray-100">
             <Button size="sm" onClick={handleSave} disabled={saving}><Save size={14} className="mr-1" /> {saving ? "Kaydediliyor..." : "Kaydet"}</Button>
             <Button size="sm" variant="ghost" onClick={resetForm}>İptal</Button>
@@ -282,23 +393,25 @@ export default function AdminCampaignsPage() {
       ) : (
         <div className="rounded-xl border border-gray-200 bg-white overflow-hidden">
           <table className="w-full text-sm">
-            <thead className="bg-gray-50"><tr><th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Kampanya</th><th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Tür</th><th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">İndirim</th><th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Hedef</th><th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Süre</th><th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Durum</th><th className="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase">İşlem</th></tr></thead>
+            <thead className="bg-gray-50"><tr><th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Kampanya</th><th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Tür</th><th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">İndirim</th><th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Banner</th><th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Süre</th><th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Durum</th><th className="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase">İşlem</th></tr></thead>
             <tbody className="divide-y divide-gray-100">
-              {campaigns.map(c => {
-                let ids: string[] = [];
-                try { ids = JSON.parse(c.targetIds || "[]"); } catch {}
-                return (
+              {campaigns.map(c => (
                   <tr key={c.id} className="hover:bg-gray-50/50">
                     <td className="px-4 py-3"><p className="font-medium text-gray-900">{c.name}</p>{c.badge && <span className="text-[10px] text-ena-primary bg-ena-primary/5 px-1.5 py-0.5 rounded">{c.badge}</span>}</td>
                     <td className="px-4 py-3 text-xs text-gray-500">{CAMPAIGN_TYPES.find(t => t.key === c.type)?.label || c.type}</td>
                     <td className="px-4 py-3 text-xs font-medium text-emerald-600">{c.discountType === "percentage" ? `%${c.discountValue}` : `${c.discountValue} ₺`}</td>
-                    <td className="px-4 py-3 text-xs text-gray-500">{c.targetType === "all" ? "Tümü" : `${c.targetType} (${ids.length})`}</td>
+                    <td className="px-4 py-3 text-xs">
+                      {c.showOnHomepage && c.bannerImageDesktop ? (
+                        <span className="text-purple-700 bg-purple-50 px-2 py-0.5 rounded-full">Ana sayfa</span>
+                      ) : (
+                        <span className="text-gray-400">—</span>
+                      )}
+                    </td>
                     <td className="px-4 py-3 text-xs text-gray-500">{c.endsAt ? new Date(c.endsAt).toLocaleDateString("tr-TR") : "Süresiz"}</td>
                     <td className="px-4 py-3"><span className={`text-xs px-2 py-0.5 rounded-full ${c.active ? "bg-emerald-50 text-emerald-700" : "bg-gray-100 text-gray-500"}`}>{c.active ? "Aktif" : "Pasif"}</span></td>
                     <td className="px-4 py-3 text-right"><div className="flex justify-end gap-1"><Button size="sm" variant="ghost" onClick={() => editCampaign(c)}>Düzenle</Button><Button size="sm" variant="ghost" onClick={() => handleDelete(c.id)} className="text-ena-primary"><Trash2 size={14} /></Button></div></td>
                   </tr>
-                );
-              })}
+              ))}
             </tbody>
           </table>
         </div>

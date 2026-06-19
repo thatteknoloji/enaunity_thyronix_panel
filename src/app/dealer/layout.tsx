@@ -163,7 +163,7 @@ export default function DealerLayout({ children }: { children: React.ReactNode }
 
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Mobile top bar */}
-        <div className="md:hidden flex items-center justify-between h-14 px-4 border-b border-white/10 bg-ena-dark/95 backdrop-blur shrink-0">
+        <div className="md:hidden flex items-center justify-between h-14 px-4 border-b border-white/10 bg-ena-dark/95 backdrop-blur shrink-0 relative z-50">
           <button onClick={() => setMobileOpen(true)} className="p-1.5 rounded-lg text-ena-light hover:text-white">
             <Menu size={20} />
           </button>
@@ -175,7 +175,7 @@ export default function DealerLayout({ children }: { children: React.ReactNode }
         </div>
 
         {/* Desktop top bar */}
-        <div className="hidden md:flex items-center justify-end px-6 py-3 border-b border-white/10 bg-ena-dark/95 backdrop-blur shrink-0">
+        <div className="hidden md:flex items-center justify-end px-6 py-3 border-b border-white/10 bg-ena-dark/95 backdrop-blur shrink-0 relative z-50">
           <NotificationBell />
         </div>
 

@@ -36,6 +36,7 @@ function buildNavGroups(t: (key: string) => string) {
     label: "Ekosistem",
     icon: Layers3,
     items: [
+      { href: "/admin/homepage", label: "Ana Sayfa", icon: LayoutDashboard },
       { href: "/admin/ecosystem", label: "Ekosistem Vitrini", icon: Sparkles },
     ],
   },
@@ -44,7 +45,6 @@ function buildNavGroups(t: (key: string) => string) {
     icon: Sparkles,
     items: [
       { href: "/admin/product-library", label: "Hazır Ürün Deposu", icon: Package },
-      { href: "/admin/fulfillment", label: "Operasyon Merkezi", icon: Truck },
       { href: "/admin/marketplace-hub", label: "Pazaryeri Merkezi", icon: Store },
       { href: "/admin/thyronix", label: "THYRONIX", icon: Zap },
       { href: "/admin/hive", label: "HIVE", icon: Sparkles },
@@ -97,6 +97,8 @@ function buildNavGroups(t: (key: string) => string) {
       { href: "/admin/campaigns", label: t("admin.campaigns"), icon: Tag },
       { href: "/admin/returns", label: t("admin.returns"), icon: RotateCcw },
       { href: "/admin/payments", label: t("admin.payments"), icon: Banknote },
+      { href: "/admin/payments/gateways", label: "Ödeme Altyapısı", icon: CreditCard },
+      { href: "/admin/payments/policies", label: "Ödeme Politikaları", icon: CreditCard },
       { href: "/admin/payment-terms", label: t("admin.payment_terms"), icon: CalendarClock },
       { href: "/admin/dealer-transactions", label: "Bakiye Hareketleri", icon: DollarSign },
     ],
@@ -359,9 +361,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </div>
       )}
 
-      <div className="flex-1 overflow-hidden">
+      <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
         {/* Mobile top bar */}
-        <div className="md:hidden flex items-center h-14 px-4 border-b border-gray-200 bg-white shrink-0">
+        <div className="md:hidden flex items-center h-14 px-4 border-b border-gray-200 bg-white shrink-0 relative z-50">
           <button onClick={() => setMobileOpen(true)} className="mr-3 p-1.5 rounded-lg hover:bg-gray-100 cursor-pointer">
             <Package size={20} className="text-gray-700" />
           </button>
@@ -373,12 +375,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </div>
 
         {/* Desktop top bar */}
-        <div className="hidden md:flex items-center justify-end px-6 py-3 border-b border-gray-200 bg-white/80 backdrop-blur shrink-0 gap-3">
+        <div className="hidden md:flex items-center justify-end px-6 py-3 border-b border-gray-200 bg-white/80 backdrop-blur shrink-0 gap-3 relative z-50">
           <span className="text-xs text-gray-400">{t("admin.admin_label")}</span>
           <NotificationBell />
         </div>
 
-        <div className="admin-content h-full overflow-y-auto p-4 md:p-8 bg-gradient-to-br from-gray-50 via-white to-gray-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 dark:text-gray-100">
+        <div className="admin-content flex-1 min-h-0 overflow-y-auto overflow-x-hidden p-4 md:p-8 bg-gradient-to-br from-gray-50 via-white to-gray-50 text-gray-900">
           {children}
         </div>
       </div>

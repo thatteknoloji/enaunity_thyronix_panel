@@ -4,10 +4,9 @@
  */
 import { prisma } from "../src/lib/db";
 import {
-  getAvailablePaymentMethods,
-  isEsnekposEnabled,
-  isIyzicoEnabled,
-  providerConfigured,
+  getAvailablePaymentMethodsSync,
+  isEsnekposEnabledSync,
+  isIyzicoEnabledSync,
   resolveProviderKey,
 } from "../src/lib/payments/gateway-config";
 import { createProviderByKey } from "../src/lib/payments/payment-provider-factory";
@@ -93,10 +92,10 @@ async function main() {
 
   // 2. Gateway config
   console.log("\n2) Gateway config");
-  const methods = getAvailablePaymentMethods();
-  assert(methods.includes("BANK_TRANSFER"), "Havale/EFT her zaman mevcut");
-  assert(typeof isEsnekposEnabled() === "boolean", "EsnekPOS enabled flag okunuyor");
-  assert(typeof isIyzicoEnabled() === "boolean", "İyzico enabled flag okunuyor");
+  const methods = getAvailablePaymentMethodsSync();
+  assert(methods.includes("BANK_TRANSFER"), "Havale ödeme yöntemi mevcut");
+  assert(typeof isEsnekposEnabledSync() === "boolean", "EsnekPOS enabled flag okunuyor");
+  assert(typeof isIyzicoEnabledSync() === "boolean", "İyzico enabled flag okunuyor");
   assert(resolveProviderKey("BANK_TRANSFER") === "MANUAL", "Havale → MANUAL provider");
   assert(resolveProviderKey("ESNEKPOS") === "ESNEKPOS", "EsnekPOS provider key");
   assert(resolveProviderKey("IYZICO") === "IYZICO", "İyzico provider key");

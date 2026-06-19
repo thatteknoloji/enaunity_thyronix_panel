@@ -1,17 +1,29 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type ComponentProps } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { ArrowLeft, Eye, Plus, Save, Trash2 } from "lucide-react";
 import { toAdminUrl } from "@/lib/auth/admin-access";
 import { ShowcaseLanding } from "@/components/ecosystem/ShowcaseLanding";
+import { ShowcaseCard } from "@/components/ecosystem/ShowcaseCard";
 import { SHOWCASE_ICON_OPTIONS, ShowcaseIcon } from "@/components/ecosystem/ShowcaseIcon";
+import { AdminFormField, AdminFormSelect } from "@/components/admin/AdminFormField";
 import type { ProductShowcaseDTO, ShowcaseFaq, ShowcaseFeature, ShowcasePlan } from "@/lib/ecosystem/types";
-import { SHOWCASE_STATUSES } from "@/lib/ecosystem/types";
 import toast from "react-hot-toast";
 
 type Tab = "general" | "card" | "landing" | "gallery" | "faq" | "plans" | "labels" | "preview";
+
+const STATUS_OPTIONS = [
+  { value: "ACTIVE", label: "Yayında" },
+  { value: "COMING_SOON", label: "Yakında" },
+  { value: "HIDDEN", label: "Gizli" },
+  { value: "ARCHIVED", label: "Arşiv" },
+];
+
+function slugify(v: string) {
+  return v.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+}
 
 const emptyProduct = (): ProductShowcaseDTO => ({
   id: "",
@@ -66,6 +78,7 @@ export default function EcosystemEditPage() {
   const [loading, setLoading] = useState(!isNew);
   const [saving, setSaving] = useState(false);
   const [chipInput, setChipInput] = useState("");
+  const [slugTouched, setSlugTouched] = useState(false);
 
   useEffect(() => {
     if (isNew) return;
@@ -191,22 +204,46 @@ export default function EcosystemEditPage() {
           <ShowcaseLanding product={previewProduct} preview />
         </div>
       ) : (
-        <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm space-y-6">
+        <div className="grid xl:grid-cols-3 gap-6 items-start">
+          <div className="xl:col-span-2 rounded-xl border border-gray-200 bg-white p-6 shadow-sm space-y-6">
           {tab === "general" && (
             <div className="grid md:grid-cols-2 gap-4">
-              <Field label="Ürün Adı" value={form.name} onChange={(v) => update({ name: v, heroTitle: form.heroTitle || v })} />
-              <Field label="Slug" value={form.slug} onChange={(v) => update({ slug: v })} />
-              <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">Durum</label>
-                <select className="w-full rounded-lg border px-3 py-2 text-sm" value={form.status} onChange={(e) => update({ status: e.target.value as ProductShowcaseDTO["status"] })}>
-                  {SHOWCASE_STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
-                </select>
+              <AdminFormField
+                label="Ürün Adı"
+                value={form.name}
+                placeholder="Örn: THYRONIX"
+                onChange={(v) =>
+                  update({
+                    name: v,
+                    heroTitle: form.heroTitle || v,
+                    ...(isNew && !slugTouched ? { slug: slugify(v) } : {}),
+                  })
+                }
+              />
+              <AdminFormField
+                label="Slug"
+                value={form.slug}
+                placeholder="thyronix"
+                hint="URL: /ecosystem/{slug}"
+                onChange={(v) => {
+                  setSlugTouched(true);
+                  update({ slug: v });
+                }}
+              />
+              <AdminFormSelect
+                label="Durum"
+                value={form.status}
+                onChange={(v) => update({ status: v as ProductShowcaseDTO["status"] })}
+                options={STATUS_OPTIONS}
+              />
+              <div className="flex items-end gap-4 pb-1">
+                <label className="flex items-center gap-2 text-sm text-gray-800">
+                  <input type="checkbox" checked={form.isFeatured} onChange={(e) => update({ isFeatured: e.target.checked })} />
+                  Öne çıkan
+                </label>
               </div>
-              <div className="flex items-end gap-4">
-                <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={form.isFeatured} onChange={(e) => update({ isFeatured: e.target.checked })} /> Öne çıkan</label>
-              </div>
-              <Field label="Ürün URL" value={form.productUrl} onChange={(v) => update({ productUrl: v })} />
-              <Field label="CTA URL" value={form.ctaUrl} onChange={(v) => update({ ctaUrl: v })} />
+              <AdminFormField label="Ürün URL" value={form.productUrl} placeholder="https://..." onChange={(v) => update({ productUrl: v })} />
+              <AdminFormField label="CTA URL" value={form.ctaUrl} placeholder="/dealer/..." onChange={(v) => update({ ctaUrl: v })} />
             </div>
           )}
 
@@ -219,8 +256,8 @@ export default function EcosystemEditPage() {
                 <Field label="Aylık Fiyat" value={form.monthlyPrice?.toString() || ""} onChange={(v) => update({ monthlyPrice: v ? parseFloat(v) : null })} />
                 <Field label="Yıllık Fiyat" value={form.yearlyPrice?.toString() || ""} onChange={(v) => update({ yearlyPrice: v ? parseFloat(v) : null })} />
                 <div>
-                  <label className="block text-xs font-medium text-gray-600 mb-1">Link Hedefi</label>
-                  <select className="w-full rounded-lg border px-3 py-2 text-sm" value={form.linkTarget} onChange={(e) => update({ linkTarget: e.target.value })}>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">Link Hedefi</label>
+                  <select className="admin-input" value={form.linkTarget} onChange={(e) => update({ linkTarget: e.target.value })}>
                     <option value="_self">Aynı sekme</option>
                     <option value="_blank">Yeni sekme</option>
                   </select>
@@ -231,9 +268,9 @@ export default function EcosystemEditPage() {
                 </label>
                 <Field label="Max Chip Sayısı" value={String(form.maxCardChips)} onChange={(v) => update({ maxCardChips: parseInt(v) || 8 })} />
                 <div>
-                  <label className="block text-xs font-medium text-gray-600 mb-1">İkon</label>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">İkon</label>
                   <div className="flex gap-2 items-center">
-                    <select className="flex-1 rounded-lg border px-3 py-2 text-sm" value={form.icon} onChange={(e) => update({ icon: e.target.value })}>
+                    <select className="admin-input flex-1" value={form.icon} onChange={(e) => update({ icon: e.target.value })}>
                       {SHOWCASE_ICON_OPTIONS.map((ic) => <option key={ic} value={ic}>{ic}</option>)}
                     </select>
                     <ShowcaseIcon name={form.icon} size={20} />
@@ -254,8 +291,8 @@ export default function EcosystemEditPage() {
                   ))}
                 </div>
                 <div className="flex gap-2">
-                  <input className="flex-1 rounded-lg border px-3 py-2 text-sm" value={chipInput} onChange={(e) => setChipInput(e.target.value)} onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addChip())} placeholder="Yeni chip" />
-                  <button type="button" onClick={addChip} className="px-3 py-2 text-sm border rounded-lg">Ekle</button>
+                  <input className="admin-input flex-1" value={chipInput} onChange={(e) => setChipInput(e.target.value)} onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addChip())} placeholder="Yeni chip" />
+                  <button type="button" onClick={addChip} className="px-3 py-2 text-sm border border-gray-300 rounded-lg bg-white text-gray-800 hover:bg-gray-50">Ekle</button>
                 </div>
               </div>
             </div>
@@ -392,21 +429,26 @@ export default function EcosystemEditPage() {
               ))}
             </div>
           )}
+          </div>
+
+          <div className="xl:col-span-1 space-y-3 sticky top-4">
+            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Kart Önizlemesi</p>
+            <div className="rounded-xl border border-gray-200 bg-[#141414] p-3 min-h-[280px]">
+              {form.name.trim() ? (
+                <ShowcaseCard product={previewProduct} preview />
+              ) : (
+                <div className="flex items-center justify-center h-64 text-sm text-gray-500 text-center px-4">
+                  Ürün adı ve kart sekmesindeki alanları doldurdukça önizleme burada görünür
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       )}
     </div>
   );
 }
 
-function Field({ label, value, onChange, multiline, type = "text" }: { label: string; value: string; onChange: (v: string) => void; multiline?: boolean; type?: string }) {
-  return (
-    <div>
-      <label className="block text-xs font-medium text-gray-600 mb-1">{label}</label>
-      {multiline ? (
-        <textarea className="w-full rounded-lg border px-3 py-2 text-sm min-h-[80px]" value={value} onChange={(e) => onChange(e.target.value)} />
-      ) : (
-        <input type={type} className="w-full rounded-lg border px-3 py-2 text-sm" value={value} onChange={(e) => onChange(e.target.value)} />
-      )}
-    </div>
-  );
+function Field(props: ComponentProps<typeof AdminFormField>) {
+  return <AdminFormField {...props} />;
 }

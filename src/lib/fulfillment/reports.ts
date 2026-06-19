@@ -1,6 +1,18 @@
 import { prisma } from "@/lib/db";
+import { isCoreOrderEngine } from "@/lib/orders/config";
+import { listOrders } from "./orders";
 
 type Period = "daily" | "weekly" | "monthly";
+
+type ReportOrder = {
+  totalAmount: number;
+  totalCost: number;
+  totalProfit: number;
+  status: string;
+  fulfillmentStatus?: string;
+  createdAt: Date;
+  shipments?: Array<{ shippingCost?: number }>;
+};
 
 function periodRange(period: Period) {
   const now = new Date();
@@ -17,39 +29,66 @@ function periodRange(period: Period) {
   return { start, end };
 }
 
-export async function getFulfillmentReport(period: Period = "monthly", dealerId?: string) {
-  const { start, end } = periodRange(period);
-  const where = {
-    ...(dealerId ? { dealerId } : {}),
-    createdAt: { gte: start, lte: end },
-  };
-
-  const orders = await prisma.dealerOrder.findMany({ where, include: { shipments: true } });
-
+function aggregateOrders(orders: ReportOrder[]) {
   const orderCount = orders.length;
   const revenue = orders.reduce((s, o) => s + o.totalAmount, 0);
   const cost = orders.reduce((s, o) => s + o.totalCost, 0);
   const profit = orders.reduce((s, o) => s + o.totalProfit, 0);
   const shipping = orders.reduce((s, o) => {
-    const ship = o.shipments.reduce((ss, sh) => ss + sh.shippingCost, 0);
+    const ship = (o.shipments || []).reduce((ss, sh) => ss + (sh.shippingCost || 0), 0);
     return s + ship;
   }, 0);
-  const returns = orders.filter((o) => o.status === "RETURNED").length;
+  const returns = orders.filter((o) => (o.fulfillmentStatus || o.status) === "RETURNED").length;
+  return { orderCount, revenue, cost, profit, shipping, returns };
+}
 
-  return { period, orderCount, revenue, cost, profit, shipping, returns, start, end };
+async function ordersInPeriod(period: Period, dealerId?: string): Promise<ReportOrder[]> {
+  const { start, end } = periodRange(period);
+  const all = await listOrders({ dealerId, limit: 5000, includeLegacy: isCoreOrderEngine() });
+  return all
+    .filter((o) => {
+      const d = new Date(o.createdAt);
+      return d >= start && d <= end;
+    })
+    .map((o) => ({
+      totalAmount: o.totalAmount,
+      totalCost: o.totalCost,
+      totalProfit: o.totalProfit,
+      status: o.status,
+      fulfillmentStatus: o.fulfillmentStatus,
+      createdAt: o.createdAt,
+      shipments: (o.shipments || []) as Array<{ shippingCost?: number }>,
+    }));
+}
+
+export async function getFulfillmentReport(period: Period = "monthly", dealerId?: string) {
+  const { start, end } = periodRange(period);
+  const orders = await ordersInPeriod(period, dealerId);
+  return { period, ...aggregateOrders(orders), start, end };
 }
 
 export async function getAdminDashboardStats() {
-  const [orderCount, shipmentCount, accountCount, todayReport] = await Promise.all([
-    prisma.dealerOrder.count(),
+  const [shipmentCount, accountCount, todayOrders, recentUnified] = await Promise.all([
     prisma.dealerShipment.count(),
     prisma.dealerAccount.count(),
-    getFulfillmentReport("daily"),
+    ordersInPeriod("daily"),
+    listOrders({ limit: 8 }),
   ]);
-  const recentOrders = await prisma.dealerOrder.findMany({
-    orderBy: { createdAt: "desc" },
-    take: 8,
-    include: { dealer: { select: { name: true } } },
-  });
-  return { orderCount, shipmentCount, accountCount, todayReport, recentOrders };
+
+  const todayReport = aggregateOrders(todayOrders);
+
+  return {
+    orderCount: (await listOrders({ limit: 5000 })).length,
+    shipmentCount,
+    accountCount,
+    todayReport: { period: "daily" as const, ...todayReport, start: periodRange("daily").start, end: periodRange("daily").end },
+    recentOrders: recentUnified.map((o) => ({
+      id: o.id,
+      orderNumber: o.orderNumber,
+      status: o.fulfillmentStatus || o.status,
+      totalAmount: o.totalAmount,
+      createdAt: o.createdAt,
+      dealer: o.dealer,
+    })),
+  };
 }

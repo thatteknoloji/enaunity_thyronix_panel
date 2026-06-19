@@ -1,11 +1,13 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import { formatPrice, formatDate } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ShoppingCart, Store, Search, CheckCircle, XCircle, Truck, ChevronDown, ChevronUp, ArrowUpDown, Package, ChevronLeft, ChevronRight, FileText, ImageIcon } from "lucide-react";
 import toast from "react-hot-toast";
+import OperasyonOrdersPanel from "@/components/admin/OperasyonOrdersPanel";
 
 interface Order {
   id: string; total: number; discount: number; status: string; address: string; createdAt: string;
@@ -46,6 +48,17 @@ const statusLabels: Record<string, string> = {
 };
 
 export default function AdminOrdersPage() {
+  return (
+    <Suspense fallback={<div className="text-center py-16 text-gray-500">Yükleniyor…</div>}>
+      <AdminOrdersContent />
+    </Suspense>
+  );
+}
+
+function AdminOrdersContent() {
+  const searchParams = useSearchParams();
+  const initialTab = searchParams.get("tab") === "operasyon" ? "operasyon" : "b2b";
+  const [viewMode, setViewMode] = useState<"b2b" | "operasyon">(initialTab);
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -166,8 +179,30 @@ export default function AdminOrdersPage() {
     <div>
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-gray-900">Siparişler</h1>
-        <p className="text-sm text-gray-500 mt-1">Toplam {total} sipariş</p>
+        <p className="text-sm text-gray-500 mt-1">
+          {viewMode === "b2b" ? `Toplam ${total} B2B sipariş` : "Operasyon / pazaryeri siparişleri ve maliyet analizi"}
+        </p>
       </div>
+
+      <div className="flex gap-1 mb-4 p-1 bg-gray-100 rounded-xl w-fit">
+        <button
+          onClick={() => setViewMode("b2b")}
+          className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${viewMode === "b2b" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-800"}`}
+        >
+          B2B Siparişler
+        </button>
+        <button
+          onClick={() => setViewMode("operasyon")}
+          className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${viewMode === "operasyon" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-800"}`}
+        >
+          Operasyon Siparişleri
+        </button>
+      </div>
+
+      {viewMode === "operasyon" ? (
+        <OperasyonOrdersPanel />
+      ) : (
+        <>
 
       {/* Arama + Filtre Bar */}
       <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm mb-4 space-y-3">
@@ -429,6 +464,8 @@ export default function AdminOrdersPage() {
               </button>
             </div>
           )}
+        </>
+      )}
         </>
       )}
     </div>

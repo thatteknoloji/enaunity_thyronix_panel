@@ -11,7 +11,10 @@ export async function GET(req: NextRequest) {
     const user = await getSession();
     const admin = user?.role === "admin" && scope === "admin";
     const data = await listShowcaseProducts({ admin });
-    return NextResponse.json({ success: true, data });
+    return NextResponse.json(
+      { success: true, data },
+      { headers: { "Cache-Control": "no-store, max-age=0" } },
+    );
   } catch {
     return NextResponse.json({ success: false, error: "Hata" }, { status: 500 });
   }

@@ -37,7 +37,7 @@ type IntegrationStats = {
   }>;
 };
 
-import { AdminProductDealerLicenses } from "@/components/admin/AdminProductDealerLicenses";
+import { AdminModuleAccessPanel } from "@/components/admin/AdminModuleAccessPanel";
 
 const statusLabels: Record<string, string> = {
   connected: "Bağlı",
@@ -259,7 +259,7 @@ export default function AdminHiveIntegrationPage() {
         </div>
       </div>
 
-      <AdminProductDealerLicenses moduleKey="HIVE" />
+      <AdminModuleAccessPanel moduleKey="HIVE" />
     </div>
   );
 }

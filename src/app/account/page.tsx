@@ -17,6 +17,7 @@ import toast from "react-hot-toast";
 import { useAccountCenter } from "@/components/account/AccountCenterProvider";
 import { AccCard, AccEmpty, AccPageTitle, AccSkeleton, AccStatCard, AccTableWrap } from "@/components/account/AccountShell";
 import { PremiumModuleCard, OnboardingProgress } from "@/components/account/PremiumModuleCard";
+import { SecurityTab } from "@/components/account/SecurityTab";
 import type { AccountTab } from "@/components/account/nav";
 import { ORDER_STATUS_MAP, DOC_TYPE_LABELS } from "@/components/account/nav";
 import type { CustomerProductsOverview } from "@/lib/customer-products/types";
@@ -85,12 +86,12 @@ export default function AccountPage() {
 
   const [billing, setBilling] = useState<any>(null);
   const [billL, setBillL] = useState(false);
+  const [billErr, setBillErr] = useState("");
 
-  const [activeTabLoaded, setActiveTabLoaded] = useState<Set<Tab>>(new Set());
+  const loadedTabsRef = useRef<Set<Tab>>(new Set());
 
-  const loadTab = useCallback(async (t: Tab) => {
-    if (activeTabLoaded.has(t)) return;
-    setActiveTabLoaded(prev => new Set(prev).add(t));
+  const loadTab = useCallback(async (t: Tab, force = false) => {
+    if (!force && loadedTabsRef.current.has(t)) return;
 
     switch (t) {
       case "overview":
@@ -100,18 +101,31 @@ export default function AccountPage() {
           fetch("/api/customer-products").then(r => r.json()),
           fetch("/api/customer-products/licenses").then(r => r.json()).catch(() => null),
         ]).then(([dashRes, productsRes, licenseRes]) => {
-          if (dashRes.success) setDash(dashRes.data);
+          if (dashRes.success) {
+            setDash(dashRes.data);
+            loadedTabsRef.current.add("overview");
+          }
           if (productsRes.success) setCustomerProducts(productsRes.data);
           if (licenseRes?.success) setApprovalInfo(licenseRes.data?.approval);
         }).finally(() => setDashL(false));
         break;
       case "contracts":
         setContractsL(true);
-        fetch("/api/dealer/contracts").then(r => r.json()).then(d => { if (d.success) setContracts(d.data); }).finally(() => setContractsL(false));
+        fetch("/api/dealer/contracts").then(r => r.json()).then(d => {
+          if (d.success) {
+            setContracts(d.data);
+            loadedTabsRef.current.add("contracts");
+          }
+        }).finally(() => setContractsL(false));
         break;
       case "addresses":
         setAddrL(true);
-        fetch("/api/dealer/addresses").then(r => r.json()).then(d => { if (d.success) setAddresses(d.data); }).finally(() => setAddrL(false));
+        fetch("/api/dealer/addresses").then(r => r.json()).then(d => {
+          if (d.success) {
+            setAddresses(d.data);
+            loadedTabsRef.current.add("addresses");
+          }
+        }).finally(() => setAddrL(false));
         break;
       case "documents":
         setDocsL(true);
@@ -119,7 +133,10 @@ export default function AccountPage() {
           fetch("/api/dealer/documents").then(r => r.json()),
           fetch("/api/customer-products/licenses").then(r => r.json()).catch(() => null),
         ]).then(([docsRes, licenseRes]) => {
-          if (docsRes.success) setDocs(docsRes.data);
+          if (docsRes.success) {
+            setDocs(docsRes.data);
+            loadedTabsRef.current.add("documents");
+          }
           if (licenseRes?.success) setApprovalInfo(licenseRes.data?.approval);
         }).finally(() => setDocsL(false));
         break;
@@ -128,6 +145,7 @@ export default function AccountPage() {
         fetch("/api/dealer/profile").then(r => r.json()).then(d => {
           if (d.success) {
             setProfile(d.data);
+            loadedTabsRef.current.add("profile");
             setPForm({
               phone: d.data.phone || "", website: d.data.website || "", location: d.data.location || "",
               taxNumber: d.data.taxNumber || "", taxOffice: d.data.taxOffice || "",
@@ -139,22 +157,50 @@ export default function AccountPage() {
         break;
       case "wishlist":
         setWishL(true);
-        fetch("/api/dealer/wishlist").then(r => r.json()).then(d => { if (d.success) setWishlist(d.data); }).finally(() => setWishL(false));
+        fetch("/api/dealer/wishlist").then(r => r.json()).then(d => {
+          if (d.success) {
+            setWishlist(d.data);
+            loadedTabsRef.current.add("wishlist");
+          }
+        }).finally(() => setWishL(false));
         break;
       case "returns":
         setRetL(true);
-        fetch("/api/dealer/returns").then(r => r.json()).then(d => { if (d.success) setReturns(d.data); }).finally(() => setRetL(false));
+        fetch("/api/dealer/returns").then(r => r.json()).then(d => {
+          if (d.success) {
+            setReturns(d.data);
+            loadedTabsRef.current.add("returns");
+          }
+        }).finally(() => setRetL(false));
         break;
       case "quotes":
         setQL(true);
-        fetch("/api/dealer/quotes").then(r => r.json()).then(d => { if (d.success) setQuotes(d.data); }).finally(() => setQL(false));
+        fetch("/api/dealer/quotes").then(r => r.json()).then(d => {
+          if (d.success) {
+            setQuotes(d.data);
+            loadedTabsRef.current.add("quotes");
+          }
+        }).finally(() => setQL(false));
         break;
       case "billing":
         setBillL(true);
-        fetch("/api/dealer/balance").then(r => r.json()).then(d => { if (d.success) setBilling(d.data); }).finally(() => setBillL(false));
+        setBillErr("");
+        fetch("/api/dealer/balance").then(async (r) => {
+          const d = await r.json();
+          if (d.success && d.data) {
+            setBilling(d.data);
+            loadedTabsRef.current.add("billing");
+          } else {
+            setBilling(null);
+            setBillErr(d.error || (r.status === 403 ? "Cari hesap bu kullanıcı için tanımlı değil." : "Cari hesap bilgileri alınamadı."));
+          }
+        }).catch(() => {
+          setBilling(null);
+          setBillErr("Bağlantı hatası. Tekrar deneyin.");
+        }).finally(() => setBillL(false));
         break;
     }
-  }, [activeTabLoaded]);
+  }, []);
 
   useEffect(() => {
     fetch("/api/orders").then(r => r.json()).then(d => { setOrders(d.data || []); setLoading(false); });
@@ -472,19 +518,7 @@ export default function AccountPage() {
       )}
 
       {tab === "security" && (
-        <div className="space-y-4">
-          <AccPageTitle title="Güvenlik Ayarları" description="Hesap güvenliği ve oturum yönetimi" />
-          <AccCard>
-            <h3 className="text-sm font-semibold text-ena-text mb-2">Oturum</h3>
-            <p className="text-sm text-ena-light">Aktif oturumunuz bu cihazda devam ediyor. Şüpheli aktivite fark ederseniz çıkış yapın ve şifrenizi güncelleyin.</p>
-            <Button variant="outline" size="sm" onClick={handleLogout}><LogOut size={14} className="mr-1" /> Tüm Oturumları Kapat</Button>
-          </AccCard>
-          <AccCard>
-            <h3 className="text-sm font-semibold text-ena-text mb-2">Hesap Durumu</h3>
-            <p className="text-sm text-ena-light">E-posta: <span className="text-ena-text font-medium">{user?.email}</span></p>
-            <p className="text-sm text-ena-light mt-1">Rol: <span className="text-ena-text font-medium">{user?.role}</span></p>
-          </AccCard>
-        </div>
+        <SecurityTab onLogout={handleLogout} />
       )}
 
       {/* ===== ORDERS ===== */}
@@ -831,7 +865,12 @@ export default function AccountPage() {
       {/* ===== BILLING ===== */}
       {tab === "billing" && (
         billL ? <AccSkeleton rows={4} /> : !billing ? (
-          <AccEmpty icon={Wallet} title="Veri yüklenemedi" description="Cari hesap bilgileri alınamadı." />
+          <AccEmpty
+            icon={Wallet}
+            title="Veri yüklenemedi"
+            description={billErr || "Cari hesap bilgileri alınamadı."}
+            action={<Button variant="outline" size="sm" onClick={() => loadTab("billing", true)}>Tekrar Dene</Button>}
+          />
         ) : (
           <div className="space-y-6">
             <AccPageTitle title="Cari Hesap" description="Bakiye, limit, faturalar ve finans hareketleri" />
@@ -888,10 +927,11 @@ export default function AccountPage() {
                       <div key={t.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 px-4 py-3 hover:bg-ena-primary/5 transition-colors">
                         <div className="flex items-center gap-3 min-w-0">
                           <span className={`text-[10px] px-1.5 py-0.5 rounded uppercase font-medium shrink-0 ${
-                            t.type === "payment" ? "acc-badge-success" :
-                            t.type === "invoice" ? "acc-badge-info" :
+                            t.type === "payment" || t.type === "payment_credit" || t.credit > 0 ? "acc-badge-success" :
+                            t.type === "invoice" || t.type === "order_debit" || t.debit > 0 ? "acc-badge-info" :
+                            t.type === "adjustment" ? "acc-badge-warning" :
                             "acc-badge-warning"
-                          }`}>{t.type}</span>
+                          }`}>{t.type === "adjustment" ? "manuel" : t.type}</span>
                           <div className="min-w-0">
                             <p className="text-xs text-ena-light truncate">{t.note || ""}</p>
                             <p className="text-[10px] text-ena-light/60">{new Date(t.createdAt).toLocaleDateString("tr-TR")}</p>

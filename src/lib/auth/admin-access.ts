@@ -4,7 +4,18 @@ export const ADMIN_ROLES: AdminRole[] = ["SUPER_ADMIN", "ADMIN", "MANAGER", "SUP
 export const ELEVATED_ROLES: AdminRole[] = ["SUPER_ADMIN", "ADMIN"];
 
 export function getAdminSecretPath(): string {
-  return process.env.ADMIN_SECRET_PATH || "/x-control-eu-7294";
+  return (
+    process.env.ADMIN_SECRET_PATH ||
+    process.env.NEXT_PUBLIC_ADMIN_SECRET_PATH ||
+    "/x-control-eu-7294"
+  );
+}
+
+export function getAdminSecretPathFromBrowser(): string {
+  if (typeof window === "undefined") return getAdminSecretPath();
+  const first = window.location.pathname.split("/").filter(Boolean)[0];
+  if (first?.startsWith("x-control")) return `/${first}`;
+  return getAdminSecretPath();
 }
 
 export function getAdminLoginPath(): string {
@@ -13,9 +24,12 @@ export function getAdminLoginPath(): string {
 
 /** Map internal /admin routes to the public secret URL prefix. */
 export function toAdminUrl(path: string = "/admin"): string {
-  const secret = getAdminSecretPath();
+  const secret =
+    typeof window !== "undefined" ? getAdminSecretPathFromBrowser() : getAdminSecretPath();
   if (!path || path === "/admin") return secret;
-  return path.startsWith("/admin") ? path.replace(/^\/admin/, secret) : `${secret}${path.startsWith("/") ? path : `/${path}`}`;
+  return path.startsWith("/admin")
+    ? path.replace(/^\/admin/, secret)
+    : `${secret}${path.startsWith("/") ? path : `/${path}`}`;
 }
 
 export function isAdminRole(role?: string): boolean {

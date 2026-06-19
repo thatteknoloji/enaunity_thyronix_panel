@@ -21,6 +21,20 @@ export function signToken(user: { id: string; email: string; role: string; deale
   );
 }
 
+export function sign2FAChallenge(payload: { id: string; isSubUser: boolean }): string {
+  return jwt.sign({ ...payload, purpose: "2fa" }, JWT_SECRET, { expiresIn: "5m" });
+}
+
+export function verify2FAChallenge(token: string): { id: string; isSubUser: boolean } | null {
+  try {
+    const payload = jwt.verify(token, JWT_SECRET) as { id: string; isSubUser: boolean; purpose?: string };
+    if (payload.purpose !== "2fa") return null;
+    return { id: payload.id, isSubUser: Boolean(payload.isSubUser) };
+  } catch {
+    return null;
+  }
+}
+
 export function verifyToken(token: string): { id: string; email: string; role: string; dealerId?: string; subUserRole?: string } | null {
   try {
     return jwt.verify(token, JWT_SECRET) as { id: string; email: string; role: string; dealerId?: string; subUserRole?: string };

@@ -1,0 +1,47 @@
+export type MarketplacePartner = {
+  name: string;
+  logo: string;
+};
+
+/** Orijinal yerel logo dosyaları — public/images/partners/*.png */
+export const MARKETPLACE_PARTNERS: MarketplacePartner[] = [
+  { name: "Trendyol", logo: "/images/partners/trendyol.png" },
+  { name: "Hepsiburada", logo: "/images/partners/hepsiburada.png" },
+  { name: "N11", logo: "/images/partners/n11.png" },
+  { name: "Amazon Türkiye", logo: "/images/partners/amazontr.png" },
+  { name: "ÇiçekSepeti", logo: "/images/partners/ciceksepeti.png" },
+  { name: "PttAVM", logo: "/images/partners/pttavm.png" },
+  { name: "Pazarama", logo: "/images/partners/pazarama.png" },
+  { name: "Morhipo", logo: "/images/partners/morhipo.png" },
+  { name: "Teknosa", logo: "/images/partners/teknosa.png" },
+  { name: "İdefix", logo: "/images/partners/idefix.png" },
+  { name: "GittiGidiyor", logo: "/images/partners/gittigidiyor.png" },
+  { name: "Vivense", logo: "/images/partners/vivense.png" },
+  { name: "Modanisa", logo: "/images/partners/modanisa.png" },
+  { name: "Boyner", logo: "/images/partners/boyner.png" },
+  { name: "Amazon", logo: "/images/partners/amazon.png" },
+  { name: "eBay", logo: "/images/partners/ebay.png" },
+  { name: "Walmart", logo: "/images/partners/walmart.png" },
+  { name: "Alibaba", logo: "/images/partners/alibaba.png" },
+  { name: "AliExpress", logo: "/images/partners/aliexpress.png" },
+  { name: "Etsy", logo: "/images/partners/etsy.png" },
+  { name: "Mercado Libre", logo: "/images/partners/mercadolibre.png" },
+  { name: "Rakuten", logo: "/images/partners/rakuten.png" },
+  { name: "Zalando", logo: "/images/partners/zalando.png" },
+  { name: "Otto", logo: "/images/partners/otto.png" },
+  { name: "JD.com", logo: "/images/partners/jd.png" },
+  { name: "Flipkart", logo: "/images/partners/flipkart.png" },
+  { name: "Shopee", logo: "/images/partners/shopee.png" },
+  { name: "Lazada", logo: "/images/partners/lazada.png" },
+  { name: "Wish", logo: "/images/partners/wish.png" },
+  { name: "Allegro", logo: "/images/partners/allegro.png" },
+  { name: "bol.com", logo: "/images/partners/bol.png" },
+  { name: "Cdiscount", logo: "/images/partners/cdiscount.png" },
+  { name: "Wayfair", logo: "/images/partners/wayfair.png" },
+  { name: "Target", logo: "/images/partners/target.png" },
+  { name: "Best Buy", logo: "/images/partners/bestbuy.png" },
+  { name: "Carrefour", logo: "/images/partners/carrefour.png" },
+  { name: "Costco", logo: "/images/partners/costco.png" },
+  { name: "Fnac", logo: "/images/partners/fnac.png" },
+  { name: "ASOS", logo: "/images/partners/asos.png" },
+];

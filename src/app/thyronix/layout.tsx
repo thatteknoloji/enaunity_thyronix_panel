@@ -51,9 +51,13 @@ export default function ThyronixLayout({ children }: { children: React.ReactNode
   const [onboardingStep, setOnboardingStep] = useState(1);
   const [planLimits, setPlanLimits] = useState<Record<string, boolean | number>>({});
   const isLoginPage = pathname === "/thyronix/login";
+  const isPublicPage =
+    isLoginPage ||
+    pathname.startsWith("/thyronix/pricing") ||
+    pathname.startsWith("/thyronix/pending");
 
   useEffect(() => {
-    if (isLoginPage) return;
+    if (isPublicPage) return;
 
     const checkAuth = async () => {
       try {
@@ -84,10 +88,10 @@ export default function ThyronixLayout({ children }: { children: React.ReactNode
     };
 
     checkAuth();
-  }, [router, isLoginPage]);
+  }, [router, isPublicPage]);
 
   useEffect(() => {
-    if (!authorized || isLoginPage) return;
+    if (!authorized || isPublicPage) return;
     fetch("/api/thyronix/workspace")
       .then((r) => r.json())
       .then((d) => {
@@ -99,16 +103,16 @@ export default function ThyronixLayout({ children }: { children: React.ReactNode
           }
         }
       });
-  }, [authorized, isLoginPage, isAdmin]);
+  }, [authorized, isPublicPage, isAdmin]);
 
   useEffect(() => { setMobileOpen(false); }, [pathname]);
 
   useEffect(() => {
-    if (!authorized || isAdmin || isLoginPage) return;
+    if (!authorized || isAdmin || isPublicPage) return;
     if (pathname.startsWith("/thyronix/admin") || pathname.startsWith("/thyronix/ai")) {
       router.replace("/thyronix");
     }
-  }, [authorized, isAdmin, isLoginPage, pathname, router]);
+  }, [authorized, isAdmin, isPublicPage, pathname, router]);
 
   const visibleNavItems = navItems.filter((item) => {
     if (item.adminOnly && !isAdmin) return false;
@@ -125,7 +129,7 @@ export default function ThyronixLayout({ children }: { children: React.ReactNode
     window.location.href = "/";
   };
 
-  if (isLoginPage) return <>{children}</>;
+  if (isPublicPage) return <>{children}</>;
   if (authError) return <div className="flex h-screen items-center justify-center bg-nexa-bg"><div className="text-center"><p className="text-nexa-text-secondary text-sm mb-3">Sunucuya bağlanılamadı</p><button onClick={() => window.location.reload()} className="text-nexa-primary text-sm hover:underline">Tekrar Dene</button></div></div>;
   if (!authorized) return <div className="flex h-screen items-center justify-center bg-nexa-bg"><div className="animate-pulse space-y-3 text-center"><div className="mx-auto h-10 w-10 rounded-full bg-nexa-border"/><div className="h-3 w-28 rounded bg-nexa-border mx-auto"/></div></div>;
 

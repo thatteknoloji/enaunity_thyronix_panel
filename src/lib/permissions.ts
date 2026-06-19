@@ -144,6 +144,7 @@ export function getNavPermissionMap(): Record<string, PermissionKey[]> {
     "/admin/integrations/hive": ["hive_view", "hive_integrations"],
     "/admin/module-licenses": ["admin_users"],
     "/admin/payments/module-payments": ["payments_view"],
+    "/admin/payments/gateways": ["payments_view"],
     "/admin/customer-products": ["admin_users"],
     "/admin/product-links": ["admin_users"],
     "/admin/ecosystem": ["ecosystem_view"],

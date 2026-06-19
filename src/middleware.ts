@@ -276,7 +276,7 @@ export async function middleware(request: NextRequest) {
   }
 
   if (isMyApi) {
-    if (role !== "dealer" && role !== "admin") return jsonError(403, "Yetkisiz erişim");
+    if (role !== "dealer" && !isAdminRole(role)) return jsonError(403, "Yetkisiz erişim");
     return NextResponse.next();
   }
 
@@ -289,12 +289,12 @@ export async function middleware(request: NextRequest) {
 
   const isDealerMarketplaceHubApi = pathname.startsWith("/api/dealer/marketplace-hub");
   if (isDealerMarketplaceHubApi) {
-    if (role !== "dealer" && role !== "admin") return jsonError(403, "Yetkisiz erişim");
+    if (role !== "dealer" && !isAdminRole(role)) return jsonError(403, "Yetkisiz erişim");
     return NextResponse.next();
   }
 
   if (isAccountPage || isDealerPage || isProductLibraryPage || isDealerApi) {
-    if (role !== "dealer" && role !== "admin") {
+    if (role !== "dealer" && !isAdminRole(role)) {
       if (isApi) return jsonError(403, "Yetkisiz erişim");
       return NextResponse.redirect(new URL("/auth/login", request.url));
     }

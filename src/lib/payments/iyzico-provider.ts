@@ -17,7 +17,7 @@ function iyzicoAuthHeader(apiKey: string, secretKey: string, body: string) {
 }
 
 async function iyzicoRequest(path: string, body: Record<string, unknown>) {
-  const config = getIyzicoConfig();
+  const config = await getIyzicoConfig();
   const bodyStr = JSON.stringify(body);
   const res = await fetch(`${config.baseUrl}${path}`, {
     method: "POST",
@@ -35,11 +35,11 @@ export function createIyzicoProvider(): PaymentProvider {
     key: "IYZICO",
 
     async createPayment(params: CreatePaymentParams): Promise<PaymentResult> {
-      const config = getIyzicoConfig();
+      const config = await getIyzicoConfig();
       const paymentId = params.metadata?.paymentId || crypto.randomUUID();
       const callbackUrl = `${getSiteBaseUrl()}/api/payments/callback/iyzico?paymentId=${paymentId}`;
 
-      if (!providerConfigured("IYZICO")) {
+      if (!(await providerConfigured("IYZICO"))) {
         const redirectUrl = `${callbackUrl}&token=sandbox-${paymentId}&status=success`;
         return {
           success: true,
@@ -124,8 +124,8 @@ export function createIyzicoProvider(): PaymentProvider {
     },
 
     async verifyPayment(params: VerifyPaymentParams): Promise<PaymentResult> {
-      const config = getIyzicoConfig();
-      if (!providerConfigured("IYZICO") || params.providerReference.startsWith("sandbox-")) {
+      const config = await getIyzicoConfig();
+      if (!(await providerConfigured("IYZICO")) || params.providerReference.startsWith("sandbox-")) {
         return { success: true, status: "PAID", paymentId: params.paymentId, message: "Sandbox doğrulama başarılı" };
       }
 

@@ -20,18 +20,9 @@ export default function ThyronixPricingPage() {
     fetch("/api/modules/plans?moduleKey=THYRONIX").then(r => r.json()).then(d => { if (d.success) setPlans(d.data); setLoading(false); });
   }, []);
 
-  const handleRequest = async (planKey: string) => {
+  const handleRequest = (planKey: string) => {
     if (!user) return toast.error("Önce giriş yapın");
-    setRequesting(planKey);
-    const res = await fetch("/api/dealer/modules/purchase-request", {
-      method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ moduleKey: "THYRONIX", planKey }),
-    });
-    const d = await res.json();
-    if (d.success) {
-      router.push(`/payment/pending?module=THYRONIX&plan=${planKey}&paymentId=${d.data.paymentId}`);
-    } else toast.error(d.error || "Hata");
-    setRequesting(null);
+    router.push(`/payment/checkout?type=module&moduleKey=THYRONIX&planKey=${planKey}`);
   };
 
   if (loading) return <div className="min-h-screen bg-ena-dark flex items-center justify-center"><Loader2 size={32} className="animate-spin text-ena-primary"/></div>;

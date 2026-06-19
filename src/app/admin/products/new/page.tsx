@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { ArrowLeft, Plus, Trash2, Save, Package, Barcode, Hash, X } from "lucide-react";
 import Link from "next/link";
 import toast from "react-hot-toast";
+import { toAdminUrl } from "@/lib/auth/admin-access";
 
 interface VariantGroup { id?: string; name: string; options: string[]; }
 interface VariantCombo { id?: string; sku: string; barcode: string; price: string; stock: string; options: string; }
@@ -65,7 +66,7 @@ export default function ProductFormPage() {
         }
       }
       toast.success(isEdit?"Güncellendi":"Ürün eklendi");
-      router.push("/admin/products");
+      router.push(toAdminUrl("/admin/products"));
     } else { const err = await res.json(); toast.error(err.error||"Hata"); }
     setSubmitting(false);
   };
@@ -88,7 +89,7 @@ export default function ProductFormPage() {
 
   return (
     <div className="max-w-4xl">
-      <Link href="/admin/products" className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700 mb-6"><ArrowLeft size={14} /> Ürünlere Dön</Link>
+      <Link href={toAdminUrl("/admin/products")} className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700 mb-6"><ArrowLeft size={14} /> Ürünlere Dön</Link>
       <h1 className="text-2xl font-bold text-gray-900 mb-6">{isEdit?"Ürün Düzenle":"Yeni Ürün"}</h1>
       <form onSubmit={handleSubmit} className="space-y-6">
 
@@ -167,7 +168,7 @@ export default function ProductFormPage() {
 
         <div className="flex gap-3">
           <Button type="submit" disabled={submitting}><Save size={14} className="mr-1"/>{submitting?"Kaydediliyor...":isEdit?"Güncelle":"Ürünü Ekle"}</Button>
-          <Link href="/admin/products"><Button type="button" variant="outline">İptal</Button></Link>
+          <Link href={toAdminUrl("/admin/products")}><Button type="button" variant="outline">İptal</Button></Link>
         </div>
       </form>
     </div>

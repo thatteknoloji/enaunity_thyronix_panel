@@ -40,11 +40,7 @@ function PriceBadge({ pkg }: { pkg: any }) {
   return <span className="text-sm font-bold text-slate-900">{fmtMoney(price)}{suffix}</span>;
 }
 
-const METHOD_LABELS: Record<string, string> = {
-  BANK_TRANSFER: "Havale / EFT",
-  ESNEKPOS: "EsnekPOS",
-  IYZICO: "İyzico",
-};
+import { PaymentCheckoutPanel } from "@/components/payments/PaymentCheckoutPanel";
 
 export default function DealerProductLibraryPanel() {
   const [tab, setTab] = useState<Tab>("packages");
@@ -57,8 +53,6 @@ export default function DealerProductLibraryPanel() {
   const [success, setSuccess] = useState<string | null>(null);
   const [downloading, setDownloading] = useState<string | null>(null);
   const [purchasing, setPurchasing] = useState<string | null>(null);
-  const [paymentMethods, setPaymentMethods] = useState<string[]>(["BANK_TRANSFER"]);
-  const [selectedMethod, setSelectedMethod] = useState("BANK_TRANSFER");
   const [purchaseModal, setPurchaseModal] = useState<string | null>(null);
   const [detailModal, setDetailModal] = useState<any>(null);
   const [search, setSearch] = useState("");
@@ -68,16 +62,14 @@ export default function DealerProductLibraryPanel() {
     setLoading(true);
     setError(null);
     try {
-      const [cats, pkgData, methodsRes] = await Promise.all([
+      const [cats, pkgData] = await Promise.all([
         plApi<any[]>("/api/product-library/catalogs"),
         plApi<{ packages: any[]; tier: string; downloads: any[] }>("/api/product-library/my-packages"),
-        fetch("/api/payments/methods").then((r) => r.json()).catch(() => ({ data: { methods: ["BANK_TRANSFER"] } })),
       ]);
       setCatalogs(cats);
       setPackages(pkgData.packages);
       setTier(pkgData.tier);
       setDownloads(pkgData.downloads || []);
-      setPaymentMethods(methodsRes.data?.methods || ["BANK_TRANSFER"]);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Yüklenemedi");
     } finally {
@@ -133,7 +125,7 @@ export default function DealerProductLibraryPanel() {
     }
   };
 
-  const purchase = async (packageId: string, paymentMethod = selectedMethod) => {
+  const purchase = async (packageId: string, paymentMethod: string) => {
     setPurchasing(packageId);
     setError(null);
     setSuccess(null);
@@ -255,7 +247,7 @@ export default function DealerProductLibraryPanel() {
                           </PlBtn>
                         ))}
                         {p.dealerState === "PURCHASE" && (
-                          <PlBtn size="sm" onClick={() => { setSelectedMethod("BANK_TRANSFER"); setPurchaseModal(p.id); }} disabled={purchasing === p.id}>
+                          <PlBtn size="sm" onClick={() => setPurchaseModal(p.id)} disabled={purchasing === p.id}>
                             <ShoppingCart size={12} /> Satın Al
                           </PlBtn>
                         )}
@@ -303,21 +295,19 @@ export default function DealerProductLibraryPanel() {
         </>
       )}
 
-      <PlModal open={!!purchaseModal} onClose={() => setPurchaseModal(null)} title="Ödeme Yöntemi Seçin">
-        <div className="space-y-2">
-          {paymentMethods.map((m) => (
-            <label key={m} className={`flex items-center gap-3 p-3 border rounded-lg cursor-pointer ${selectedMethod === m ? "border-ena-primary bg-orange-50" : "border-slate-200"}`}>
-              <input type="radio" name="paymentMethod" value={m} checked={selectedMethod === m} onChange={() => setSelectedMethod(m)} className="accent-ena-primary" />
-              <span className="text-sm text-slate-800">{METHOD_LABELS[m] || m}</span>
-            </label>
-          ))}
-        </div>
-        <div className="flex gap-2 pt-4">
-          <PlBtn variant="secondary" className="flex-1" onClick={() => setPurchaseModal(null)}>İptal</PlBtn>
-          <PlBtn className="flex-1" onClick={() => purchaseModal && purchase(purchaseModal, selectedMethod)} disabled={purchasing === purchaseModal}>
-            {purchasing === purchaseModal ? "İşleniyor…" : "Devam Et"}
-          </PlBtn>
-        </div>
+      <PlModal open={!!purchaseModal} onClose={() => setPurchaseModal(null)} title="Ödeme">
+        {purchaseModal && (() => {
+          const pkg = packages.find((p) => p.id === purchaseModal);
+          const amount = pkg?.price ?? 0;
+          return (
+            <PaymentCheckoutPanel
+              amount={amount}
+              title={pkg?.name ? `${pkg.name} — Ödeme` : undefined}
+              loading={purchasing === purchaseModal}
+              onConfirm={(method) => purchase(purchaseModal, method)}
+            />
+          );
+        })()}
       </PlModal>
 
       <PlModal open={!!detailModal} onClose={() => setDetailModal(null)} title={detailModal?.package?.name || "Paket Detayı"} wide>

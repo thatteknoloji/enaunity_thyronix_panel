@@ -5,6 +5,7 @@ import Link from "next/link";
 import { ArrowLeft, Eye, Save } from "lucide-react";
 import { toAdminUrl } from "@/lib/auth/admin-access";
 import { EcosystemShowcaseSection } from "@/components/ecosystem/EcosystemShowcaseSection";
+import { AdminFormField } from "@/components/admin/AdminFormField";
 import type { EcosystemShowcaseSettingsDTO } from "@/lib/ecosystem/section-settings";
 import { DEFAULT_ECOSYSTEM_SECTION } from "@/lib/ecosystem/section-settings";
 import toast from "react-hot-toast";
@@ -94,18 +95,18 @@ export default function EcosystemSectionSettingsPage() {
           </label>
 
           <div className="grid md:grid-cols-2 gap-4">
-            <Field label="Rozet Metni" value={form.badgeText} onChange={(v) => update({ badgeText: v })} />
-            <Field label="Anchor ID (#)" value={form.anchorId} onChange={(v) => update({ anchorId: v })} />
+            <AdminFormField label="Rozet Metni" value={form.badgeText} onChange={(v) => update({ badgeText: v })} />
+            <AdminFormField label="Anchor ID (#)" value={form.anchorId} onChange={(v) => update({ anchorId: v })} />
             <div className="md:col-span-2">
-              <Field label="Ana Başlık" value={form.title} onChange={(v) => update({ title: v })} />
+              <AdminFormField label="Ana Başlık" value={form.title} onChange={(v) => update({ title: v })} />
             </div>
             <div className="md:col-span-2">
-              <Field label="Açıklama" value={form.description} onChange={(v) => update({ description: v })} multiline />
+              <AdminFormField label="Açıklama" value={form.description} onChange={(v) => update({ description: v })} multiline />
             </div>
             <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1">Kolon Sayısı</label>
+              <label className="block text-xs font-semibold text-gray-700 mb-1">Kolon Sayısı</label>
               <select
-                className="w-full rounded-lg border px-3 py-2 text-sm"
+                className="admin-input"
                 value={form.columns}
                 onChange={(e) => update({ columns: parseInt(e.target.value) })}
               >
@@ -114,37 +115,12 @@ export default function EcosystemSectionSettingsPage() {
                 ))}
               </select>
             </div>
-            <Field label="Üst Boşluk (py-)" value={form.paddingTop} onChange={(v) => update({ paddingTop: v })} />
-            <Field label="Alt Boşluk (py-)" value={form.paddingBottom} onChange={(v) => update({ paddingBottom: v })} />
-            <Field label="Arka Plan Rengi 1" type="color" value={form.bgPrimaryColor} onChange={(v) => update({ bgPrimaryColor: v })} />
-            <Field label="Arka Plan Rengi 2" type="color" value={form.bgSecondaryColor} onChange={(v) => update({ bgSecondaryColor: v })} />
+            <AdminFormField label="Üst Boşluk (py-)" value={form.paddingTop} onChange={(v) => update({ paddingTop: v })} />
+            <AdminFormField label="Alt Boşluk (py-)" value={form.paddingBottom} onChange={(v) => update({ paddingBottom: v })} />
+            <AdminFormField label="Arka Plan Rengi 1" type="color" value={form.bgPrimaryColor} onChange={(v) => update({ bgPrimaryColor: v })} />
+            <AdminFormField label="Arka Plan Rengi 2" type="color" value={form.bgSecondaryColor} onChange={(v) => update({ bgSecondaryColor: v })} />
           </div>
         </div>
-      )}
-    </div>
-  );
-}
-
-function Field({
-  label,
-  value,
-  onChange,
-  multiline,
-  type = "text",
-}: {
-  label: string;
-  value: string;
-  onChange: (v: string) => void;
-  multiline?: boolean;
-  type?: string;
-}) {
-  return (
-    <div>
-      <label className="block text-xs font-medium text-gray-600 mb-1">{label}</label>
-      {multiline ? (
-        <textarea className="w-full rounded-lg border px-3 py-2 text-sm min-h-[80px]" value={value} onChange={(e) => onChange(e.target.value)} />
-      ) : (
-        <input type={type} className="w-full rounded-lg border px-3 py-2 text-sm" value={value} onChange={(e) => onChange(e.target.value)} />
       )}
     </div>
   );

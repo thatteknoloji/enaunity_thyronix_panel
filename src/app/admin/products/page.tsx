@@ -5,6 +5,8 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Modal } from "@/components/ui/modal";
 import { formatPrice, formatDate, productUrl } from "@/lib/utils";
+import { toAdminUrl } from "@/lib/auth/admin-access";
+import { ProductsTabs } from "@/components/admin/ProductsTabs";
 import { Plus, Trash2, Search, Upload, FileDown, Barcode, Hash, DollarSign, Tag, AlignLeft, FolderOpen, Percent, X, Check, Pencil, Filter, XCircle, Eye } from "lucide-react";
 import toast from "react-hot-toast";
 
@@ -55,6 +57,17 @@ export default function AdminProductsPage() {
   useEffect(() => {
     fetchProducts();
     fetch("/api/admin/categories").then(r=>r.json()).then(d=>setCategories(d.data||[]));
+    try {
+      const stored = sessionStorage.getItem("importProductIds");
+      if (stored) {
+        const ids: string[] = JSON.parse(stored);
+        if (ids.length) {
+          setSelected(new Set(ids));
+          toast.success(`${ids.length} import edilen ürün seçildi`);
+        }
+        sessionStorage.removeItem("importProductIds");
+      }
+    } catch { /* ignore */ }
   }, []);
 
   const handleDelete = async (id: string) => {
@@ -174,13 +187,14 @@ export default function AdminProductsPage() {
 
   return (
     <div>
+      <ProductsTabs />
       <div className="flex items-center justify-between mb-4">
         <div><h1 className="text-2xl font-bold text-gray-900">Ürünler</h1><p className="text-sm text-gray-500 mt-1">Sayfa {safePage}/{totalPages} · {paginated.length} gösteriliyor / {totalFiltered} filtrelenmiş / {products.length} toplam</p></div>
         <div className="flex gap-2 flex-wrap">
           <button onClick={() => setShowFilters(!showFilters)} className={`inline-flex items-center gap-1.5 px-3 py-2 text-sm border rounded-lg transition-colors ${hasFilters?"border-amber-300 bg-amber-50 text-amber-700":"border-gray-200 text-gray-600 hover:bg-gray-50"}`}><Filter size={15}/> Filtre {hasFilters&&"✓"}</button>
           <a href="/api/admin/export?type=products" className="inline-flex items-center gap-1.5 px-3 py-2 text-sm border border-gray-200 rounded-lg hover:bg-gray-50 text-gray-700"><FileDown size={15}/> Excel</a>
-          <Link href="/admin/products/import"><Button variant="outline" className="gap-1.5"><Upload size={15}/> Toplu Ekle</Button></Link>
-          <Link href="/admin/products/new"><Button className="gap-1.5 shadow-sm"><Plus size={15}/> Yeni Ürün</Button></Link>
+          <Link href={toAdminUrl("/admin/products/import")}><Button variant="outline" className="gap-1.5"><Upload size={15}/> Toplu Ekle</Button></Link>
+          <Link href={toAdminUrl("/admin/products/new")}><Button className="gap-1.5 shadow-sm"><Plus size={15}/> Yeni Ürün</Button></Link>
         </div>
       </div>
 
@@ -294,7 +308,7 @@ export default function AdminProductsPage() {
                 <td className="px-3 py-3 text-right"><div className="flex justify-end gap-1 flex-nowrap">
                   <a href={productUrl(p)} target="_blank" rel="noopener noreferrer"><Button variant="ghost" size="sm" className="text-gray-500 hover:text-emerald-600" title="Sitede gör"><Eye size={14}/></Button></a>
                   <Button variant="ghost" size="sm" onClick={()=>{setDetailProduct(p);setDetailOpen(true)}} className="text-gray-500 hover:text-blue-600" title="Hızlı bak"><Search size={14}/></Button>
-                  <Link href={`/admin/products/${p.id}`}><Button variant="ghost" size="sm" className="text-gray-500" title="Düzenle"><Pencil size={14}/></Button></Link>
+                  <Link href={toAdminUrl(`/admin/products/${p.id}`)}><Button variant="ghost" size="sm" className="text-gray-500" title="Düzenle"><Pencil size={14}/></Button></Link>
                   <Button variant="ghost" size="sm" onClick={()=>handleDelete(p.id)} className="text-gray-500 hover:text-ena-primary" title="Sil"><Trash2 size={14}/></Button>
                 </div></td>
               </tr>
@@ -446,7 +460,7 @@ export default function AdminProductsPage() {
             )}
             <div className="flex gap-2 pt-2 border-t border-gray-100">
               <a href={productUrl(detailProduct)} target="_blank" rel="noopener noreferrer"><Button variant="outline">Sitede Gör <Eye size={14} className="ml-1"/></Button></a>
-              <Link href={`/admin/products/${detailProduct.id}`}><Button>Düzenle <Pencil size={14} className="ml-1"/></Button></Link>
+              <Link href={toAdminUrl(`/admin/products/${detailProduct.id}`)}><Button>Düzenle <Pencil size={14} className="ml-1"/></Button></Link>
               <Button variant="outline" onClick={() => setDetailOpen(false)}>Kapat</Button>
             </div>
           </div>

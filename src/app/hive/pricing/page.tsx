@@ -22,14 +22,7 @@ export default function HivePricingPage() {
   const handleRequest = async (planKey: string) => {
     if (!hiveSalesActive) return toast.error("HIVE satışları yakında açılacak");
     if (!user) return toast.error("Önce giriş yapın");
-    const res = await fetch("/api/dealer/modules/purchase-request", {
-      method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ moduleKey: "HIVE", planKey }),
-    });
-    const d = await res.json();
-    if (d.success) {
-      router.push(`/payment/pending?module=HIVE&plan=${planKey}&paymentId=${d.data.paymentId}`);
-    } else toast.error(d.error || "Hata");
+    router.push(`/payment/checkout?type=module&moduleKey=HIVE&planKey=${planKey}`);
   };
 
   if (loading) return <div className="min-h-screen bg-ena-dark flex items-center justify-center"><Loader2 size={32} className="animate-spin text-violet-400"/></div>;

@@ -1,7 +1,17 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { verifyPassword, signToken } from "@/lib/auth";
+import { verifyPassword, signToken, sign2FAChallenge } from "@/lib/auth";
 import bcrypt from "bcryptjs";
+
+function setAuthCookie(response: NextResponse, token: string) {
+  response.cookies.set("token", token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    maxAge: 60 * 60 * 24 * 7,
+    path: "/",
+  });
+}
 
 export async function POST(req: Request) {
   try {
@@ -19,25 +29,24 @@ export async function POST(req: Request) {
         return NextResponse.json({ success: false, error: "Geçersiz giriş bilgileri" }, { status: 401 });
       }
 
-      const token = signToken(user);
+      if (user.totpEnabled) {
+        return NextResponse.json({
+          success: true,
+          requires2FA: true,
+          challenge: sign2FAChallenge({ id: user.id, isSubUser: false }),
+          data: { name: user.name, email: user.email },
+        });
+      }
 
+      const token = signToken(user);
       const response = NextResponse.json({
         success: true,
         data: { id: user.id, name: user.name, email: user.email, role: user.role, dealerId: user.dealerId },
       });
-
-      response.cookies.set("token", token, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "lax",
-        maxAge: 60 * 60 * 24 * 7,
-        path: "/",
-      });
-
+      setAuthCookie(response, token);
       return response;
     }
 
-    // Check SubUser
     const subUser = await prisma.subUser.findUnique({ where: { email } });
     if (!subUser || !subUser.active) {
       return NextResponse.json({ success: false, error: "Geçersiz giriş bilgileri" }, { status: 401 });
@@ -48,6 +57,15 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: false, error: "Geçersiz giriş bilgileri" }, { status: 401 });
     }
 
+    if (subUser.totpEnabled) {
+      return NextResponse.json({
+        success: true,
+        requires2FA: true,
+        challenge: sign2FAChallenge({ id: subUser.id, isSubUser: true }),
+        data: { name: subUser.name, email: subUser.email },
+      });
+    }
+
     const token = signToken({
       id: subUser.id,
       name: subUser.name,
@@ -55,7 +73,7 @@ export async function POST(req: Request) {
       role: "dealer",
       dealerId: subUser.dealerId,
       subUserRole: subUser.role,
-    } as any);
+    } as Parameters<typeof signToken>[0] & { subUserRole: string });
 
     const response = NextResponse.json({
       success: true,
@@ -69,15 +87,7 @@ export async function POST(req: Request) {
         isSubUser: true,
       },
     });
-
-    response.cookies.set("token", token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      maxAge: 60 * 60 * 24 * 7,
-      path: "/",
-    });
-
+    setAuthCookie(response, token);
     return response;
   } catch {
     return NextResponse.json({ success: false, error: "Sunucu hatası" }, { status: 500 });

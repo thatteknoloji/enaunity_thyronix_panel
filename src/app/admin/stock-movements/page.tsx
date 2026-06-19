@@ -15,6 +15,8 @@ interface Movement {
 
 export default function StockMovementsPage() {
   const [data, setData] = useState<Movement[]>([]);
+  const [operasyonMoves, setOperasyonMoves] = useState<any[]>([]);
+  const [showOperasyon, setShowOperasyon] = useState(true);
   const [products, setProducts] = useState<{ id: string; name: string; stock: number; minStockLevel: number; maxStockLevel: number }[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ productId: "", type: "entry", quantity: 1, note: "" });
@@ -22,12 +24,17 @@ export default function StockMovementsPage() {
   const [toastWarnings, setToastWarnings] = useState<string[]>([]);
 
   const fetchData = useCallback(async () => {
-    const [mRes, pRes] = await Promise.all([
+    const [mRes, pRes, opRes] = await Promise.all([
       fetch("/api/admin/stock-movements"),
       fetch("/api/products?all=true"),
+      fetch("/api/fulfillment/dashboard?type=warehouse").catch(() => null),
     ]);
     const m = await mRes.json();
     const p = await pRes.json();
+    if (opRes?.ok) {
+      const op = await opRes.json();
+      if (op.success) setOperasyonMoves(op.data || []);
+    }
     setData(m.data || []);
     setProducts(p.data || []);
   }, []);
@@ -113,6 +120,33 @@ export default function StockMovementsPage() {
               <AlertTriangle size={14} className="shrink-0" /> {w}
             </div>
           ))}
+        </div>
+      )}
+
+      {operasyonMoves.length > 0 && (
+        <div className="mb-6 rounded-xl border border-indigo-200 bg-indigo-50/40 overflow-hidden">
+          <button
+            type="button"
+            onClick={() => setShowOperasyon(!showOperasyon)}
+            className="w-full flex items-center justify-between px-4 py-3 text-sm font-medium text-indigo-900"
+          >
+            Operasyon depo hareketleri ({operasyonMoves.length})
+            <span className="text-xs text-indigo-600">{showOperasyon ? "Gizle" : "Göster"}</span>
+          </button>
+          {showOperasyon && (
+            <div className="border-t border-indigo-100 divide-y divide-indigo-100 max-h-64 overflow-y-auto bg-white">
+              {operasyonMoves.slice(0, 30).map((m: any) => (
+                <div key={m.id} className="px-4 py-2.5 text-xs flex justify-between gap-2">
+                  <div>
+                    <span className="font-medium text-gray-800">{m.sku || m.catalogItem?.name || m.product?.name || "—"}</span>
+                    <span className="text-gray-500 ml-2">{m.movementType} · {m.quantity} adet</span>
+                    {m.orderNumber && <span className="text-gray-400 ml-1">· {m.orderNumber}</span>}
+                  </div>
+                  <span className="text-gray-400 shrink-0">{m.engine === "core" ? "Çekirdek" : "Operasyon"}</span>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
 

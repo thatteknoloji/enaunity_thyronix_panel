@@ -9,15 +9,26 @@ import { ShowcaseIcon, hexToRgb } from "./ShowcaseIcon";
 type Props = {
   product: ProductShowcaseDTO;
   index?: number;
+  preview?: boolean;
 };
 
-export function ShowcaseCard({ product, index = 0 }: Props) {
+export function ShowcaseCard({ product, index = 0, preview }: Props) {
   const rgb = hexToRgb(product.themeColor);
   const href = product.ctaUrl || product.productUrl || `/ecosystem/${product.slug}`;
   const chips = product.cardFeatures.length > 0 ? product.cardFeatures : product.features.map((f) => f.title);
   const maxChips = product.maxCardChips > 0 ? product.maxCardChips : 8;
   const subtitle = product.shortDescription;
   const openInNewTab = product.linkTarget === "_blank";
+
+  const Wrapper = preview ? "div" : Link;
+  const wrapperProps = preview
+    ? { className: "group relative flex h-full flex-col rounded-[1.75rem] p-8 md:p-10 lg:p-12 transition-all duration-500" }
+    : {
+        href,
+        target: openInNewTab ? "_blank" : undefined,
+        rel: openInNewTab ? "noopener noreferrer" : undefined,
+        className: "group relative flex h-full flex-col rounded-[1.75rem] p-8 md:p-10 lg:p-12 transition-all duration-500 hover:-translate-y-2",
+      };
 
   return (
     <motion.div
@@ -27,18 +38,17 @@ export function ShowcaseCard({ product, index = 0 }: Props) {
       transition={{ duration: 0.55, delay: index * 0.12, ease: [0.23, 1, 0.32, 1] }}
       className="h-full"
     >
-      <Link
-        href={href}
-        target={openInNewTab ? "_blank" : undefined}
-        rel={openInNewTab ? "noopener noreferrer" : undefined}
-        className="group relative flex h-full flex-col rounded-[1.75rem] p-8 md:p-10 lg:p-12 transition-all duration-500 hover:-translate-y-2"
+      <Wrapper
+        {...(wrapperProps as any)}
         style={
-          {
-            "--card-r": rgb.r,
-            "--card-g": rgb.g,
-            "--card-b": rgb.b,
-            "--card-accent": product.accentColor,
-          } as React.CSSProperties
+          preview
+            ? undefined
+            : ({
+                "--card-r": rgb.r,
+                "--card-g": rgb.g,
+                "--card-b": rgb.b,
+                "--card-accent": product.accentColor,
+              } as React.CSSProperties)
         }
       >
         <div
@@ -151,7 +161,7 @@ export function ShowcaseCard({ product, index = 0 }: Props) {
             </span>
           </div>
         </div>
-      </Link>
+      </Wrapper>
     </motion.div>
   );
 }

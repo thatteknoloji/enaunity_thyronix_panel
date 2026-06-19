@@ -51,13 +51,29 @@ cache_broken() {
     return 0
   fi
 
-  # Eski kontrol: tamamen boş/yarım cache
-  if [[ ! -f ".next/BUILD_ID" ]] && [[ ! -d ".next/cache" ]] && [[ ! -d ".next/dev" ]]; then
+  # prebuild rm -rf .next dev çalışırken yarım cache bırakır
+  if [[ -d ".next/server/app" ]] && [[ ! -f ".next/server/app-paths-manifest.json" ]]; then
     return 0
   fi
 
-  # Manifest dosyaları eksik (ENOENT 500 kök nedeni)
-  if [[ -d ".next/server/app" ]] && [[ ! -f ".next/server/app-paths-manifest.json" ]]; then
+  # Turbo dev manifest eksik (ENOENT 500 kök nedeni)
+  if [[ -d ".next/server/app" ]]; then
+    local sample
+    sample=$(find .next/server/app -name "app-build-manifest.json" 2>/dev/null | head -1)
+    if [[ -z "$sample" ]]; then
+      return 0
+    fi
+  fi
+
+  if [[ -d ".next/static/development" ]] && [[ ! -f ".next/static/development/_buildManifest.js" ]]; then
+    # İlk compile henüz bitmemiş olabilir; sadece server tarafı da bozuksa temizle
+    if [[ -d ".next/server/app" ]] && [[ ! -f ".next/server/app-paths-manifest.json" ]]; then
+      return 0
+    fi
+  fi
+
+  # Eski kontrol: tamamen boş/yarım cache
+  if [[ ! -f ".next/BUILD_ID" ]] && [[ ! -d ".next/cache" ]] && [[ ! -d ".next/dev" ]] && [[ -d ".next/server" ]]; then
     return 0
   fi
 

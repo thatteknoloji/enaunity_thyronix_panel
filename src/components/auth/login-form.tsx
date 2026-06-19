@@ -14,6 +14,13 @@ export default function LoginForm() {
   const [form, setForm] = useState({ email: "", password: "" });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [twoFA, setTwoFA] = useState<{ challenge: string; name: string } | null>(null);
+  const [totpCode, setTotpCode] = useState("");
+
+  const finishLogin = (data: { name: string }) => {
+    toast.success(`Hoş geldin, ${data.name}`);
+    window.location.href = redirectTo;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,8 +42,12 @@ export default function LoginForm() {
         return;
       }
 
-      toast.success(`Hoş geldin, ${data.data.name}`);
-      window.location.href = redirectTo;
+      if (data.requires2FA) {
+        setTwoFA({ challenge: data.challenge, name: data.data.name });
+        return;
+      }
+
+      finishLogin(data.data);
     } catch {
       setError("Sunucuya bağlanılamadı");
       toast.error("Sunucuya bağlanılamadı");
@@ -44,6 +55,62 @@ export default function LoginForm() {
       setLoading(false);
     }
   };
+
+  const verify2FA = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!twoFA) return;
+    setLoading(true);
+    setError("");
+    try {
+      const res = await fetch("/api/auth/2fa/verify-login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ challenge: twoFA.challenge, code: totpCode }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error || "Doğrulama başarısız");
+        toast.error(data.error || "Doğrulama başarısız");
+        return;
+      }
+      finishLogin(data.data);
+    } catch {
+      setError("Sunucuya bağlanılamadı");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (twoFA) {
+    return (
+      <div className="flex min-h-[80vh] items-center justify-center px-4">
+        <div className="w-full max-w-sm space-y-8">
+          <div className="text-center">
+            <h1 className="text-3xl font-black text-ena-text">2FA Doğrulama</h1>
+            <p className="mt-2 text-sm text-ena-light">Merhaba {twoFA.name}, authenticator kodunuzu girin</p>
+          </div>
+          <form onSubmit={verify2FA} className="space-y-5">
+            <Input
+              id="totp"
+              label="6 haneli kod"
+              value={totpCode}
+              onChange={(e) => setTotpCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+              required
+              disabled={loading}
+              maxLength={6}
+            />
+            {error && <p className="text-sm text-ena-primary bg-red-400/10 rounded p-2">{error}</p>}
+            <Button type="submit" className="w-full" disabled={loading || totpCode.length !== 6}>
+              {loading ? <><Loader2 size={16} className="mr-2 animate-spin" /> Doğrulanıyor...</> : "Doğrula ve Giriş Yap"}
+            </Button>
+            <Button type="button" variant="ghost" className="w-full" onClick={() => { setTwoFA(null); setTotpCode(""); }}>
+              Geri
+            </Button>
+          </form>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-[80vh] items-center justify-center px-4">
@@ -72,6 +139,12 @@ export default function LoginForm() {
             required
             disabled={loading}
           />
+
+          <div className="text-right">
+            <Link href="/auth/forgot-password" className="text-xs text-ena-primary hover:underline">
+              Şifremi unuttum
+            </Link>
+          </div>
 
           {error && <p className="text-sm text-ena-primary bg-red-400/10 rounded p-2">{error}</p>}
 

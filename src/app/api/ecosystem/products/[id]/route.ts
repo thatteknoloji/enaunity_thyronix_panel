@@ -7,7 +7,10 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
     const { id } = await params;
     const data = await getShowcaseById(id);
     if (!data) return NextResponse.json({ success: false, error: "Bulunamadı" }, { status: 404 });
-    return NextResponse.json({ success: true, data });
+    return NextResponse.json(
+      { success: true, data },
+      { headers: { "Cache-Control": "no-store, max-age=0" } },
+    );
   } catch {
     return NextResponse.json({ success: false, error: "Hata" }, { status: 500 });
   }

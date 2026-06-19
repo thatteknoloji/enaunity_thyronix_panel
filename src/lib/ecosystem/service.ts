@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/db";
+import { revalidatePath } from "next/cache";
 import type { ProductShowcase } from "@prisma/client";
 import { parseFeatures, parseFaq, parseGallery, parsePlans, serializeFeatures } from "./parse";
 import type { ProductShowcaseDTO, ProductShowcaseInput, ShowcaseStatus } from "./types";
@@ -78,6 +79,14 @@ function buildData(input: ProductShowcaseInput) {
   return data;
 }
 
+function revalidateShowcasePaths(slug?: string) {
+  revalidatePath("/");
+  if (slug) {
+    revalidatePath(`/platform/${slug}`);
+    revalidatePath(`/ecosystem/${slug}`);
+  }
+}
+
 export async function listShowcaseProducts(opts?: { admin?: boolean; status?: ShowcaseStatus }) {
   await ensureDefaultShowcaseProducts();
   await syncBuiltInShowcaseProducts();
@@ -141,16 +150,22 @@ export async function createShowcase(input: ProductShowcaseInput) {
       galleryJson: JSON.stringify(input.gallery || []),
     },
   });
+  revalidateShowcasePaths(slug);
   return toDTO(row);
 }
 
 export async function updateShowcase(id: string, input: ProductShowcaseInput) {
+  const existing = await prisma.productShowcase.findUnique({ where: { id } });
+  if (!existing) throw new Error("Ürün bulunamadı");
   const row = await prisma.productShowcase.update({ where: { id }, data: buildData(input) });
+  revalidateShowcasePaths(row.slug);
   return toDTO(row);
 }
 
 export async function deleteShowcase(id: string) {
+  const existing = await prisma.productShowcase.findUnique({ where: { id } });
   await prisma.productShowcase.delete({ where: { id } });
+  revalidateShowcasePaths(existing?.slug);
 }
 
 export async function duplicateShowcase(id: string) {

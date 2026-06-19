@@ -17,6 +17,10 @@ model User {
   dealer    Dealer?         @relation(fields: [dealerId], references: [id])
   adminRoleId String?
   adminRole   AdminRole?    @relation(fields: [adminRoleId], references: [id])
+  totpSecret String?
+  totpEnabled Boolean       @default(false)
+  passwordResetToken   String?
+  passwordResetExpires DateTime?
   createdAt DateTime        @default(now())
   updatedAt DateTime        @updatedAt
   orders    Order[]
@@ -139,9 +143,16 @@ model Campaign {
   freeShipping      Boolean      @default(false)
   badge         String            @default("")
   badgeColor    String            @default("#e50914")
+  showOnHomepage     Boolean        @default(false)
+  bannerSlotKey      String         @default("after_hero")
+  bannerImageDesktop String         @default("")
+  bannerImageTablet  String         @default("")
+  bannerImageMobile  String         @default("")
+  bannerLinkUrl      String         @default("")
   createdAt     DateTime          @default(now())
   updatedAt     DateTime          @updatedAt
   products      CampaignProduct[]
+  homepageBanners HomeBanner[]
 }
 
 model CampaignProduct {
@@ -251,6 +262,8 @@ model Order {
   customerPhone      String   @default("")
   customerCity       String   @default("")
   metadataJson       String   @default("{}")
+  paymentDeadlineAt  DateTime?
+  receiptReminderSent Boolean  @default(false)
   createdAt  DateTime    @default(now())
   updatedAt  DateTime    @updatedAt
   payments   Payment[]
@@ -565,6 +578,10 @@ model SubUser {
   password  String
   role      String   @default("orderer") // viewer, orderer, admin
   active    Boolean  @default(true)
+  totpSecret String?
+  totpEnabled Boolean @default(false)
+  passwordResetToken   String?
+  passwordResetExpires DateTime?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   orders    Order[]
@@ -975,6 +992,8 @@ model ModulePayment {
   paymentType       String   @default("one_time") // one_time, subscription
   invoiceUrl        String   @default("")
   paidAt            DateTime?
+  paymentDeadlineAt DateTime?
+  receiptReminderSent Boolean @default(false)
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 }
@@ -1416,7 +1435,8 @@ model ThyronixAiUsage {
 model BankTransferNotification {
   id              String   @id @default(cuid())
   dealerId        String
-  modulePaymentId String
+  modulePaymentId String   @default("")
+  orderId         String   @default("")
   senderName      String   @default("")
   bankName        String   @default("")
   amount          Float    @default(0)
@@ -1437,6 +1457,36 @@ model PaymentWebhookLog {
   status            String   @default("PENDING")
   errorMessage      String   @default("")
   createdAt         DateTime @default(now())
+}
+
+model PaymentGatewaySettings {
+  id                   String   @id @default("default")
+  bankTransferEnabled  Boolean  @default(true)
+  activeCardProvider   String   @default("NONE") // ESNEKPOS | IYZICO | NONE
+  esnekposEnabled      Boolean  @default(false)
+  esnekposSandbox      Boolean  @default(true)
+  esnekposMerchantId   String   @default("")
+  esnekposMerchantKey  String   @default("")
+  esnekposExtraFeePct  Float    @default(0)
+  esnekposExtraFeeFix  Float    @default(0)
+  esnekposInstallments Boolean  @default(false)
+  esnekposMaxInstall   Int      @default(1)
+  esnekposMinAmount    Float    @default(0)
+  esnekposDisplayName  String   @default("EsnekPOS")
+  iyzicoEnabled        Boolean  @default(false)
+  iyzicoSandbox        Boolean  @default(true)
+  iyzicoApiKey         String   @default("")
+  iyzicoSecretKey      String   @default("")
+  iyzicoExtraFeePct    Float    @default(0)
+  iyzicoExtraFeeFix    Float    @default(0)
+  iyzicoInstallments   Boolean  @default(false)
+  iyzicoMaxInstall     Int      @default(1)
+  iyzicoMinAmount      Float    @default(0)
+  iyzicoDisplayName    String   @default("İyzico")
+  checkoutTitle        String   @default("Ödeme")
+  checkoutDescription  String   @default("")
+  require3ds           Boolean  @default(true)
+  updatedAt            DateTime @updatedAt
 }
 
 model HiveAccessToken {
@@ -1518,6 +1568,77 @@ model EcosystemShowcaseSettings {
   paddingTop       String   @default("24")
   paddingBottom    String   @default("28")
   updatedAt        DateTime @updatedAt
+}
+
+model HomePageSettings {
+  id                    String   @id @default("default")
+  heroVideoDesktop      String   @default("/hero-bg.mp4")
+  heroVideoMobile       String   @default("/hero-bg-mobile.mp4")
+  heroPoster            String   @default("")
+  heroBadge             String   @default("")
+  heroDescription       String   @default("")
+  heroCtaPrimaryLabel   String   @default("")
+  heroCtaPrimaryUrl     String   @default("/catalog")
+  heroCtaSecondaryLabel String   @default("")
+  heroCtaSecondaryUrl   String   @default("/auth/register")
+  useCustomHeroText     Boolean  @default(false)
+  updatedAt             DateTime @updatedAt
+}
+
+model HomeCategorySection {
+  id           String   @id @default(cuid())
+  categoryName String
+  title        String   @default("")
+  sortOrder    Int      @default(0)
+  maxProducts  Int      @default(12)
+  active       Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([sortOrder])
+  @@index([active])
+}
+
+model HomeBannerSlot {
+  key         String       @id
+  label       String
+  placement   String       @default("after_hero")
+  displayMode String       @default("carousel")
+  gridColumns Int          @default(2)
+  autoplay    Boolean      @default(true)
+  intervalMs  Int          @default(5000)
+  active      Boolean      @default(true)
+  sortOrder   Int          @default(0)
+  banners     HomeBanner[]
+  updatedAt   DateTime     @updatedAt
+
+  @@index([placement])
+  @@index([sortOrder])
+}
+
+model HomeBanner {
+  id           String         @id @default(cuid())
+  slotKey      String
+  slot         HomeBannerSlot @relation(fields: [slotKey], references: [key], onDelete: Cascade)
+  title        String         @default("")
+  imageDesktop String
+  imageTablet  String         @default("")
+  imageMobile  String         @default("")
+  linkUrl      String         @default("")
+  linkTarget   String         @default("_self")
+  sortOrder    Int            @default(0)
+  active       Boolean        @default(true)
+  startsAt     DateTime?
+  endsAt       DateTime?
+  campaignId   String?
+  campaign     Campaign?      @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+
+  @@index([slotKey])
+  @@index([sortOrder])
+  @@index([active])
+  @@index([campaignId])
 }
 
 model ThyronixWorkspaceSettings {
@@ -1908,4 +2029,39 @@ model MarketplaceWebhookEvent {
   @@index([marketplace])
   @@index([eventType])
   @@index([createdAt])
+}
+
+model PaymentMethodPolicy {
+  id                  String   @id @default(cuid())
+  scope               String   // GLOBAL | GROUP | DEALER
+  scopeKey            String   @default("")
+  cardEnabled         Boolean?
+  bankTransferEnabled Boolean?
+  balanceEnabled      Boolean?
+  updatedBy           String   @default("")
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  @@unique([scope, scopeKey])
+}
+
+model ThyronixBulkJob {
+  id             String   @id @default(cuid())
+  tenantDealerId String   @default("")
+  userId         String   @default("")
+  action         String
+  scope          String   // ids | filter | catalog
+  filtersJson    String   @default("{}")
+  paramsJson     String   @default("{}")
+  productIdsJson String   @default("[]")
+  status         String   @default("pending")
+  totalCount     Int      @default(0)
+  processedCount Int      @default(0)
+  failedCount    Int      @default(0)
+  lastError      String   @default("")
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([status])
+  @@index([tenantDealerId])
 }

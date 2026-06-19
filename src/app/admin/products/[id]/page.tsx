@@ -6,6 +6,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Plus, Trash2, Save, Package, Barcode, Hash, X } from "lucide-react";
 import toast from "react-hot-toast";
+import { toAdminUrl } from "@/lib/auth/admin-access";
 
 interface VariantGroup { id?: string; name: string; options: string[]; }
 interface VariantCombo { id?: string; sku: string; barcode: string; price: string; stock: string; options: string; }
@@ -55,7 +56,7 @@ export default function EditProductPage() {
     if(res.ok){
       for(const g of variantGroups){if(!g.id)await fetch("/api/admin/variants",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({productId:id,name:g.name,options:g.options,generateCombinations:false})})}
       for(const v of variants){const vBody:any={sku:v.sku,barcode:v.barcode,price:parseFloat(v.price)||0,stock:parseInt(v.stock)||0,options:v.options};if(v.id)await fetch("/api/admin/variants",{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({id:v.id,...vBody})});else await fetch("/api/admin/variants",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({...vBody,productId:id,generateCombinations:false})})}
-      toast.success("Güncellendi");router.push("/admin/products");
+      toast.success("Güncellendi");router.push(toAdminUrl("/admin/products"));
     }else{const err=await res.json();toast.error(err.error||"Hata")}
     setSubmitting(false);
   };
@@ -122,11 +123,11 @@ export default function EditProductPage() {
   const ic="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm bg-white text-gray-900 focus:border-gray-400 focus:outline-none"
 
   if(loading)return <div className="animate-pulse space-y-4"><div className="h-8 w-48 rounded bg-gray-200"/><div className="h-96 rounded bg-gray-200"/></div>
-  if(loadError)return <div className="max-w-4xl"><Link href="/admin/products" className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700 mb-6"><ArrowLeft size={14}/> Ürünlere Dön</Link><div className="rounded-xl border border-red-200 bg-ena-primary/5 p-6 text-center"><p className="text-ena-primary font-medium">{loadError}</p><Link href="/admin/products"><Button variant="outline" className="mt-4">Geri Dön</Button></Link></div></div>
+  if(loadError)return <div className="max-w-4xl"><Link href={toAdminUrl("/admin/products")} className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700 mb-6"><ArrowLeft size={14}/> Ürünlere Dön</Link><div className="rounded-xl border border-red-200 bg-ena-primary/5 p-6 text-center"><p className="text-ena-primary font-medium">{loadError}</p><Link href={toAdminUrl("/admin/products")}><Button variant="outline" className="mt-4">Geri Dön</Button></Link></div></div>
 
   return (
     <div className="max-w-4xl">
-      <Link href="/admin/products" className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700 mb-6"><ArrowLeft size={14}/> Ürünlere Dön</Link>
+      <Link href={toAdminUrl("/admin/products")} className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700 mb-6"><ArrowLeft size={14}/> Ürünlere Dön</Link>
       <h1 className="text-2xl font-bold text-gray-900 mb-6">Ürün Düzenle</h1>
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm"><h2 className="text-sm font-semibold text-gray-700 mb-4 flex items-center gap-2"><Package size={16}/> Temel Bilgiler</h2>
@@ -183,7 +184,7 @@ export default function EditProductPage() {
 
         <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm"><div className="flex items-center justify-between mb-4"><h2 className="text-sm font-semibold text-gray-700">Ürün Özellikleri</h2><button type="button" onClick={addSpec} className="text-xs text-gray-500 hover:text-gray-900 flex items-center gap-1"><Plus size={12}/> Özellik Ekle</button></div>{specs.length===0?<p className="text-xs text-gray-400">Henüz özellik eklenmedi</p>:<div className="space-y-2">{specs.map((s,i)=>(<div key={i} className="flex gap-2 items-center"><input className={`${ic} flex-1`} placeholder="Özellik adı" value={s.key} onChange={e=>{const n=[...specs];n[i].key=e.target.value;setSpecs(n)}}/><input className={`${ic} flex-1`} placeholder="Değer" value={s.value} onChange={e=>{const n=[...specs];n[i].value=e.target.value;setSpecs(n)}}/><button type="button" onClick={()=>removeSpec(i)} className="p-2 text-ena-primary hover:text-ena-primary"><Trash2 size={14}/></button></div>))}</div>}</div>
 
-        <div className="flex gap-3"><Button type="submit" disabled={submitting}><Save size={14} className="mr-1"/>{submitting?"Kaydediliyor...":"Güncelle"}</Button><Link href="/admin/products"><Button type="button" variant="outline">İptal</Button></Link></div>
+        <div className="flex gap-3"><Button type="submit" disabled={submitting}><Save size={14} className="mr-1"/>{submitting?"Kaydediliyor...":"Güncelle"}</Button><Link href={toAdminUrl("/admin/products")}><Button type="button" variant="outline">İptal</Button></Link></div>
       </form>
     </div>
   );

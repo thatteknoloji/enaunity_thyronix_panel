@@ -11,6 +11,14 @@ function toOrderRef(paymentId: string): string {
   return paymentId.replace(/[^a-zA-Z0-9]/g, "").slice(0, 24);
 }
 
+export { toOrderRef as esnekposOrderRef };
+
+function buildCallbackUrl(baseUrl: string, paymentId: string) {
+  const url = baseUrl.startsWith("http") ? new URL(baseUrl) : new URL(baseUrl, getSiteBaseUrl());
+  url.searchParams.set("paymentId", paymentId);
+  return url.toString();
+}
+
 function splitName(fullName: string) {
   const parts = fullName.trim().split(/\s+/);
   if (parts.length <= 1) return { firstName: parts[0] || "Bayi", lastName: "Kullanici" };
@@ -18,7 +26,7 @@ function splitName(fullName: string) {
 }
 
 async function esnekposRequest(path: string, body: Record<string, unknown>) {
-  const config = getEsnekposConfig();
+  const config = await getEsnekposConfig();
   const res = await fetch(`${config.apiUrl}${path}`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -37,14 +45,15 @@ export function createEsnekposProvider(): PaymentProvider {
     key: "ESNEKPOS",
 
     async createPayment(params: CreatePaymentParams): Promise<PaymentResult> {
-      const config = getEsnekposConfig();
+      const config = await getEsnekposConfig();
       const paymentId = params.metadata?.paymentId || "";
       const orderRef = toOrderRef(paymentId);
-      const callbackUrl =
+      const baseBack =
         config.backUrl ||
-        `${getSiteBaseUrl()}/api/payments/callback/esnekpos?paymentId=${paymentId}`;
+        `${getSiteBaseUrl()}/api/payments/callback/esnekpos`;
+      const callbackUrl = buildCallbackUrl(baseBack, paymentId);
 
-      if (!providerConfigured("ESNEKPOS")) {
+      if (!(await providerConfigured("ESNEKPOS"))) {
         const redirectUrl = `${callbackUrl}&status=success&sandbox=1`;
         return {
           success: true,
@@ -122,8 +131,8 @@ export function createEsnekposProvider(): PaymentProvider {
     },
 
     async verifyPayment(params: VerifyPaymentParams): Promise<PaymentResult> {
-      const config = getEsnekposConfig();
-      if (!providerConfigured("ESNEKPOS")) {
+      const config = await getEsnekposConfig();
+      if (!(await providerConfigured("ESNEKPOS"))) {
         return { success: true, status: "PAID", paymentId: params.paymentId, message: "Sandbox doğrulama başarılı" };
       }
 

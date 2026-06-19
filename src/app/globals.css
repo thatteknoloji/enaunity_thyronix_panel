@@ -327,3 +327,19 @@
     -webkit-backdrop-filter: blur(16px);
   }
 }
+
+/* Admin panel: form alanları her zaman okunabilir (dark mode çakışması önleme) */
+.admin-content input:not([type="checkbox"]):not([type="radio"]):not([type="color"]),
+.admin-content textarea,
+.admin-content select {
+  color: #111827;
+  background-color: #ffffff;
+  border-color: #d1d5db;
+}
+.admin-content input:not([type="checkbox"]):not([type="radio"]):not([type="color"])::placeholder,
+.admin-content textarea::placeholder {
+  color: #9ca3af;
+}
+.admin-input {
+  @apply w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-gray-500 focus:outline-none focus:ring-1 focus:ring-gray-500;
+}

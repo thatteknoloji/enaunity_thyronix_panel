@@ -216,7 +216,7 @@ export const PLATFORM_CONTENT: Record<string, PlatformContent> = {
       primaryText: "THYRONIX'e Giriş",
       primaryUrl: "/thyronix/login",
       secondaryText: "Paketleri Gör",
-      secondaryUrl: "/thyronix/pricing",
+      secondaryUrl: "#plans",
     },
   },
   hive: {
@@ -311,7 +311,7 @@ export const PLATFORM_CONTENT: Record<string, PlatformContent> = {
       primaryText: "HIVE'a Giriş",
       primaryUrl: "/hive/login",
       secondaryText: "Paketleri Gör",
-      secondaryUrl: "/hive/pricing",
+      secondaryUrl: "#plans",
     },
   },
 };

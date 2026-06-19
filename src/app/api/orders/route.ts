@@ -4,6 +4,18 @@ import { getSession } from "@/lib/auth";
 import { getDealerPrice, checkDealerCredit, deductDealerBalance } from "@/lib/dealer-pricing";
 import { notifyOrderCreated, createNotification } from "@/lib/notifications";
 import { dispatchWebhook } from "@/lib/webhook";
+import { createPaymentIntent } from "@/lib/payments/payment-service";
+import {
+  assertPaymentMethodAllowed,
+  paymentDeadlineFromNow,
+  resolveDealerPaymentMethods,
+} from "@/lib/payments/payment-method-policy";
+import { notifyBankTransferCreated } from "@/lib/payments/payment-deadline-worker";
+import {
+  resolveProviderKey,
+  type ProductLibraryPaymentMethod,
+} from "@/lib/payments/gateway-config";
+import { calculatePaymentTotal, getPaymentSettings } from "@/lib/payments/payment-settings";
 
 export async function GET() {
   try {
@@ -31,7 +43,18 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: false, error: "Giriş yapmalısınız" }, { status: 401 });
     }
 
-    const { address, couponId, discount, paymentTermDays, paymentTermRate, attachments } = await req.json();
+    const {
+      address,
+      couponId,
+      discount,
+      paymentTermDays,
+      paymentTermRate,
+      attachments,
+      platform,
+      shippingCost = 0,
+      paymentMethod,
+      installmentCount = 1,
+    } = await req.json();
 
     const cart = await prisma.cart.findUnique({
       where: { userId: user.id },
@@ -76,18 +99,57 @@ export async function POST(req: Request) {
 
     const subTotal = total - finalDiscount;
     const termFee = (paymentTermRate && paymentTermRate > 0) ? subTotal * (paymentTermRate / 100) : 0;
-    const finalTotal = subTotal + termFee;
+    const shipping = typeof shippingCost === "number" && shippingCost > 0 ? shippingCost : 0;
+    const finalTotal = subTotal + termFee + shipping;
+
+    const method = (paymentMethod || "DEALER_ACCOUNT") as ProductLibraryPaymentMethod | "DEALER_ACCOUNT";
+    const useGatewayPayment = dealer && method !== "DEALER_ACCOUNT";
+    const isCard = method === "ESNEKPOS" || method === "IYZICO";
 
     if (dealer) {
-      const creditCheck = await checkDealerCredit(dealer.id, finalTotal);
-      if (!creditCheck.ok) {
-        return NextResponse.json({ success: false, error: creditCheck.message }, { status: 400 });
+      const allowed = await assertPaymentMethodAllowed(dealer.id, method);
+      if (!allowed.ok) {
+        return NextResponse.json({
+          success: false,
+          error: allowed.error,
+          alternatives: allowed.alternatives,
+          code: "PAYMENT_METHOD_DENIED",
+        }, { status: 400 });
       }
     }
 
-    const orderStatus = dealer ? "pending_approval" : "pending";
+    if (useGatewayPayment && dealer) {
+      const allowed = await assertPaymentMethodAllowed(dealer.id, method as ProductLibraryPaymentMethod);
+      if (!allowed.ok) {
+        return NextResponse.json({
+          success: false,
+          error: allowed.error,
+          alternatives: allowed.alternatives,
+          code: "PAYMENT_METHOD_DENIED",
+        }, { status: 400 });
+      }
+    }
 
-    // Check for backordered items
+    if (dealer && !useGatewayPayment) {
+      const creditCheck = await checkDealerCredit(dealer.id, finalTotal);
+      if (!creditCheck.ok) {
+        const resolved = await resolveDealerPaymentMethods(dealer.id);
+        const alternatives = resolved.methods.filter((m) => m !== "DEALER_ACCOUNT" as never);
+        return NextResponse.json({
+          success: false,
+          error: creditCheck.message,
+          alternatives,
+          suggestOnlinePayment: alternatives.length > 0,
+          code: "INSUFFICIENT_BALANCE",
+        }, { status: 400 });
+      }
+    }
+
+    let orderStatus = dealer ? "pending_approval" : "pending";
+    if (useGatewayPayment) {
+      orderStatus = "waiting_payment";
+    }
+
     let hasBackorder = false;
     for (const item of itemDetails) {
       if (item.product.backorderable && item.product.stock < item.quantity) {
@@ -95,6 +157,15 @@ export async function POST(req: Request) {
         break;
       }
     }
+
+    const metadataJson = JSON.stringify({
+      platform: platform || "",
+      shippingCost: shipping,
+      paymentMethod: method,
+      installmentCount: useGatewayPayment ? installmentCount : undefined,
+    });
+
+    const paymentDeadlineAt = useGatewayPayment && method === "BANK_TRANSFER" ? paymentDeadlineFromNow() : null;
 
     const order = await prisma.order.create({
       data: {
@@ -107,9 +178,13 @@ export async function POST(req: Request) {
         paymentTermDays: paymentTermDays || 0,
         paymentTermRate: paymentTermRate || 0,
         address,
+        marketplace: platform || "",
+        sourceType: "B2B",
+        metadataJson,
         status: orderStatus,
+        paymentDeadlineAt,
         attachments: attachments?.length > 0 ? {
-          create: attachments.map((att: any) => ({
+          create: attachments.map((att: { fileName: string; fileUrl: string; fileType: string; fileSize?: number }) => ({
             fileName: att.fileName, fileUrl: att.fileUrl, fileType: att.fileType, fileSize: att.fileSize || 0,
           })),
         } : undefined,
@@ -123,7 +198,11 @@ export async function POST(req: Request) {
         statusHistory: {
           create: {
             status: orderStatus,
-            note: hasBackorder ? "Bazı ürünler ön sipariş" : (dealer ? "Sipariş onay bekliyor" : "Sipariş oluşturuldu"),
+            note: useGatewayPayment
+              ? "Online ödeme bekleniyor"
+              : hasBackorder
+                ? "Bazı ürünler ön sipariş"
+                : (dealer ? "Sipariş onay bekliyor" : "Sipariş oluşturuldu"),
             changedBy: dealer ? "dealer" : "user",
           },
         },
@@ -133,7 +212,6 @@ export async function POST(req: Request) {
 
     await prisma.cartItem.deleteMany({ where: { cartId: cart.id } });
 
-    // Fire webhooks
     dispatchWebhook("order.created", {
       orderId: order.id,
       orderNo: order.id.slice(0, 8).toUpperCase(),
@@ -142,19 +220,18 @@ export async function POST(req: Request) {
       dealerId: dealer?.id,
       dealerName: dealer?.name,
       itemCount: itemDetails.length,
+      platform: platform || "",
       createdAt: order.createdAt.toISOString(),
     });
 
-    // Deduct dealer balance
-    if (dealer) {
+    if (dealer && !useGatewayPayment) {
       await deductDealerBalance(dealer.id, finalTotal - termFee, order.id, "ORDER_COST", "Sipariş kesintisi");
       if (termFee > 0) {
         await deductDealerBalance(dealer.id, termFee, order.id, "SERVICE_FEE", `Vade farkı (%${paymentTermRate})`);
       }
     }
 
-    // Stock deduction only for non-dealer orders (auto-approved)
-    if (!dealer) {
+    if (!dealer && !useGatewayPayment) {
       await Promise.all(
         itemDetails.map(async (item) => {
           const deductQty = item.product.backorderable
@@ -179,6 +256,69 @@ export async function POST(req: Request) {
           }
         })
       );
+    }
+
+    if (useGatewayPayment && dealer) {
+      let payAmount = finalTotal;
+      const providerKey = resolveProviderKey(method as ProductLibraryPaymentMethod);
+      if (isCard) {
+        const settings = await getPaymentSettings();
+        payAmount = calculatePaymentTotal(finalTotal, method as "ESNEKPOS" | "IYZICO", settings).totalAmount;
+      }
+
+      const result = await createPaymentIntent({
+        dealerId: dealer.id,
+        moduleKey: "B2B_ORDER",
+        planKey: order.id,
+        amount: payAmount,
+        currency: "TRY",
+        paymentType: isCard ? "CARD" : "MANUAL",
+        providerKey,
+        metadata: {
+          buyer: {
+            id: dealer.id,
+            name: dealer.name || dealer.company || "Bayi",
+            email: dealer.email || user.email || "",
+            phone: dealer.phone || "5550000000",
+          },
+          installmentCount,
+          orderId: order.id,
+        },
+      });
+
+      if (!result.success) {
+        await prisma.order.update({ where: { id: order.id }, data: { status: "cancelled" } });
+        return NextResponse.json({ success: false, error: result.message || "Ödeme başlatılamadı" }, { status: 400 });
+      }
+
+      if (method === "BANK_TRANSFER") {
+        await notifyBankTransferCreated({
+          dealerId: dealer.id,
+          title: "Havale/EFT — dekont yükleyin",
+          message: `#${order.id.slice(0, 8)} nolu sipariş için havale yaptıktan sonra dekont yüklemeniz zorunludur. 24 saat içinde yüklenmezse sipariş iptal edilir.`,
+          link: `/dealer/orders/${order.id}`,
+        });
+      }
+
+      if (dealer) {
+        await notifyOrderCreated(
+          dealer.id, order.id, finalTotal, dealer.email, dealer.name,
+          itemDetails.map((item) => ({ name: item.product.name, qty: item.quantity, price: item.effectivePrice })),
+          dealer.phone
+        );
+      }
+
+      return NextResponse.json({
+        success: true,
+        data: {
+          order,
+          paymentId: result.paymentId,
+          redirectUrl: result.redirectUrl || null,
+          status: result.status,
+          paymentMethod: method,
+          requiresReceipt: method === "BANK_TRANSFER",
+        },
+      }, { status: 201 });
     }
 
     if (dealer) {

@@ -8,7 +8,10 @@ import {
 export async function GET() {
   try {
     const data = await getEcosystemSectionSettings();
-    return NextResponse.json({ success: true, data });
+    return NextResponse.json(
+      { success: true, data },
+      { headers: { "Cache-Control": "no-store, max-age=0" } },
+    );
   } catch {
     return NextResponse.json({ success: false, error: "Ayarlar yüklenemedi" }, { status: 500 });
   }

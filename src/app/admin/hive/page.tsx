@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { ArrowLeft, RefreshCw, ExternalLink, Activity, Server } from "lucide-react";
 import { toAdminUrl } from "@/lib/auth/admin-access";
+import { AdminModuleAccessPanel } from "@/components/admin/AdminModuleAccessPanel";
 
 type Tab = "overview" | "workspaces" | "licenses" | "gateway" | "logs" | "health";
 
@@ -168,25 +169,7 @@ export default function AdminHivePage() {
         </div>
       )}
 
-      {!loading && tab === "licenses" && (
-        <div className="rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden">
-          <table className="w-full text-sm">
-            <thead className="bg-gray-50"><tr><th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Bayi</th><th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Modül</th><th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Plan</th><th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Durum</th><th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Bitiş</th></tr></thead>
-            <tbody className="divide-y divide-gray-100">
-              {licenses.map((l) => (
-                <tr key={l.id}>
-                  <td className="px-4 py-3 text-xs text-gray-600">{l.dealerName}</td>
-                  <td className="px-4 py-3 text-xs text-gray-600">{l.moduleKey}</td>
-                  <td className="px-4 py-3 text-xs text-gray-600">{l.planKey || "—"}</td>
-                  <td className="px-4 py-3 text-xs text-gray-600">{l.status}</td>
-                  <td className="px-4 py-3 text-xs text-gray-400">{l.endsAt ? new Date(l.endsAt).toLocaleDateString("tr-TR") : "—"}</td>
-                </tr>
-              ))}
-              {licenses.length === 0 && <tr><td colSpan={5} className="px-4 py-8 text-center text-gray-400">Lisans yok</td></tr>}
-            </tbody>
-          </table>
-        </div>
-      )}
+      {tab === "licenses" && <AdminModuleAccessPanel moduleKey="HIVE" />}
 
       {!loading && tab === "gateway" && (
         <div className="rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden">

@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 48" role="img" aria-label="�i�ekSepeti">
+  <g transform="translate(2,6)">
+    <ellipse cx="10" cy="10" rx="5.5" ry="9" fill="#E84E0F" transform="rotate(-35 10 10)"/>
+    <ellipse cx="18" cy="10" rx="5.5" ry="9" fill="#008037" transform="rotate(35 18 10)"/>
+    <ellipse cx="10" cy="22" rx="5.5" ry="9" fill="#0066B3" transform="rotate(35 10 22)"/>
+    <ellipse cx="18" cy="22" rx="5.5" ry="9" fill="#E30613" transform="rotate(-35 18 22)"/>
+  </g>
+  <text x="38" y="32" font-family="Arial, Helvetica, sans-serif" font-size="22" font-weight="700" fill="#008037">ciceksepeti</text>
+</svg>

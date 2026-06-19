@@ -2,11 +2,10 @@ import { prisma } from "@/lib/db";
 import { canAccessPackageLevel, getDealerLibraryTier } from "./license";
 import type { LicenseLevel } from "./types";
 import { createPaymentIntent } from "@/lib/payments/payment-service";
-import {
-  getAvailablePaymentMethods,
-  resolveProviderKey,
-  type ProductLibraryPaymentMethod,
-} from "@/lib/payments/gateway-config";
+import { assertPaymentMethodAllowed, paymentDeadlineFromNow } from "@/lib/payments/payment-method-policy";
+import { notifyBankTransferCreated } from "@/lib/payments/payment-deadline-worker";
+import { resolveProviderKey } from "@/lib/payments/gateway-config";
+import { calculatePaymentTotal, getPaymentSettings } from "@/lib/payments/payment-settings";
 
 const MODULE_KEY = "PRODUCT_LIBRARY";
 
@@ -164,13 +163,19 @@ export async function requestPackagePurchase(
   }
 
   const paymentMethod = options?.paymentMethod || "BANK_TRANSFER";
-  const available = getAvailablePaymentMethods();
-  if (!available.includes(paymentMethod)) {
-    throw new Error("Seçilen ödeme yöntemi kullanılamıyor");
+  const allowed = await assertPaymentMethodAllowed(dealerId, paymentMethod);
+  if (!allowed.ok) {
+    throw new Error(allowed.error || "Seçilen ödeme yöntemi kullanılamıyor");
   }
 
   const providerKey = resolveProviderKey(paymentMethod);
   const dealer = await prisma.dealer.findUnique({ where: { id: dealerId } });
+
+  let chargeAmount = amount;
+  if (paymentMethod === "ESNEKPOS" || paymentMethod === "IYZICO") {
+    const settings = await getPaymentSettings();
+    chargeAmount = calculatePaymentTotal(amount, paymentMethod, settings).totalAmount;
+  }
 
   if (paymentMethod === "BANK_TRANSFER") {
     const payment = await prisma.modulePayment.create({
@@ -178,11 +183,12 @@ export async function requestPackagePurchase(
         dealerId,
         moduleKey: MODULE_KEY,
         planKey: pkg.slug,
-        amount,
+        amount: chargeAmount,
         currency: "TRY",
         status: "MANUAL_REVIEW",
         provider: "MANUAL",
         paymentType: pkg.billingType === "YEARLY" ? "subscription" : "one_time",
+        paymentDeadlineAt: paymentDeadlineFromNow(),
       },
     });
 
@@ -194,6 +200,13 @@ export async function requestPackagePurchase(
 
     await upsertDealerModuleLicense(dealerId, { planKey: pkg.slug, status: "PENDING_PAYMENT" });
 
+    await notifyBankTransferCreated({
+      dealerId,
+      title: "Havale/EFT — dekont yükleyin",
+      message: `${pkg.name} paketi için dekont yüklemeniz zorunludur. 24 saat içinde yüklenmezse işlem iptal edilir.`,
+      link: "/dealer/product-library",
+    });
+
     return { free: false as const, paymentId: payment.id, packageId, paymentMethod, redirectUrl: null };
   }
 
@@ -202,7 +215,7 @@ export async function requestPackagePurchase(
       dealerId,
       moduleKey: MODULE_KEY,
       planKey: pkg.slug,
-      amount,
+      amount: chargeAmount,
       currency: "TRY",
       status: "WAITING_PAYMENT",
       provider: providerKey,
@@ -222,7 +235,7 @@ export async function requestPackagePurchase(
     dealerId,
     moduleKey: MODULE_KEY,
     planKey: pkg.slug,
-    amount,
+    amount: chargeAmount,
     currency: "TRY",
     paymentType: "CARD",
     providerKey,

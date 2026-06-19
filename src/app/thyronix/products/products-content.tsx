@@ -59,6 +59,10 @@ export default function ThyronixProductsPage() {
   const [bulkCategory, setBulkCategory] = useState("");
   const [bulkBrand, setBulkBrand] = useState("");
   const [bulkLoading, setBulkLoading] = useState(false);
+  const [bulkScope, setBulkScope] = useState<"ids" | "filter" | "catalog">("ids");
+  const [catalogTotal, setCatalogTotal] = useState(0);
+  const [bulkJobId, setBulkJobId] = useState<string | null>(null);
+  const [bulkProgress, setBulkProgress] = useState<{ total: number; processed: number; remaining: number; nextProductIds?: string[] } | null>(null);
   const [detailProduct, setDetailProduct] = useState<ThyronixProduct | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
   const [detailTab, setDetailTab] = useState("overview");
@@ -94,6 +98,56 @@ export default function ThyronixProductsPage() {
   useEffect(() => { fetchProducts(); }, [page, search, fSource, fCategory, fBarcode, fStatus, fPriceMin, fPriceMax]);
   useEffect(() => { fetch("/api/thyronix/sources").then(r=>r.json()).then(d=>{if(d.success)setSources(d.data||[])}); }, []);
 
+  useEffect(() => {
+    fetch("/api/thyronix/products?page=1&size=1")
+      .then(r => r.json())
+      .then(d => { if (d.success) setCatalogTotal(d.data.total); });
+  }, []);
+
+  const bulkFilters = () => ({
+    search,
+    sourceId: fSource,
+    category: fCategory,
+    barcode: fBarcode,
+    status: fStatus,
+    priceMin: fPriceMin,
+    priceMax: fPriceMax,
+  });
+
+  const bulkTargetCount = bulkScope === "ids"
+    ? selected.size
+    : bulkScope === "filter"
+      ? total
+      : catalogTotal;
+
+  const pollBulkJob = (jobId: string) => {
+    const tick = () => {
+      fetch(`/api/thyronix/products/bulk/${jobId}`)
+        .then(r => r.json())
+        .then(d => {
+          if (!d.success) return;
+          setBulkProgress({
+            total: d.data.totalCount,
+            processed: d.data.processedCount,
+            remaining: d.data.remaining,
+            nextProductIds: d.data.nextProductIds,
+          });
+          if (d.data.status === "completed" || d.data.status === "failed") {
+            toast.success(`Toplu işlem tamamlandı: ${d.data.processedCount}/${d.data.totalCount}`);
+            setBulkJobId(null);
+            setBulkProgress(null);
+            setBulkOpen(false);
+            setBulkScope("ids");
+            setSelected(new Set());
+            fetchProducts();
+          } else {
+            setTimeout(tick, 2000);
+          }
+        });
+    };
+    tick();
+  };
+
   const toggleSelect = (id: string) => {
     setSelected(prev => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n; });
   };
@@ -121,9 +175,8 @@ export default function ThyronixProductsPage() {
   };
 
   const executeBulk = async () => {
-    if (selected.size === 0) return toast.error("Önce ürün seçin");
+    if (bulkScope === "ids" && selected.size === 0) return toast.error("Önce ürün seçin");
 
-    // AI bulk actions
     const aiTaskMap: Record<string, string> = {
       ai_titles: "title_optimize",
       ai_descriptions: "description_generate",
@@ -133,22 +186,38 @@ export default function ThyronixProductsPage() {
     };
 
     if (aiTaskMap[bulkAction]) {
+      if (bulkScope !== "ids" && bulkTargetCount > 50) {
+        const estCost = (bulkTargetCount * 0.001).toFixed(2);
+        if (!confirm(`${bulkTargetCount.toLocaleString("tr-TR")} ürün için AI işlemi (~$${estCost} tahmini). Devam?`)) return;
+      }
       setBulkLoading(true);
       try {
-        // Get providers
         const provider = await getProvider();
         if (!provider) { toast.error("Önce AI provider ekleyin"); setBulkLoading(false); return; }
 
-        // Create job
+        let targetIds = Array.from(selected);
+        if (bulkScope !== "ids") {
+          const previewParams = new URLSearchParams({ page: "1", size: String(Math.min(bulkTargetCount, 500)) });
+          if (bulkScope === "filter") {
+            Object.entries(bulkFilters()).forEach(([k, v]) => { if (v) previewParams.set(k === "sourceId" ? "sourceId" : k, v); });
+          }
+          const previewRes = await fetch("/api/thyronix/products?" + previewParams.toString());
+          const previewData = await previewRes.json();
+          targetIds = (previewData.data?.items || []).map((p: ThyronixProduct) => p.id);
+          if (bulkTargetCount > targetIds.length) {
+            toast(`İlk ${targetIds.length} ürün işleniyor (${bulkTargetCount.toLocaleString("tr-TR")} toplam)`, { icon: "ℹ️" });
+          }
+        }
+
         const jobRes = await fetch("/api/thyronix/ai/jobs", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            name: `${BULK_ACTIONS.find(a => a.key === bulkAction)?.label} - ${selected.size} ürün`,
+            name: `${BULK_ACTIONS.find(a => a.key === bulkAction)?.label} - ${bulkTargetCount} ürün`,
             taskType: aiTaskMap[bulkAction],
-            totalProducts: selected.size,
-            estimatedTokens: selected.size * 500,
-            estimatedCost: selected.size * 0.001,
+            totalProducts: bulkTargetCount,
+            estimatedTokens: bulkTargetCount * 500,
+            estimatedCost: bulkTargetCount * 0.001,
             providerId: provider.id,
             model: provider.model,
           }),
@@ -156,8 +225,7 @@ export default function ThyronixProductsPage() {
         const jobData = await jobRes.json();
         if (!jobData.success) { toast.error(jobData.error || "Görev oluşturulamadı"); setBulkLoading(false); return; }
 
-        // Start processing in batches
-        const ids = Array.from(selected);
+        const ids = targetIds;
         const batchSize = 10;
         const batches = [];
         for (let i = 0; i < ids.length; i += batchSize) {
@@ -176,8 +244,9 @@ export default function ThyronixProductsPage() {
           });
         }
 
-        toast.success(`AI görev oluşturuldu: ${selected.size} ürün`);
+        toast.success(`AI görev oluşturuldu: ${targetIds.length} ürün`);
         setSelected(new Set());
+        setBulkScope("ids");
         setBulkOpen(false);
         fetchProducts();
       } catch { toast.error("AI işlemi başarısız"); }
@@ -189,8 +258,20 @@ export default function ThyronixProductsPage() {
     if (bulkAction === "category" && !bulkCategory) return toast.error("Kategori girin");
     if (bulkAction === "brand" && !bulkBrand) return toast.error("Marka girin");
 
+    if (bulkScope !== "ids" && bulkTargetCount > 500) {
+      if (!confirm(`${bulkTargetCount.toLocaleString("tr-TR")} ürüne işlem uygulanacak. 500+ ürün arka planda işlenir. Devam?`)) return;
+    }
+
     setBulkLoading(true);
-    const body: any = { action: bulkAction, ids: Array.from(selected), value: bulkValue, type: bulkType, mode: bulkMode };
+    const body: Record<string, unknown> = {
+      action: bulkAction,
+      scope: bulkScope,
+      filters: bulkFilters(),
+      value: bulkValue,
+      type: bulkType,
+      mode: bulkMode,
+    };
+    if (bulkScope === "ids") body.ids = Array.from(selected);
     if (bulkCategory) body.category = bulkCategory;
     if (bulkBrand) body.brand = bulkBrand;
 
@@ -199,9 +280,21 @@ export default function ThyronixProductsPage() {
     });
     const d = await res.json();
     if (d.success) {
-      toast.success(`${d.data.updated} ürün güncellendi`);
-      setSelected(new Set()); setBulkOpen(false); setBulkValue(""); setBulkCategory(""); setBulkBrand("");
-      fetchProducts();
+      if (d.data.jobId) {
+        setBulkJobId(d.data.jobId);
+        setBulkProgress({ total: d.data.total, processed: d.data.updated, remaining: d.data.remaining });
+        pollBulkJob(d.data.jobId);
+        toast.success(d.data.message || "Arka plan işlemi başlatıldı");
+      } else {
+        toast.success(`${d.data.updated} ürün güncellendi`);
+        setSelected(new Set());
+        setBulkScope("ids");
+        setBulkOpen(false);
+        setBulkValue("");
+        setBulkCategory("");
+        setBulkBrand("");
+        fetchProducts();
+      }
     } else toast.error(d.error || "Hata");
     setBulkLoading(false);
   };
@@ -269,9 +362,21 @@ export default function ThyronixProductsPage() {
       )}
 
       {/* Bulk Panel */}
-      <div className={`rounded-xl border-2 px-4 py-3 flex items-center gap-2 flex-wrap transition-all ${selected.size > 0 ? "border-nexa-primary/30 bg-nexa-primary/5" : "border-dashed border-nexa-border bg-nexa-card/50"}`}>
-        {selected.size > 0 ? (<>
-          <span className="text-sm font-bold text-nexa-primary">{selected.size} ürün seçildi</span>
+      <div className={`rounded-xl border-2 px-4 py-3 flex items-center gap-2 flex-wrap transition-all ${selected.size > 0 || bulkScope !== "ids" ? "border-nexa-primary/30 bg-nexa-primary/5" : "border-dashed border-nexa-border bg-nexa-card/50"}`}>
+        <div className="flex flex-wrap gap-2 w-full items-center">
+          <span className="text-xs text-nexa-text-secondary">Kapsam:</span>
+          <button type="button" onClick={() => setBulkScope("ids")} className={`px-2 py-1 rounded text-xs ${bulkScope === "ids" ? "bg-nexa-primary text-white" : "bg-nexa-card border border-nexa-border"}`}>Seçili ({selected.size})</button>
+          <button type="button" onClick={() => setBulkScope("filter")} className={`px-2 py-1 rounded text-xs ${bulkScope === "filter" ? "bg-nexa-primary text-white" : "bg-nexa-card border border-nexa-border"}`}>Filtre ({total.toLocaleString("tr-TR")})</button>
+          <button type="button" onClick={() => setBulkScope("catalog")} className={`px-2 py-1 rounded text-xs ${bulkScope === "catalog" ? "bg-nexa-primary text-white" : "bg-nexa-card border border-nexa-border"}`}>Tüm Katalog ({catalogTotal.toLocaleString("tr-TR")})</button>
+        </div>
+        {bulkProgress && (
+          <div className="w-full text-xs text-nexa-primary bg-nexa-primary/10 rounded p-2">
+            İşleniyor: {bulkProgress.processed}/{bulkProgress.total} — kalan {bulkProgress.remaining}
+            {bulkProgress.nextProductIds?.length ? ` · sıradaki: ${bulkProgress.nextProductIds.slice(0, 3).join(", ")}…` : ""}
+          </div>
+        )}
+        {(selected.size > 0 || bulkScope !== "ids") ? (<>
+          <span className="text-sm font-bold text-nexa-primary">{bulkTargetCount.toLocaleString("tr-TR")} ürün hedeflendi</span>
           {BULK_ACTIONS.map(a => (
             <button key={a.key} onClick={() => { setBulkAction(a.key); setBulkOpen(true); }}
               className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors ${
@@ -281,9 +386,9 @@ export default function ThyronixProductsPage() {
               <a.icon size={13} /> {a.label}
             </button>
           ))}
-          <button onClick={() => setSelected(new Set())} className="text-sm text-nexa-text-secondary hover:text-nexa-text ml-auto flex items-center gap-1"><XCircle size={14} /> Seçimi Temizle</button>
+          <button onClick={() => { setSelected(new Set()); setBulkScope("ids"); }} className="text-sm text-nexa-text-secondary hover:text-nexa-text ml-auto flex items-center gap-1"><XCircle size={14} /> Sıfırla</button>
         </>) : (
-          <span className="text-sm text-nexa-text-secondary">📋 <b>Toplu işlem:</b> Checkbox ile ürün seçin, buradan işlem yapın. Filtre ile daraltıp <b>tümünü seç</b>ebilirsiniz.</span>
+          <span className="text-sm text-nexa-text-secondary">📋 Toplu işlem: Sayfa seçimi, aktif filtre veya tüm katalog. Filtre daralt → <b>Filtre</b> veya <b>Tüm Katalog</b> kullanın.</span>
         )}
       </div>
 
@@ -293,7 +398,7 @@ export default function ThyronixProductsPage() {
           <div className="absolute inset-0 bg-black/60" onClick={() => setBulkOpen(false)} />
           <div className="relative w-full max-w-md bg-nexa-card border border-nexa-border rounded-2xl shadow-2xl p-6 space-y-4">
             <h2 className="font-semibold text-nexa-text">{BULK_ACTIONS.find(a => a.key === bulkAction)?.label}</h2>
-            <p className="text-xs text-nexa-text-secondary">{selected.size} ürüne uygulanacak</p>
+            <p className="text-xs text-nexa-text-secondary">{bulkTargetCount.toLocaleString("tr-TR")} ürüne uygulanacak</p>
 
             {(bulkAction === "price" || bulkAction === "stock") && (
               <>
@@ -331,14 +436,14 @@ export default function ThyronixProductsPage() {
             )}
 
             {bulkAction === "delete" && (
-              <p className="text-sm text-nexa-danger">{selected.size} ürün silinecek. Bu işlem geri alınamaz!</p>
+              <p className="text-sm text-nexa-danger">{bulkTargetCount.toLocaleString("tr-TR")} ürün silinecek. Bu işlem geri alınamaz!</p>
             )}
 
             <div className="flex gap-2 justify-end pt-2 border-t border-nexa-border">
               <button onClick={() => setBulkOpen(false)} className="px-4 py-2 text-sm text-nexa-text-secondary hover:text-nexa-text">İptal</button>
               <button onClick={executeBulk} disabled={bulkLoading}
                 className={`px-4 py-2 text-sm rounded-lg text-white font-medium disabled:opacity-50 ${bulkAction === "delete" ? "bg-nexa-danger hover:bg-red-600" : "bg-nexa-primary hover:bg-blue-600"}`}>
-                {bulkLoading ? "İşleniyor..." : `${selected.size} ürüne uygula`}
+                {bulkLoading ? "İşleniyor..." : `${bulkTargetCount.toLocaleString("tr-TR")} ürüne uygula`}
               </button>
             </div>
           </div>

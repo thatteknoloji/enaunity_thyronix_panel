@@ -26,7 +26,7 @@ type IntegrationStats = {
   }>;
 };
 
-import { AdminProductDealerLicenses } from "@/components/admin/AdminProductDealerLicenses";
+import { AdminModuleAccessPanel } from "@/components/admin/AdminModuleAccessPanel";
 
 const statusLabels: Record<string, string> = {
   connected: "Bağlı",
@@ -204,7 +204,7 @@ export default function AdminThyronixIntegrationPage() {
         </div>
       </div>
 
-      <AdminProductDealerLicenses moduleKey="THYRONIX" />
+      <AdminModuleAccessPanel moduleKey="THYRONIX" />
     </div>
   );
 }

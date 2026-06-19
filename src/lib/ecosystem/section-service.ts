@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/db";
+import { revalidatePath } from "next/cache";
 import type { EcosystemShowcaseSettings } from "@prisma/client";
 import {
   DEFAULT_ECOSYSTEM_SECTION,
@@ -51,5 +52,6 @@ export async function updateEcosystemSectionSettings(
       ...(input.paddingBottom !== undefined ? { paddingBottom: input.paddingBottom } : {}),
     },
   });
+  revalidatePath("/");
   return toSectionDTO(row);
 }

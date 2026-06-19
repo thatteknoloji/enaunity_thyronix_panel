@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import {
@@ -25,7 +26,17 @@ const paymentStatusColors: Record<string, string> = {
 };
 
 export default function AdminInvoicesPage() {
-  const [tab, setTab] = useState<Tab>("invoices");
+  return (
+    <Suspense fallback={<p className="text-center py-12 text-gray-400">Yükleniyor…</p>}>
+      <AdminInvoicesContent />
+    </Suspense>
+  );
+}
+
+function AdminInvoicesContent() {
+  const searchParams = useSearchParams();
+  const initialTab = (searchParams.get("tab") as Tab) || "invoices";
+  const [tab, setTab] = useState<Tab>(["invoices", "payments", "statements", "overdue", "reports"].includes(initialTab) ? initialTab : "invoices");
   const [loading, setLoading] = useState(true);
   const [invoices, setInvoices] = useState<any[]>([]);
   const [payments, setPayments] = useState<any[]>([]);
@@ -127,7 +138,10 @@ export default function AdminInvoicesPage() {
       ) : tab === "payments" ? (
         <PaymentsTable payments={payments} />
       ) : tab === "statements" ? (
-        <StatementsTable statements={statements} />
+        <>
+          <p className="text-xs text-gray-500 mb-3">Bayi aylık ekstreleri — eski Operasyon Merkezi ekstre sekmesi buraya taşındı.</p>
+          <StatementsTable statements={statements} />
+        </>
       ) : tab === "overdue" ? (
         <InvoiceTable invoices={overdue} onPay={recordPayment} overdue />
       ) : (

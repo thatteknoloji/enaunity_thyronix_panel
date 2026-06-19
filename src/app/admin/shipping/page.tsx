@@ -121,6 +121,14 @@ export default function AdminShippingPage() {
   const [kgStates, setKgStates] = useState<{ id: number; name: string }[]>([]);
   const [kgCities, setKgCities] = useState<{ id: number; name: string }[]>([]);
   const [kgConfigError, setKgConfigError] = useState<string | null>(null);
+  const [fulfillmentShipments, setFulfillmentShipments] = useState<any[]>([]);
+
+  useEffect(() => {
+    fetch("/api/fulfillment/shipments")
+      .then((r) => r.json())
+      .then((d) => { if (d.success) setFulfillmentShipments(d.data || []); })
+      .catch(() => {});
+  }, []);
 
   const kg = async (action: string, params?: any) => {
     const res = await fetch("/api/admin/kargonomi", {
@@ -340,6 +348,26 @@ export default function AdminShippingPage() {
         <Link href="/admin" className="text-gray-400 hover:text-gray-600"><ArrowLeft size={20} /></Link>
         <div><h1 className="text-3xl font-bold text-gray-900">Kargo Yönetimi</h1><p className="mt-1 text-sm text-gray-500">BasitKargo API entegrasyonu + manuel kargo kuralları</p></div>
       </div>
+
+      {fulfillmentShipments.length > 0 && (
+        <div className="mb-6 rounded-xl border border-purple-200 bg-purple-50/30 overflow-hidden">
+          <div className="px-4 py-3 border-b border-purple-100">
+            <h2 className="text-sm font-semibold text-purple-900">Operasyon sipariş kargoları ({fulfillmentShipments.length})</h2>
+            <p className="text-xs text-purple-700 mt-0.5">Pazaryeri / hazır ürün siparişlerine bağlı sevkiyat kayıtları</p>
+          </div>
+          <div className="divide-y divide-purple-100 max-h-48 overflow-y-auto bg-white">
+            {fulfillmentShipments.slice(0, 20).map((s: any) => (
+              <div key={s.id} className="px-4 py-2.5 flex justify-between text-xs">
+                <div>
+                  <span className="font-medium text-gray-800">{s.trackingNumber || "Takip yok"}</span>
+                  <span className="text-gray-500 ml-2">{s.cargoCompany} · {s.order?.orderNumber}</span>
+                </div>
+                <span className="text-gray-500">{s.status}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Tabs */}
       <div className="flex gap-1 mb-6 bg-gray-100 p-1 rounded-xl w-fit">

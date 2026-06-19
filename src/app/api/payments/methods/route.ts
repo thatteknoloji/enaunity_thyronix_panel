@@ -1,13 +1,15 @@
 import { NextResponse } from "next/server";
-import { getAvailablePaymentMethods, isEsnekposEnabled, isIyzicoEnabled } from "@/lib/payments/gateway-config";
+import { getPublicPaymentSettings } from "@/lib/payments/payment-settings";
 
+/** @deprecated use /api/payments/settings */
 export async function GET() {
+  const data = await getPublicPaymentSettings();
   return NextResponse.json({
     success: true,
     data: {
-      methods: getAvailablePaymentMethods(),
-      esnekpos: isEsnekposEnabled(),
-      iyzico: isIyzicoEnabled(),
+      ...data,
+      esnekpos: data.activeCardProvider === "ESNEKPOS",
+      iyzico: data.activeCardProvider === "IYZICO",
     },
   });
 }

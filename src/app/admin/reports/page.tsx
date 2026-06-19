@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import {
   TrendingUp, TrendingDown, ShoppingCart, DollarSign, Package, Users,
   Percent, AlertTriangle, Banknote, Wallet, Building2, UserPlus, Clock, Download, Search,
@@ -51,6 +52,7 @@ const TABS = [
   { key: "aging", label: "Alacak Yaşlandırma", icon: Clock },
   { key: "margin", label: "Marj Analizi", icon: Percent },
   { key: "rep", label: "Temsilci Performans", icon: Users },
+  { key: "operasyon", label: "Operasyon P&L", icon: DollarSign },
 ];
 
 function formatTL(n: number) {
@@ -70,7 +72,17 @@ function downloadCSV(filename: string, headers: string[], rows: string[][]) {
 }
 
 export default function ReportsPage() {
-  const [tab, setTab] = useState("dashboard");
+  return (
+    <Suspense fallback={<div className="text-center py-16 text-gray-500">Yükleniyor…</div>}>
+      <ReportsContent />
+    </Suspense>
+  );
+}
+
+function ReportsContent() {
+  const searchParams = useSearchParams();
+  const initialTab = searchParams.get("tab") === "operasyon" ? "operasyon" : "dashboard";
+  const [tab, setTab] = useState(initialTab);
   const [data, setData] = useState<ReportData | null>(null);
   const [aging, setAging] = useState<{ dealers: AgingDealer[]; totals: any } | null>(null);
   const [margin, setMargin] = useState<{ products: MarginProduct[]; categories: any[]; summary: any } | null>(null);
@@ -89,6 +101,8 @@ export default function ReportsPage() {
   const [detailLoading, setDetailLoading] = useState(false);
   const [categories, setCategories] = useState<string[]>([]);
   const [products, setProducts] = useState<{ id: string; name: string }[]>([]);
+  const [operasyonReport, setOperasyonReport] = useState<any>(null);
+  const [operasyonPeriod, setOperasyonPeriod] = useState("monthly");
 
   const fetchReports = useCallback(async () => {
     if (tab !== "dashboard") return;
@@ -114,8 +128,13 @@ export default function ReportsPage() {
     } else if (tab === "detailed") {
       fetch("/api/admin/products/categories").then(r => r.json()).then(d => { if (d.success) setCategories(d.data); });
       fetch("/api/admin/products").then(r => r.json()).then(d => { if (d.success) setProducts(d.data || []); });
+    } else if (tab === "operasyon") {
+      setLoading(true);
+      fetch(`/api/fulfillment/dashboard?type=reports&period=${operasyonPeriod}`)
+        .then((r) => r.json())
+        .then((d) => { if (d.success) setOperasyonReport(d.data); setLoading(false); });
     }
-  }, [tab]);
+  }, [tab, operasyonPeriod]);
 
   const fetchDetailed = useCallback(async () => {
     setDetailLoading(true);
@@ -751,6 +770,39 @@ export default function ReportsPage() {
           {tab === "aging" && renderAging()}
           {tab === "margin" && renderMargin()}
           {tab === "rep" && renderRep()}
+          {tab === "operasyon" && (
+            <div className="space-y-4">
+              <div className="flex gap-2">
+                {(["daily", "weekly", "monthly"] as const).map((p) => (
+                  <button
+                    key={p}
+                    onClick={() => setOperasyonPeriod(p)}
+                    className={`px-3 py-1.5 text-xs rounded-lg border ${operasyonPeriod === p ? "bg-gray-900 text-white border-gray-900" : "border-gray-200 text-gray-600"}`}
+                  >
+                    {p === "daily" ? "Günlük" : p === "weekly" ? "Haftalık" : "Aylık"}
+                  </button>
+                ))}
+              </div>
+              {operasyonReport && (
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                  {[
+                    { label: "Sipariş", value: operasyonReport.orderCount },
+                    { label: "Ciro", value: formatTL(operasyonReport.revenue || 0) },
+                    { label: "Maliyet", value: formatTL(operasyonReport.cost || 0) },
+                    { label: "Kar", value: formatTL(operasyonReport.profit || 0) },
+                    { label: "Kargo", value: formatTL(operasyonReport.shipping || 0) },
+                    { label: "İade", value: operasyonReport.returns ?? 0 },
+                  ].map((s) => (
+                    <div key={s.label} className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+                      <p className="text-xs text-gray-500">{s.label}</p>
+                      <p className="text-xl font-bold text-gray-900 mt-1">{s.value}</p>
+                    </div>
+                  ))}
+                </div>
+              )}
+              <p className="text-xs text-gray-500">Operasyon siparişleri (pazaryeri / hazır ürün) — çekirdek + legacy birleşik rapor.</p>
+            </div>
+          )}
         </>
       )}
     </div>

@@ -10,7 +10,7 @@
     "dev:ensure": "bash scripts/ensure-dev-server.sh",
     "dev:fix": "bash scripts/dev-fix.sh",
     "postinstall": "prisma generate",
-    "prebuild": "rm -rf .next",
+    "prebuild": "bash scripts/prebuild-safe.sh",
     "build": "next build",
     "start": "next start -p 3333",
     "lint": "next lint",

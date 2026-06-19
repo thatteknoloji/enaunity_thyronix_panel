@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import type { ProductShowcaseDTO } from "@/lib/ecosystem/types";
 import { ShowcaseIcon, hexToRgb } from "./ShowcaseIcon";
+import { resolvePlanCheckoutUrl } from "@/lib/ecosystem/plan-urls";
 
 type Props = {
   product: ProductShowcaseDTO;
@@ -126,7 +127,7 @@ export function ShowcaseLanding({ product, preview }: Props) {
               {product.plansSectionTitle || "Paketler"}
             </h2>
             <div className="grid md:grid-cols-3 gap-4">
-              {sortedPlans.map((plan) => (
+              {sortedPlans.map((plan, planIndex) => (
                 <div
                   key={plan.id}
                   className={`acc-card p-6 ${plan.highlighted ? "ring-2" : ""}`}
@@ -150,8 +151,12 @@ export function ShowcaseLanding({ product, preview }: Props) {
                       <li key={feat}>• {feat}</li>
                     ))}
                   </ul>
-                  {plan.ctaUrl && (
-                    <Link href={plan.ctaUrl} className="block mt-6" target={openInNewTab ? "_blank" : undefined}>
+                  {(plan.ctaUrl || product.slug === "thyronix" || product.slug === "hive") && (
+                    <Link
+                      href={resolvePlanCheckoutUrl(product.slug, plan, planIndex)}
+                      className="block mt-6"
+                      target={openInNewTab ? "_blank" : undefined}
+                    >
                       <Button variant={plan.highlighted ? "primary" : "outline"} className="w-full">
                         {plan.ctaText || "Seç"}
                       </Button>

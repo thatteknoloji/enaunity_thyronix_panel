@@ -10,6 +10,7 @@ import { useCartStore } from "@/lib/cart-store";
 import type { User } from "@/types";
 import { ChevronLeft, Building2, Tag, AlertTriangle, Clock, Paperclip, X, FileText, ImageIcon } from "lucide-react";
 import Link from "next/link";
+import { PaymentCheckoutPanel } from "@/components/payments/PaymentCheckoutPanel";
 
 interface DealerInfo {
   discountRate: number;
@@ -59,6 +60,23 @@ export default function CheckoutPage() {
   const [minOrderAmount, setMinOrderAmount] = useState(0);
   const [minOrderErrors, setMinOrderErrors] = useState<string[]>([]);
 
+  const [paymentMethodsAvailable, setPaymentMethodsAvailable] = useState(false);
+  const [paymentDealerId, setPaymentDealerId] = useState<string | null>(null);
+  const [paymentAlternatives, setPaymentAlternatives] = useState<string[]>([]);
+  const [showOnlineSuggestion, setShowOnlineSuggestion] = useState(false);
+
+  useEffect(() => {
+    if (!paymentDealerId) return;
+    fetch(`/api/payments/settings?dealerId=${paymentDealerId}`)
+      .then((r) => r.json())
+      .then((d) => {
+        if (d.success && (d.data?.methods?.length > 0 || d.data?.balanceEnabled)) {
+          setPaymentMethodsAvailable(true);
+        }
+      })
+      .catch(() => {});
+  }, [paymentDealerId]);
+
   const isDealer = !!dealer;
 
   useEffect(() => {
@@ -76,6 +94,7 @@ export default function CheckoutPage() {
             if (p.data.dealerGroup?.minOrderAmount) {
               setMinOrderAmount(p.data.dealerGroup.minOrderAmount);
             }
+            setPaymentDealerId(d.data.dealerId);
           }
         });
       }
@@ -147,22 +166,19 @@ export default function CheckoutPage() {
     window.sessionStorage.removeItem("couponData");
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!platform) { setError("Lütfen bir platform seçin"); setSubmitting(false); return; }
+  const submitOrder = async (paymentMethod?: string, installmentCount = 1) => {
+    if (!platform) { setError("Lütfen bir platform seçin"); return false; }
     const addrToCheck = sameAddress ? invoiceAddress : deliveryAddress;
-    if (!invoiceAddress.trim() || !addrToCheck.trim()) { setError("Adres bilgilerini doldurun"); setSubmitting(false); return; }
+    if (!invoiceAddress.trim() || !addrToCheck.trim()) { setError("Adres bilgilerini doldurun"); return false; }
     setSubmitting(true);
     setError("");
 
-    // Validate min order amount for dealers
     if (minOrderAmount > 0 && total < minOrderAmount) {
       setError(`Minimum sipariş tutarı ${formatPrice(minOrderAmount)}. Şu anki tutar: ${formatPrice(total)}`);
       setSubmitting(false);
-      return;
+      return false;
     }
 
-    // Validate product min order quantities
     const qtyErrors: string[] = [];
     for (const item of items) {
       if (item.quantity < (item.product.minOrderQuantity || 1)) {
@@ -172,7 +188,7 @@ export default function CheckoutPage() {
     if (qtyErrors.length > 0) {
       setError(`Minimum sipariş adetleri karşılanmadı:\n${qtyErrors.join("\n")}`);
       setSubmitting(false);
-      return;
+      return false;
     }
 
     const fullAddress = sameAddress
@@ -188,6 +204,12 @@ export default function CheckoutPage() {
     };
     if (paymentTerm) { body.paymentTermDays = paymentTerm.days; body.paymentTermRate = paymentTerm.rate; }
     if (attachments.length > 0) body.attachments = attachments;
+    if (paymentMethod) {
+      body.paymentMethod = paymentMethod;
+      body.installmentCount = installmentCount;
+    } else if (isDealer) {
+      body.paymentMethod = "DEALER_ACCOUNT";
+    }
     const stored = window.sessionStorage.getItem("couponData");
     if (stored) {
       const parsed = JSON.parse(stored);
@@ -204,11 +226,34 @@ export default function CheckoutPage() {
     const data = await res.json();
     if (res.ok) {
       clearCart();
+      window.sessionStorage.removeItem("couponData");
+      if (data.data?.redirectUrl) {
+        window.location.href = data.data.redirectUrl;
+        return true;
+      }
+      if (data.data?.paymentId && paymentMethod && paymentMethod !== "DEALER_ACCOUNT") {
+        router.push(`/payment/pending?module=B2B_ORDER&plan=${data.data.order?.id || ""}&paymentId=${data.data.paymentId}`);
+        return true;
+      }
       router.push("/account");
-    } else {
-      setError(data.error || "Sipariş oluşturulamadı");
+      return true;
+    }
+    setError(data.error || "Sipariş oluşturulamadı");
+    if (data.code === "INSUFFICIENT_BALANCE" && data.alternatives?.length) {
+      setPaymentAlternatives(data.alternatives);
+      setShowOnlineSuggestion(true);
     }
     setSubmitting(false);
+    return false;
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    await submitOrder(isDealer ? "DEALER_ACCOUNT" : undefined);
+  };
+
+  const handleOnlinePayment = async (method: string, installmentCount: number) => {
+    await submitOrder(method, installmentCount);
   };
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -379,8 +424,15 @@ export default function CheckoutPage() {
       </motion.div>
 
       {error && (
-        <div className="rounded bg-ena-primary/50/10 border border-ena-primary/30 p-3 mb-4 text-sm text-ena-primary">
+        <div className="rounded bg-ena-primary/50/10 border border-ena-primary/30 p-3 mb-4 text-sm text-ena-primary whitespace-pre-line">
           {error}
+          {showOnlineSuggestion && paymentAlternatives.length > 0 && (
+            <p className="mt-2 text-ena-text">
+              Alternatif: Aşağıdaki online ödeme panelinden{" "}
+              {paymentAlternatives.map((m) => (m === "BANK_TRANSFER" ? "Havale/EFT" : m === "ESNEKPOS" ? "Kredi Kartı" : m)).join(" veya ")}{" "}
+              ile tamamlayabilirsiniz.
+            </p>
+          )}
         </div>
       )}
 
@@ -465,8 +517,21 @@ export default function CheckoutPage() {
         </div>
 
         <Button type="submit" className="w-full" disabled={submitting || items.length === 0}>
-          {submitting ? "Sipariş oluşturuluyor..." : "Siparişi Tamamla"}
+          {submitting ? "Sipariş oluşturuluyor..." : isDealer ? "Cari Hesaptan Sipariş Ver" : "Siparişi Tamamla"}
         </Button>
+
+        {isDealer && paymentMethodsAvailable && (
+          <div className="pt-4 border-t border-ena-border">
+            <p className="text-sm text-ena-light mb-3">veya online ödeme ile tamamlayın</p>
+            <PaymentCheckoutPanel
+              amount={total}
+              title="B2B Online Ödeme"
+              loading={submitting}
+              dealerId={paymentDealerId || undefined}
+              onConfirm={handleOnlinePayment}
+            />
+          </div>
+        )}
       </motion.form>
     </div>
   );
