@@ -1,10 +1,11 @@
 "use client";
 
 import { useTheme } from "@/lib/theme-provider";
+import { loadAppearanceFromServer } from "@/lib/theme/appearance-storage";
 import { THEME_META, ACCENT_META, type ThemeId, type AccentId } from "@/lib/theme/tokens";
 import { AccCard, AccPageTitle, AccSkeleton } from "@/components/account/AccountShell";
 import { Check, Palette, Sparkles, Zap } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
 
 export default function AppearancePage() {
@@ -13,21 +14,23 @@ export default function AppearancePage() {
     accent,
     compactMode,
     reducedMotion,
-    setTheme,
-    setAccent,
-    setCompactMode,
-    setReducedMotion,
+    applyPreferences,
+    userId,
     themes,
     accents,
     ready,
   } = useTheme();
   const [saving, setSaving] = useState(false);
+  const loadedServer = useRef(false);
 
-  const handleSave = async () => {
-    setSaving(true);
-    toast.success("Görünüm tercihleri kaydedildi");
-    setSaving(false);
-  };
+  // Optional: restore this user's saved account prefs when opening settings
+  useEffect(() => {
+    if (!ready || !userId || loadedServer.current) return;
+    loadedServer.current = true;
+    loadAppearanceFromServer().then((server) => {
+      if (server) void applyPreferences(server, { syncServer: false });
+    });
+  }, [ready, userId, applyPreferences]);
 
   if (!ready) {
     return <AccSkeleton rows={4} />;
@@ -37,7 +40,7 @@ export default function AppearancePage() {
     <div className="space-y-6 max-w-3xl">
       <AccPageTitle
         title="Görünüm"
-        description="Tema, accent rengi ve görünüm tercihlerinizi özelleştirin. Tercihler hesabınıza kaydedilir."
+        description="Tema tercihiniz önce bu cihazda saklanır. Hesaba kaydettiğinizde yalnızca kendi profilinize yazılır; başka kullanıcılar etkilenmez."
       />
 
       <AccCard>
@@ -53,7 +56,7 @@ export default function AppearancePage() {
               <button
                 key={t}
                 type="button"
-                onClick={() => setTheme(t as ThemeId)}
+                onClick={() => applyPreferences({ theme: t as ThemeId })}
                 className={`text-left rounded-xl border p-4 transition-all duration-200 hover:-translate-y-0.5 ${
                   active
                     ? "border-ena-primary bg-ena-primary/10 shadow-md"
@@ -85,7 +88,7 @@ export default function AppearancePage() {
               <button
                 key={a}
                 type="button"
-                onClick={() => setAccent(a as AccentId)}
+                onClick={() => applyPreferences({ accent: a as AccentId })}
                 className={`flex items-center gap-2 px-4 py-2.5 rounded-xl border transition-all ${
                   active ? "border-ena-primary bg-ena-primary/10" : "border-ena-border hover:border-ena-primary/40"
                 }`}
@@ -116,7 +119,7 @@ export default function AppearancePage() {
             <input
               type="checkbox"
               checked={compactMode}
-              onChange={(e) => setCompactMode(e.target.checked)}
+              onChange={(e) => applyPreferences({ compactMode: e.target.checked })}
               className="h-4 w-4 rounded border-ena-border accent-ena-primary"
             />
           </label>
@@ -128,7 +131,7 @@ export default function AppearancePage() {
             <input
               type="checkbox"
               checked={reducedMotion}
-              onChange={(e) => setReducedMotion(e.target.checked)}
+              onChange={(e) => applyPreferences({ reducedMotion: e.target.checked })}
               className="h-4 w-4 rounded border-ena-border accent-ena-primary"
             />
           </label>
@@ -141,6 +144,23 @@ export default function AppearancePage() {
           {" · "}
           Accent: <span className="text-ena-primary font-medium">{ACCENT_META[accent].label}</span>
         </p>
+        {userId ? (
+          <button
+            type="button"
+            disabled={saving}
+            onClick={async () => {
+              setSaving(true);
+              await applyPreferences({ theme, accent, compactMode, reducedMotion }, { syncServer: true });
+              toast.success("Görünüm tercihleri hesabınıza kaydedildi");
+              setSaving(false);
+            }}
+            className="mt-3 text-xs font-medium text-ena-primary hover:underline disabled:opacity-50"
+          >
+            {saving ? "Kaydediliyor…" : "Hesabıma kaydet (yeni cihazlarda geri yükleme)"}
+          </button>
+        ) : (
+          <p className="mt-2 text-xs text-ena-light/70">Giriş yapmadan tema yalnızca bu cihazda saklanır.</p>
+        )}
       </div>
     </div>
   );

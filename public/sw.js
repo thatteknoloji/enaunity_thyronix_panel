@@ -1,4 +1,4 @@
-const CACHE_NAME = "enaunity-v2";
+const CACHE_NAME = "enaunity-v3";
 const STATIC_ASSETS = ["/", "/manifest.json", "/icons/icon-192.svg", "/icons/icon-512.svg"];
 
 self.addEventListener("install", (event) => {
@@ -26,6 +26,13 @@ self.addEventListener("fetch", (event) => {
   if (request.method !== "GET") return;
 
   const url = new URL(request.url);
+
+  // Never cache authenticated or dynamic API responses in SW
+  if (url.pathname.startsWith("/api/")) {
+    event.respondWith(fetch(request));
+    return;
+  }
+
   const isNextStatic = url.pathname.startsWith("/_next/static/");
   const isAppAsset = url.pathname.startsWith("/icons/") || url.pathname === "/manifest.json";
 

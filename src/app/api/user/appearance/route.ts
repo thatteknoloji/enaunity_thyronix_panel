@@ -6,29 +6,44 @@ import { DEFAULT_APPEARANCE, isValidAccent, isValidTheme } from "@/lib/theme/tok
 export async function GET() {
   const user = await getSession();
   if (!user) {
-    return NextResponse.json({ success: false, error: "Oturum gerekli" }, { status: 401 });
+    return NextResponse.json(
+      { success: false, error: "Oturum gerekli" },
+      { status: 401, headers: { "Cache-Control": "private, no-store" } }
+    );
   }
 
   const appearance = await prisma.userAppearance.findUnique({ where: { userId: user.id } });
   if (!appearance) {
-    return NextResponse.json({ success: true, data: DEFAULT_APPEARANCE });
+    return NextResponse.json(
+      { success: true, data: DEFAULT_APPEARANCE },
+      { headers: { "Cache-Control": "private, no-store" } }
+    );
   }
 
-  return NextResponse.json({
-    success: true,
-    data: {
-      theme: isValidTheme(appearance.theme) ? appearance.theme : DEFAULT_APPEARANCE.theme,
-      accent: isValidAccent(appearance.accent) ? appearance.accent : DEFAULT_APPEARANCE.accent,
-      compactMode: appearance.compactMode,
-      reducedMotion: appearance.reducedMotion,
+  return NextResponse.json(
+    {
+      success: true,
+      data: {
+        theme: isValidTheme(appearance.theme) ? appearance.theme : DEFAULT_APPEARANCE.theme,
+        accent: isValidAccent(appearance.accent) ? appearance.accent : DEFAULT_APPEARANCE.accent,
+        compactMode: appearance.compactMode,
+        reducedMotion: appearance.reducedMotion,
+      },
     },
-  });
+    { headers: { "Cache-Control": "private, no-store" } }
+  );
 }
 
 export async function PATCH(req: Request) {
   const user = await getSession();
   if (!user) {
     return NextResponse.json({ success: false, error: "Oturum gerekli" }, { status: 401 });
+  }
+  if (user.id.startsWith("api:") || (user as { isSubUser?: boolean }).isSubUser) {
+    return NextResponse.json(
+      { success: false, error: "Görünüm tercihi yalnızca ana hesap için kaydedilebilir" },
+      { status: 403, headers: { "Cache-Control": "private, no-store" } }
+    );
   }
 
   const body = await req.json();
@@ -51,13 +66,16 @@ export async function PATCH(req: Request) {
     update: { theme, accent, compactMode, reducedMotion },
   });
 
-  return NextResponse.json({
-    success: true,
-    data: {
-      theme: saved.theme,
-      accent: saved.accent,
-      compactMode: saved.compactMode,
-      reducedMotion: saved.reducedMotion,
+  return NextResponse.json(
+    {
+      success: true,
+      data: {
+        theme: saved.theme,
+        accent: saved.accent,
+        compactMode: saved.compactMode,
+        reducedMotion: saved.reducedMotion,
+      },
     },
-  });
+    { headers: { "Cache-Control": "private, no-store" } }
+  );
 }
