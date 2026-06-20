@@ -8,6 +8,7 @@ import { HUB_MARKETPLACE_SOURCE } from "@/lib/marketplace-hub/config";
 import { fetchTrendyolLabelWithCreate, saveTrendyolZplLabel } from "@/lib/marketplace-hub/trendyol-label";
 import { fetchTrendyolOrderByNumber } from "@/lib/marketplace-hub/trendyol-integration-orders";
 import { importMarketplaceOrderToFulfillment } from "@/lib/marketplace-hub/import-engine";
+import { resolveMarketplaceItemImageUrl } from "@/lib/marketplace-hub/line-enrichment";
 
 export type OperasyonItemView = {
   id: string;
@@ -60,6 +61,7 @@ function mapItems(items: Array<{
   barcode?: string;
   sku?: string;
   metadataJson?: string;
+  product?: { image?: string | null } | null;
 }>): OperasyonItemView[] {
   return items.map((i) => {
     const meta = parseMeta(i.metadataJson);
@@ -70,7 +72,11 @@ function mapItems(items: Array<{
       salePrice: i.price ?? i.salePrice ?? 0,
       barcode: i.barcode || String(meta.barcode || ""),
       sku: i.sku || "",
-      imageUrl: String(meta.imageUrl || meta.productImageUrl || ""),
+      imageUrl: resolveMarketplaceItemImageUrl({
+        name: i.name,
+        metaImage: String(meta.imageUrl || meta.productImageUrl || ""),
+        productImage: i.product?.image,
+      }),
     };
   });
 }
@@ -100,6 +106,7 @@ type CoreOrderShape = {
     barcode: string;
     sku: string;
     metadataJson: string;
+    product?: { image?: string | null } | null;
   }>;
   attachments?: Array<{ fileUrl: string; fileName: string; fileType: string }>;
   shipments?: Array<{ trackingNumber?: string; cargoCompany?: string }>;
@@ -380,16 +387,9 @@ export async function attachOperasyonShippingLabel(
 export async function fetchOperasyonLabelFromTrendyol(orderId: string) {
   const core = await prisma.order.findUnique({
     where: { id: orderId },
-    include: { shipments: true },
+    include: { shipments: true, items: true },
   });
   if (!core?.dealerId) throw new Error("Sipariş bulunamadı");
-
-  const tracking = resolveCargoTrackingNumber(core);
-  if (!tracking) {
-    throw new Error(
-      "Trendyol kargo takip numarası (cargoTrackingNumber) henüz yok. Sipariş paketlendikten sonra sync yapın veya TY panelindeki kargo no ile kaydedin — sipariş numarası etiket için kullanılamaz."
-    );
-  }
 
   const conn = await prisma.marketplaceConnection.findFirst({
     where: {
@@ -402,10 +402,86 @@ export async function fetchOperasyonLabelFromTrendyol(orderId: string) {
     throw new Error("Aktif Trendyol bağlantısı bulunamadı");
   }
 
-  const labels = await fetchTrendyolLabelWithCreate(
-    { sellerId: conn.sellerId, apiKey: conn.apiKey, apiSecret: conn.apiSecret },
-    tracking
-  );
+  const credentials = {
+    sellerId: conn.sellerId,
+    apiKey: conn.apiKey,
+    apiSecret: conn.apiSecret,
+  };
+
+  let tracking = resolveCargoTrackingNumber(core);
+  let shipmentPackageId: number | undefined;
+  let packageStatus = "";
+  let labelLines: Array<{ lineId?: number; quantity: number }> = [];
+
+  const pkg = await fetchTrendyolOrderByNumber(credentials, core.marketplaceOrderId);
+  if (pkg) {
+    if (pkg.cargoTrackingNumber) tracking = String(pkg.cargoTrackingNumber);
+    shipmentPackageId = pkg.shipmentPackageId;
+    packageStatus = pkg.status || "";
+    labelLines = (pkg.lines || []).map((line) => ({
+      lineId: line.lineId,
+      quantity: line.quantity || 1,
+    }));
+
+    const addr = pkg.shipmentAddress || {};
+    const { enrichMarketplaceLines } = await import("@/lib/marketplace-hub/line-enrichment");
+    const enriched = await enrichMarketplaceLines(
+      (pkg.lines || []).map((line) => ({
+        productName: line.productName || "Ürün",
+        barcode: line.barcode || "",
+        sku: line.barcode || "",
+        quantity: line.quantity || 1,
+        unitPrice: line.price || line.amount || 0,
+        imageUrl: "",
+      })),
+      core.dealerId,
+      credentials
+    );
+
+    await importMarketplaceOrderToFulfillment({
+      dealerId: core.dealerId,
+      connectionId: conn.id,
+      payload: {
+        platform: "TRENDYOL",
+        platformOrderId: String(pkg.orderNumber),
+        customerName: `${addr.firstName || ""} ${addr.lastName || ""}`.trim(),
+        customerPhone: addr.phoneNumber || "",
+        customerCity: `${addr.city || ""} / ${addr.district || ""}`,
+        customerAddress: addr.addressDetail || addr.address1 || "",
+        cargoTrackingNumber: tracking,
+        cargoProviderName: pkg.cargoProviderName || "",
+        shipmentPackageId: pkg.shipmentPackageId,
+        tyPackageStatus: pkg.status || "",
+        items: enriched.map((line, idx) => ({
+          ...line,
+          lineId: pkg.lines?.[idx]?.lineId,
+        })),
+      },
+    });
+  } else {
+    const meta = parseMeta(core.metadataJson);
+    shipmentPackageId = meta.shipmentPackageId as number | undefined;
+    packageStatus = String(meta.tyPackageStatus || "");
+    labelLines = core.items.map((item) => {
+      const itemMeta = parseMeta(item.metadataJson);
+      return {
+        lineId: itemMeta.lineId as number | undefined,
+        quantity: item.quantity,
+      };
+    });
+  }
+
+  if (!tracking) {
+    throw new Error(
+      "Trendyol kargo takip numarası (cargoTrackingNumber) henüz yok. Sipariş paketlendikten sonra TY'den yenile yapın."
+    );
+  }
+
+  const labels = await fetchTrendyolLabelWithCreate(credentials, tracking, {
+    shipmentPackageId,
+    packageStatus,
+    lines: labelLines,
+  });
 
   const zpl =
     labels.find((l) => l.format?.toUpperCase() === "ZPL" && l.label) ||
@@ -471,7 +547,12 @@ export async function refreshOperasyonOrderFromTrendyol(orderId: string) {
       customerAddress: addr.addressDetail || addr.address1 || "",
       cargoTrackingNumber: pkg.cargoTrackingNumber ? String(pkg.cargoTrackingNumber) : "",
       cargoProviderName: pkg.cargoProviderName || "",
-      items: enriched,
+      shipmentPackageId: pkg.shipmentPackageId,
+      tyPackageStatus: pkg.status || "",
+      items: enriched.map((line, idx) => ({
+        ...line,
+        lineId: pkg.lines?.[idx]?.lineId,
+      })),
     },
   });
 

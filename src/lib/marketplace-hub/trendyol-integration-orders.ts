@@ -7,7 +7,17 @@ function basicAuth(apiKey: string, apiSecret: string): string {
   return Buffer.from(`${apiKey}:${apiSecret}`).toString("base64");
 }
 
+function authHeaders(credentials: TrendyolConnectionCredentials) {
+  return {
+    Authorization: `Basic ${basicAuth(credentials.apiKey, credentials.apiSecret)}`,
+    "User-Agent": `${credentials.sellerId} - SelfIntegration`,
+    Accept: "application/json",
+    "Content-Type": "application/json",
+  };
+}
+
 type IntegrationOrderLine = {
+  id?: number;
   productName?: string;
   barcode?: string;
   quantity?: number;
@@ -52,6 +62,7 @@ function mapPackage(pkg: IntegrationShipmentPackage): TrendyolPackage {
     totalDiscount: pkg.totalDiscount || 0,
     totalPrice: pkg.totalPrice || 0,
     status: pkg.status || "",
+    shipmentPackageId: pkg.id,
     shipmentAddress: {
       firstName: addr.firstName || "",
       lastName: addr.lastName || "",
@@ -62,6 +73,7 @@ function mapPackage(pkg: IntegrationShipmentPackage): TrendyolPackage {
       addressDetail: addr.addressDetail || addr.address1 || "",
     },
     lines: (pkg.lines || []).map((line) => ({
+      lineId: line.id,
       productName: line.productName || "Ürün",
       barcode: line.barcode || line.merchantSku || line.sku || "",
       quantity: line.quantity || 1,
@@ -97,13 +109,7 @@ export async function fetchTrendyolIntegrationPackages(
     });
 
     const url = `${INTEGRATION_ORDER_BASE}/${credentials.sellerId}/orders?${query}`;
-    const res = await fetch(url, {
-      headers: {
-        Authorization: `Basic ${basicAuth(credentials.apiKey, credentials.apiSecret)}`,
-        "User-Agent": `${credentials.sellerId} - SelfIntegration`,
-        Accept: "application/json",
-      },
-    });
+    const res = await fetch(url, { headers: authHeaders(credentials) });
 
     if (!res.ok) {
       const text = await res.text();
@@ -130,15 +136,37 @@ export async function fetchTrendyolOrderByNumber(
     page: "0",
   });
   const url = `${INTEGRATION_ORDER_BASE}/${credentials.sellerId}/orders?${query}`;
-  const res = await fetch(url, {
-    headers: {
-      Authorization: `Basic ${basicAuth(credentials.apiKey, credentials.apiSecret)}`,
-      "User-Agent": `${credentials.sellerId} - SelfIntegration`,
-      Accept: "application/json",
-    },
-  });
+  const res = await fetch(url, { headers: authHeaders(credentials) });
   if (!res.ok) return null;
   const json = (await res.json()) as IntegrationOrdersResponse;
   const pkg = json.content?.[0];
   return pkg ? mapPackage(pkg) : null;
 }
+
+export async function updateTrendyolPackageStatus(
+  credentials: TrendyolConnectionCredentials,
+  shipmentPackageId: number,
+  status: "Picking" | "Invoiced",
+  lines: Array<{ lineId: number; quantity: number }>
+) {
+  const url = `${INTEGRATION_ORDER_BASE}/${credentials.sellerId}/shipment-packages/${shipmentPackageId}`;
+  const res = await fetch(url, {
+    method: "PUT",
+    headers: authHeaders(credentials),
+    body: JSON.stringify({
+      lines: lines.map((l) => ({ lineId: l.lineId, quantity: l.quantity })),
+      params: status === "Invoiced" ? { invoiceNumber: "ENA-INV" } : {},
+      status,
+    }),
+  });
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`Trendyol paket durumu ${res.status}: ${text.slice(0, 200)}`);
+  }
+}
+
+export type TrendyolLabelContext = {
+  shipmentPackageId?: number;
+  packageStatus?: string;
+  lines?: Array<{ lineId?: number; quantity: number }>;
+};

@@ -64,6 +64,22 @@ export async function resolveMarketplaceLineImage(
   return placeholderFor(line.productName || "");
 }
 
+export function marketplaceImagePlaceholder(productName: string): string {
+  return placeholderFor(productName || "");
+}
+
+export function resolveMarketplaceItemImageUrl(input: {
+  name: string;
+  metaImage?: string;
+  productImage?: string | null;
+}): string {
+  const meta = (input.metaImage || "").trim();
+  if (meta && meta !== "/placeholder.svg") return meta;
+  const product = (input.productImage || "").trim();
+  if (product && product !== "/placeholder.svg") return product;
+  return marketplaceImagePlaceholder(input.name);
+}
+
 export async function enrichMarketplaceLines(
   lines: Array<{
     productName: string;

@@ -13,6 +13,18 @@ function parseMeta(json: string | null | undefined): Record<string, unknown> {
   }
 }
 
+function matchOrderItem(
+  items: Array<{ id: string; name: string; barcode: string; sku: string; metadataJson: string }>,
+  line: { productName: string; barcode?: string; sku?: string }
+) {
+  const code = (line.barcode || line.sku || "").trim();
+  return items.find((i) => {
+    if (code && (i.barcode === code || i.sku === code)) return true;
+    if (code && i.barcode?.includes(code)) return true;
+    return i.name.trim() === line.productName.trim();
+  });
+}
+
 async function refreshExistingMarketplaceOrder(
   orderId: string,
   payload: MarketplaceOrderPayload
@@ -26,6 +38,13 @@ async function refreshExistingMarketplaceOrder(
   const meta = parseMeta(core.metadataJson);
   const orderUpdate: Record<string, unknown> = {};
 
+  if (payload.shipmentPackageId) {
+    meta.shipmentPackageId = payload.shipmentPackageId;
+  }
+  if (payload.tyPackageStatus) {
+    meta.tyPackageStatus = payload.tyPackageStatus;
+  }
+
   if (payload.cargoTrackingNumber) {
     const tracking = String(payload.cargoTrackingNumber);
     meta.cargoTrackingNumber = tracking;
@@ -34,9 +53,11 @@ async function refreshExistingMarketplaceOrder(
     if (!core.trackingNumber || core.trackingNumber === core.marketplaceOrderId) {
       orderUpdate.trackingNumber = tracking;
     }
-    if (payload.cargoProviderName && !core.carrier) {
+    if (payload.cargoProviderName) {
       orderUpdate.carrier = payload.cargoProviderName;
     }
+  } else if (payload.shipmentPackageId || payload.tyPackageStatus) {
+    orderUpdate.metadataJson = JSON.stringify(meta);
   }
 
   if (Object.keys(orderUpdate).length) {
@@ -44,30 +65,46 @@ async function refreshExistingMarketplaceOrder(
   }
 
   const shipment = core.shipments[0];
-  if (payload.cargoTrackingNumber && shipment && !shipment.trackingNumber) {
-    await prisma.dealerShipment.update({
-      where: { id: shipment.id },
-      data: {
-        trackingNumber: String(payload.cargoTrackingNumber),
-        cargoCompany: payload.cargoProviderName || shipment.cargoCompany || "",
-      },
-    });
+  if (payload.cargoTrackingNumber) {
+    const tracking = String(payload.cargoTrackingNumber);
+    if (shipment) {
+      await prisma.dealerShipment.update({
+        where: { id: shipment.id },
+        data: {
+          trackingNumber: tracking,
+          cargoCompany: payload.cargoProviderName || shipment.cargoCompany || "",
+        },
+      });
+    } else if (core.dealerId) {
+      await prisma.dealerShipment.create({
+        data: {
+          coreOrderId: orderId,
+          trackingNumber: tracking,
+          cargoCompany: payload.cargoProviderName || "",
+          status: "PENDING",
+        },
+      });
+    }
   }
 
   for (const line of payload.items) {
-    if (!line.imageUrl) continue;
-    const item = core.items.find(
-      (i) =>
-        (line.barcode && i.barcode === line.barcode) ||
-        i.name === line.productName
-    );
+    const imageUrl = (line.imageUrl || "").trim();
+    if (!imageUrl) continue;
+    const item = matchOrderItem(core.items, line);
     if (!item) continue;
     const itemMeta = parseMeta(item.metadataJson);
-    if (itemMeta.imageUrl) continue;
+    const current = String(itemMeta.imageUrl || "").trim();
+    const isWeak = !current || current === "/placeholder.svg" || current.includes("unsplash.com");
+    if (current && !isWeak && current === imageUrl) continue;
     await prisma.orderItem.update({
       where: { id: item.id },
       data: {
-        metadataJson: JSON.stringify({ ...itemMeta, imageUrl: line.imageUrl }),
+        metadataJson: JSON.stringify({
+          ...itemMeta,
+          imageUrl,
+          lineId: line.lineId ?? itemMeta.lineId,
+          barcode: line.barcode || itemMeta.barcode,
+        }),
       },
     });
   }
@@ -82,11 +119,14 @@ export type MarketplaceOrderPayload = {
   customerAddress?: string;
   cargoTrackingNumber?: string;
   cargoProviderName?: string;
+  shipmentPackageId?: number;
+  tyPackageStatus?: string;
   totalAmount?: number;
   items: {
     productName: string;
     barcode?: string;
     sku?: string;
+    lineId?: number;
     quantity: number;
     unitPrice: number;
     imageUrl?: string;

@@ -1,6 +1,10 @@
 import { mkdir, writeFile } from "fs/promises";
 import path from "path";
 import type { TrendyolConnectionCredentials } from "./providers/trendyol-provider";
+import {
+  updateTrendyolPackageStatus,
+  type TrendyolLabelContext,
+} from "./trendyol-integration-orders";
 
 const INTEGRATION_BASE = "https://apigw.trendyol.com/integration/sellers";
 
@@ -12,6 +16,10 @@ export type TrendyolLabelResult = {
   format: string;
   label: string;
 };
+
+function sleep(ms: number) {
+  return new Promise((r) => setTimeout(r, ms));
+}
 
 async function tyRequest(
   credentials: TrendyolConnectionCredentials,
@@ -31,13 +39,13 @@ async function tyRequest(
     ...(body ? { body: JSON.stringify(body) } : {}),
   });
 
+  const text = await res.text();
   if (!res.ok) {
-    const text = await res.text();
     throw new Error(`Trendyol etiket API ${res.status}: ${text.slice(0, 300)}`);
   }
 
   if (method === "POST") return null;
-  const json = (await res.json()) as { data?: TrendyolLabelResult[] };
+  const json = text ? (JSON.parse(text) as { data?: TrendyolLabelResult[] }) : { data: [] };
   return json.data || [];
 }
 
@@ -59,24 +67,77 @@ export async function fetchTrendyolCommonLabel(
   return data || [];
 }
 
+async function ensurePackageReadyForLabel(
+  credentials: TrendyolConnectionCredentials,
+  ctx: TrendyolLabelContext
+) {
+  if (!ctx.shipmentPackageId) return;
+
+  const lines = (ctx.lines || [])
+    .filter((l) => l.lineId)
+    .map((l) => ({ lineId: l.lineId as number, quantity: l.quantity || 1 }));
+  if (!lines.length) return;
+
+  const status = (ctx.packageStatus || "").toUpperCase();
+  const ready = ["PICKING", "INVOICED", "SHIPPED", "DELIVERED"].includes(status);
+  if (!ready) {
+    await updateTrendyolPackageStatus(credentials, ctx.shipmentPackageId, "Picking", lines);
+    await sleep(2000);
+  }
+}
+
 export async function fetchTrendyolLabelWithCreate(
   credentials: TrendyolConnectionCredentials,
-  cargoTrackingNumber: string
+  cargoTrackingNumber: string,
+  ctx: TrendyolLabelContext = {}
 ): Promise<TrendyolLabelResult[]> {
-  try {
-    await createTrendyolCommonLabel(credentials, cargoTrackingNumber);
-  } catch {
-    /* Etiket zaten oluşturulmuş olabilir */
+  await ensurePackageReadyForLabel(credentials, ctx);
+
+  let createError = "";
+  for (let i = 0; i < 3; i++) {
+    try {
+      await createTrendyolCommonLabel(credentials, cargoTrackingNumber);
+      createError = "";
+      break;
+    } catch (err) {
+      createError = err instanceof Error ? err.message : "createCommonLabel hatası";
+      if (i < 2) await sleep(1500);
+    }
   }
 
-  for (let attempt = 0; attempt < 4; attempt++) {
-    if (attempt > 0) await new Promise((r) => setTimeout(r, 1500));
-    const labels = await fetchTrendyolCommonLabel(credentials, cargoTrackingNumber);
-    if (labels.length > 0 && labels.some((l) => l.label)) return labels;
+  for (let attempt = 0; attempt < 8; attempt++) {
+    if (attempt > 0) {
+      await sleep(2000);
+      try {
+        await createTrendyolCommonLabel(credentials, cargoTrackingNumber);
+      } catch {
+        /* tekrar dene */
+      }
+    }
+
+    try {
+      const labels = await fetchTrendyolCommonLabel(credentials, cargoTrackingNumber);
+      if (labels.length > 0 && labels.some((l) => l.label)) return labels;
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "";
+      const retriable =
+        msg.includes("COMMON_LABEL_NOT_FOUND") ||
+        msg.includes("NOT_FOUND") ||
+        msg.includes("404");
+      if (!retriable && attempt === 7) throw err;
+      if (attempt === 7) {
+        throw new Error(
+          createError ||
+            msg ||
+            "Trendyol ortak etiket oluşturulamadı. Sipariş Picking/Invoiced olmalı."
+        );
+      }
+    }
   }
 
   throw new Error(
-    "Trendyol etiketi henüz hazır değil. Sipariş Picking/Invoiced durumunda olmalı; birkaç saniye sonra tekrar deneyin veya TY panelinden kontrol edin."
+    createError ||
+      "Trendyol etiketi hazır değil. TY panelinde paket durumunu Picking yapıp tekrar deneyin."
   );
 }
 

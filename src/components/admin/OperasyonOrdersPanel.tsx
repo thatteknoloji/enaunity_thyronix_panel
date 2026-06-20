@@ -69,12 +69,37 @@ export default function OperasyonOrdersPanel({ scope }: Props) {
 
   const openOrder = async (id: string) => {
     try {
-      const detail = await fetchJson<OperasyonOrderView>(`${base}?id=${id}`);
-      setSelected(detail);
-      setTracking({
-        trackingNumber: detail.trackingNumber || "",
-        cargoCompany: detail.cargoCompany || "",
-      });
+      let detail = await fetchJson<OperasyonOrderView>(`${base}?id=${id}`);
+      const applyDetail = (d: OperasyonOrderView) => {
+        setSelected(d);
+        setTracking({
+          trackingNumber: d.cargoTrackingNumber || d.trackingNumber || "",
+          cargoCompany: d.cargoCompany || "",
+        });
+      };
+      applyDetail(detail);
+
+      if (detail.marketplace?.toUpperCase() === "TRENDYOL") {
+        try {
+          const url =
+            scope === "admin"
+              ? `/api/fulfillment/orders/${id}`
+              : `/api/dealer/operasyon/orders/${id}`;
+          const r = await fetch(url, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ action: "refresh_ty_order" }),
+          });
+          const d = await r.json();
+          if (r.ok && d.success && d.data) {
+            detail = d.data as OperasyonOrderView;
+            applyDetail(detail);
+            setOrders((prev) => prev.map((o) => (o.id === id ? detail : o)));
+          }
+        } catch {
+          /* sessiz — mevcut detay gösterilir */
+        }
+      }
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Detay yüklenemedi");
     }

@@ -139,10 +139,11 @@ export async function syncConnection(connectionId: string) {
           }
         }
 
-        const importLines = enrichedLines.map((l) => ({
+        const importLines = enrichedLines.map((l, idx) => ({
           productName: l.productName,
           barcode: l.barcode,
           sku: l.sku || l.barcode,
+          lineId: pkg.lines?.[idx]?.lineId,
           quantity: l.quantity,
           unitPrice: l.unitPrice,
           imageUrl: l.imageUrl || "",
@@ -161,6 +162,8 @@ export async function syncConnection(connectionId: string) {
             customerAddress: mpOrder.customerAddress,
             cargoTrackingNumber: pkg.cargoTrackingNumber ? String(pkg.cargoTrackingNumber) : "",
             cargoProviderName: pkg.cargoProviderName || "",
+            shipmentPackageId: pkg.shipmentPackageId,
+            tyPackageStatus: pkg.status || "",
             items: importLines,
           },
         });

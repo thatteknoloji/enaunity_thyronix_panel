@@ -56,6 +56,7 @@ export interface TrendyolPackage {
   }[];
   cargoTrackingNumber?: string;
   cargoProviderName?: string;
+  shipmentPackageId?: number;
 }
 
 export interface TrendyolPackagesResponse {
