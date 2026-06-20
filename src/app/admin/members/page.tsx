@@ -40,7 +40,7 @@ const statusColors: Record<MemberStatus, string> = {
 export default function AdminMembersPage() {
   const [members, setMembers] = useState<MemberRow[]>([]);
   const [loading, setLoading] = useState(true);
-  const [statusFilter, setStatusFilter] = useState<string>("pending");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState<MemberRow | null>(null);
   const [checklist, setChecklist] = useState<MemberChecklist | null>(null);
@@ -50,7 +50,8 @@ export default function AdminMembersPage() {
   const loadMembers = useCallback(() => {
     setLoading(true);
     const params = new URLSearchParams();
-    if (statusFilter !== "all") params.set("status", statusFilter);
+    // Arama varken tüm durumlarda ara
+    if (statusFilter !== "all" && !search.trim()) params.set("status", statusFilter);
     if (search.trim()) params.set("q", search.trim());
     fetch(`/api/admin/members?${params}`)
       .then((r) => r.json())
@@ -130,7 +131,7 @@ export default function AdminMembersPage() {
             <Users size={24} /> Üyeler
           </h1>
           <p className="text-sm text-gray-500 mt-1">
-            Site kayıtları · 8 koşul tamamlanınca onaylanır
+            Site kayıtları · Arama tüm üyelerde çalışır · 8 koşul tamamlanınca onaylanır
           </p>
         </div>
         <div className="relative">
@@ -146,11 +147,11 @@ export default function AdminMembersPage() {
 
       <div className="flex flex-wrap gap-2">
         {[
+          { key: "all", label: "Tümü" },
           { key: "pending", label: "Onay Bekleyen" },
           { key: "active", label: "Aktif" },
           { key: "rejected", label: "Reddedilen" },
           { key: "suspended", label: "Askıda" },
-          { key: "all", label: "Tümü" },
         ].map((tab) => (
           <button
             key={tab.key}
