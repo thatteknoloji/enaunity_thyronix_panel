@@ -20,8 +20,8 @@ type Props = {
 
 export function AccountShell({ tab, onTab, activePath, userName, userEmail, logo, onLogout, children, headerActions }: Props) {
   return (
-    <div className="min-h-screen bg-ena-dark animate-fade-in">
-      <div className="mx-auto max-w-7xl px-4 py-6 lg:py-8">
+    <div className="app-viewport min-h-screen w-full animate-fade-in bg-ena-dark">
+      <div className="mx-auto max-w-7xl min-w-0 px-4 py-6 lg:py-8">
         {/* Top header */}
         <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
           <div>
@@ -194,7 +194,7 @@ export function AccStatCard({ label, value, icon: Icon, accent = "primary" }: { 
 export function AccTableWrap({ children }: { children: ReactNode }) {
   return (
     <div className="acc-card overflow-hidden p-0">
-      <div className="overflow-x-auto">{children}</div>
+      <div className="table-scroll">{children}</div>
     </div>
   );
 }

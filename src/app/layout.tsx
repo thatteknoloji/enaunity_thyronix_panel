@@ -81,7 +81,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           }}
         />
       </head>
-      <body className={`${geistSans.variable} ${geistMono.variable} flex min-h-screen flex-col font-sans antialiased bg-ena-dark text-ena-text`}>
+      <body className={`${geistSans.variable} ${geistMono.variable} flex min-h-screen min-w-0 max-w-full flex-col overflow-x-clip font-sans antialiased bg-ena-dark text-ena-text`}>
         <ThemeProvider>
           <I18nProvider>
             <AppShell>{children}</AppShell>

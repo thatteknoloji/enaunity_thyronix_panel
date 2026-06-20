@@ -129,7 +129,7 @@ export default function ThyronixLayout({ children }: { children: React.ReactNode
     window.location.href = "/";
   };
 
-  if (isPublicPage) return <>{children}</>;
+  if (isPublicPage) return <div className="app-viewport min-h-screen w-full">{children}</div>;
   if (authError) return <div className="flex h-screen items-center justify-center bg-nexa-bg"><div className="text-center"><p className="text-nexa-text-secondary text-sm mb-3">Sunucuya bağlanılamadı</p><button onClick={() => window.location.reload()} className="text-nexa-primary text-sm hover:underline">Tekrar Dene</button></div></div>;
   if (!authorized) return <div className="flex h-screen items-center justify-center bg-nexa-bg"><div className="animate-pulse space-y-3 text-center"><div className="mx-auto h-10 w-10 rounded-full bg-nexa-border"/><div className="h-3 w-28 rounded bg-nexa-border mx-auto"/></div></div>;
 
@@ -180,7 +180,7 @@ export default function ThyronixLayout({ children }: { children: React.ReactNode
   );
 
   return (
-    <div className="flex h-screen bg-nexa-bg">
+    <div className="app-viewport flex h-screen max-w-[100dvw] bg-nexa-bg">
       <OnboardingWizard
         open={showOnboarding}
         initialStep={onboardingStep}
@@ -203,7 +203,7 @@ export default function ThyronixLayout({ children }: { children: React.ReactNode
         </div>
       )}
 
-      <div className="flex-1 flex flex-col overflow-hidden">
+      <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
         <div className="flex items-center h-12 px-4 md:px-6 border-b border-nexa-border shrink-0">
           <button onClick={() => setMobileOpen(true)} className="md:hidden mr-3 p-1 rounded-lg hover:bg-nexa-hover"><Menu size={18} className="text-nexa-text-secondary"/></button>
           <div className="flex-1"/>
@@ -213,8 +213,8 @@ export default function ThyronixLayout({ children }: { children: React.ReactNode
           <Link href="/thyronix/help" className="text-[11px] text-nexa-text-secondary hover:text-nexa-primary transition-colors">Yardım</Link>
         </div>
 
-        <div className="flex-1 overflow-y-auto scrollbar-thin">
-          <div className="p-5 md:p-7 max-w-[1400px]">{children}</div>
+        <div className="app-main-scroll scrollbar-thin">
+          <div className="mx-auto w-full min-w-0 max-w-[1400px] p-5 md:p-7">{children}</div>
         </div>
       </div>
     </div>

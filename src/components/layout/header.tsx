@@ -71,9 +71,9 @@ export default function Header() {
 
   return (
     <>
-      <header className="sticky top-0 z-[100] bg-ena-dark/95 backdrop-blur border-b border-ena-border">
-        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4">
-          <div className="flex items-center gap-4">
+      <header className="sticky top-0 z-[100] w-full max-w-full overflow-x-clip bg-ena-dark/95 backdrop-blur border-b border-ena-border">
+        <div className="mx-auto flex h-16 max-w-7xl min-w-0 items-center justify-between gap-2 px-4">
+          <div className="flex min-w-0 shrink items-center gap-2 sm:gap-4">
             <button
               onClick={() => setMenuOpen(!menuOpen)}
               className="rounded-lg p-2 text-ena-light hover:text-ena-text hover:bg-ena-card/50 transition-colors"
@@ -82,16 +82,16 @@ export default function Header() {
               {menuOpen ? <X size={22} /> : <Menu size={22} />}
             </button>
 
-            <Link href="/" className="flex items-baseline gap-1.5">
-              <span className="text-2xl font-black tracking-tight" style={{color:"#e50914"}}>ENA</span>
-              <span className="text-2xl font-light tracking-tight text-ena-text relative">UNITY<sup className="absolute -top-[0.15em] -right-[0.35em] text-[0.35em] font-light">®</sup></span>
+            <Link href="/" className="flex min-w-0 shrink items-baseline gap-1 sm:gap-1.5">
+              <span className="text-xl sm:text-2xl font-black tracking-tight shrink-0" style={{color:"#e50914"}}>ENA</span>
+              <span className="text-xl sm:text-2xl font-light tracking-tight text-ena-text relative truncate">UNITY<sup className="absolute -top-[0.15em] -right-[0.35em] text-[0.35em] font-light">®</sup></span>
               <span className="hidden md:inline text-[10px] font-medium text-ena-light ml-2 tracking-widest uppercase">
                 B4B Platform
               </span>
             </Link>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex shrink-0 items-center gap-1 sm:gap-2">
             <button
               onClick={() => setSearchOpen(!searchOpen)}
               className="rounded-full p-2 text-ena-light hover:text-ena-text hover:bg-ena-card/50 transition-colors"
@@ -173,7 +173,7 @@ export default function Header() {
             </button>
 
             {loading ? null : user ? (
-              <div className="flex items-center gap-1">
+              <div className="hidden md:flex items-center gap-1">
                 {canSeeAdminEntry(user.role) && (
                   <Link href={getAdminSecretPath()}>
                     <Button variant="ghost" size="sm" className="text-ena-light">

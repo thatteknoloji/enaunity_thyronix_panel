@@ -139,7 +139,7 @@ export default function DealerLayout({ children }: { children: React.ReactNode }
   );
 
   return (
-    <div className="flex h-screen bg-ena-dark">
+    <div className="app-viewport flex h-screen max-w-[100dvw] bg-ena-dark">
       {/* Desktop sidebar */}
       <aside className={`hidden md:flex flex-col shrink-0 border-r border-white/10 bg-ena-dark transition-all duration-300 relative ${collapsed ? "w-16" : "w-60"}`}>
         {sidebar}
@@ -161,7 +161,7 @@ export default function DealerLayout({ children }: { children: React.ReactNode }
         </div>
       )}
 
-      <div className="flex-1 flex flex-col overflow-hidden">
+      <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
         {/* Mobile top bar */}
         <div className="md:hidden flex items-center justify-between h-14 px-4 border-b border-white/10 bg-ena-dark/95 backdrop-blur shrink-0 relative z-50">
           <button onClick={() => setMobileOpen(true)} className="p-1.5 rounded-lg text-ena-light hover:text-white">
@@ -179,7 +179,7 @@ export default function DealerLayout({ children }: { children: React.ReactNode }
           <NotificationBell />
         </div>
 
-        <div className="flex-1 overflow-y-auto p-4 md:p-8 bg-gradient-to-br from-ena-dark via-[#1a1a2e] to-ena-dark">
+        <div className="app-main-scroll p-4 md:p-8 bg-gradient-to-br from-ena-dark via-[#1a1a2e] to-ena-dark">
           {children}
         </div>
       </div>

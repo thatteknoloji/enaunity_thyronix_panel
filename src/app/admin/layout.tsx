@@ -341,7 +341,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   );
 
   return (
-    <div className="flex h-screen">
+    <div className="app-viewport flex h-screen max-w-[100dvw]">
       {/* Desktop sidebar */}
       <aside className={`hidden md:flex flex-col shrink-0 border-r border-white/10 bg-ena-dark transition-all duration-300 relative ${collapsed ? "w-16" : "w-60"}`}>
         {sidebar}
@@ -361,7 +361,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </div>
       )}
 
-      <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
+      <div className="flex min-w-0 flex-1 flex-col min-h-0 overflow-hidden">
         {/* Mobile top bar */}
         <div className="md:hidden flex items-center h-14 px-4 border-b border-gray-200 bg-white shrink-0 relative z-50">
           <button onClick={() => setMobileOpen(true)} className="mr-3 p-1.5 rounded-lg hover:bg-gray-100 cursor-pointer">
@@ -380,7 +380,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           <NotificationBell />
         </div>
 
-        <div className="admin-content flex-1 min-h-0 overflow-y-auto overflow-x-hidden p-4 md:p-8 bg-gradient-to-br from-gray-50 via-white to-gray-50 text-gray-900">
+        <div className="admin-content app-main-scroll p-4 md:p-8 bg-gradient-to-br from-gray-50 via-white to-gray-50 text-gray-900">
           {children}
         </div>
       </div>

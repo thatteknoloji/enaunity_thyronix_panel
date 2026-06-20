@@ -107,11 +107,11 @@ export function HomeBannerSection({ slot, priority = false }: { slot: HomeBanner
   if (slot.displayMode === "strip") {
     return (
       <BannerFrame>
-        <div className="flex gap-3 overflow-x-auto pb-2 snap-x scrollbar-none -mx-1 px-1">
+        <div className="bleed-x-scroll flex gap-3 pb-2 snap-x scrollbar-none">
           {banners.map((b, i) => (
             <div
               key={b.id}
-              className={`snap-start shrink-0 w-[85vw] sm:w-[45vw] md:w-[32vw] lg:w-[24vw] relative overflow-hidden rounded-xl ${aspect} bg-ena-gray`}
+              className={`snap-start shrink-0 w-[min(85vw,calc(100vw-2rem))] sm:w-[45vw] md:w-[32vw] lg:w-[24vw] relative overflow-hidden rounded-xl ${aspect} bg-ena-gray`}
             >
               <BannerPicture banner={b} priority={priority && i === 0} />
             </div>

@@ -222,10 +222,24 @@
 @plugin "@tailwindcss/typography";
 
 @layer base {
-  html { scroll-behavior: smooth; }
+  html {
+    scroll-behavior: smooth;
+    overflow-x: clip;
+    width: 100%;
+  }
   body {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    overflow-x: clip;
+    width: 100%;
+    max-width: 100%;
+  }
+  img,
+  video,
+  svg:not(:root),
+  canvas {
+    max-width: 100%;
+    height: auto;
   }
 }
 
@@ -278,6 +292,40 @@
     border-radius: 3px;
   }
 
+  /* Viewport-safe layout shells (prevents horizontal page scroll on mobile) */
+  .app-viewport {
+    @apply w-full max-w-full min-w-0 overflow-x-clip;
+  }
+  .app-main-scroll {
+    @apply flex-1 min-w-0 min-h-0 overflow-y-auto overflow-x-clip;
+  }
+  .bleed-x-scroll {
+    @apply -mx-4 overflow-x-auto overscroll-x-contain px-4;
+  }
+  .table-scroll {
+    @apply w-full max-w-full overflow-x-auto overscroll-x-contain;
+  }
+  .site-prose {
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+  .site-prose pre,
+  .prose pre {
+    max-width: 100%;
+    overflow-x: auto;
+  }
+  .site-prose table,
+  .prose table {
+    display: block;
+    max-width: 100%;
+    overflow-x: auto;
+  }
+  .site-prose img,
+  .prose img {
+    max-width: 100%;
+    height: auto;
+  }
+
   /* Account Center utilities */
   .acc-card {
     @apply rounded-2xl border border-ena-border bg-ena-card transition-all duration-200;
@@ -326,6 +374,14 @@
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
   }
+}
+
+/* Admin panel: içerik taşmasını önle */
+.admin-content {
+  max-width: 100%;
+}
+.admin-content > * {
+  max-width: 100%;
 }
 
 /* Admin panel: form alanları her zaman okunabilir (dark mode çakışması önleme) */

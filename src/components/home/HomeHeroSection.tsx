@@ -21,7 +21,7 @@ export function HomeHeroSection({ hero, t }: Props) {
   const poster = hero.heroPoster || "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=1600&q=85";
 
   return (
-    <section className="relative h-[90vh] min-h-[650px] overflow-hidden bg-[#141414]">
+    <section className="relative min-h-[70vh] sm:min-h-[650px] h-[85vh] sm:h-[90vh] overflow-hidden bg-[#141414]">
       <div className="absolute inset-0 bg-gradient-to-r from-[#141414] via-[#141414]/70 to-[#141414]/50 z-10" />
       <div className="absolute inset-0 bg-gradient-to-t from-[#141414] via-[#141414]/30 to-transparent z-10" />
       <video
@@ -43,7 +43,7 @@ export function HomeHeroSection({ hero, t }: Props) {
               <Building2 size={16} />
               <span className="text-xs font-semibold uppercase tracking-widest">{badge}</span>
             </motion.div>
-            <motion.h1 initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25, duration: 0.6 }} className="text-5xl font-black tracking-tight md:text-7xl">
+            <motion.h1 initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25, duration: 0.6 }} className="text-4xl font-black tracking-tight sm:text-5xl md:text-7xl break-words">
               <span style={{ color: "#e50914" }}>ENA</span>
               <span className="relative">UNITY<sup className="absolute -top-[0.15em] -right-[0.35em] text-[0.35em]">®</sup></span>
             </motion.h1>

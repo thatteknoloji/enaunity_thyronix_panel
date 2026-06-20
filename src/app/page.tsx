@@ -61,7 +61,7 @@ function ProductRow({ products }: { products: Product[] }) {
   if (products.length === 0) return null;
 
   return (
-    <div ref={scrollRef} className="flex gap-3 overflow-x-auto pb-4 -mx-4 px-4 snap-x scrollbar-none cursor-grab active:cursor-grabbing">
+    <div ref={scrollRef} className="bleed-x-scroll flex gap-3 pb-4 snap-x scrollbar-none cursor-grab active:cursor-grabbing">
       {products.map((product) => (
         <motion.div key={product.id} variants={itemVariants} className="snap-start shrink-0 w-44 md:w-52">
           <Link href={`/products/${product.id}`} className="group block">
@@ -122,7 +122,7 @@ export default function HomePage() {
   const categoryMid = Math.ceil(homeCategories.length / 2);
 
   return (
-    <div className="bg-ena-dark">
+    <div className="bg-ena-dark overflow-x-clip">
       <HomeHeroSection hero={hero} t={t} />
 
       <HomeBannersAtPlacement slots={bannerSlots} placement="after_hero" priorityFirst />
@@ -196,9 +196,9 @@ export default function HomePage() {
               whileInView="visible"
               viewport={{ once: true, margin: "-50px" }}
               variants={containerVariants}
-              className="py-8"
+              className="overflow-x-clip py-8"
             >
-              <div className="mx-auto max-w-7xl px-4">
+              <div className="mx-auto max-w-7xl min-w-0 px-4">
                 <motion.div variants={itemVariants} className="flex items-center justify-between mb-4">
                   <h2 className="text-xl font-bold text-ena-text">{section.title || category}</h2>
                   <Link

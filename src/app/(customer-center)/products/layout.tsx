@@ -16,13 +16,13 @@ export default function CustomerProductsLayout({ children }: { children: React.R
   const pathname = usePathname();
 
   return (
-    <div className="min-h-screen bg-ena-dark">
+    <div className="app-viewport min-h-screen w-full bg-ena-dark">
       <div className="border-b border-white/10 bg-ena-card/40">
-        <div className="max-w-6xl mx-auto px-4 py-6">
+        <div className="mx-auto max-w-6xl min-w-0 px-4 py-6">
           <h1 className="text-2xl font-bold text-white">Müşteri Merkezi</h1>
           <p className="text-sm text-ena-light mt-1">Tüm ENA ürünlerinizi tek yerden yönetin</p>
         </div>
-        <div className="max-w-6xl mx-auto px-4 flex gap-1 overflow-x-auto pb-0">
+        <div className="mx-auto flex max-w-6xl min-w-0 gap-1 overflow-x-auto overscroll-x-contain px-4 pb-0 scrollbar-none">
           {NAV.map((item) => {
             const active = pathname === item.href;
             return (
@@ -42,7 +42,7 @@ export default function CustomerProductsLayout({ children }: { children: React.R
           })}
         </div>
       </div>
-      <div className="max-w-6xl mx-auto px-4 py-8">{children}</div>
+      <div className="mx-auto max-w-6xl min-w-0 px-4 py-8">{children}</div>
     </div>
   );
 }

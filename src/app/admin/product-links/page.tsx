@@ -81,7 +81,7 @@ export default function AdminProductLinksPage() {
         </select>
       </div>
 
-      <div className="rounded-xl border border-ena-border bg-ena-card overflow-x-auto">
+      <div className="rounded-xl border border-ena-border bg-ena-card table-scroll">
         <table className="w-full text-sm min-w-[900px]">
           <thead>
             <tr className="border-b border-ena-border">

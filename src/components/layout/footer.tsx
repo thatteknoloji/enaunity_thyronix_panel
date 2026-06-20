@@ -26,7 +26,7 @@ export default function Footer() {
   const aboutText = settings.about_text || "İşletmeniz için toptan çözümler. Binlerce ürün, kurumsal fiyatlar.";
 
   return (
-    <footer className="border-t border-ena-border bg-ena-dark">
+    <footer className="w-full max-w-full overflow-x-clip border-t border-ena-border bg-ena-dark">
       <div className="mx-auto max-w-7xl px-4 py-12">
         <div className="grid gap-10 md:grid-cols-4">
           <div>

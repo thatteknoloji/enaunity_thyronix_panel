@@ -36,7 +36,7 @@ export default function HiveLayout({ children }: { children: React.ReactNode }) 
     checkAuth();
   }, [router, isPublic]);
 
-  if (isPublic) return <>{children}</>;
+  if (isPublic) return <div className="app-viewport min-h-screen w-full">{children}</div>;
   if (!authorized) {
     return (
       <div className="min-h-screen bg-ena-dark flex items-center justify-center">
