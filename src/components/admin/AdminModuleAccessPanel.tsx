@@ -5,7 +5,7 @@ import { Plus, Shield, Loader2, UserPlus, Trash2, KeyRound, Copy } from "lucide-
 import toast from "react-hot-toast";
 import { getStatusLabel } from "@/lib/modules/access";
 
-type ModuleKey = "THYRONIX" | "HIVE";
+type ModuleKey = "THYRONIX" | "HIVE" | "LINKSLASH";
 
 type Dealer = { id: string; company: string; name: string; email: string };
 type Plan = { planKey: string; name: string; monthlyPrice: number };

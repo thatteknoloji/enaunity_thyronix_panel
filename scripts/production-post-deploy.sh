@@ -36,6 +36,9 @@ npx prisma db push --skip-generate
 echo "→ site content seed…"
 npm run seed:site-content
 
+echo "→ linkslash plan seed…"
+npm run seed:linkslash-plans || echo "  (linkslash seed atlandı)"
+
 echo "→ production build…"
 rm -rf .next node_modules/.cache
 sync 2>/dev/null || true
