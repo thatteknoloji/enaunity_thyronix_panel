@@ -1,13 +1,17 @@
 "use client";
 
-import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from "react";
 import {
   ACCENT_META,
   ACCENTS,
   applyAppearanceToDocument,
+  appearancesEqual,
   DEFAULT_APPEARANCE,
+  hasStoredAppearance,
   isValidAccent,
   isValidTheme,
+  persistStoredAppearance,
+  readStoredAppearance,
   THEME_META,
   THEMES,
   type AccentId,
@@ -53,43 +57,38 @@ const ThemeContext = createContext<ThemeContextValue>({
   ready: false,
 });
 
-function readLocalAppearance(): AppearancePreferences {
-  if (typeof window === "undefined") return DEFAULT_APPEARANCE;
-  try {
-    const raw = localStorage.getItem("ena-appearance");
-    if (raw) {
-      const parsed = JSON.parse(raw);
-      return {
-        theme: isValidTheme(parsed.theme) ? parsed.theme : DEFAULT_APPEARANCE.theme,
-        accent: isValidAccent(parsed.accent) ? parsed.accent : DEFAULT_APPEARANCE.accent,
-        compactMode: !!parsed.compactMode,
-        reducedMotion: !!parsed.reducedMotion,
-      };
-    }
-    const legacyTheme = localStorage.getItem("theme");
-    if (legacyTheme && isValidTheme(legacyTheme)) {
-      return { ...DEFAULT_APPEARANCE, theme: legacyTheme };
-    }
-  } catch {}
-  return DEFAULT_APPEARANCE;
-}
-
-function persistLocal(prefs: AppearancePreferences) {
-  localStorage.setItem("ena-appearance", JSON.stringify(prefs));
-  localStorage.setItem("theme", prefs.theme);
+function normalizeAppearance(raw: Partial<AppearancePreferences> | null | undefined, fallback: AppearancePreferences): AppearancePreferences {
+  return {
+    theme: raw?.theme && isValidTheme(raw.theme) ? raw.theme : fallback.theme,
+    accent: raw?.accent && isValidAccent(raw.accent) ? raw.accent : fallback.accent,
+    compactMode: raw?.compactMode ?? fallback.compactMode,
+    reducedMotion: raw?.reducedMotion ?? fallback.reducedMotion,
+  };
 }
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const [prefs, setPrefs] = useState<AppearancePreferences>(DEFAULT_APPEARANCE);
   const [ready, setReady] = useState(false);
+  const prefsRef = useRef(prefs);
+  prefsRef.current = prefs;
 
   const syncDocument = useCallback((p: AppearancePreferences) => {
     applyAppearanceToDocument(p);
-    persistLocal(p);
+    persistStoredAppearance(p);
+  }, []);
+
+  const pushToServer = useCallback(async (next: AppearancePreferences) => {
+    try {
+      await fetch("/api/user/appearance", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(next),
+      });
+    } catch {}
   }, []);
 
   useEffect(() => {
-    const local = readLocalAppearance();
+    const local = readStoredAppearance();
     setPrefs(local);
     syncDocument(local);
     setReady(true);
@@ -97,41 +96,41 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     fetch("/api/user/appearance")
       .then((r) => (r.ok ? r.json() : null))
       .then((d) => {
-        if (d?.success && d.data) {
-          const merged: AppearancePreferences = {
-            theme: isValidTheme(d.data.theme) ? d.data.theme : local.theme,
-            accent: isValidAccent(d.data.accent) ? d.data.accent : local.accent,
-            compactMode: d.data.compactMode ?? local.compactMode,
-            reducedMotion: d.data.reducedMotion ?? local.reducedMotion,
-          };
-          setPrefs(merged);
-          syncDocument(merged);
+        if (!d?.success || !d.data) return;
+
+        const server = normalizeAppearance(d.data, DEFAULT_APPEARANCE);
+        const stored = readStoredAppearance();
+
+        // Local/device choice wins when user already picked a theme on this device.
+        // Server is used only for first visit or when local storage is empty.
+        if (hasStoredAppearance()) {
+          if (!appearancesEqual(stored, server)) {
+            void pushToServer(stored);
+          }
+          return;
         }
+
+        setPrefs(server);
+        syncDocument(server);
       })
       .catch(() => {});
-  }, [syncDocument]);
+  }, [syncDocument, pushToServer]);
 
   const savePrefs = useCallback(
     async (next: AppearancePreferences) => {
       setPrefs(next);
       syncDocument(next);
-      try {
-        await fetch("/api/user/appearance", {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(next),
-        });
-      } catch {}
+      await pushToServer(next);
     },
-    [syncDocument]
+    [syncDocument, pushToServer]
   );
 
   const applyPreferences = useCallback(
     async (partial: Partial<AppearancePreferences>) => {
-      const next = { ...prefs, ...partial };
+      const next = { ...prefsRef.current, ...partial };
       await savePrefs(next);
     },
-    [prefs, savePrefs]
+    [savePrefs]
   );
 
   const setTheme = useCallback((t: ThemeId) => applyPreferences({ theme: t }), [applyPreferences]);
@@ -140,7 +139,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   const setReducedMotion = useCallback((v: boolean) => applyPreferences({ reducedMotion: v }), [applyPreferences]);
 
   const toggle = () => {
-    const idx = THEMES.indexOf(prefs.theme);
+    const idx = THEMES.indexOf(prefsRef.current.theme);
     setTheme(THEMES[(idx + 1) % THEMES.length]);
   };
 

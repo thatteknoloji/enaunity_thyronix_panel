@@ -27,8 +27,24 @@
   --color-nexa-hover: rgba(51, 133, 255, 0.06);
 }
 
+/* ── Dark Pro (default) ── */
+[data-theme="dark"] {
+  color-scheme: dark;
+  --color-ena-red: #e50914;
+  --color-ena-primary: #F27A1A;
+  --color-ena-btn: #F27A1A;
+  --color-ena-dark: #141414;
+  --color-ena-gray: #303030;
+  --color-ena-light: #e8e8e8;
+  --color-ena-card: #1a1a1a;
+  --color-ena-text: #ffffff;
+  --color-ena-border: rgba(255, 255, 255, 0.1);
+  --color-ena-text-muted: #a0a0a0;
+}
+
 /* ── Light Theme ── */
 [data-theme="light"] {
+  color-scheme: light;
   --color-ena-red: #e50914;
   --color-ena-primary: #e50914;
   --color-ena-btn: #e50914;
@@ -55,6 +71,7 @@
 
 /* ── Sunset Theme (sıcak koyu) ── */
 [data-theme="sunset"] {
+  color-scheme: dark;
   --color-ena-dark: #1a1410;
   --color-ena-card: #241a14;
   --color-ena-border: rgba(255, 255, 255, 0.08);
@@ -77,6 +94,7 @@
 
 /* ── Forest Theme (yeşil koyu) ── */
 [data-theme="forest"] {
+  color-scheme: dark;
   --color-ena-dark: #0a1612;
   --color-ena-card: #0f1f18;
   --color-ena-border: rgba(255, 255, 255, 0.08);
@@ -99,6 +117,7 @@
 
 /* ── Aurora Glass ── */
 [data-theme="aurora-glass"] {
+  color-scheme: dark;
   --color-ena-dark: #0b0f19;
   --color-ena-card: rgba(255, 255, 255, 0.06);
   --color-ena-border: rgba(255, 255, 255, 0.12);
@@ -123,6 +142,7 @@
 
 /* ── Midnight Neon ── */
 [data-theme="midnight-neon"] {
+  color-scheme: dark;
   --color-ena-dark: #050810;
   --color-ena-card: #0a1020;
   --color-ena-border: rgba(0, 255, 200, 0.12);
@@ -146,6 +166,7 @@
 
 /* ── Executive White ── */
 [data-theme="executive-white"] {
+  color-scheme: light;
   --color-ena-dark: #f6f7f9;
   --color-ena-card: #ffffff;
   --color-ena-border: rgba(15, 23, 42, 0.08);
@@ -169,6 +190,7 @@
 
 /* ── Obsidian Gold ── */
 [data-theme="obsidian-gold"] {
+  color-scheme: dark;
   --color-ena-dark: #0c0a09;
   --color-ena-card: #14110e;
   --color-ena-border: rgba(212, 175, 55, 0.15);

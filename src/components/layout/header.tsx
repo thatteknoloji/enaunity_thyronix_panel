@@ -1,23 +1,21 @@
 "use client";
 
 import Link from "next/link";
-import { ShoppingCart, User, LogOut, LayoutDashboard, Zap, Sparkles, Palette, Globe, Search, Menu, X, FileText } from "lucide-react";
+import { ShoppingCart, User, LogOut, LayoutDashboard, Zap, Sparkles, Globe, Search, Menu, X, FileText } from "lucide-react";
 import { canSeeAdminEntry, getAdminSecretPath } from "@/lib/auth/admin-access";
 import { PRODUCT_GATEWAY_PATHS } from "@/lib/product-links/types";
 import { useCartStore } from "@/lib/cart-store";
-import { useTheme } from "@/lib/theme-provider";
 import { useT, LOCALE_LABELS, type Locale } from "@/lib/i18n/provider";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import CartDrawer from "@/components/cart/cart-drawer";
 import SmartSearch from "@/components/ui/smart-search";
+import ThemeSwitcher from "@/components/layout/ThemeSwitcher";
 import { usePathname, useRouter } from "next/navigation";
 
 const locales = Object.entries(LOCALE_LABELS) as [Locale, string][];
 
 export default function Header() {
-  const { theme, toggle, setTheme, themes, labels, icons } = useTheme();
-  const [themeOpen, setThemeOpen] = useState(false);
   const { t, locale, setLocale } = useT();
   const { items, isOpen, setIsOpen, fetchCart } = useCartStore();
   const [user, setUser] = useState<{ name: string; role: string } | null>(null);
@@ -130,35 +128,7 @@ export default function Header() {
             </div>
 
             {/* Theme Switcher */}
-            <div className="relative">
-              <button
-                onClick={() => setThemeOpen(!themeOpen)}
-                className="rounded-full p-2 text-ena-light hover:text-ena-text hover:bg-ena-card/50 transition-colors"
-                title="Tema Değiştir"
-              >
-                <Palette size={18} />
-              </button>
-              {themeOpen && (
-                <>
-                  <div className="fixed inset-0 z-40" onClick={() => setThemeOpen(false)} />
-                  <div className="absolute right-0 top-full mt-2 z-50 w-56 max-h-80 overflow-y-auto rounded-lg border border-ena-border bg-ena-dark py-1 shadow-xl">
-                    {themes.map((t) => (
-                      <button
-                        key={t}
-                        onClick={() => { setTheme(t); setThemeOpen(false); }}
-                        className={`w-full px-4 py-2 text-left text-sm transition-colors flex items-center gap-2 ${
-                          theme === t ? "text-ena-primary font-semibold" : "text-ena-light hover:text-ena-text hover:bg-ena-card/50"
-                        }`}
-                      >
-                        <span>{icons[t]}</span>
-                        <span>{labels[t]}</span>
-                        {theme === t && <span className="ml-auto text-[10px] text-ena-primary">●</span>}
-                      </button>
-                    ))}
-                  </div>
-                </>
-              )}
-            </div>
+            <ThemeSwitcher />
 
             <button
               onClick={() => setIsOpen(true)}
@@ -326,6 +296,11 @@ export default function Header() {
               )}
             </div>
           ))}
+          <div className="h-px bg-ena-border my-2" />
+          <div className="px-3 py-2">
+            <p className="text-xs font-semibold uppercase tracking-wider text-ena-light/50 mb-2">Tema</p>
+            <ThemeSwitcher variant="drawer" onSelect={() => setMenuOpen(false)} />
+          </div>
           <div className="h-px bg-ena-border my-2" />
           <div className="px-3 py-2">
             <p className="text-xs font-semibold uppercase tracking-wider text-ena-light/50 mb-2">{t("common.language")}</p>

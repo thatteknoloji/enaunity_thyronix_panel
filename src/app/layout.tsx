@@ -8,6 +8,7 @@ export const viewport: Viewport = {
 };
 import "./globals.css";
 import { ThemeProvider } from "@/lib/theme-provider";
+import { APPEARANCE_BLOCKING_SCRIPT } from "@/lib/theme/appearance-script";
 import { I18nProvider } from "@/lib/i18n/provider";
 import { Toaster } from "react-hot-toast";
 import { Suspense } from "react";
@@ -54,8 +55,9 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="tr" data-theme="dark">
+    <html lang="tr" data-theme="dark" data-accent="orange" suppressHydrationWarning>
       <head>
+        <script dangerouslySetInnerHTML={{ __html: APPEARANCE_BLOCKING_SCRIPT }} />
         {gaId && (
           <>
             <script async src={`https://www.googletagmanager.com/gtag/js?id=${gaId}`} />

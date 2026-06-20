@@ -21,9 +21,9 @@ export function HomeHeroSection({ hero, t }: Props) {
   const poster = hero.heroPoster || "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=1600&q=85";
 
   return (
-    <section className="relative min-h-[70vh] sm:min-h-[650px] h-[85vh] sm:h-[90vh] overflow-hidden bg-[#141414]">
-      <div className="absolute inset-0 bg-gradient-to-r from-[#141414] via-[#141414]/70 to-[#141414]/50 z-10" />
-      <div className="absolute inset-0 bg-gradient-to-t from-[#141414] via-[#141414]/30 to-transparent z-10" />
+    <section className="relative min-h-[70vh] sm:min-h-[650px] h-[85vh] sm:h-[90vh] overflow-hidden bg-ena-dark">
+      <div className="absolute inset-0 bg-gradient-to-r from-ena-dark via-ena-dark/70 to-ena-dark/50 z-10" />
+      <div className="absolute inset-0 bg-gradient-to-t from-ena-dark via-ena-dark/30 to-transparent z-10" />
       <video
         autoPlay
         muted
