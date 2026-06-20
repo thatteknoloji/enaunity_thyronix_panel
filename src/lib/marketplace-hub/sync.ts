@@ -1,7 +1,6 @@
 import { prisma } from "@/lib/db";
 import { getMarketplaceEngine } from "./config";
 import { importMarketplaceOrderToFulfillment } from "./import-engine";
-import { matchProductLine } from "./product-match";
 import { fetchTrendyolPackages } from "./providers/trendyol-provider";
 
 const DEFAULT_PACKAGING = 15;
@@ -66,35 +65,22 @@ export async function syncConnection(connectionId: string) {
         });
 
         const addr = pkg.shipmentAddress || {};
-        const rawLines = (pkg.lines || []).map((line: { productName?: string; barcode?: string; quantity?: number; price?: number; amount?: number }) => ({
+        const rawLines = (pkg.lines || []).map((line: {
+          productName?: string;
+          barcode?: string;
+          quantity?: number;
+          price?: number;
+          amount?: number;
+          productImageUrl?: string;
+          imageUrl?: string;
+        }) => ({
           productName: line.productName || "Ürün",
           barcode: line.barcode || "",
           sku: line.barcode || "",
           quantity: line.quantity || 1,
           unitPrice: line.price || line.amount || 0,
+          imageUrl: line.productImageUrl || line.imageUrl || "",
         }));
-
-        const enrichedLines = [];
-        for (const line of rawLines) {
-          const match = await matchProductLine({
-            barcode: line.barcode,
-            sku: line.sku,
-            name: line.productName,
-            matchMethod: conn.matchMethod,
-          });
-
-          enrichedLines.push({
-            productName: match.catalogItem?.name || match.product?.name || line.productName,
-            barcode: match.catalogItem?.barcode || match.product?.barcode || line.barcode,
-            sku: match.catalogItem?.sku || match.product?.sku || line.sku,
-            quantity: line.quantity,
-            unitPrice: line.unitPrice,
-            catalogItemId: match.catalogItem?.id || "",
-            thyronixProductId: match.catalogItem?.thyronixProductId || "",
-            matchedProductId: match.product?.id || "",
-            matchSource: match.matchedSource,
-          });
-        }
 
         let mpOrder = existingMp;
         if (!mpOrder) {
@@ -107,19 +93,16 @@ export async function syncConnection(connectionId: string) {
               customerPhone: addr.phoneNumber || "",
               customerAddress: addr.addressDetail || addr.address1 || "",
               customerCity: `${addr.city || ""} / ${addr.district || ""}`,
-              totalAmount: enrichedLines.reduce((s, l) => s + l.unitPrice * l.quantity, 0),
+              totalAmount: rawLines.reduce((s, l) => s + l.unitPrice * l.quantity, 0),
               status: "new",
               items: {
-                create: enrichedLines.map((l) => ({
+                create: rawLines.map((l) => ({
                   productName: l.productName,
                   barcode: l.barcode,
                   quantity: l.quantity,
                   unitPrice: l.unitPrice,
                   total: l.unitPrice * l.quantity,
                   productSku: l.sku,
-                  catalogItemId: l.catalogItemId,
-                  thyronixProductId: l.thyronixProductId,
-                  matchedProductId: l.matchedProductId,
                 })),
               },
             },
@@ -133,6 +116,15 @@ export async function syncConnection(connectionId: string) {
           ? await prisma.marketplaceOrderItem.findMany({ where: { orderId: mpOrder.id } })
           : [];
 
+        const importLines = (mpItems.length ? mpItems : rawLines).map((l) => ({
+          productName: l.productName,
+          barcode: l.barcode,
+          sku: ("productSku" in l ? l.productSku : l.sku) || l.barcode,
+          quantity: l.quantity,
+          unitPrice: l.unitPrice,
+          imageUrl: ("productImage" in l ? l.productImage : "") || ("imageUrl" in l ? l.imageUrl : ""),
+        }));
+
         const result = await importMarketplaceOrderToFulfillment({
           dealerId: conn.dealerId,
           connectionId: conn.id,
@@ -143,15 +135,10 @@ export async function syncConnection(connectionId: string) {
             customerName: mpOrder.customerName,
             customerPhone: mpOrder.customerPhone,
             customerCity: mpOrder.customerCity,
-            items: (mpItems.length ? mpItems : enrichedLines).map((l) => ({
-              productName: l.productName,
-              barcode: l.barcode,
-              sku: ("productSku" in l ? l.productSku : l.sku) || l.barcode,
-              quantity: l.quantity,
-              unitPrice: l.unitPrice,
-              catalogItemId: ("catalogItemId" in l ? l.catalogItemId : "") || undefined,
-              thyronixProductId: ("thyronixProductId" in l ? l.thyronixProductId : "") || undefined,
-            })),
+            customerAddress: mpOrder.customerAddress,
+            cargoTrackingNumber: pkg.cargoTrackingNumber ? String(pkg.cargoTrackingNumber) : "",
+            cargoProviderName: pkg.cargoProviderName || "",
+            items: importLines,
           },
         });
 

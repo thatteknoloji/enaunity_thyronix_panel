@@ -40,6 +40,9 @@ export async function GET(req: Request) {
     if (fulfillmentStatus) where.fulfillmentStatus = fulfillmentStatus;
     const sourceType = searchParams.get("sourceType");
     if (sourceType) where.sourceType = sourceType;
+    if (searchParams.get("excludeMarketplace") === "true") {
+      where.sourceType = "B2B";
+    }
     if (fromDate) where.createdAt = { ...(where.createdAt || {}), gte: new Date(fromDate) };
     if (toDate) where.createdAt = { ...(where.createdAt || {}), lte: new Date(toDate + "T23:59:59.999Z") };
     if (minAmount) where.total = { ...(where.total || {}), gte: parseFloat(minAmount) };

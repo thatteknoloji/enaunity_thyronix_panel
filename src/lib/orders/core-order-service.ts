@@ -17,6 +17,7 @@ export type CoreOrderItemInput = {
   salePrice: number;
   costPrice?: number;
   sourceType?: string;
+  metadataJson?: string;
 };
 
 export type CreateCoreOrderInput = {
@@ -38,6 +39,8 @@ export type CreateCoreOrderInput = {
   autoAccounting?: boolean;
   fulfillmentStatus?: string;
   status?: string;
+  cargoTrackingNumber?: string;
+  cargoProviderName?: string;
 };
 
 async function resolveDealerUserId(dealerId: string): Promise<string> {
@@ -87,7 +90,7 @@ export async function createCoreOrder(input: CreateCoreOrderInput) {
       profitAmount: profit,
       thyronixProductId: item.thyronixProductId || "",
       sourceType: item.sourceType || input.sourceType || "MARKETPLACE",
-      metadataJson: "{}",
+      metadataJson: item.metadataJson || "{}",
     };
   });
 
@@ -109,8 +112,12 @@ export async function createCoreOrder(input: CreateCoreOrderInput) {
       marketplaceOrderId,
       sourceType: input.sourceType || "MARKETPLACE",
       thyronixRef: input.thyronixRef || buildOrderMetadata(),
-      metadataJson: input.metadataJson || buildOrderMetadata(),
-      fulfillmentStatus: input.fulfillmentStatus || "WAITING_FOR_PACKING",
+      metadataJson: input.metadataJson || buildOrderMetadata({
+        customerAddress: input.customerAddress,
+        cargoTrackingNumber: input.cargoTrackingNumber,
+        cargoProviderName: input.cargoProviderName,
+      }),
+      fulfillmentStatus: input.fulfillmentStatus || (input.marketplace ? "NEW" : "WAITING_FOR_PACKING"),
       customerName: input.customerName || "",
       customerPhone: input.customerPhone || "",
       customerCity: input.customerCity || "",
@@ -223,6 +230,7 @@ export async function getCoreOrderDetail(orderId: string, dealerId?: string) {
       items: { include: { product: true, productCatalogItem: { select: { id: true, name: true, brand: true } } } },
       costItems: true,
       shipments: true,
+      attachments: true,
       dealer: { select: { id: true, name: true, company: true } },
       user: { select: { name: true, email: true } },
     },
@@ -251,6 +259,7 @@ export async function listCoreOrders(filters: ListCoreOrdersFilters) {
     include: {
       items: { include: { product: true, productCatalogItem: true } },
       shipments: true,
+      attachments: true,
       dealer: { select: { id: true, name: true, company: true } },
     },
     orderBy: { createdAt: "desc" },

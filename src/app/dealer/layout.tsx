@@ -3,7 +3,7 @@
 import { useEffect, useState, useMemo } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
-import { LayoutDashboard, ShoppingCart, User, LogOut, ChevronLeft, ChevronRight, Home, Store, Wallet, FileText, Users, RotateCcw, Bell, ReceiptText, Menu, X, Heart, Zap, MapPin, Upload, FileSignature, Library, Truck, Plug } from "lucide-react";
+import { LayoutDashboard, ShoppingCart, User, LogOut, ChevronLeft, ChevronRight, Home, Store, Wallet, FileText, Users, RotateCcw, Bell, ReceiptText, Menu, X, Heart, Zap, MapPin, Upload, FileSignature, Library, Truck, Plug, Package } from "lucide-react";
 import NotificationBell from "@/components/NotificationBell";
 import { LegalReacceptanceGate } from "@/components/legal/LegalReacceptanceGate";
 import { useT } from "@/lib/i18n/provider";
@@ -17,6 +17,8 @@ function buildNavItems(t: (key: string) => string) {
   { href: "/dealer/quotes", label: t("dealer.my_quotes"), icon: FileText },
   { href: "/dealer/balance", label: "Bakiye / Cari Hesap", icon: Wallet },
   { href: "/products", label: "Ürünlerim", icon: Store },
+  { href: "/dealer/my-products", label: "Bayi Ürünlerim", icon: Package },
+  { href: "/dealer/manual-order", label: "Manuel Sipariş", icon: Upload },
   { href: "/dealer/product-library", label: "Hazır Ürünler", icon: Library },
   { href: "/dealer/fulfillment/orders", label: "Siparişlerim", icon: ShoppingCart },
   { href: "/dealer/fulfillment/shipments", label: "Kargolarım", icon: Truck },

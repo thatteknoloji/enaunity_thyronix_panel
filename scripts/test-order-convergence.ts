@@ -84,7 +84,6 @@ async function main() {
         productName: "Test Ürün",
         barcode: catalogItem?.barcode || "OC001",
         sku: catalogItem?.sku,
-        catalogItemId: catalogItem?.id,
         quantity: 2,
         unitPrice: 150,
       }],

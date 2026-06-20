@@ -82,6 +82,7 @@ function AdminOrdersContent() {
 
   const fetchOrders = useCallback(() => {
     const params = new URLSearchParams();
+    params.set("excludeMarketplace", "true");
     params.set("limit", "20");
     params.set("page", String(page));
     if (search) params.set("search", search);
@@ -200,7 +201,7 @@ function AdminOrdersContent() {
       </div>
 
       {viewMode === "operasyon" ? (
-        <OperasyonOrdersPanel />
+        <OperasyonOrdersPanel scope="admin" />
       ) : (
         <>
 

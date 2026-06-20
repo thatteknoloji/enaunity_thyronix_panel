@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/db";
 import { buildConvergenceMetadata, HUB_MARKETPLACE_SOURCE } from "./config";
-import { matchProductLine, defaultCosts } from "./product-match";
+import { defaultCosts } from "./product-match";
 import { isCoreOrderEngine } from "@/lib/orders/config";
 import { createCoreOrder, findCoreOrderByMarketplace } from "@/lib/orders/core-order-service";
 import { buildOrderMetadata } from "@/lib/orders/config";
@@ -12,6 +12,8 @@ export type MarketplaceOrderPayload = {
   customerPhone?: string;
   customerCity?: string;
   customerAddress?: string;
+  cargoTrackingNumber?: string;
+  cargoProviderName?: string;
   totalAmount?: number;
   items: {
     productName: string;
@@ -19,8 +21,7 @@ export type MarketplaceOrderPayload = {
     sku?: string;
     quantity: number;
     unitPrice: number;
-    catalogItemId?: string;
-    thyronixProductId?: string;
+    imageUrl?: string;
   }[];
 };
 
@@ -52,32 +53,24 @@ export async function importMarketplaceOrderToFulfillment(params: {
     }
   }
 
-  const orderItems = [];
-  for (const line of payload.items) {
-    let catalog = null;
-    if (line.catalogItemId) {
-      catalog = await prisma.productCatalogItem.findUnique({ where: { id: line.catalogItemId } });
-    }
-    if (!catalog) {
-      const matched = await matchProductLine({
-        barcode: line.barcode,
-        sku: line.sku,
-        name: line.productName,
-      });
-      if (matched.catalogItem) catalog = matched.catalogItem as any;
-    }
-
-    orderItems.push({
-      productCatalogItemId: catalog?.id || null,
-      thyronixProductId: line.thyronixProductId || "",
-      sku: catalog?.sku || line.sku || "",
-      barcode: catalog?.barcode || line.barcode || "",
-      name: catalog?.name || line.productName,
-      quantity: line.quantity,
-      salePrice: line.unitPrice,
-      costPrice: catalog?.price ?? Math.round(line.unitPrice * 0.65),
-    });
-  }
+  // Pazaryeri satırları katalog eşleştirmesi olmadan ham olarak kaydedilir
+  const orderItems = payload.items.map((line) => ({
+    productCatalogItemId: null,
+    thyronixProductId: "",
+    sku: line.sku || line.barcode || "",
+    barcode: line.barcode || "",
+    name: line.productName,
+    quantity: line.quantity,
+    salePrice: line.unitPrice,
+    costPrice: Math.round(line.unitPrice * 0.65),
+    sourceType: "MARKETPLACE",
+    metadataJson: JSON.stringify({
+      imageUrl: line.imageUrl || "",
+      rawProductName: line.productName,
+      barcode: line.barcode || "",
+      marketplace: marketplace,
+    }),
+  }));
 
   const saleTotal = orderItems.reduce((s, i) => s + i.salePrice * i.quantity, 0);
   const costs = defaultCosts(saleTotal);
@@ -92,6 +85,8 @@ export async function importMarketplaceOrderToFulfillment(params: {
       customerPhone: payload.customerPhone || "",
       customerCity: payload.customerCity || "",
       customerAddress: payload.customerAddress,
+      cargoTrackingNumber: payload.cargoTrackingNumber,
+      cargoProviderName: payload.cargoProviderName,
       marketplace,
       marketplaceOrderId,
       sourceType: HUB_MARKETPLACE_SOURCE,
@@ -103,13 +98,16 @@ export async function importMarketplaceOrderToFulfillment(params: {
       metadataJson: buildOrderMetadata({
         marketplaceOrderId,
         connectionId: params.connectionId,
+        customerAddress: payload.customerAddress,
+        cargoTrackingNumber: payload.cargoTrackingNumber,
+        cargoProviderName: payload.cargoProviderName,
       }),
       items: orderItems,
       shippingCost: costs.shippingCost,
       packagingCost: costs.packagingCost,
       serviceCost: costs.serviceCost,
       autoAccounting: true,
-      fulfillmentStatus: "WAITING_FOR_PACKING",
+      fulfillmentStatus: "NEW",
       status: "processing",
     });
     order = result.order;
@@ -118,23 +116,16 @@ export async function importMarketplaceOrderToFulfillment(params: {
     const { createDealerOrder: legacyCreate } = await import("@/lib/fulfillment/orders");
     order = await legacyCreate({
       dealerId,
-      customerName: payload.customerName || "",
-      customerPhone: payload.customerPhone || "",
-      customerCity: payload.customerCity || "",
+      customerName: payload.customerName,
+      customerPhone: payload.customerPhone,
+      customerCity: payload.customerCity,
       marketplace,
       marketplaceOrderId,
       sourceType: HUB_MARKETPLACE_SOURCE,
-      thyronixRef: buildConvergenceMetadata({
-        marketplaceOrderId,
-        connectionId: params.connectionId,
-        importedAt: new Date().toISOString(),
-      }),
       items: orderItems.map((i) => ({
-        productId: i.productCatalogItemId,
-        thyronixProductId: i.thyronixProductId,
-        sku: i.sku,
-        barcode: i.barcode,
         name: i.name,
+        barcode: i.barcode,
+        sku: i.sku,
         quantity: i.quantity,
         salePrice: i.salePrice,
         costPrice: i.costPrice,
@@ -143,30 +134,15 @@ export async function importMarketplaceOrderToFulfillment(params: {
       packagingCost: costs.packagingCost,
       serviceCost: costs.serviceCost,
       autoAccounting: true,
-      initialStatus: "WAITING_FOR_PACKING",
-      _forceLegacy: true,
+      initialStatus: "NEW",
     });
-
-    if (params.marketplaceOrderRecordId && order) {
-      await prisma.dealerShipment.create({
-        data: {
-          orderId: order.id,
-          status: "WAITING_FOR_PACKING",
-          shippingCost: costs.shippingCost,
-        },
-      });
-    }
   }
 
-  if (params.marketplaceOrderRecordId && order) {
+  if (params.marketplaceOrderRecordId) {
     await prisma.marketplaceOrder.update({
       where: { id: params.marketplaceOrderRecordId },
-      data: {
-        dealerOrderId: isCoreOrderEngine() ? null : order.id,
-        processed: true,
-        status: "imported",
-      },
-    });
+      data: { processed: true, dealerOrderId: order.id },
+    }).catch(() => {});
   }
 
   return { order, duplicate };

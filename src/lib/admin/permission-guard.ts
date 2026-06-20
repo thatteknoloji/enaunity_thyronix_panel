@@ -1,4 +1,5 @@
 import { requireAdmin } from "@/lib/auth";
+import { hasPermission, type PermissionKey } from "@/lib/permissions";
 import type { User } from "@/types";
 
 function parsePerms(user: User & { adminRole?: { permissions: string } }): string[] {
@@ -8,6 +9,21 @@ function parsePerms(user: User & { adminRole?: { permissions: string } }): strin
   } catch {
     return [];
   }
+}
+
+/** Admin without assigned role = full access (legacy super admins). */
+export function adminHasPermission(
+  user: User & { adminRole?: { permissions: string } },
+  permission: PermissionKey
+): boolean {
+  if (!user.adminRole?.permissions) return true;
+  return hasPermission(parsePerms(user), permission);
+}
+
+export async function requireAdminPermission(permission: PermissionKey): Promise<User> {
+  const user = await requireAdmin();
+  if (!adminHasPermission(user, permission)) throw new Error("Forbidden");
+  return user;
 }
 
 export async function requireHiveView(): Promise<User> {

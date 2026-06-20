@@ -5,7 +5,7 @@ import { useEffect, useState, useCallback } from "react";
 import { formatDate } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Store, Plus, Search, Check, X, Pencil, Trash2, ChevronDown } from "lucide-react";
+import { Store, Plus, Search, Check, X, Pencil, Trash2, ChevronDown, KeyRound } from "lucide-react";
 import { DealerCredentialsPanel } from "@/components/admin/DealerCredentialsPanel";
 
 interface DealerGroup { id: string; name: string; discountRate: number; creditLimit: number; allowNegativeBalance: boolean; paymentDays: number; }
@@ -275,6 +275,16 @@ export default function AdminDealersPage() {
                   </td>
                   <td className="px-4 py-3 text-right">
                     <div className="flex justify-end gap-1">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setExpanded(expanded === dealer.id ? null : dealer.id)}
+                        className={expanded === dealer.id ? "text-purple-700 bg-purple-50" : "text-purple-600 hover:text-purple-700 hover:bg-purple-50"}
+                        title="Hesap & Şifre Yönetimi"
+                      >
+                        <KeyRound size={14} />
+                        <span className="ml-1 hidden sm:inline text-xs">Hesap</span>
+                      </Button>
                       <Button variant="ghost" size="sm" onClick={() => startEdit(dealer)} className="text-gray-500"><Pencil size={14} /></Button>
                       {dealer.status === "active" ? (
                         <Button variant="ghost" size="sm" onClick={() => updateStatus(dealer.id, "suspended")} className="text-amber-600 hover:text-amber-700 hover:bg-amber-50"><X size={14} /></Button>

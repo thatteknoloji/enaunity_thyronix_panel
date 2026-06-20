@@ -139,9 +139,9 @@ async function main() {
           productName: catalogItem.name,
           barcode: catalogItem.barcode,
           sku: catalogItem.sku,
-          catalogItemId: catalogItem.id,
           quantity: 1,
           unitPrice: 200,
+          imageUrl: "https://example.com/test.jpg",
         }],
       },
     });

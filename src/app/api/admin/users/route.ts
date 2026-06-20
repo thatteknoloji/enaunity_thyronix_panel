@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { requireAdmin, hashPassword } from "@/lib/auth";
+import { adminHasPermission } from "@/lib/admin/permission-guard";
 
 export async function GET() {
   try {
@@ -22,10 +23,13 @@ export async function GET() {
 export async function POST(req: Request) {
   try {
     const admin = await requireAdmin();
-    if (admin.adminRole?.permissions && !JSON.parse(admin.adminRole.permissions).includes("admin_users")) {
+    if (!adminHasPermission(admin, "admin_users")) {
       return NextResponse.json({ success: false, error: "Yetkisiz" }, { status: 403 });
     }
     const { name, email, password, role, adminRoleId } = await req.json();
+    if (!password || String(password).length < 6) {
+      return NextResponse.json({ success: false, error: "En az 6 karakter şifre gerekli" }, { status: 400 });
+    }
     const hashed = await hashPassword(password);
     const user = await prisma.user.create({
       data: { name, email, password: hashed, role: role || "user", adminRoleId: adminRoleId || null },
@@ -40,7 +44,7 @@ export async function POST(req: Request) {
 export async function PUT(req: Request) {
   try {
     const admin = await requireAdmin();
-    if (admin.adminRole?.permissions && !JSON.parse(admin.adminRole.permissions).includes("admin_users")) {
+    if (!adminHasPermission(admin, "admin_users")) {
       return NextResponse.json({ success: false, error: "Yetkisiz" }, { status: 403 });
     }
     const { id, name, email, role, adminRoleId, password } = await req.json();

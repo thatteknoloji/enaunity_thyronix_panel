@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { requireAdmin } from "@/lib/auth";
+import { adminHasPermission } from "@/lib/admin/permission-guard";
 
 export async function GET() {
   try {
@@ -18,7 +19,7 @@ export async function GET() {
 export async function POST(req: Request) {
   try {
     const admin = await requireAdmin();
-    if (admin.adminRole?.permissions && !JSON.parse(admin.adminRole.permissions).includes("admin_roles")) {
+    if (!adminHasPermission(admin, "admin_roles")) {
       return NextResponse.json({ success: false, error: "Bu işlem için yetkiniz yok" }, { status: 403 });
     }
     const { name, description, permissions } = await req.json();

@@ -452,6 +452,7 @@ model Dealer {
   dealerAccountTransactions DealerAccountTransaction[]
   dealerStatements       DealerStatement[]
   dealerWarehouseMovements DealerWarehouseMovement[]
+  dealerProducts         DealerProduct[]
   createdAt       DateTime           @default(now())
   updatedAt       DateTime           @updatedAt
 }
@@ -467,6 +468,25 @@ model DealerPrice {
   updatedAt DateTime @updatedAt
 
   @@unique([dealerId, productId])
+}
+
+// Bayi kendi tanımladığı ürünler (foto + PDF + ebat) — katalog eşleştirme yok
+model DealerProduct {
+  id           String   @id @default(cuid())
+  dealerId     String
+  dealer       Dealer   @relation(fields: [dealerId], references: [id], onDelete: Cascade)
+  name         String
+  description  String   @default("")
+  imageUrl     String
+  specPdfUrl   String
+  variantsJson String   @default("[]")
+  basePrice    Float    @default(0)
+  active       Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([dealerId])
+  @@index([active])
 }
 
 model PriceList {

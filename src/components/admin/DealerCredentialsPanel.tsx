@@ -20,19 +20,25 @@ type AccountsData = {
 export function DealerCredentialsPanel({ dealerId }: { dealerId: string }) {
   const [data, setData] = useState<AccountsData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [passwords, setPasswords] = useState<Record<string, string>>({});
   const [dealerEmail, setDealerEmail] = useState("");
 
   const load = () => {
     setLoading(true);
+    setError(null);
     fetch(`/api/admin/dealers/${dealerId}/accounts`)
       .then((r) => r.json())
       .then((d) => {
         if (d.success) {
           setData(d.data);
           setDealerEmail(d.data.dealer?.email || "");
+        } else {
+          setError(d.error || "Hesap bilgileri yüklenemedi");
+          setData(null);
         }
       })
+      .catch(() => setError("Bağlantı hatası"))
       .finally(() => setLoading(false));
   };
 
@@ -52,6 +58,7 @@ export function DealerCredentialsPanel({ dealerId }: { dealerId: string }) {
   };
 
   if (loading) return <p className="text-xs text-gray-400 py-4">Hesaplar yükleniyor…</p>;
+  if (error) return <p className="text-xs text-red-600 py-4">{error}</p>;
   if (!data) return null;
 
   return (
@@ -69,6 +76,12 @@ export function DealerCredentialsPanel({ dealerId }: { dealerId: string }) {
           <Mail size={14} className="mr-1" /> E-postayı Kaydet
         </Button>
       </div>
+
+      {data.users.length === 0 && (
+        <p className="text-xs text-amber-700 bg-amber-50 border border-amber-100 rounded-lg px-3 py-2">
+          Bu bayiye bağlı giriş hesabı yok. Bayi üye onayından sonra User kaydı oluşur; gerekirse üye kaydından yeniden onaylayın.
+        </p>
+      )}
 
       {data.users.map((u) => (
         <div key={u.id} className="rounded-lg border border-gray-100 p-3 bg-gray-50/50">

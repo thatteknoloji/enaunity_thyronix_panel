@@ -1,11 +1,12 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { requireAdmin } from "@/lib/auth";
+import { adminHasPermission } from "@/lib/admin/permission-guard";
 
 export async function PUT(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const admin = await requireAdmin();
-    if (admin.adminRole?.permissions && !JSON.parse(admin.adminRole.permissions).includes("admin_roles")) {
+    if (!adminHasPermission(admin, "admin_roles")) {
       return NextResponse.json({ success: false, error: "Yetkisiz" }, { status: 403 });
     }
     const { id } = await params;
@@ -23,7 +24,7 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
 export async function DELETE(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const admin = await requireAdmin();
-    if (admin.adminRole?.permissions && !JSON.parse(admin.adminRole.permissions).includes("admin_roles")) {
+    if (!adminHasPermission(admin, "admin_roles")) {
       return NextResponse.json({ success: false, error: "Yetkisiz" }, { status: 403 });
     }
     const { id } = await params;
