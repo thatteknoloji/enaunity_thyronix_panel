@@ -17,8 +17,12 @@ export default function LoginForm() {
   const [twoFA, setTwoFA] = useState<{ challenge: string; name: string } | null>(null);
   const [totpCode, setTotpCode] = useState("");
 
-  const finishLogin = (data: { name: string }) => {
+  const finishLogin = (data: { name: string; role?: string; status?: string }) => {
     toast.success(`Hoş geldin, ${data.name}`);
+    if (data.role === "user" && (data.status === "pending" || data.status === "rejected")) {
+      window.location.href = "/account/application";
+      return;
+    }
     window.location.href = redirectTo;
   };
 

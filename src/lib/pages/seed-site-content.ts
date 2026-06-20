@@ -1,5 +1,7 @@
 import { prisma } from "@/lib/db";
-import { DEFAULT_CONTRACTS, DEFAULT_PAGES } from "./default-content";
+import { DEFAULT_PAGES } from "./default-content";
+import { LEGAL_CONTRACT_SEEDS } from "@/lib/legal/seed-contracts";
+import { upsertContractWithVersion } from "@/lib/legal/acceptance";
 
 export type SiteContentSeedResult = {
   pages: number;
@@ -9,7 +11,7 @@ export type SiteContentSeedResult = {
   contractSlugs: string[];
 };
 
-/** Idempotent: SSS, kargo, iletişim sayfaları + public sözleşmeler + footer varsayılanları */
+/** Idempotent: sayfalar + versiyonlu sözleşmeler + footer */
 export async function seedSiteContent(): Promise<SiteContentSeedResult> {
   const pageSlugs: string[] = [];
   for (const page of DEFAULT_PAGES) {
@@ -35,23 +37,8 @@ export async function seedSiteContent(): Promise<SiteContentSeedResult> {
   }
 
   const contractSlugs: string[] = [];
-  for (const contract of DEFAULT_CONTRACTS) {
-    await prisma.contract.upsert({
-      where: { slug: contract.slug },
-      update: {
-        title: contract.title,
-        type: contract.type,
-        content: contract.content,
-        active: true,
-      },
-      create: {
-        title: contract.title,
-        slug: contract.slug,
-        type: contract.type,
-        content: contract.content,
-        active: true,
-      },
-    });
+  for (const contract of LEGAL_CONTRACT_SEEDS) {
+    await upsertContractWithVersion(contract);
     contractSlugs.push(contract.slug);
   }
 
@@ -61,15 +48,19 @@ export async function seedSiteContent(): Promise<SiteContentSeedResult> {
       value:
         "E-ticarete girişin en kolay yolu. Dropshipping, XML Bayilik ve Stoksuz E-Ticaret ile binlerce ürüne tek merkezden ulaşın.",
     },
-    { key: "contact_email", value: "info@enaunity.com" },
-    { key: "contact_phone", value: "+90 (212) 555 00 00" },
-    { key: "address", value: "Maslak Mah. Büyükdere Cad. No:1\nSarıyer / İstanbul" },
+    { key: "contact_email", value: "info@enaunity.com.tr" },
+    { key: "contact_phone", value: "0541 188 14 35" },
+    {
+      key: "address",
+      value:
+        "Akdeniz Mahallesi Şehit Fethi Bey Caddesi Kızılkanat İş Merkezi No:45 Kat:8 Daire:83\nKonak / İzmir",
+    },
   ];
 
   for (const item of footerDefaults) {
     await prisma.footerSettings.upsert({
       where: { key: item.key },
-      update: {},
+      update: { value: item.value },
       create: item,
     });
   }

@@ -30,12 +30,6 @@ export async function POST(req: Request) {
       }
 
       if (user.role === "user") {
-        if (user.status === "pending") {
-          return NextResponse.json(
-            { success: false, error: "Hesabınız admin onayı bekliyor. Onaylandıktan sonra giriş yapabilirsiniz." },
-            { status: 403 }
-          );
-        }
         if (user.status === "rejected") {
           return NextResponse.json(
             {
@@ -53,6 +47,7 @@ export async function POST(req: Request) {
             { status: 403 }
           );
         }
+        // pending users can login to see application status
       }
 
       if (user.totpEnabled) {
@@ -67,7 +62,14 @@ export async function POST(req: Request) {
       const token = signToken(user);
       const response = NextResponse.json({
         success: true,
-        data: { id: user.id, name: user.name, email: user.email, role: user.role, dealerId: user.dealerId },
+        data: {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          role: user.role,
+          dealerId: user.dealerId,
+          status: user.status,
+        },
       });
       setAuthCookie(response, token);
       return response;

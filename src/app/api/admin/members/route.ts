@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { requireAdmin, logAdminAction } from "@/lib/auth";
-import { parseMemberChecklist } from "@/lib/members/checklist";
+import { requireAdmin } from "@/lib/auth";
+import { computeMemberChecklist } from "@/lib/members/service";
 
 export async function GET(req: Request) {
   try {
-    const admin = await requireAdmin();
+    await requireAdmin();
     const { searchParams } = new URL(req.url);
     const status = searchParams.get("status");
     const q = searchParams.get("q")?.trim();
@@ -25,33 +25,36 @@ export async function GET(req: Request) {
             }
           : {}),
       },
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        role: true,
-        status: true,
-        phone: true,
-        company: true,
-        taxNumber: true,
-        taxOffice: true,
-        approvalChecklistJson: true,
-        rejectionReason: true,
-        approvedAt: true,
-        reviewedBy: true,
-        createdAt: true,
-        dealerId: true,
+      include: {
+        memberDocuments: true,
         _count: { select: { orders: true } },
       },
       orderBy: { createdAt: "desc" },
     });
 
-    const data = users.map((u) => ({
-      ...u,
-      checklist: parseMemberChecklist(u.approvalChecklistJson),
-    }));
+    const data = users.map((u) => {
+      const checklist = computeMemberChecklist(u, u.memberDocuments);
+      return {
+        id: u.id,
+        name: u.name,
+        email: u.email,
+        role: u.role,
+        status: u.status,
+        phone: u.phone,
+        company: u.company,
+        taxNumber: u.taxNumber,
+        taxOffice: u.taxOffice,
+        rejectionReason: u.rejectionReason,
+        approvedAt: u.approvedAt,
+        reviewedBy: u.reviewedBy,
+        createdAt: u.createdAt,
+        dealerId: u.dealerId,
+        checklist,
+        checklistComplete: checklist.every((c) => c.ok),
+        _count: u._count,
+      };
+    });
 
-    void admin;
     return NextResponse.json({ success: true, data });
   } catch {
     return NextResponse.json({ success: false, error: "Yetkisiz erişim" }, { status: 401 });

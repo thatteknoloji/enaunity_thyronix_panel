@@ -18,7 +18,10 @@ model User {
   company   String          @default("")
   taxNumber String          @default("")
   taxOffice String          @default("")
+  kvkkAcceptedAt DateTime?
+  contractsAcceptedJson String @default("[]")
   approvalChecklistJson String @default("{}")
+  adminNote String          @default("")
   rejectionReason String    @default("")
   approvedAt DateTime?
   reviewedBy String         @default("")
@@ -37,6 +40,26 @@ model User {
   reviews   Review[]
   productAccountLinks ProductAccountLink[]
   appearance          UserAppearance?
+  memberDocuments     MemberDocument[]
+  legalAcceptances    LegalAcceptance[]
+  cookieConsents      CookieConsent[]
+}
+
+model MemberDocument {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title     String   @default("")
+  type      String   // tax_levy, signature_circular, trade_registry
+  fileUrl   String
+  fileName  String   @default("")
+  fileSize  Int      @default(0)
+  status    String   @default("pending") // pending, approved, rejected
+  adminNote String   @default("")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
 }
 
 model UserAppearance {
@@ -699,15 +722,113 @@ model Review {
 }
 
 model Contract {
-  id        String          @id @default(cuid())
-  title     String
-  slug      String          @unique
-  content   String          @default("")
-  type      String          @default("page")
-  active    Boolean         @default(true)
-  createdAt DateTime        @default(now())
-  updatedAt DateTime        @updatedAt
+  id           String            @id @default(cuid())
+  title        String
+  slug         String            @unique
+  content      String            @default("")
+  type         String            @default("page")
+  category     String            @default("general")
+  version      Int               @default(1)
+  contentHash  String            @default("")
+  publishedAt  DateTime          @default(now())
+  active       Boolean           @default(true)
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
   dealerContracts DealerContract[]
+  versions     ContractVersion[]
+}
+
+model ContractVersion {
+  id          String   @id @default(cuid())
+  contractId  String
+  contract    Contract @relation(fields: [contractId], references: [id], onDelete: Cascade)
+  version     Int
+  title       String
+  content     String
+  contentHash String
+  publishedAt DateTime @default(now())
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  acceptances LegalAcceptance[]
+
+  @@unique([contractId, version])
+  @@index([contractId])
+}
+
+model LegalAcceptance {
+  id                 String          @id @default(cuid())
+  userId             String?
+  user               User?           @relation(fields: [userId], references: [id], onDelete: SetNull)
+  dealerId           String?
+  email              String
+  contractId         String
+  contractVersionId  String
+  contractVersion    ContractVersion @relation(fields: [contractVersionId], references: [id])
+  contractSlug       String
+  contractTitle      String
+  contractVersionNum Int
+  contentHash        String
+  context            String
+  optional           Boolean         @default(false)
+  acceptedAt         DateTime        @default(now())
+  ipAddress          String          @default("")
+  userAgent          String          @default("")
+  browser            String          @default("")
+  os                 String          @default("")
+  deviceType         String          @default("")
+  sessionId          String          @default("")
+  referrer           String          @default("")
+
+  @@index([userId])
+  @@index([email])
+  @@index([contractSlug])
+  @@index([contentHash])
+  @@index([acceptedAt])
+}
+
+model LegalAuditLog {
+  id        String   @id @default(cuid())
+  eventType String
+  payload   String   @default("{}")
+  userId    String?
+  email     String   @default("")
+  ipAddress String   @default("")
+  createdAt DateTime @default(now())
+
+  @@index([eventType])
+  @@index([userId])
+  @@index([createdAt])
+}
+
+model LegalEmailLog {
+  id           String   @id @default(cuid())
+  acceptanceId String   @default("")
+  userId       String?
+  email        String
+  subject      String
+  status       String
+  error        String   @default("")
+  createdAt    DateTime @default(now())
+
+  @@index([email])
+  @@index([createdAt])
+}
+
+model CookieConsent {
+  id          String   @id @default(cuid())
+  userId      String?
+  user        User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  sessionId   String   @unique
+  necessary   Boolean  @default(true)
+  analytics   Boolean  @default(false)
+  marketing   Boolean  @default(false)
+  preferences Boolean  @default(false)
+  ipAddress   String   @default("")
+  userAgent   String   @default("")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([userId])
 }
 
 model DealerContract {

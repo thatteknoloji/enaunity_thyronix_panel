@@ -34,6 +34,7 @@ function buildNavGroups(t: (key: string) => string) {
         { href: "/admin/homepage", label: "Ana Sayfa", icon: LayoutDashboard },
         { href: "/admin/ecosystem", label: "Ekosistem Vitrini", icon: Sparkles },
         { href: "/admin/contracts", label: t("admin.contracts"), icon: ScrollText },
+        { href: "/admin/legal-audit", label: "Hukuki Denetim", icon: Shield },
       ],
     },
     {

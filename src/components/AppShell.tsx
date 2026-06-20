@@ -3,6 +3,7 @@
 import { usePathname } from "next/navigation";
 import Header from "@/components/layout/header";
 import FooterWrapper from "@/components/layout/footer-wrapper";
+import CookieConsentBanner from "@/components/legal/CookieConsentBanner";
 import { isAdminPath } from "@/lib/auth/admin-access";
 
 function isStandaloneProductPath(pathname?: string | null): boolean {
@@ -26,6 +27,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       <Header />
       <main className="app-viewport flex-1">{children}</main>
       <FooterWrapper />
+      <CookieConsentBanner />
     </>
   );
 }
