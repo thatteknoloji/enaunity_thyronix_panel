@@ -3,6 +3,8 @@ import { sendEmail } from "@/lib/notifications";
 import { appendLegalAuditLog } from "./audit-log";
 import type { LegalContext } from "./constants";
 import type { RequestMeta } from "./request-meta";
+import { generateContractPdfSnapshot } from "./pdf-snapshot";
+import { completeReacceptanceTask, notifyUsersOnContractPublish } from "./reacceptance";
 
 export type RecordAcceptanceInput = {
   slug: string;
@@ -44,6 +46,8 @@ export async function recordLegalAcceptance(input: RecordAcceptanceInput) {
       contractTitle: contract.title,
       contractVersionNum: version.version,
       contentHash: version.contentHash,
+      pdfUrl: version.pdfUrl,
+      pdfHash: version.pdfHash,
       context: input.context,
       optional: !!input.optional,
       ipAddress: input.meta.ipAddress,
@@ -113,6 +117,10 @@ export async function recordLegalAcceptance(input: RecordAcceptanceInput) {
     });
   }
 
+  if (input.userId) {
+    await completeReacceptanceTask(input.userId, version.id);
+  }
+
   return acceptance;
 }
 
@@ -157,6 +165,14 @@ export async function publishContractVersion(contractId: string, title: string, 
   if (!contract) throw new Error("Sözleşme bulunamadı");
 
   const nextVersion = contract.version + 1;
+  const previousVersionNum = contract.version;
+
+  const { pdfUrl, pdfHash } = await generateContractPdfSnapshot({
+    contractSlug: contract.slug,
+    versionNum: nextVersion,
+    title,
+    content,
+  });
 
   await prisma.contractVersion.updateMany({
     where: { contractId, isActive: true },
@@ -170,6 +186,8 @@ export async function publishContractVersion(contractId: string, title: string, 
       title,
       content,
       contentHash: hash,
+      pdfUrl,
+      pdfHash,
       isActive: true,
     },
   });
@@ -187,7 +205,16 @@ export async function publishContractVersion(contractId: string, title: string, 
 
   await appendLegalAuditLog({
     eventType: "contract_published",
-    payload: { contractId, slug: contract.slug, version: nextVersion, hash },
+    payload: { contractId, slug: contract.slug, version: nextVersion, hash, pdfUrl, pdfHash },
+  });
+
+  await notifyUsersOnContractPublish({
+    contractId,
+    contractSlug: contract.slug,
+    contractTitle: title,
+    contractVersionId: version.id,
+    newVersionNum: nextVersion,
+    previousVersionNum,
   });
 
   return version;
@@ -209,6 +236,12 @@ export async function upsertContractWithVersion(seed: {
   });
 
   if (!existing) {
+    const { pdfUrl, pdfHash } = await generateContractPdfSnapshot({
+      contractSlug: seed.slug,
+      versionNum: 1,
+      title: seed.title,
+      content: seed.content,
+    });
     const contract = await prisma.contract.create({
       data: {
         title: seed.title,
@@ -228,6 +261,8 @@ export async function upsertContractWithVersion(seed: {
         title: seed.title,
         content: seed.content,
         contentHash: hash,
+        pdfUrl,
+        pdfHash,
         isActive: true,
       },
     });

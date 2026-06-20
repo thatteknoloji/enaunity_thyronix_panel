@@ -2,12 +2,19 @@ import { NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 
+import { getAdminReacceptanceReport } from "@/lib/legal/reacceptance";
+
 export async function GET(req: Request) {
   try {
     await requireAdmin();
     const { searchParams } = new URL(req.url);
     const q = searchParams.get("q")?.trim() || "";
     const type = searchParams.get("type") || "acceptances";
+
+    if (type === "reacceptance") {
+      const data = await getAdminReacceptanceReport();
+      return NextResponse.json({ success: true, data });
+    }
 
     if (type === "audit") {
       const logs = await prisma.legalAuditLog.findMany({

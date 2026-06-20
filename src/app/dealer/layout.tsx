@@ -5,6 +5,7 @@ import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import { LayoutDashboard, ShoppingCart, User, LogOut, ChevronLeft, ChevronRight, Home, Store, Wallet, FileText, Users, RotateCcw, Bell, ReceiptText, Menu, X, Heart, Zap, MapPin, Upload, FileSignature, Library, Truck, Plug } from "lucide-react";
 import NotificationBell from "@/components/NotificationBell";
+import { LegalReacceptanceGate } from "@/components/legal/LegalReacceptanceGate";
 import { useT } from "@/lib/i18n/provider";
 
 function buildNavItems(t: (key: string) => string) {
@@ -180,7 +181,7 @@ export default function DealerLayout({ children }: { children: React.ReactNode }
         </div>
 
         <div className="app-main-scroll p-4 md:p-8 bg-gradient-to-br from-ena-dark via-[#1a1a2e] to-ena-dark">
-          {children}
+          <LegalReacceptanceGate scope="dealer">{children}</LegalReacceptanceGate>
         </div>
       </div>
     </div>

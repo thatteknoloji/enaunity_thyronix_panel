@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { isPlatformAdmin } from "@/lib/product-auth/admin-bypass";
+import { LegalReacceptanceGate } from "@/components/legal/LegalReacceptanceGate";
 
 export default function HiveLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -45,5 +46,5 @@ export default function HiveLayout({ children }: { children: React.ReactNode }) 
     );
   }
 
-  return <>{children}</>;
+  return <LegalReacceptanceGate scope="hive">{children}</LegalReacceptanceGate>;
 }

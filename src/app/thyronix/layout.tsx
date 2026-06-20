@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { isPlatformAdmin } from "@/lib/product-auth/admin-bypass";
 import { OnboardingWizard } from "@/components/thyronix/OnboardingWizard";
+import { LegalReacceptanceGate } from "@/components/legal/LegalReacceptanceGate";
 
 const navItems = [
   { href: "/thyronix", label: "Kontrol Merkezi", icon: LayoutDashboard },
@@ -214,7 +215,9 @@ export default function ThyronixLayout({ children }: { children: React.ReactNode
         </div>
 
         <div className="app-main-scroll scrollbar-thin">
-          <div className="mx-auto w-full min-w-0 max-w-[1400px] p-5 md:p-7">{children}</div>
+          <div className="mx-auto w-full min-w-0 max-w-[1400px] p-5 md:p-7">
+            <LegalReacceptanceGate scope="thyronix">{children}</LegalReacceptanceGate>
+          </div>
         </div>
       </div>
     </div>

@@ -43,6 +43,8 @@ model User {
   memberDocuments     MemberDocument[]
   legalAcceptances    LegalAcceptance[]
   cookieConsents      CookieConsent[]
+  legalReacceptTasks  LegalReacceptanceTask[]
+  legalReacceptStatus String          @default("ok") // ok | pending_reacceptance
 }
 
 model MemberDocument {
@@ -746,6 +748,8 @@ model ContractVersion {
   title       String
   content     String
   contentHash String
+  pdfUrl      String   @default("")
+  pdfHash     String   @default("")
   publishedAt DateTime @default(now())
   isActive    Boolean  @default(true)
   createdAt   DateTime @default(now())
@@ -768,6 +772,8 @@ model LegalAcceptance {
   contractTitle      String
   contractVersionNum Int
   contentHash        String
+  pdfUrl             String          @default("")
+  pdfHash            String          @default("")
   context            String
   optional           Boolean         @default(false)
   acceptedAt         DateTime        @default(now())
@@ -784,6 +790,30 @@ model LegalAcceptance {
   @@index([contractSlug])
   @@index([contentHash])
   @@index([acceptedAt])
+}
+
+model LegalReacceptanceTask {
+  id                 String   @id @default(cuid())
+  userId             String
+  user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  email              String
+  contractId         String
+  contractSlug       String
+  contractTitle      String
+  contractVersionId  String
+  fromVersionNum     Int      @default(0)
+  toVersionNum       Int
+  status             String   @default("pending")
+  notifiedAt         DateTime?
+  emailSentAt        DateTime?
+  emailStatus        String   @default("")
+  completedAt        DateTime?
+  createdAt          DateTime @default(now())
+
+  @@unique([userId, contractVersionId])
+  @@index([status])
+  @@index([contractSlug])
+  @@index([userId])
 }
 
 model LegalAuditLog {

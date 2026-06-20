@@ -32,11 +32,18 @@ type ContractRow = {
 };
 
 export default function AdminLegalAuditPage() {
-  const [tab, setTab] = useState<"acceptances" | "audit" | "emails">("acceptances");
+  const [tab, setTab] = useState<"acceptances" | "audit" | "emails" | "reacceptance">("acceptances");
   const [search, setSearch] = useState("");
   const [acceptances, setAcceptances] = useState<Acceptance[]>([]);
   const [contracts, setContracts] = useState<ContractRow[]>([]);
   const [auditLogs, setAuditLogs] = useState<{ id: string; eventType: string; email: string; ipAddress: string; payload: string; createdAt: string }[]>([]);
+  const [reacceptReport, setReacceptReport] = useState<{
+    pendingCount: number;
+    pendingByContract: Record<string, number>;
+    pendingTasks: { id: string; email: string; contractSlug: string; contractTitle: string; fromVersionNum: number; toVersionNum: number; emailStatus: string; user: { name: string; email: string } }[];
+    recentEmails: { email: string; subject: string; status: string; createdAt: string }[];
+    completedRecent: { email: string; contractTitle: string; completedAt: string | null; user: { name: string } }[];
+  } | null>(null);
   const [emailLogs, setEmailLogs] = useState<{ id: string; email: string; subject: string; status: string; createdAt: string }[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -52,6 +59,7 @@ export default function AdminLegalAuditPage() {
           setAcceptances(d.data.acceptances || []);
           setContracts(d.data.contracts || []);
         } else if (tab === "audit") setAuditLogs(d.data || []);
+        else if (tab === "reacceptance") setReacceptReport(d.data);
         else setEmailLogs(d.data || []);
       })
       .finally(() => setLoading(false));
@@ -70,6 +78,7 @@ export default function AdminLegalAuditPage() {
         {[
           { key: "acceptances", label: "Onay Kayıtları", icon: FileText },
           { key: "audit", label: "Audit Log", icon: Shield },
+          { key: "reacceptance", label: "Yeniden Onay", icon: Shield },
           { key: "emails", label: "E-posta Log", icon: Mail },
         ].map(({ key, label, icon: Icon }) => (
           <button
@@ -165,6 +174,45 @@ export default function AdminLegalAuditPage() {
               ))}
             </tbody>
           </table>
+        </div>
+      )}
+
+      {tab === "reacceptance" && reacceptReport && (
+        <div className="space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="rounded-xl border bg-white p-4">
+              <p className="text-xs text-gray-500">Bekleyen kullanıcı</p>
+              <p className="text-2xl font-bold text-amber-700">{reacceptReport.pendingCount}</p>
+            </div>
+            {Object.entries(reacceptReport.pendingByContract).map(([slug, count]) => (
+              <div key={slug} className="rounded-xl border bg-white p-4">
+                <p className="text-xs text-gray-500 truncate">{slug}</p>
+                <p className="text-xl font-bold">{count}</p>
+              </div>
+            ))}
+          </div>
+          <div className="rounded-xl border bg-white overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b bg-gray-50">
+                  <th className="px-3 py-2 text-left">Kullanıcı</th>
+                  <th className="px-3 py-2 text-left">Sözleşme</th>
+                  <th className="px-3 py-2 text-left">Versiyon</th>
+                  <th className="px-3 py-2 text-left">Mail</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y">
+                {reacceptReport.pendingTasks.map((t) => (
+                  <tr key={t.id}>
+                    <td className="px-3 py-2">{t.user?.name || t.email}<br /><span className="text-xs text-gray-500">{t.email}</span></td>
+                    <td className="px-3 py-2">{t.contractTitle}</td>
+                    <td className="px-3 py-2">v{t.fromVersionNum}.0 → v{t.toVersionNum}.0</td>
+                    <td className="px-3 py-2">{t.emailStatus || "—"}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
     </div>
