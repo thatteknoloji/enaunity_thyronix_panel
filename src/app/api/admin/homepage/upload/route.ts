@@ -34,7 +34,8 @@ export async function POST(req: Request) {
 
     const ext = file.name.split(".").pop()?.toLowerCase() || (isVideo ? "mp4" : "jpg");
     const safeName = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
-    const subdir = kind === "hero" ? "homepage/hero" : "homepage";
+    const subdir =
+      kind === "hero" ? "homepage/hero" : kind === "content" ? "content" : "homepage";
     const uploadDir = path.join(process.cwd(), "public", "uploads", subdir);
     await mkdir(uploadDir, { recursive: true });
 

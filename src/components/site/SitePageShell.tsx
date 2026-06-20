@@ -37,7 +37,7 @@ export default function SitePageShell({
 }
 
 export const siteProseClass =
-  "site-prose prose prose-invert max-w-none text-ena-light leading-relaxed prose-headings:text-ena-text prose-headings:font-semibold prose-a:text-ena-primary prose-a:no-underline hover:prose-a:underline prose-strong:text-ena-text prose-li:marker:text-ena-primary/70 break-words [&_pre]:max-w-full [&_pre]:overflow-x-auto [&_table]:block [&_table]:max-w-full [&_table]:overflow-x-auto [&_img]:max-w-full";
+  "site-prose prose prose-invert max-w-none text-ena-light leading-relaxed prose-headings:text-ena-text prose-headings:font-semibold prose-a:text-ena-primary prose-a:no-underline hover:prose-a:underline prose-strong:text-ena-text prose-li:marker:text-ena-primary/70 break-words [&_pre]:max-w-full [&_pre]:overflow-x-auto [&_table]:block [&_table]:max-w-full [&_table]:overflow-x-auto [&_img]:mx-auto [&_img]:my-6 [&_img]:rounded-lg [&_img]:border [&_img]:border-white/10 [&_img]:max-w-full";
 
 export const sitePolicyProseClass =
   `${siteProseClass} prose-ol:space-y-2 prose-ul:space-y-1 [&_ol>li]:rounded-lg [&_ol>li]:border [&_ol>li]:border-white/10 [&_ol>li]:bg-ena-card/40 [&_ol>li]:px-4 [&_ol>li]:py-3`;

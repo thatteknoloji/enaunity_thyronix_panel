@@ -326,6 +326,21 @@
     height: auto;
   }
 
+  /* Rich text editor görselleri */
+  .rte-editor-body img.rte-image,
+  .rte-editor-shell img,
+  .site-prose img {
+    display: block;
+    max-width: 100%;
+    height: auto;
+    margin: 1rem auto;
+    border-radius: 0.5rem;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+  }
+  .site-prose img {
+    border-color: rgba(255, 255, 255, 0.12);
+  }
+
   /* Account Center utilities */
   .acc-card {
     @apply rounded-2xl border border-ena-border bg-ena-card transition-all duration-200;
