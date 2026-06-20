@@ -328,7 +328,7 @@ export async function POST() {
       {
         title: "KVKK Aydınlatma Metni",
         slug: "kvkk",
-        type: "legal",
+        type: "public",
         content: `<h2>Kişisel Verilerin Korunması ve İşlenmesi Hakkında Aydınlatma Metni</h2>
 <p>Enaunity® olarak, 6698 sayılı Kişisel Verilerin Korunması Kanunu ("KVKK") uyarınca, kişisel verilerinizin işlenmesi ve korunması konusunda sizleri bilgilendirmek isteriz.</p>
 <h3>Veri Sorumlusu</h3>
@@ -343,7 +343,7 @@ export async function POST() {
       {
         title: "Gizlilik Politikası",
         slug: "gizlilik-politikasi",
-        type: "legal",
+        type: "public",
         content: `<h2>Gizlilik Politikası</h2>
 <p>Enaunity® olarak, kullanıcılarımızın gizliliğine büyük önem vermekteyiz. Bu Gizlilik Politikası, platformumuzu kullanırken hangi bilgilerin toplandığını, bu bilgilerin nasıl kullanıldığını ve korunduğunu açıklamaktadır.</p>
 <h3>Toplanan Bilgiler</h3>
@@ -358,7 +358,7 @@ export async function POST() {
       {
         title: "Kullanım Koşulları",
         slug: "kullanim-kosullari",
-        type: "legal",
+        type: "public",
         content: `<h2>Kullanım Koşulları</h2>
 <p>Enaunity® platformunu kullanmadan önce lütfen aşağıdaki kullanım koşullarını dikkatlice okuyunuz. Platformu kullanarak bu koşulları kabul etmiş sayılırsınız.</p>
 <h3>Genel Hükümler</h3>
@@ -375,7 +375,7 @@ export async function POST() {
       {
         title: "Çerez Politikası",
         slug: "cerez-politikasi",
-        type: "legal",
+        type: "public",
         content: `<h2>Çerez Politikası</h2>
 <p>Enaunity® olarak, web sitemizde çerezler kullanmaktayız. Bu politika, çerezlerin ne olduğunu, hangi amaçlarla kullanıldığını ve çerez tercihlerinizi nasıl yönetebileceğinizi açıklamaktadır.</p>
 <h3>Çerez Nedir?</h3>
@@ -389,8 +389,8 @@ export async function POST() {
     for (const ct of contractTemplates) {
       await prisma.contract.upsert({
         where: { slug: ct.slug },
-        update: {},
-        create: ct,
+        update: { title: ct.title, type: "public", content: ct.content, active: true },
+        create: { ...ct, type: "public", active: true },
       });
     }
 

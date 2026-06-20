@@ -215,8 +215,8 @@ async function seed() {
   console.log(`Dealer accounts synced: ${dealers.length}`);
   console.log(`Dealer login: any dealer email / Dealer123`);
 
-  // Seed default pages — full content in scripts/seed-site-content.ts
-  const { DEFAULT_PAGES } = await import("./pages/default-content");
+  // Seed default pages + contracts — full content in scripts/seed-site-content.ts
+  const { DEFAULT_PAGES, DEFAULT_CONTRACTS } = await import("./pages/default-content");
   for (const p of DEFAULT_PAGES) {
     await prisma.page.upsert({
       where: { slug: p.slug },
@@ -224,6 +224,14 @@ async function seed() {
       create: { title: p.title, slug: p.slug, template: p.template, content: p.content, order: p.order, active: true },
     });
   }
+  for (const c of DEFAULT_CONTRACTS) {
+    await prisma.contract.upsert({
+      where: { slug: c.slug },
+      update: { title: c.title, type: c.type, content: c.content, active: true },
+      create: { title: c.title, slug: c.slug, type: c.type, content: c.content, active: true },
+    });
+  }
+  console.log(`Site content: ${DEFAULT_PAGES.length} pages, ${DEFAULT_CONTRACTS.length} contracts`);
 
   console.log("Seed completed successfully!");
   console.log(`Total products: ${products.length}`);
