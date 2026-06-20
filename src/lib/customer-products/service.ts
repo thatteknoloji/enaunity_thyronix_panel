@@ -68,6 +68,8 @@ async function getLastPayment(dealerId: string, moduleKey: string) {
 }
 
 async function getLastLogin(enaUserId: string, moduleKey: CustomerProductKey) {
+  if (moduleKey === "LINKSLASH") return null;
+
   if (moduleKey === "ENA_COMMERCE") {
     const lastOrder = await prisma.order.findFirst({
       where: { userId: enaUserId },
@@ -164,7 +166,7 @@ async function buildProductCard(
   }
 
   const link =
-    moduleKey !== "ENA_COMMERCE"
+    moduleKey === "THYRONIX" || moduleKey === "HIVE"
       ? await prisma.productAccountLink.findFirst({
           where: { enaUserId, productType: moduleKey, status: { not: "DELETED" } },
           select: { status: true },

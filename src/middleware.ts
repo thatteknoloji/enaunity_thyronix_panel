@@ -49,6 +49,7 @@ function jsonError(status: number, message: string) {
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const isApi = pathname.startsWith("/api/");
+  const token = request.cookies.get("token")?.value;
 
   // ── Redirect old /nexa/* to /thyronix/* ──
   if (pathname.startsWith("/nexa/") || pathname === "/nexa") {
@@ -87,9 +88,75 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL("/auth/login", request.url));
   }
 
+  // ── LinkSlash static app (SPA assets) — lisans gerekli ──
+  if (
+    pathname.startsWith("/linkslash/") &&
+    pathname !== "/linkslash" &&
+    !pathname.startsWith("/linkslash/page")
+  ) {
+    if (!token) {
+      const loginUrl = new URL("/auth/login", request.url);
+      loginUrl.searchParams.set("redirect", pathname);
+      return NextResponse.redirect(loginUrl);
+    }
+    const payloadLs = await verifyJWT(token);
+    if (!payloadLs) {
+      return NextResponse.redirect(new URL("/auth/login", request.url));
+    }
+    if (isAdminRole((payloadLs.role as string) || "")) return NextResponse.next();
+    const dealerIdLs = (payloadLs as { dealerId?: string }).dealerId;
+    if (dealerIdLs) {
+      try {
+        const checkRes = await fetch(
+          `${request.nextUrl.origin}/api/internal/check-module-access?dealerId=${dealerIdLs}&moduleKey=LINKSLASH`
+        );
+        const checkData = await checkRes.json();
+        if (!checkData.access) {
+          if (checkData.reason === "LISANS_YOK") {
+            return NextResponse.redirect(new URL("/payment/checkout?moduleKey=LINKSLASH&planKey=starter", request.url));
+          }
+          return NextResponse.redirect(new URL("/gateway/linkslash", request.url));
+        }
+        return NextResponse.next();
+      } catch {
+        return NextResponse.redirect(new URL("/gateway/linkslash", request.url));
+      }
+    }
+    return NextResponse.redirect(new URL("/gateway/linkslash", request.url));
+  }
+
+  // ── LinkSlash dealer route ──
+  if (pathname.startsWith("/dealer/linkslash")) {
+    if (!token) {
+      const loginUrl = new URL("/auth/login", request.url);
+      loginUrl.searchParams.set("redirect", pathname);
+      return NextResponse.redirect(loginUrl);
+    }
+    const payloadLs = await verifyJWT(token);
+    if (!payloadLs) return NextResponse.redirect(new URL("/auth/login", request.url));
+    if (isAdminRole((payloadLs.role as string) || "")) return NextResponse.next();
+    const dealerIdLs = (payloadLs as { dealerId?: string }).dealerId;
+    if (dealerIdLs) {
+      try {
+        const checkRes = await fetch(
+          `${request.nextUrl.origin}/api/internal/check-module-access?dealerId=${dealerIdLs}&moduleKey=LINKSLASH`
+        );
+        const checkData = await checkRes.json();
+        if (!checkData.access) {
+          if (checkData.reason === "LISANS_YOK") {
+            return NextResponse.redirect(new URL("/payment/checkout?moduleKey=LINKSLASH&planKey=starter", request.url));
+          }
+          return NextResponse.redirect(new URL("/gateway/linkslash", request.url));
+        }
+      } catch {
+        return NextResponse.redirect(new URL("/gateway/linkslash", request.url));
+      }
+    }
+    return NextResponse.next();
+  }
+
   // ── Product Gateway (ENA session required) ──
   if (pathname.startsWith("/gateway")) {
-    const token = request.cookies.get("token")?.value;
     if (!token) {
       const loginUrl = new URL("/auth/login", request.url);
       loginUrl.searchParams.set("redirect", pathname);
@@ -131,8 +198,6 @@ export async function middleware(request: NextRequest) {
       }
     }
   }
-
-  const token = request.cookies.get("token")?.value;
 
   if (!token) {
     if (isApi) return jsonError(401, "Oturum bulunamadı");
@@ -280,6 +345,30 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
+  const isLinkSlashApi = pathname.startsWith("/api/linkslash/");
+  if (isLinkSlashApi) {
+    if (pathname === "/api/linkslash/session" && request.method === "GET") {
+      return NextResponse.next();
+    }
+    if (!token) return jsonError(401, "Oturum bulunamadı");
+    const payloadLs = await verifyJWT(token);
+    if (!payloadLs) return jsonError(401, "Geçersiz oturum");
+    if (!isAdminRole((payloadLs.role as string) || "")) {
+      const dealerIdLs = (payloadLs as { dealerId?: string }).dealerId;
+      if (!dealerIdLs) return jsonError(403, "Yetkisiz erişim");
+      try {
+        const checkRes = await fetch(
+          `${request.nextUrl.origin}/api/internal/check-module-access?dealerId=${dealerIdLs}&moduleKey=LINKSLASH`
+        );
+        const checkData = await checkRes.json();
+        if (!checkData.access) return jsonError(403, checkData.reason || "LinkSlash lisansı gerekli");
+      } catch {
+        return jsonError(403, "LinkSlash lisans kontrolü başarısız");
+      }
+    }
+    return NextResponse.next();
+  }
+
   const isMarketplaceHubApi = pathname.startsWith("/api/marketplace-hub");
   if (isMarketplaceHubApi) {
     if (pathname.startsWith("/api/marketplace-hub/webhooks")) return NextResponse.next();
@@ -305,5 +394,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/admin", "/admin/:path*", "/thyronix", "/thyronix/:path*", "/hive", "/hive/:path*", "/gateway", "/gateway/:path*", "/nexa", "/nexa/:path*", "/x-control-eu-7294", "/x-control-eu-7294/:path*", "/account", "/account/:path*", "/dealer", "/dealer/:path*", "/product-library", "/product-library/:path*", "/api/dealer/:path*", "/api/admin/:path*", "/api/thyronix/:path*", "/api/nexa/:path*", "/api/product-library", "/api/product-library/:path*", "/api/fulfillment", "/api/fulfillment/:path*", "/api/my", "/api/my/:path*", "/api/marketplace-hub", "/api/marketplace-hub/:path*", "/api/product-links", "/api/product-links/:path*", "/api/product-auth/:path*", "/api/gateway/:path*", "/login", "/giris"],
+  matcher: ["/admin", "/admin/:path*", "/thyronix", "/thyronix/:path*", "/hive", "/hive/:path*", "/gateway", "/gateway/:path*", "/linkslash", "/linkslash/:path*", "/nexa", "/nexa/:path*", "/x-control-eu-7294", "/x-control-eu-7294/:path*", "/account", "/account/:path*", "/dealer", "/dealer/:path*", "/product-library", "/product-library/:path*", "/api/dealer/:path*", "/api/admin/:path*", "/api/thyronix/:path*", "/api/nexa/:path*", "/api/product-library", "/api/product-library/:path*", "/api/fulfillment", "/api/fulfillment/:path*", "/api/my", "/api/my/:path*", "/api/marketplace-hub", "/api/marketplace-hub/:path*", "/api/product-links", "/api/product-links/:path*", "/api/product-auth/:path*", "/api/gateway/:path*", "/api/linkslash/:path*", "/login", "/giris"],
 };

@@ -24,13 +24,23 @@ async function uploadEditorImage(file: File): Promise<string | null> {
   const fd = new FormData();
   fd.append("file", file);
   fd.append("kind", "content");
-  const r = await fetch("/api/admin/homepage/upload", { method: "POST", body: fd });
-  const d = await r.json();
-  if (!d.success) {
-    toast.error(d.error || "Görsel yüklenemedi");
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 120_000);
+  try {
+    const r = await fetch("/api/admin/homepage/upload", { method: "POST", body: fd, signal: controller.signal });
+    const d = await r.json();
+    if (!r.ok || !d.success) {
+      toast.error(d.error || `Yükleme başarısız (${r.status})`);
+      return null;
+    }
+    return d.data.url as string;
+  } catch (err) {
+    const msg = err instanceof Error && err.name === "AbortError" ? "Yükleme zaman aşımına uğradı" : "Görsel yüklenemedi";
+    toast.error(msg);
     return null;
+  } finally {
+    clearTimeout(timer);
   }
-  return d.data.url as string;
 }
 
 export default function RichTextEditor({
@@ -272,7 +282,7 @@ export default function RichTextEditor({
       </div>
       {enableImages ? (
         <p className="mt-1.5 text-[11px] text-gray-400">
-          JPG, PNG, WebP veya GIF yükleyin — sürükleyip bırakın veya panodan yapıştırın (max 8 MB).
+          JPG, PNG, WebP veya GIF yükleyin — otomatik sıkıştırılır (max 30 MB kaynak, ~1920px genişlik).
         </p>
       ) : null}
     </div>

@@ -2306,3 +2306,27 @@ model ThyronixBulkJob {
   @@index([status])
   @@index([tenantDealerId])
 }
+
+// LinkSlash Chrome Extension capture queue (synced to IndexedDB on app load)
+model LinkSlashCapture {
+  id          String   @id @default(cuid())
+  userId      String
+  dealerId    String   @default("")
+  url         String
+  title       String   @default("")
+  description String   @default("")
+  image       String   @default("")
+  favicon     String   @default("")
+  domain      String   @default("")
+  sourceType  String   @default("other")
+  tagsJson    String   @default("[]")
+  aiSummary   String   @default("")
+  aiCategory  String   @default("")
+  status      String   @default("pending") // pending | synced
+  createdAt   DateTime @default(now())
+  syncedAt    DateTime?
+
+  @@index([userId, status])
+  @@index([dealerId])
+  @@index([url])
+}

@@ -1,0 +1,83 @@
+{
+  "name": "LinkSlash",
+  "short_name": "LinkSlash",
+  "description": "Kendi dijital kütüphanen. Linkleri topla, AI ile kategorize et, asla kaybetme.",
+  "start_url": "/linkslash/",
+  "display": "standalone",
+  "background_color": "#0f0f13",
+  "theme_color": "#6366f1",
+  "orientation": "portrait-primary",
+  "id": "/linkslash/",
+  "scope": "/linkslash/",
+  "lang": "tr",
+  "categories": ["productivity", "utilities"],
+  "prefer_related_applications": false,
+  "icons": [
+    {
+      "src": "/linkslash/icon16.png",
+      "sizes": "16x16",
+      "type": "image/png"
+    },
+    {
+      "src": "/linkslash/icon48.png",
+      "sizes": "48x48",
+      "type": "image/png"
+    },
+    {
+      "src": "/linkslash/icon96.png",
+      "sizes": "96x96",
+      "type": "image/png"
+    },
+    {
+      "src": "/linkslash/icon128.png",
+      "sizes": "128x128",
+      "type": "image/png"
+    },
+    {
+      "src": "/linkslash/icon192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/linkslash/icon512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Yeni Link Ekle",
+      "short_name": "Link Ekle",
+      "description": "Hızlıca yeni link ekle",
+      "url": "/linkslash/#add",
+      "icons": [
+        { "src": "/linkslash/icon96.png", "sizes": "96x96", "type": "image/png" }
+      ]
+    },
+    {
+      "name": "Tüm Linkler",
+      "short_name": "Linkler",
+      "description": "Tüm linklerini gör",
+      "url": "/linkslash/#all",
+      "icons": [
+        { "src": "/linkslash/icon96.png", "sizes": "96x96", "type": "image/png" }
+      ]
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/linkslash/screenshot1.png",
+      "sizes": "1280x800",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "LinkSlash Dashboard"
+    },
+    {
+      "src": "/linkslash/screenshot2.png",
+      "sizes": "1280x800",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Tüm Linkler Görünümü"
+    }
+  ]
+}

@@ -1,4 +1,4 @@
-export const CUSTOMER_PRODUCT_KEYS = ["ENA_COMMERCE", "THYRONIX", "HIVE", "PRODUCT_LIBRARY"] as const;
+export const CUSTOMER_PRODUCT_KEYS = ["ENA_COMMERCE", "THYRONIX", "HIVE", "PRODUCT_LIBRARY", "LINKSLASH"] as const;
 export type CustomerProductKey = (typeof CUSTOMER_PRODUCT_KEYS)[number];
 
 export const UNIFIED_STATUSES = ["ACTIVE", "TRIAL", "PENDING", "INACTIVE", "EXPIRED"] as const;
@@ -39,6 +39,14 @@ export const PRODUCT_META: Record<
     gatewayPath: "/product-library",
     pricingPath: "/product-library",
     appPath: "/product-library",
+  },
+  LINKSLASH: {
+    label: "LinkSlash",
+    description: "AI destekli kişisel link kütüphanesi ve WhatsApp import",
+    color: "cyan",
+    gatewayPath: "/gateway/linkslash",
+    pricingPath: "/payment/checkout?moduleKey=LINKSLASH&planKey=starter",
+    appPath: "/dealer/linkslash",
   },
 };
 

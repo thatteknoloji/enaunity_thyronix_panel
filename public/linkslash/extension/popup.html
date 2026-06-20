@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>LinkSlash</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      width: 360px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #0f1117;
+      color: #e8e8ef;
+      padding: 16px;
+    }
+    .header { display: flex; align-items: center; gap: 8px; margin-bottom: 14px; }
+    .logo { font-size: 18px; font-weight: 800; color: #22d3ee; }
+    .badge {
+      font-size: 10px; padding: 2px 8px; border-radius: 999px;
+      background: rgba(34,211,238,0.15); color: #67e8f9; text-transform: uppercase;
+    }
+    .field { margin-bottom: 10px; }
+    label { display: block; font-size: 10px; color: #888; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.4px; }
+    .value-box {
+      padding: 8px 10px; background: #161925; border: 1px solid #2a2f3d;
+      border-radius: 8px; font-size: 12px; word-break: break-word; color: #c5c9d6;
+    }
+    .title-box { font-size: 13px; font-weight: 600; color: #fff; }
+    .meta-row { display: flex; gap: 8px; }
+    .meta-row .field { flex: 1; }
+    .tags { display: flex; flex-wrap: wrap; gap: 4px; min-height: 24px; }
+    .tag {
+      font-size: 10px; padding: 3px 8px; border-radius: 999px;
+      background: #1e2433; border: 1px solid #333; color: #aab;
+    }
+    .btn {
+      width: 100%; padding: 12px; border: none; border-radius: 8px;
+      background: linear-gradient(135deg, #06b6d4, #0891b2);
+      color: #fff; font-size: 14px; font-weight: 700; cursor: pointer;
+      transition: opacity 0.2s;
+    }
+    .btn:hover { opacity: 0.92; }
+    .btn:disabled { opacity: 0.45; cursor: not-allowed; }
+    .btn-secondary {
+      margin-top: 8px; background: transparent; border: 1px solid #333; color: #aaa; font-weight: 500;
+    }
+    .status { font-size: 12px; margin-top: 10px; text-align: center; min-height: 18px; }
+    .status.ok { color: #4ade80; }
+    .status.err { color: #f87171; }
+    .status.info { color: #67e8f9; }
+    .auth-box {
+      padding: 10px; border-radius: 8px; background: rgba(248,113,113,0.08);
+      border: 1px solid rgba(248,113,113,0.25); font-size: 12px; color: #fca5a5;
+      margin-bottom: 10px; display: none;
+    }
+    .footer { font-size: 10px; color: #555; text-align: center; margin-top: 12px; }
+    .preview-img {
+      width: 100%; max-height: 80px; object-fit: cover; border-radius: 8px;
+      margin-bottom: 8px; display: none; border: 1px solid #2a2f3d;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="logo">🔗 LinkSlash</div>
+    <div class="badge">ENAUNITY</div>
+  </div>
+
+  <div class="auth-box" id="authBox"></div>
+
+  <img class="preview-img" id="previewImg" alt="">
+
+  <div class="field">
+    <label>Başlık</label>
+    <div class="value-box title-box" id="titleDisplay">Yükleniyor...</div>
+  </div>
+
+  <div class="meta-row">
+    <div class="field">
+      <label>Domain</label>
+      <div class="value-box" id="domainDisplay">—</div>
+    </div>
+    <div class="field">
+      <label>Kaynak</label>
+      <div class="value-box" id="sourceDisplay">—</div>
+    </div>
+  </div>
+
+  <div class="field">
+    <label>Etiketler</label>
+    <div class="tags" id="tagsDisplay"></div>
+  </div>
+
+  <div class="field">
+    <label>URL</label>
+    <div class="value-box" id="urlDisplay" style="max-height:36px;overflow:hidden;"></div>
+  </div>
+
+  <button class="btn" id="saveBtn">📥 LinkSlash'a Kaydet</button>
+  <button class="btn btn-secondary" id="openAppBtn" style="display:none;">LinkSlash'ı Aç</button>
+
+  <div class="status" id="status"></div>
+  <div class="footer">LinkSlash Extension v1.2 · ENAUNITY</div>
+
+  <script src="config.js"></script>
+  <script src="api.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>

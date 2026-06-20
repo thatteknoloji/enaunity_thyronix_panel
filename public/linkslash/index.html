@@ -1,0 +1,1085 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="description" content="LinkSlash — Kişisel link yöneticisi. WhatsApp'tan linkleri içe aktar, AI ile kategorize et, kolayca ara ve filtrele.">
+  <meta name="theme-color" content="#6366f1">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="LinkSlash">
+  <title>LinkSlash — Kişisel Link Yöneticisi</title>
+  <link rel="manifest" href="/linkslash/manifest.json">
+  <link rel="icon" type="image/png" sizes="32x32" href="/linkslash/icon96.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="/linkslash/icon192.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css?v=trash-1">
+</head>
+<body>
+  <div class="app" id="app">
+
+    <!-- ========== WELCOME SCREEN (ilk kullanım) ========== -->
+    <div class="welcome hidden" id="welcomeScreen">
+      <div class="welcome-content">
+        <div class="welcome-logo">
+          <span class="welcome-icon">🔗</span>
+          <h1 class="welcome-title">Link<span class="text-accent">Slash</span></h1>
+          <p class="welcome-subtitle">Linklerini topla, kategorize et, bir daha kaybetme.</p>
+        </div>
+        <div class="welcome-steps">
+          <div class="welcome-step">
+            <div class="welcome-step-number">1</div>
+            <div class="welcome-step-content">
+              <h3>WhatsApp Dışa Aktar</h3>
+              <p>WhatsApp'ta kendinle olan sohbete git → ⋮ → Sohbeti Dışa Aktar → Medyasız</p>
+            </div>
+          </div>
+          <div class="welcome-step">
+            <div class="welcome-step-number">2</div>
+            <div class="welcome-step-content">
+              <h3>Dosyayı Yükle</h3>
+              <p>.txt dosyasını uygulamaya sürükle-bırak. Tüm linkler otomatik çıkarılır.</p>
+            </div>
+          </div>
+          <div class="welcome-step">
+            <div class="welcome-step-number">3</div>
+            <div class="welcome-step-content">
+              <h3>AI ile Kategorize Et</h3>
+              <p>Groq API key'ini gir, AI linkleri otomatik kategorize etsin.</p>
+            </div>
+          </div>
+        </div>
+        <div class="welcome-actions">
+          <button class="btn btn-primary btn-lg" id="welcomeImportBtn">
+            📥 WhatsApp Dosyası Yükle
+          </button>
+          <button class="btn btn-secondary btn-lg" id="welcomeSkipBtn">
+            Atla ve Başla →
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========== ANA UYGULAMA ========== -->
+    <div class="app-layout hidden" id="appLayout">
+
+      <!-- HEADER -->
+      <header class="app-header" id="appHeader">
+        <div class="header-left">
+          <button class="btn btn-ghost btn-icon sidebar-toggle" id="sidebarToggle" title="Menü">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M3 12h18M3 6h18M3 18h18"/>
+            </svg>
+          </button>
+          <div class="header-logo">
+            <span class="logo-icon">🔗</span>
+            <span class="logo-text">Link<span class="text-accent">Slash</span></span>
+          </div>
+        </div>
+        <div class="header-center">
+          <div class="search-container" id="searchContainer">
+            <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+            </svg>
+            <input type="text" class="search-input" id="searchInput" placeholder="Linklerde ara... (Ctrl+K)" autocomplete="off">
+            <button class="search-clear hidden" id="searchClear" title="Temizle">×</button>
+            <kbd class="search-kbd">Ctrl+K</kbd>
+          </div>
+        </div>
+        <div class="header-right">
+          <button class="btn btn-ghost btn-icon" id="addLinkBtn" title="Yeni Link (Ctrl+N)">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 5v14M5 12h14"/>
+            </svg>
+          </button>
+          <button class="btn btn-ghost btn-icon" id="importBtn" title="WhatsApp İçe Aktar (Ctrl+I)">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/>
+            </svg>
+          </button>
+          <button class="btn btn-accent btn-sm" id="autoOrganizeBtn" title="Tum linkleri AI ile odalara yerlestir">
+            <span>✨</span> AI ile Düzenle
+          </button>
+          <button class="btn btn-ghost btn-icon" id="quickBackupBtn" title="Yedek Al (JSON)">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/>
+            </svg>
+          </button>
+          <button class="btn btn-ghost btn-icon" id="bulkAIBtn" title="Toplu AI Kategorizasyon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8z"/>
+              <path d="M12 6v6l4 2"/>
+            </svg>
+          </button>
+          <button class="btn btn-ghost btn-icon" id="themeToggle" title="Tema Değiştir">
+            <svg class="theme-icon-dark" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+            </svg>
+            <svg class="theme-icon-light" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none">
+              <circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+            </svg>
+          </button>
+          <button class="btn btn-ghost btn-icon" id="settingsBtn" title="Ayarlar">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+            </svg>
+          </button>
+        </div>
+      </header>
+
+      <div class="loading-bar" id="loadingBar"></div>
+
+      <div class="app-content">
+
+        <!-- SIDEBAR -->
+        <aside class="sidebar" id="sidebar">
+          <!-- Odalar -->
+          <div class="sidebar-section">
+            <div class="sidebar-title">ODALAR</div>
+            <div id="sidebarCategories">
+              <button class="sidebar-item active" data-filter="all">
+                <span class="sidebar-item-emoji">📋</span>
+                <span class="sidebar-item-name">Tümü</span>
+                <span class="sidebar-item-count" id="countAll">0</span>
+              </button>
+              <button class="sidebar-item" data-filter="favorites">
+                <span class="sidebar-item-emoji">⭐</span>
+                <span class="sidebar-item-name">Favoriler</span>
+                <span class="sidebar-item-count" id="countFavorites">0</span>
+              </button>
+              <button class="sidebar-item" data-filter="uncategorized">
+                <span class="sidebar-item-emoji">📂</span>
+                <span class="sidebar-item-name">Odasiz</span>
+                <span class="sidebar-item-count" id="countUncategorized">0</span>
+              </button>
+
+              <!-- Dinamik kategoriler buraya eklenecek -->
+              <div id="dynamicCategories"></div>
+            </div>
+          </div>
+
+          <!-- Bölümler -->
+          <div class="sidebar-section" id="sidebarSections">
+            <div class="sidebar-title">BÖLÜMLER</div>
+            <button class="sidebar-item" data-filter="archived-view">
+              <span class="sidebar-item-emoji">📦</span>
+              <span class="sidebar-item-name">Arşiv</span>
+              <span class="sidebar-item-count" id="countArchivedSection">0</span>
+            </button>
+            <button class="sidebar-item" data-filter="trash-view">
+              <span class="sidebar-item-emoji">🗑️</span>
+              <span class="sidebar-item-name">Çöp Kutusu</span>
+              <span class="sidebar-item-count" id="countTrash">0</span>
+            </button>
+            <button class="sidebar-item" data-filter="bookmarks">
+              <span class="sidebar-item-emoji">🔖</span>
+              <span class="sidebar-item-name">Yer İmleri</span>
+              <span class="sidebar-item-count" id="countBookmarks">0</span>
+            </button>
+            <button class="sidebar-item" data-filter="dead-links">
+              <span class="sidebar-item-emoji">💀</span>
+              <span class="sidebar-item-name">Ölü Linkler</span>
+              <span class="sidebar-item-count" id="countDeadLinks">0</span>
+            </button>
+            <button class="sidebar-item" data-filter="memory">
+              <span class="sidebar-item-emoji">🧠</span>
+              <span class="sidebar-item-name">Hafıza</span>
+              <span class="sidebar-item-count" id="countMemorySection">0</span>
+            </button>
+          </div>
+
+          <!-- Platformlar -->
+          <div class="sidebar-section">
+            <div class="sidebar-title">PLATFORMLAR</div>
+            <div id="sidebarPlatforms">
+              <!-- Dinamik platform filtreleri -->
+            </div>
+          </div>
+
+          <!-- Etiketler -->
+          <div class="sidebar-section" id="sidebarTagsSection">
+            <div class="sidebar-title">
+              <span>ETİKETLER</span>
+              <button class="btn btn-ghost btn-icon btn-sm" id="manageTagsBtn" title="Etiketleri Yönet">⚙️</button>
+            </div>
+            <div id="sidebarTags">
+              <!-- Dinamik etiketler -->
+            </div>
+          </div>
+
+          <!-- Alt kısım -->
+          <div class="sidebar-footer">
+            <button class="sidebar-item" id="sidebarManageCategories">
+              <span class="sidebar-item-emoji">⚙️</span>
+              <span class="sidebar-item-name">Odalari Yonet</span>
+            </button>
+          </div>
+        </aside>
+
+        <!-- Mobile sidebar backdrop -->
+        <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
+        <!-- MAIN CONTENT -->
+        <main class="main" id="mainContent">
+
+          <!-- ===== DASHBOARD VIEW ===== -->
+          <div class="view" id="viewDashboard">
+            <div class="stats-grid" id="statsGrid">
+              <div class="stat-card" style="--stat-icon: '📎';--stat-color: #6c5ce7">
+                <div class="stat-icon">📎</div>
+                <div class="stat-body">
+                  <div class="stat-number" id="statTotal">0</div>
+                  <div class="stat-label">Toplam Link</div>
+                </div>
+              </div>
+              <div class="stat-card" style="--stat-icon: '📁';--stat-color: #2ecc71">
+                <div class="stat-icon">📁</div>
+                <div class="stat-body">
+                  <div class="stat-number" id="statCategories">0</div>
+                  <div class="stat-label">Kategori</div>
+                </div>
+              </div>
+              <div class="stat-card" style="--stat-icon: '🌐';--stat-color: #3498db">
+                <div class="stat-icon">🌐</div>
+                <div class="stat-body">
+                  <div class="stat-number" id="statPlatforms">0</div>
+                  <div class="stat-label">Platform</div>
+                </div>
+              </div>
+              <div class="stat-card" style="--stat-icon: '⭐';--stat-color: #f1c40f">
+                <div class="stat-icon">⭐</div>
+                <div class="stat-body">
+                  <div class="stat-number" id="statFavorites">0</div>
+                  <div class="stat-label">Favori</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="section-header">
+              <h2 class="section-title">Odalar</h2>
+            </div>
+            <div class="category-grid" id="categoryGrid">
+              <!-- Dinamik kategori kartları -->
+            </div>
+
+            <div class="section-header mt-lg">
+              <h2 class="section-title">Son Eklenenler</h2>
+              <button class="btn btn-ghost btn-sm" id="viewAllLinksBtn">Tümünü Gör →</button>
+            </div>
+            <div class="links-list" id="recentLinks">
+              <!-- Son eklenen link kartları -->
+            </div>
+          </div>
+
+          <!-- ===== LINKS LIST VIEW ===== -->
+          <div class="view hidden" id="viewLinks">
+            <div class="toolbar" id="toolbar">
+              <div class="toolbar-left">
+                <div class="toolbar-back hidden" id="toolbarBack">
+                  <button class="btn btn-ghost btn-sm" id="bookmarkBackBtn">🔙 Tüm Klasörler</button>
+                </div>
+                <h2 class="toolbar-title" id="toolbarTitle">Tüm Linkler</h2>
+                <span class="toolbar-count" id="toolbarCount">0 link</span>
+              </div>
+              <div class="toolbar-right">
+                <div class="toolbar-group" id="bulkActions" style="display:none;">
+                  <span class="toolbar-selection-count" id="selectionCount">0 seçili</span>
+                  <button class="btn btn-sm btn-secondary" id="bulkCategoryBtn">📂 Kategori Ata</button>
+                  <button class="btn btn-sm btn-secondary" id="bulkTagBtn">🏷️ Etiket Ata</button>
+                  <button class="btn btn-sm btn-secondary" id="bulkArchiveBtn">📦 Arşivle</button>
+                  <button class="btn btn-sm btn-secondary" id="bulkFavoriteBtn">⭐ Favori Yap</button>
+                  <button class="btn btn-sm btn-danger" id="bulkDeleteBtn">🗑️ Sil</button>
+                  <button class="btn btn-sm btn-ghost" id="bulkDeselectBtn">Seçimi Kaldır</button>
+                </div>
+                <button class="btn btn-sm btn-ghost" id="selectAllLinksBtn">Tümünü Seç</button>
+                <button class="btn btn-sm btn-secondary" id="batchSummarizeBtn" title="Özeti olmayan linkleri özetle">📝 Toplu Özetle</button>
+                <button class="btn btn-sm btn-secondary" id="checkLinksBtn" title="Tüm linklerin erişilebilirliğini kontrol et">🔗 Kontrol Et</button>
+                <button class="btn btn-sm btn-ghost" id="toggleFilterPanelBtn" title="Gelişmiş filtreler">🔽</button>
+                <select class="form-select form-select-sm" id="sortSelect">
+                  <option value="dateAdded-desc">En Yeni</option>
+                  <option value="dateAdded-asc">En Eski</option>
+                  <option value="title-asc">Başlık (A-Z)</option>
+                  <option value="title-desc">Başlık (Z-A)</option>
+                  <option value="platform-asc">Platform</option>
+                </select>
+              </div>
+            </div>
+            <div class="filter-panel hidden" id="filterPanel">
+              <div class="filter-panel-row">
+                <div class="filter-panel-group">
+                  <label class="filter-panel-label">Başlangıç</label>
+                  <input type="date" class="form-input form-input-sm" id="filterDateFrom">
+                </div>
+                <div class="filter-panel-group">
+                  <label class="filter-panel-label">Bitiş</label>
+                  <input type="date" class="form-input form-input-sm" id="filterDateTo">
+                </div>
+                <div class="filter-panel-group">
+                  <label class="filter-panel-label">Daha eski</label>
+                  <button class="btn btn-sm btn-ghost filter-quick-btn" data-days="7">7 gün</button>
+                  <button class="btn btn-sm btn-ghost filter-quick-btn" data-days="30">30 gün</button>
+                  <button class="btn btn-sm btn-ghost filter-quick-btn" data-days="90">3 ay</button>
+                </div>
+                <div class="filter-panel-group filter-panel-actions">
+                  <button class="btn btn-sm btn-secondary" id="applyFiltersBtn">🔍 Uygula</button>
+                  <button class="btn btn-sm btn-ghost" id="clearFiltersBtn">Temizle</button>
+                </div>
+              </div>
+            </div>
+            <div class="filter-tags hidden" id="filterTags"></div>
+            <div class="links-list" id="linksList">
+              <!-- Link kartları -->
+            </div>
+            <div class="empty-state hidden" id="emptyState">
+              <div class="empty-state-icon">🔍</div>
+              <h3>Hiç link bulunamadı</h3>
+              <p>Filtreleri değiştirmeyi veya yeni link eklemeyi dene.</p>
+            </div>
+          </div>
+
+          <!-- ===== IMPORT VIEW ===== -->
+          <div class="view hidden" id="viewImport">
+            <div class="section-header">
+              <h2 class="section-title">📥 İçe Aktar</h2>
+            </div>
+
+            <div class="import-tabs">
+              <button class="btn btn-sm btn-secondary import-tab active" data-import-mode="whatsapp">💬 WhatsApp</button>
+              <button class="btn btn-sm btn-secondary import-tab" data-import-mode="bookmark">🔖 Yer İmi (HTML)</button>
+            </div>
+
+            <div class="drop-zone" id="dropZone">
+              <div class="drop-zone-content">
+                <div class="drop-zone-icon">
+                  <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/>
+                  </svg>
+                </div>
+                <p class="drop-zone-text" id="dropZoneText">WhatsApp export dosyasını buraya sürükle-bırak</p>
+                <p class="drop-zone-hint" id="dropZoneHint">veya tıklayarak dosya seç (.txt)</p>
+                <input type="file" id="fileInput" accept=".txt,.html,.htm" class="hidden">
+              </div>
+            </div>
+
+            <div class="hidden" id="undoImportBar" style="margin-bottom: var(--sp-4);">
+              <button class="btn btn-ghost btn-sm" id="undoImportBtn">
+                ↩️ Son Yer İmi Importunu Geri Al
+              </button>
+            </div>
+
+            <!-- Parse sonuçları -->
+            <div class="import-results hidden" id="importResults">
+              <div class="import-stats" id="importStats">
+                <!-- Parse istatistikleri -->
+              </div>
+
+              <div class="import-actions">
+                <button class="btn btn-primary" id="aiCategorizeBtn">
+                  🤖 AI ile Kategorize Et
+                </button>
+                <button class="btn btn-secondary" id="selectAllImportBtn">Tümünü Seç</button>
+                <button class="btn btn-secondary" id="manualCategoryImportBtn">Seçilenlere Kategori Ata</button>
+                <button class="btn btn-primary" id="saveImportBtn">
+                  💾 Seçilenleri Kaydet
+                </button>
+              </div>
+
+              <div class="import-table-wrapper">
+                <table class="import-table" id="importTable">
+                  <thead>
+                    <tr>
+                      <th class="import-th-check"><input type="checkbox" id="importSelectAll"></th>
+                      <th>Platform</th>
+                      <th>URL</th>
+                      <th>Bağlam</th>
+                      <th>Kategori</th>
+                      <th>Tarih</th>
+                    </tr>
+                  </thead>
+                  <tbody id="importTableBody">
+                    <!-- Dinamik satırlar -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- ===== BULK AI VIEW ===== -->
+          <div class="view hidden" id="viewBulkAI">
+            <div class="section-header">
+              <h2 class="section-title">🤖 Toplu AI Kategorizasyon</h2>
+            </div>
+
+            <div class="settings-section">
+              <h3 class="settings-section-title">📊 Durum</h3>
+              <div class="bulk-ai-stats" id="bulkAIStats">
+                <div class="bulk-ai-stat">
+                  <span class="bulk-ai-stat-number" id="bulkStatTotal">0</span>
+                  <span class="bulk-ai-stat-label">Toplam Link</span>
+                </div>
+                <div class="bulk-ai-stat">
+                  <span class="bulk-ai-stat-number" id="bulkStatUncategorized">0</span>
+                  <span class="bulk-ai-stat-label">Odasiz</span>
+                </div>
+                <div class="bulk-ai-stat">
+                  <span class="bulk-ai-stat-number" id="bulkStatCategorized">0</span>
+                  <span class="bulk-ai-stat-label">Odaya Yerlesmis</span>
+                </div>
+              </div>
+
+              <div class="bulk-ai-actions">
+                <button class="btn btn-primary" id="startBulkAIBtn">
+                  🚀 AI ile Odaya Yerlestir (Tum Odasizlar)
+                </button>
+                <button class="btn btn-secondary" id="startBulkAIAllBtn">
+                  🔄 Tum Linkleri Yeniden Odaya Yerlestir
+                </button>
+              </div>
+
+              <!-- Ajan Modu -->
+              <div class="bulk-ai-options" style="margin-top:var(--sp-4);border-top:2px solid var(--accent);padding-top:var(--sp-4);">
+                <label class="form-label">🤖 Dijital Kütüphane Ajanı</label>
+                <p class="text-muted text-sm" style="margin-bottom:var(--sp-3);">Linkleri derinlemesine araştır, içeriklerini oku ve özel kriterlere göre kategorize et.</p>
+                <div class="bulk-ai-checkboxes" style="margin-bottom:var(--sp-3);">
+                  <label class="checkbox-label">
+                    <input type="checkbox" class="agent-platform" value="x" checked>
+                    <span>X (Twitter)</span>
+                  </label>
+                  <label class="checkbox-label">
+                    <input type="checkbox" class="agent-platform" value="youtube" checked>
+                    <span>YouTube</span>
+                  </label>
+                  <label class="checkbox-label">
+                    <input type="checkbox" class="agent-platform" value="instagram">
+                    <span>Instagram</span>
+                  </label>
+                  <label class="checkbox-label">
+                    <input type="checkbox" class="agent-platform" value="github">
+                    <span>GitHub</span>
+                  </label>
+                </div>
+                <div style="display:flex;gap:var(--sp-3);margin-bottom:var(--sp-3);">
+                  <input type="text" class="form-input" id="agentCriteria" placeholder="Araştırma kriteri (örn: AI ile alakalı, iş haberleri, eğitim videoları...)" style="flex:1;">
+                </div>
+                <button class="btn btn-accent" id="startAgentBtn" style="background:linear-gradient(135deg, #667eea 0%, #764ba2 100%);color:#fff;border:none;">
+                  🔍 Ajanı Gönder (Araştır & Kategorize Et)
+                </button>
+              </div>
+
+              <div class="bulk-ai-options">
+                <label class="form-label">AI Çıktısı</label>
+                <div class="bulk-ai-checkboxes">
+                  <label class="checkbox-label">
+                    <input type="checkbox" id="bulkAIGenerateSummary" checked>
+                    <span>Özet (description) oluştur</span>
+                  </label>
+                  <label class="checkbox-label">
+                    <input type="checkbox" id="bulkAIGenerateTags" checked>
+                    <span>Etiket öner</span>
+                  </label>
+                  <label class="checkbox-label">
+                    <input type="checkbox" id="bulkAIOverwriteExisting">
+                    <span>Mevcut odayi degistir</span>
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <!-- İlerleme -->
+            <div class="bulk-ai-progress hidden" id="bulkAIProgress">
+              <div class="ai-progress-bar">
+                <div class="ai-progress-fill" id="bulkAIProgressFill" style="width: 0%"></div>
+              </div>
+              <p class="ai-progress-text" id="bulkAIProgressText">Hazırlanıyor...</p>
+              <p class="bulk-ai-estimate" id="bulkAIEstimate"></p>
+              <button class="btn btn-danger btn-sm hidden" id="cancelBulkAIBtn" style="margin-top:var(--sp-3);">
+                ⏹ İptal Et
+              </button>
+            </div>
+
+            <!-- Sonuçlar -->
+            <div class="bulk-ai-results hidden" id="bulkAIResults">
+              <div class="toolbar">
+                <div class="toolbar-left">
+                  <h3>AI Önerileri</h3>
+                  <span id="bulkAIResultCount">0 öneri</span>
+                </div>
+                <div class="toolbar-right">
+                  <button class="btn btn-primary" id="bulkAIApplyAllBtn">Tümünü Uygula</button>
+                  <button class="btn btn-secondary" id="bulkAISelectAllBtn">Tümünü Seç</button>
+                  <button class="btn btn-ghost" id="bulkAIDeselectAllBtn">Seçimi Kaldır</button>
+                </div>
+              </div>
+              <div class="bulk-ai-table-wrapper">
+                <table class="import-table" id="bulkAITable">
+                  <thead>
+                    <tr>
+                      <th><input type="checkbox" id="bulkAISelectAllCheck"></th>
+                      <th>Link</th>
+                      <th>Mevcut Kategori</th>
+                      <th>AI Önerisi</th>
+                      <th>Özet</th>
+                      <th>Etiketler</th>
+                    </tr>
+                  </thead>
+                  <tbody id="bulkAITableBody"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- ===== SETTINGS VIEW ===== -->
+          <div class="view hidden" id="viewSettings">
+            <div class="section-header">
+              <h2 class="section-title">⚙️ Ayarlar</h2>
+            </div>
+
+            <!-- AI Sağlayıcı Seçimi -->
+            <div class="settings-section">
+              <h3 class="settings-section-title">🤖 AI Sağlayıcı</h3>
+              <p class="settings-section-desc">Linkleri kategorize etmek için kullanılacak AI modelini seç.</p>
+              <div class="settings-row">
+                <label class="form-label" for="aiProviderSelect">AI Sağlayıcı</label>
+                <select class="form-select" id="aiProviderSelect">
+                  <option value="groq">Groq Cloud (Llama 3.3 70B) — Ücretsiz, 30 RPM</option>
+                  <option value="deepseek">DeepSeek — Çok ucuz, limitsiz</option>
+                  <option value="ollama">Ollama (Lokal) — Ücretsiz, yavaş</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Groq API -->
+            <div class="settings-section" id="groqSettings">
+              <h3 class="settings-section-title">🔑 Groq API</h3>
+              <p class="settings-section-desc">Linkleri otomatik kategorize etmek için ücretsiz Groq API key'i gir.</p>
+              <div class="settings-row">
+                <label class="form-label" for="apiKeyInput">API Key</label>
+                <div class="api-key-wrapper">
+                  <input type="password" class="form-input api-key-input" id="apiKeyInput" placeholder="gsk_xxxxxxxxxxxxx...">
+                  <button class="btn btn-icon btn-ghost" id="toggleApiKeyVisibility" title="Göster/Gizle">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+                    </svg>
+                  </button>
+                  <button class="btn btn-secondary btn-sm" id="testApiKeyBtn">Bağlantıyı Test Et</button>
+                </div>
+                <div class="api-key-status hidden" id="apiKeyStatus"></div>
+              </div>
+            </div>
+
+            <!-- DeepSeek -->
+            <div class="settings-section hidden" id="deepseekSettings">
+              <h3 class="settings-section-title">🧠 DeepSeek API</h3>
+              <p class="settings-section-desc">Groq limiti dolunca yedek olarak kullanılır. Çok ucuz (~$0.20/1M token).</p>
+              <div class="settings-row">
+                <label class="form-label" for="deepseekApiKey">API Key</label>
+                <input type="password" class="form-input" id="deepseekApiKey" placeholder="sk-xxxxxxxxxxxx...">
+              </div>
+              <div class="settings-row">
+                <label class="form-label" for="deepseekBudget">Aylık Bütçe ($)</label>
+                <div class="input-with-suffix">
+                  <input type="number" class="form-input" id="deepseekBudget" value="1" min="0" max="10" step="0.5" style="width:100px">
+                  <span class="input-suffix">$</span>
+                </div>
+                <p class="settings-desc text-xs text-muted">Kullanım bu limiti geçince DeepSeek otomatik devre dışı kalır. Sıfırla dersen limitsiz.</p>
+              </div>
+              <div class="settings-row">
+                <span class="text-xs text-muted" id="deepseekUsageDisplay">Bu ay: 0 token kullanıldı (~$0.00)</span>
+              </div>
+              <div class="settings-row">
+                <button class="btn btn-secondary btn-sm" id="testDeepSeekBtn">🧠 DeepSeek Bağlantısını Test Et</button>
+                <button class="btn btn-ghost btn-sm" id="resetDeepSeekUsage">Sayacı Sıfırla</button>
+                <div class="api-key-status hidden" id="deepseekStatus"></div>
+              </div>
+            </div>
+
+            <!-- Ollama (Lokal) -->
+            <div class="settings-section hidden" id="ollamaSettings">
+              <h3 class="settings-section-title">🏠 Ollama (Lokal LLM)</h3>
+              <p class="settings-section-desc">Bilgisayarında çalışan ücretsiz lokal model. Kurulum: <code>ollama pull qwen2.5:7b</code></p>
+              <div class="settings-row">
+                <label class="form-label" for="ollamaUrl">Ollama URL</label>
+                <input type="text" class="form-input" id="ollamaUrl" value="http://localhost:11434" placeholder="http://localhost:11434">
+              </div>
+              <div class="settings-row">
+                <label class="form-label" for="ollamaModel">Model</label>
+                <input type="text" class="form-input" id="ollamaModel" value="qwen2.5:7b" placeholder="qwen2.5:7b">
+              </div>
+              <div class="settings-row">
+                <button class="btn btn-secondary" id="testOllamaBtn">🏠 Ollama Bağlantısını Test Et</button>
+                <div class="api-key-status hidden" id="ollamaStatus"></div>
+              </div>
+            </div>
+
+            <!-- Oda Yönetimi -->
+            <div class="settings-section">
+              <h3 class="settings-section-title">🏛️ Oda Yönetimi (Hafiza Sarayi)</h3>
+              <div id="categoryManager">
+                <div class="category-manager-toolbar">
+                  <button class="btn btn-sm btn-ghost" id="selectAllCategoriesBtn">Tümünü Seç</button>
+                  <button class="btn btn-sm btn-ghost" id="deselectAllCategoriesBtn">Seçimi Kaldır</button>
+                  <button class="btn btn-sm btn-ghost" id="deleteSelectedCategoriesBtn">Seçilenleri Sil</button>
+                  <button class="btn btn-sm btn-danger" id="deleteAllCategoriesBtn">Tüm Odalari Sil</button>
+                  <button class="btn btn-sm btn-secondary" id="loadDefaultCategoriesBtn">Varsayilan Odalari Yükle</button>
+                </div>
+                <div class="category-manager-list" id="categoryManagerList">
+                  <!-- Dinamik oda listesi -->
+                </div>
+                <button class="btn btn-secondary mt-md" id="addCategoryBtn">
+                  ➕ Yeni Oda Ekle
+                </button>
+              </div>
+            </div>
+
+            <!-- Etiket Yönetimi -->
+            <div class="settings-section">
+              <h3 class="settings-section-title">🏷️ Etiket Yönetimi</h3>
+              <div id="tagManager">
+                <div class="tag-manager-list" id="tagManagerList">
+                  <!-- Dinamik etiket listesi -->
+                </div>
+                <p class="text-muted text-sm" id="noTagsMsg">Henüz hiç etiket yok. Link eklerken etiket girebilirsin.</p>
+              </div>
+            </div>
+
+            <!-- Veri Yönetimi -->
+            <div class="settings-section">
+              <h3 class="settings-section-title">💾 Veri Yönetimi</h3>
+              <div class="settings-row">
+                <button class="btn btn-secondary" id="exportJsonBtn">📤 JSON Dışa Aktar</button>
+                <button class="btn btn-secondary" id="exportCsvBtn">📤 CSV Dışa Aktar</button>
+                <button class="btn btn-secondary" id="importDataBtn">📥 İçe Aktar (JSON)</button>
+                <input type="file" id="importJsonInput" accept=".json" class="hidden">
+              </div>
+              <div class="settings-row mt-lg">
+                <button class="btn btn-danger" id="clearAllDataBtn">🗑️ Tüm Verileri Sil</button>
+                <p class="text-muted text-sm">Bu işlem geri alınamaz. Önce dışa aktarmanızı öneririz.</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- ===== ARCHIVED VIEW ===== -->
+          <div class="view hidden" id="viewArchived">
+            <div class="section-header">
+              <h2 class="section-title">📦 Arşiv</h2>
+              <p class="section-subtitle" id="archivedSubtitle">Arşivlenmiş linkler</p>
+            </div>
+            <div class="toolbar">
+              <div class="toolbar-left">
+                <span id="archivedCount">0 link</span>
+              </div>
+              <div class="toolbar-right">
+                <button class="btn btn-secondary hidden" id="archiveRestoreSelectedBtn">📦 Seçilenleri Geri Yükle</button>
+                <button class="btn btn-danger hidden" id="archiveDeleteSelectedBtn">🗑️ Seçilenleri Kalıcı Sil</button>
+              </div>
+            </div>
+            <div id="archivedList">
+              <p class="text-muted">Arşivlenmiş link bulunmuyor.</p>
+            </div>
+          </div>
+
+          <!-- ===== MEMORY VIEW ===== -->
+          <div class="view hidden" id="viewMemory">
+            <div class="section-header">
+              <h2 class="section-title">🧠 Hafıza</h2>
+              <p class="section-subtitle">AI asistan ile geçmiş konuşmalar</p>
+            </div>
+            <div class="toolbar">
+              <div class="toolbar-left">
+                <span id="memoryCount">0 mesaj</span>
+              </div>
+              <div class="toolbar-right">
+                <button class="btn btn-danger" id="memoryClearBtn">🗑️ Geçmişi Temizle</button>
+              </div>
+            </div>
+            <div id="memoryList">
+              <p class="text-muted">Henüz hiç konuşma yapılmamış.</p>
+            </div>
+          </div>
+
+        </main>
+      </div>
+    </div>
+
+    <!-- ========== MODALS ========== -->
+
+    <!-- Tek Link Ekleme Modal -->
+    <div class="modal-overlay hidden" id="addLinkModal">
+      <div class="modal">
+        <div class="modal-header">
+          <h3>➕ Yeni Link Ekle</h3>
+          <button class="btn btn-ghost btn-icon modal-close" data-modal="addLinkModal">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M18 6 6 18M6 6l12 12"/>
+            </svg>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label" for="newLinkUrl">URL *</label>
+            <input type="url" class="form-input" id="newLinkUrl" placeholder="https://..." required>
+            <div class="platform-preview hidden" id="platformPreview"></div>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="newLinkTitle">Başlık</label>
+            <input type="text" class="form-input" id="newLinkTitle" placeholder="Kısa bir başlık...">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="newLinkCategory">Kategori</label>
+            <select class="form-select" id="newLinkCategory">
+              <!-- Dinamik kategoriler -->
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="newLinkDescription">Not / Açıklama</label>
+            <textarea class="form-textarea" id="newLinkDescription" rows="3" placeholder="Bu linki neden kaydettim?"></textarea>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="newLinkTags">Etiketler</label>
+            <input type="text" class="form-input" id="newLinkTags" placeholder="virgülle ayır: react, tutorial, önemli">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-ghost" data-modal="addLinkModal">İptal</button>
+          <button class="btn btn-primary" id="saveLinkBtn">💾 Kaydet</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Link Düzenleme Modal -->
+    <div class="modal-overlay hidden" id="editLinkModal">
+      <div class="modal">
+        <div class="modal-header">
+          <h3>✏️ Linki Düzenle</h3>
+          <button class="btn btn-ghost btn-icon modal-close" data-modal="editLinkModal">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M18 6 6 18M6 6l12 12"/>
+            </svg>
+          </button>
+        </div>
+        <div class="modal-body">
+          <input type="hidden" id="editLinkId">
+          <div class="form-group">
+            <label class="form-label" for="editLinkUrl">URL</label>
+            <input type="url" class="form-input" id="editLinkUrl">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="editLinkTitle">Başlık</label>
+            <input type="text" class="form-input" id="editLinkTitle">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="editLinkCategory">Kategori</label>
+            <select class="form-select" id="editLinkCategory"></select>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="editLinkDescription">Not / Açıklama</label>
+            <textarea class="form-textarea" id="editLinkDescription" rows="3"></textarea>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="editLinkTags">Etiketler</label>
+            <input type="text" class="form-input" id="editLinkTags">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-ghost" data-modal="editLinkModal">İptal</button>
+          <button class="btn btn-primary" id="updateLinkBtn">💾 Güncelle</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Toplu Kategori Atama Modal -->
+    <div class="modal-overlay hidden" id="bulkCategoryModal">
+      <div class="modal modal-sm">
+        <div class="modal-header">
+          <h3>📂 Kategori Ata</h3>
+          <button class="btn btn-ghost btn-icon modal-close" data-modal="bulkCategoryModal">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M18 6 6 18M6 6l12 12"/>
+            </svg>
+          </button>
+        </div>
+        <div class="modal-body">
+          <p class="text-muted mb-md" id="bulkCategoryInfo">0 link seçildi</p>
+          <div class="category-select-grid" id="bulkCategoryGrid">
+            <!-- Dinamik kategori butonları -->
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Link Önizleme Modal -->
+    <div class="modal-overlay hidden" id="linkPreviewModal">
+      <div class="modal modal-lg">
+        <div class="modal-header">
+          <h3>🔗 Link Önizleme</h3>
+          <button class="btn btn-ghost btn-icon modal-close" data-modal="linkPreviewModal">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M18 6 6 18M6 6l12 12"/>
+            </svg>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div class="preview-loading" id="previewLoading">
+            <div class="spinner"></div>
+            <p>Bilgiler alınıyor...</p>
+          </div>
+          <div class="preview-content hidden" id="previewContent">
+            <div class="preview-image-area" id="previewImageArea">
+              <img id="previewImage" class="preview-image" alt="" onerror="this.style.display='none'">
+            </div>
+            <div class="preview-info">
+              <div class="preview-site" id="previewSite">
+                <img id="previewFavicon" class="preview-favicon" alt="" onerror="this.style.display='none'" width="16" height="16">
+                <span id="previewSiteName"></span>
+              </div>
+              <h3 class="preview-title" id="previewTitle"></h3>
+              <p class="preview-description" id="previewDescription"></p>
+              <div class="preview-text hidden" id="previewTextSection">
+                <h4 class="preview-text-heading">📝 Sayfa Metni</h4>
+                <p class="preview-text-body" id="previewTextBody"></p>
+              </div>
+              <div class="preview-category" id="previewCategorySection">
+                <label class="preview-category-label">📂 Kategori</label>
+                <div class="preview-category-row">
+                  <select class="form-select" id="previewCategorySelect">
+                    <option value="">Odasiz</option>
+                  </select>
+                  <button class="btn btn-ghost btn-sm" id="previewAddCategoryBtn" title="Yeni Kategori Ekle">➕</button>
+                </div>
+              </div>
+              <div class="preview-error hidden" id="previewError"></div>
+              <div class="preview-actions">
+                <a class="btn btn-primary" id="previewOpenBtn" target="_blank" rel="noopener noreferrer">
+                  🔗 Linki Aç
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Yeni Kategori Ekleme Modal -->
+    <div class="modal-overlay hidden" id="newCategoryModal">
+      <div class="modal modal-sm">
+        <div class="modal-header">
+          <h3>➕ Yeni Oda</h3>
+          <button class="btn btn-ghost btn-icon modal-close" data-modal="newCategoryModal">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M18 6 6 18M6 6l12 12"/>
+            </svg>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label" for="newCatName">Oda İsmi *</label>
+            <input type="text" class="form-input" id="newCatName" placeholder="Oda adi">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="newCatEmoji">Emoji</label>
+            <input type="text" class="form-input" id="newCatEmoji" placeholder="🏛️" maxlength="2">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="newCatColor">Renk</label>
+            <input type="color" class="form-input form-color" id="newCatColor" value="#6c5ce7">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="newCatDescription">Oda Aciklamasi</label>
+            <textarea class="form-input" id="newCatDescription" rows="3" placeholder="Bu odada ne tur linkler durmali? AI bu aciklamaya gore linkleri yerlestirir."></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-ghost" data-modal="newCategoryModal">İptal</button>
+          <button class="btn btn-primary" id="saveNewCategoryBtn">💾 Kaydet</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Kategori Düzenleme Modal -->
+    <div class="modal-overlay hidden" id="editCategoryModal">
+      <div class="modal modal-sm">
+        <div class="modal-header">
+          <h3>✏️ Odayi Düzenle</h3>
+          <button class="btn btn-ghost btn-icon modal-close" data-modal="editCategoryModal">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M18 6 6 18M6 6l12 12"/>
+            </svg>
+          </button>
+        </div>
+        <div class="modal-body">
+          <input type="hidden" id="editCatId">
+          <div class="form-group">
+            <label class="form-label" for="editCatName">Oda İsmi *</label>
+            <input type="text" class="form-input" id="editCatName" placeholder="Oda adi">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="editCatEmoji">Emoji</label>
+            <input type="text" class="form-input" id="editCatEmoji" placeholder="🏛️" maxlength="2">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="editCatColor">Renk</label>
+            <input type="color" class="form-input form-color" id="editCatColor">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="editCatDescription">Oda Aciklamasi (AI buraya gore yerlestirir)</label>
+            <textarea class="form-input" id="editCatDescription" rows="3" placeholder="Bu odada ne tur linkler durmali? AI bu aciklamaya gore linkleri yerlestirir."></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-ghost" data-modal="editCategoryModal">İptal</button>
+          <button class="btn btn-primary" id="updateCategoryBtn">💾 Guncelle</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Onay Dialog -->
+    <div class="modal-overlay hidden" id="confirmModal">
+      <div class="modal modal-sm">
+        <div class="modal-header">
+          <h3 id="confirmTitle">Emin misin?</h3>
+        </div>
+        <div class="modal-body">
+          <p id="confirmMessage">Bu işlem geri alınamaz.</p>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-ghost" id="confirmCancelBtn">İptal</button>
+          <button class="btn btn-danger" id="confirmOkBtn">Evet, Devam Et</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- AI Kategorizasyon İlerleme -->
+    <div class="modal-overlay hidden" id="aiProgressModal">
+      <div class="modal modal-sm">
+        <div class="modal-header">
+          <h3>🤖 AI Kategorize Ediyor...</h3>
+        </div>
+        <div class="modal-body">
+          <div class="ai-progress">
+            <div class="ai-progress-bar">
+              <div class="ai-progress-fill" id="aiProgressFill" style="width: 0%"></div>
+            </div>
+            <p class="ai-progress-text" id="aiProgressText">Hazırlanıyor...</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- AI Chatbot Panel -->
+    <div class="chat-panel hidden" id="chatPanel">
+      <div class="chat-header">
+        <h3>🤖 LinkSlash Asistan</h3>
+        <button class="btn btn-icon btn-ghost" id="closeChatBtn">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M18 6L6 18M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+      <div class="chat-body" id="chatBody">
+        <div class="chat-message bot">
+          <p>Merhaba! Ben senin dijital arşiv asistanınım. Link koleksiyonun hakkında sorular sorabilirsin.</p>
+          <p class="chat-examples">Örnek: "Geçen hafta eklediklerim", "Eğitim videolarım", "En çok hangi platformda link var?"</p>
+        </div>
+      </div>
+      <div class="chat-input-wrapper">
+        <input type="text" class="chat-input" id="chatInput" placeholder="Sorunu yaz...">
+        <button class="btn btn-primary btn-sm" id="sendChatBtn">Gönder</button>
+      </div>
+    </div>
+
+    <!-- Floating Chat Button -->
+    <button class="chat-fab" id="chatFab" title="Asistan">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+      </svg>
+    </button>
+
+    <!-- Mobile Bottom Navigation -->
+    <nav class="mobile-bottom-nav" id="mobileBottomNav" aria-label="Mobil navigasyon">
+      <a href="#dashboard" class="bottom-nav-item active" data-view="dashboard">
+        <span class="bottom-nav-icon">🏠</span>
+        <span class="bottom-nav-label">Ana Sayfa</span>
+      </a>
+      <a href="#all" class="bottom-nav-item" data-view="all">
+        <span class="bottom-nav-icon">📋</span>
+        <span class="bottom-nav-label">Linkler</span>
+      </a>
+      <button class="bottom-nav-item bottom-nav-add" id="bottomNavAdd" aria-label="Yeni link ekle">
+        <span class="bottom-nav-icon">➕</span>
+        <span class="bottom-nav-label">Ekle</span>
+      </button>
+      <a href="#favorites" class="bottom-nav-item" data-view="favorites">
+        <span class="bottom-nav-icon">⭐</span>
+        <span class="bottom-nav-label">Favoriler</span>
+      </a>
+      <a href="#settings" class="bottom-nav-item" data-view="settings">
+        <span class="bottom-nav-icon">⚙️</span>
+        <span class="bottom-nav-label">Ayarlar</span>
+      </a>
+    </nav>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- Keyboard Shortcuts Modal -->
+    <div class="modal-overlay hidden" id="shortcutsModal">
+      <div class="modal modal-sm">
+        <div class="modal-header">
+          <h3>⌨️ Klavye Kısayolları</h3>
+          <button class="btn btn-ghost btn-icon modal-close" data-modal="shortcutsModal">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M18 6 6 18M6 6l12 12"/>
+            </svg>
+          </button>
+        </div>
+        <div class="modal-body shortcuts-grid">
+          <div class="shortcut-row"><kbd>?</kbd><span>Bu pencereyi aç/kapa</span></div>
+          <div class="shortcut-row"><kbd>Ctrl</kbd> + <kbd>K</kbd><span>Arama çubuğuna odaklan</span></div>
+          <div class="shortcut-row"><kbd>Ctrl</kbd> + <kbd>N</kbd><span>Yeni link ekle</span></div>
+          <div class="shortcut-row"><kbd>Ctrl</kbd> + <kbd>I</kbd><span>WhatsApp import</span></div>
+          <div class="shortcut-row"><kbd>Ctrl</kbd> + <kbd>D</kbd><span>Dashboard / Ana sayfa</span></div>
+          <div class="shortcut-row"><kbd>Ctrl</kbd> + <kbd>B</kbd><span>Sidebar'ı aç/kapa</span></div>
+          <div class="shortcut-row"><kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>A</kbd><span>Tüm linkler</span></div>
+          <div class="shortcut-row"><kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>F</kbd><span>Favoriler</span></div>
+          <div class="shortcut-row"><kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>X</kbd><span>Arşiv</span></div>
+          <div class="shortcut-row"><kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>S</kbd><span>Ayarlar</span></div>
+          <div class="shortcut-row"><kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>M</kbd><span>Hafıza (sohbet)</span></div>
+          <div class="shortcut-row"><kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>L</kbd><span>Ölü linkler</span></div>
+          <div class="shortcut-row"><kbd>Escape</kbd><span>Modal'ları kapat</span></div>
+          <div class="shortcut-row"><kbd>Ctrl</kbd> + <kbd>Enter</kbd><span>Link kaydet / güncelle</span></div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-primary" data-modal="shortcutsModal">Kapat</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Scripts -->
+  <script src="js/config.js?v=1.2.0"></script>
+  <script src="js/utils.js?v=1.2.0"></script>
+  <script src="js/db.js?v=1.2.0"></script>
+  <script src="js/sync-extension.js?v=1.2.0"></script>
+  <script src="js/parser.js?v=1.2.0"></script>
+  <script src="js/ai.js?v=1.2.0"></script>
+  <script src="js/ui.js?v=1.2.0"></script>
+  <script src="js/app.js?v=1.2.0"></script>
+  <script>
+    // Register service worker for PWA offline support
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', function() {
+        navigator.serviceWorker.register('/linkslash/sw.js', { scope: '/linkslash/' })
+          .then(function(registration) {
+            console.log('[LinkSlash] Service Worker registered:', registration.scope);
+          })
+          .catch(function(error) {
+            console.warn('[LinkSlash] Service Worker registration failed:', error);
+          });
+      });
+    }
+  </script>
+</body>
+</html>

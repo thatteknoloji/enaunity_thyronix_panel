@@ -24,6 +24,7 @@ const ACCENT: Record<string, string> = {
   blue: "from-blue-500/10 to-ena-card border-blue-500/20",
   violet: "from-violet-500/10 to-ena-card border-violet-500/20",
   emerald: "from-emerald-500/10 to-ena-card border-emerald-500/20",
+  cyan: "from-cyan-500/10 to-ena-card border-cyan-500/20",
 };
 
 function formatDate(iso: string | null) {

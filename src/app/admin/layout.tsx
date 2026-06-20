@@ -103,6 +103,7 @@ function buildNavGroups(t: (key: string) => string) {
         { href: "/admin/marketplace-hub", label: "Pazaryeri Merkezi", icon: Store },
         { href: "/admin/thyronix", label: "THYRONIX", icon: Zap },
         { href: "/admin/hive", label: "HIVE", icon: Sparkles },
+        { href: "/admin/linkslash", label: "LinkSlash", icon: Link2 },
         { href: "/admin/product-links", label: "Ürün Bağlantıları", icon: Link2 },
         { href: "/admin/module-licenses", label: "Modül Lisansları", icon: Key },
         { href: "/admin/payments/module-payments", label: "Modül Ödemeleri", icon: CreditCard },

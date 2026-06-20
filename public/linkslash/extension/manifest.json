@@ -1,0 +1,48 @@
+{
+  "manifest_version": 3,
+  "name": "LinkSlash — ENAUNITY",
+  "version": "1.2.0",
+  "description": "Herhangi bir sayfayı tek tıkla LinkSlash kütüphanene ekle. ENAUNITY entegrasyonu.",
+  "permissions": [
+    "activeTab",
+    "contextMenus",
+    "notifications",
+    "storage"
+  ],
+  "host_permissions": [
+    "https://enaunity.com.tr/*",
+    "http://localhost:3333/*",
+    "http://127.0.0.1:3333/*",
+    "https://*/*",
+    "http://*/*"
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "LinkSlash'a Kaydet",
+    "default_icon": {
+      "16": "icon16.png",
+      "48": "icon48.png",
+      "128": "icon128.png"
+    }
+  },
+  "icons": {
+    "16": "icon16.png",
+    "48": "icon48.png",
+    "128": "icon128.png"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["http://*/*", "https://*/*"],
+      "exclude_matches": [
+        "https://enaunity.com.tr/dealer/linkslash*",
+        "http://localhost:3333/dealer/linkslash*",
+        "http://127.0.0.1:3333/dealer/linkslash*"
+      ],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ]
+}

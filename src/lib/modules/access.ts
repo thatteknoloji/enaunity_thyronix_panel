@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/db";
 
-export const MODULE_KEYS = ["ENA_COMMERCE", "THYRONIX", "HIVE", "HIVE_PRO"] as const;
+export const MODULE_KEYS = ["ENA_COMMERCE", "THYRONIX", "HIVE", "HIVE_PRO", "LINKSLASH"] as const;
 export type ModuleKey = typeof MODULE_KEYS[number];
 
 export async function getDealerModuleLicense(dealerId: string, moduleKey: string) {
@@ -57,6 +57,7 @@ export function getModuleLabel(key: string): string {
     THYRONIX: "THYRONIX",
     HIVE: "HIVE",
     HIVE_PRO: "HIVE Pro",
+    LINKSLASH: "LinkSlash",
     PRODUCT_LIBRARY: "Hazır Ürün Deposu",
   };
   return labels[key] || key;

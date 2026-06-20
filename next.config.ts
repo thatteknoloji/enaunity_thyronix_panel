@@ -6,6 +6,11 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "**" },
     ],
   },
+  experimental: {
+    serverActions: {
+      bodySizeLimit: "30mb",
+    },
+  },
   async rewrites() {
     const hiveMode = process.env.HIVE_PROXY_MODE || "internal";
     const hiveUrl = process.env.HIVE_BASE_URL || "https://hive.thiqos.com";
