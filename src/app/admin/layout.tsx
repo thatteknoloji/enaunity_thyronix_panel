@@ -5,7 +5,7 @@ import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import {
   LayoutDashboard, Package, ShoppingCart, Users, LogOut, ChevronLeft, ChevronRight, ChevronDown,
-  ClipboardList, Store, DollarSign, Eye, Banknote, RotateCcw, Warehouse, FileText, Tag, Layers, Building2, Percent, Grid3X3, Key, MessageSquare, ScrollText, Layout, PackagePlus, Truck, Shield, BarChart3, ClipboardCheck, Barcode, Bell, Webhook, Clock, CalendarClock, Upload, Link2, Plug, Zap, Sparkles, CreditCard, Layers3
+  ClipboardList, Store, DollarSign, Eye, Banknote, RotateCcw, Warehouse, FileText, Tag, Layers, Building2, Percent, Key, MessageSquare, ScrollText, Layout, PackagePlus, Truck, Shield, BarChart3, ClipboardCheck, Barcode, Bell, Webhook, Clock, CalendarClock, Upload, Link2, Plug, Zap, Sparkles, CreditCard
 } from "lucide-react";
 import { getNavPermissionMap, hasAnyPermission } from "@/lib/permissions";
 import { getAdminLoginPath, isAdminLoginPath, isAdminRole, toAdminUrl } from "@/lib/auth/admin-access";
@@ -16,122 +16,114 @@ import { useT } from "@/lib/i18n/provider";
 function buildNavGroups(t: (key: string) => string) {
   const legacyMarketplaceEnabled = isLegacyMarketplaceEnabledClient();
 
-  const generalItems = [
-    { href: "/admin", label: t("admin.dashboard"), icon: LayoutDashboard },
-    { href: "/admin/approval-rules", label: t("admin.approval_rules"), icon: ClipboardCheck },
-    { href: "/admin/webhooks", label: t("admin.webhooks"), icon: Webhook },
-    ...(legacyMarketplaceEnabled
-      ? [{ href: "/admin/marketplace", label: "Pazar Yeri (Legacy)", icon: Store }]
-      : []),
-    { href: "/admin/invoices", label: "Faturalar", icon: FileText },
-  ];
-
   return [
     {
-    label: t("admin.general"),
-    icon: Grid3X3,
-    items: generalItems,
-  },
-  {
-    label: "Ekosistem",
-    icon: Layers3,
-    items: [
-      { href: "/admin/homepage", label: "Ana Sayfa", icon: LayoutDashboard },
-      { href: "/admin/ecosystem", label: "Ekosistem Vitrini", icon: Sparkles },
-    ],
-  },
-  {
-    label: "Premium Ürünler",
-    icon: Sparkles,
-    items: [
-      { href: "/admin/product-library", label: "Hazır Ürün Deposu", icon: Package },
-      { href: "/admin/marketplace-hub", label: "Pazaryeri Merkezi", icon: Store },
-      { href: "/admin/thyronix", label: "THYRONIX", icon: Zap },
-      { href: "/admin/hive", label: "HIVE", icon: Sparkles },
-      { href: "/admin/product-links", label: "Ürün Bağlantıları", icon: Link2 },
-      { href: "/admin/module-licenses", label: "Modül Lisansları", icon: Key },
-      { href: "/admin/payments/module-payments", label: "Modül Ödemeleri", icon: CreditCard },
-      { href: "/admin/integrations/thyronix", label: "THYRONIX Entegrasyon", icon: Plug },
-      { href: "/admin/integrations/hive", label: "HIVE Entegrasyon", icon: Plug },
-      { href: "/admin/customer-products", label: "Müşteri Ürünleri", icon: Package },
-    ],
-  },
-  {
-    label: t("admin.product_management"),
-    icon: Package,
-    items: [
-      { href: "/admin/products", label: t("admin.products"), icon: Package },
-      { href: "/admin/categories", label: t("admin.categories"), icon: Layers },
-      { href: "/admin/price-lists", label: t("admin.price_lists"), icon: DollarSign },
-      { href: "/admin/tiered-prices", label: t("admin.tiered_prices"), icon: Layers },
-      { href: "/admin/dealer-prices", label: t("admin.dealer_prices"), icon: Percent },
-      { href: "/admin/catalog-restrictions", label: t("admin.catalog_restrictions"), icon: Eye },
-      { href: "/admin/reviews", label: t("admin.reviews"), icon: MessageSquare },
-      { href: "/admin/bundles", label: t("admin.bundles"), icon: PackagePlus },
-      { href: "/admin/contracts", label: t("admin.contracts"), icon: ScrollText },
-      { href: "/admin/footer-settings", label: t("admin.footer"), icon: Layout },
-      { href: "/admin/pages", label: t("admin.pages"), icon: FileText },
-    ],
-  },
-  {
-    label: t("admin.dealer_management"),
-    icon: Store,
-    items: [
-      { href: "/admin/dealers", label: t("admin.dealers"), icon: Store },
-      { href: "/admin/dealer-groups", label: t("admin.dealer_groups"), icon: Building2 },
-      { href: "/admin/sales-rep", label: t("admin.sales_rep"), icon: Users },
-      { href: "/admin/dealer-assignments", label: t("admin.assignment"), icon: Building2 },
-      { href: "/admin/partner-applications", label: t("admin.applications"), icon: ClipboardList },
-      { href: "/admin/api-keys", label: t("admin.api_keys"), icon: Key },
-      { href: "/admin/dealer-documents", label: "Bayi Evrakları", icon: Upload },
-    ],
-  },
-  {
-    label: t("admin.orders_finance"),
-    icon: ShoppingCart,
-    items: [
-      { href: "/admin/orders", label: t("admin.orders"), icon: ShoppingCart },
-      { href: "/admin/backorders", label: t("admin.backorders"), icon: Clock },
-      { href: "/admin/quotes", label: t("admin.quotes"), icon: FileText },
-      { href: "/admin/coupons", label: t("admin.coupons"), icon: Tag },
-      { href: "/admin/campaigns", label: t("admin.campaigns"), icon: Tag },
-      { href: "/admin/returns", label: t("admin.returns"), icon: RotateCcw },
-      { href: "/admin/payments", label: t("admin.payments"), icon: Banknote },
-      { href: "/admin/payments/gateways", label: "Ödeme Altyapısı", icon: CreditCard },
-      { href: "/admin/payments/policies", label: "Ödeme Politikaları", icon: CreditCard },
-      { href: "/admin/payment-terms", label: t("admin.payment_terms"), icon: CalendarClock },
-      { href: "/admin/dealer-transactions", label: "Bakiye Hareketleri", icon: DollarSign },
-    ],
-  },
-  {
-    label: t("admin.stock_warehouse"),
-    icon: Warehouse,
-    items: [
-      { href: "/admin/stock-movements", label: t("admin.stock_movements"), icon: RotateCcw },
-      { href: "/admin/stock-counts", label: t("admin.stock_counts"), icon: ClipboardCheck },
-      { href: "/admin/stock/scan", label: t("admin.stock_scan"), icon: Barcode },
-      { href: "/admin/warehouses", label: t("admin.warehouses"), icon: Warehouse },
-      { href: "/admin/shipping", label: t("admin.shipping"), icon: Truck },
-    ],
-  },
-  {
-    label: t("admin.reports"),
-    icon: BarChart3,
-    items: [
-      { href: "/admin/reports", label: t("admin.reports"), icon: BarChart3 },
-    ],
-  },
-  {
-    label: t("admin.users"),
-    icon: Users,
-    items: [
-      { href: "/admin/users", label: t("admin.users"), icon: Users },
-      { href: "/admin/roles", label: t("admin.roles"), icon: Shield },
-      { href: "/admin/notifications", label: t("admin.notifications"), icon: Bell },
-      { href: "/admin/admin-logs", label: "Admin Logları", icon: ClipboardList },
-    ],
-  },
-];
+      label: "Genel Bakış",
+      icon: LayoutDashboard,
+      items: [
+        { href: "/admin", label: t("admin.dashboard"), icon: LayoutDashboard },
+        { href: "/admin/reports", label: t("admin.reports"), icon: BarChart3 },
+      ],
+    },
+    {
+      label: "Site & İçerik",
+      icon: Layout,
+      items: [
+        { href: "/admin/pages", label: t("admin.pages"), icon: FileText },
+        { href: "/admin/footer-settings", label: "Footer Ayarları", icon: Layout },
+        { href: "/admin/homepage", label: "Ana Sayfa", icon: LayoutDashboard },
+        { href: "/admin/ecosystem", label: "Ekosistem Vitrini", icon: Sparkles },
+        { href: "/admin/contracts", label: t("admin.contracts"), icon: ScrollText },
+      ],
+    },
+    {
+      label: t("admin.product_management"),
+      icon: Package,
+      items: [
+        { href: "/admin/products", label: t("admin.products"), icon: Package },
+        { href: "/admin/categories", label: t("admin.categories"), icon: Layers },
+        { href: "/admin/price-lists", label: t("admin.price_lists"), icon: DollarSign },
+        { href: "/admin/tiered-prices", label: t("admin.tiered_prices"), icon: Layers },
+        { href: "/admin/dealer-prices", label: t("admin.dealer_prices"), icon: Percent },
+        { href: "/admin/catalog-restrictions", label: t("admin.catalog_restrictions"), icon: Eye },
+        { href: "/admin/reviews", label: t("admin.reviews"), icon: MessageSquare },
+        { href: "/admin/bundles", label: t("admin.bundles"), icon: PackagePlus },
+        { href: "/admin/product-library", label: "Hazır Ürün Deposu", icon: Package },
+      ],
+    },
+    {
+      label: t("admin.dealer_management"),
+      icon: Store,
+      items: [
+        { href: "/admin/dealers", label: t("admin.dealers"), icon: Store },
+        { href: "/admin/dealer-groups", label: t("admin.dealer_groups"), icon: Building2 },
+        { href: "/admin/sales-rep", label: t("admin.sales_rep"), icon: Users },
+        { href: "/admin/dealer-assignments", label: t("admin.assignment"), icon: Building2 },
+        { href: "/admin/partner-applications", label: t("admin.applications"), icon: ClipboardList },
+        { href: "/admin/api-keys", label: t("admin.api_keys"), icon: Key },
+        { href: "/admin/dealer-documents", label: "Bayi Evrakları", icon: Upload },
+      ],
+    },
+    {
+      label: t("admin.orders_finance"),
+      icon: ShoppingCart,
+      items: [
+        { href: "/admin/orders", label: t("admin.orders"), icon: ShoppingCart },
+        { href: "/admin/backorders", label: t("admin.backorders"), icon: Clock },
+        { href: "/admin/quotes", label: t("admin.quotes"), icon: FileText },
+        { href: "/admin/coupons", label: t("admin.coupons"), icon: Tag },
+        { href: "/admin/campaigns", label: t("admin.campaigns"), icon: Tag },
+        { href: "/admin/returns", label: t("admin.returns"), icon: RotateCcw },
+        { href: "/admin/payments", label: t("admin.payments"), icon: Banknote },
+        { href: "/admin/payments/gateways", label: "Ödeme Altyapısı", icon: CreditCard },
+        { href: "/admin/payments/policies", label: "Ödeme Politikaları", icon: CreditCard },
+        { href: "/admin/payment-terms", label: t("admin.payment_terms"), icon: CalendarClock },
+        { href: "/admin/dealer-transactions", label: "Bakiye Hareketleri", icon: DollarSign },
+        { href: "/admin/invoices", label: "Faturalar", icon: FileText },
+      ],
+    },
+    {
+      label: t("admin.stock_warehouse"),
+      icon: Warehouse,
+      items: [
+        { href: "/admin/stock-movements", label: t("admin.stock_movements"), icon: RotateCcw },
+        { href: "/admin/stock-counts", label: t("admin.stock_counts"), icon: ClipboardCheck },
+        { href: "/admin/stock/scan", label: t("admin.stock_scan"), icon: Barcode },
+        { href: "/admin/warehouses", label: t("admin.warehouses"), icon: Warehouse },
+        { href: "/admin/shipping", label: t("admin.shipping"), icon: Truck },
+      ],
+    },
+    {
+      label: "Premium Modüller",
+      icon: Sparkles,
+      items: [
+        { href: "/admin/marketplace-hub", label: "Pazaryeri Merkezi", icon: Store },
+        { href: "/admin/thyronix", label: "THYRONIX", icon: Zap },
+        { href: "/admin/hive", label: "HIVE", icon: Sparkles },
+        { href: "/admin/product-links", label: "Ürün Bağlantıları", icon: Link2 },
+        { href: "/admin/module-licenses", label: "Modül Lisansları", icon: Key },
+        { href: "/admin/payments/module-payments", label: "Modül Ödemeleri", icon: CreditCard },
+        { href: "/admin/integrations/thyronix", label: "THYRONIX Entegrasyon", icon: Plug },
+        { href: "/admin/integrations/hive", label: "HIVE Entegrasyon", icon: Plug },
+        { href: "/admin/customer-products", label: "Müşteri Ürünleri", icon: Package },
+        ...(legacyMarketplaceEnabled
+          ? [{ href: "/admin/marketplace", label: "Pazar Yeri (Legacy)", icon: Store }]
+          : []),
+      ],
+    },
+    {
+      label: "Sistem & Kullanıcılar",
+      icon: Shield,
+      items: [
+        { href: "/admin/users", label: t("admin.users"), icon: Users },
+        { href: "/admin/roles", label: t("admin.roles"), icon: Shield },
+        { href: "/admin/notifications", label: t("admin.notifications"), icon: Bell },
+        { href: "/admin/admin-logs", label: "Admin Logları", icon: ClipboardList },
+        { href: "/admin/approval-rules", label: t("admin.approval_rules"), icon: ClipboardCheck },
+        { href: "/admin/webhooks", label: t("admin.webhooks"), icon: Webhook },
+      ],
+    },
+  ];
 }
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {

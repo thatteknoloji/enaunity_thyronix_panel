@@ -60,6 +60,7 @@ export const ALL_PERMISSIONS = {
 
   settings_view: { label: "Ayarları Görüntüle", group: "Ayarlar" },
   settings_manage: { label: "Ayarları Yönet", group: "Ayarlar" },
+  pages_manage: { label: "Site Sayfalarını Yönet", group: "Site & İçerik" },
   ecosystem_view: { label: "Ecosystem Showcase Görüntüle", group: "Ecosystem" },
   ecosystem_manage: { label: "Ecosystem Showcase Yönet", group: "Ecosystem" },
 } as const;
@@ -93,7 +94,7 @@ export const DEFAULT_ADMIN_PERMISSIONS: PermissionKey[] = [
   "dealer_transactions_view",
   "marketplace_view", "invoices_view", "thyronix_view", "hive_view", "hive_manage", "hive_integrations", "hive_logs",
   "reports_view", "reports_export",
-  "settings_view", "settings_manage",
+  "settings_view", "settings_manage", "pages_manage",
   "ecosystem_view", "ecosystem_manage",
 ];
 
@@ -109,7 +110,9 @@ export function getNavPermissionMap(): Record<string, PermissionKey[]> {
     "/admin/reviews": ["products_view"],
     "/admin/bundles": ["products_create"],
     "/admin/contracts": ["settings_view"],
+    "/admin/pages": ["pages_manage", "settings_manage"],
     "/admin/footer-settings": ["settings_manage"],
+    "/admin/homepage": ["settings_manage"],
     "/admin/dealers": ["dealers_view"],
     "/admin/dealer-groups": ["dealer_groups_manage"],
     "/admin/partner-applications": ["dealers_view"],
@@ -121,6 +124,8 @@ export function getNavPermissionMap(): Record<string, PermissionKey[]> {
     "/admin/campaigns": ["campaigns_manage"],
     "/admin/returns": ["returns_view"],
     "/admin/payments": ["payments_view"],
+    "/admin/payments/policies": ["payments_manage"],
+    "/admin/payment-terms": ["payments_view"],
     "/admin/stock-movements": ["stock_view"],
     "/admin/stock-counts": ["stock_manage"],
     "/admin/stock/scan": ["stock_view"],
@@ -131,6 +136,8 @@ export function getNavPermissionMap(): Record<string, PermissionKey[]> {
     "/admin/notifications": ["admin_notifications"],
     "/admin/reports": ["reports_view"],
     "/admin/approval-rules": ["settings_manage"],
+    "/admin/webhooks": ["settings_manage"],
+    "/admin/dealer-documents": ["dealers_view"],
     "/admin/dealer-assignments": ["dealers_view"],
     "/admin/sales-rep": ["dealers_view"],
     "/admin/admin-logs": ["admin_logs_view"],
@@ -147,6 +154,8 @@ export function getNavPermissionMap(): Record<string, PermissionKey[]> {
     "/admin/payments/gateways": ["payments_view"],
     "/admin/customer-products": ["admin_users"],
     "/admin/product-links": ["admin_users"],
+    "/admin/product-library": ["products_view"],
+    "/admin/marketplace-hub": ["marketplace_view"],
     "/admin/ecosystem": ["ecosystem_view"],
   };
 }

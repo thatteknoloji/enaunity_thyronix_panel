@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
+import { toAdminUrl } from "@/lib/auth/admin-access";
 import { ArrowLeft, Save, Eye, EyeOff } from "lucide-react";
 import toast from "react-hot-toast";
 import RichTextEditor from "@/components/ui/rich-text-editor";
@@ -57,7 +58,7 @@ export default function EditPage() {
     });
     if (res.ok) {
       toast.success("Sayfa güncellendi");
-      router.push("/admin/pages");
+      router.push(toAdminUrl("/admin/pages"));
     } else {
       const err = await res.json();
       toast.error(err.error || "Hata");
@@ -78,7 +79,7 @@ export default function EditPage() {
 
   return (
     <div className="max-w-4xl">
-      <Link href="/admin/pages" className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700 mb-6">
+      <Link href={toAdminUrl("/admin/pages")} className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700 mb-6">
         <ArrowLeft size={14} /> Sayfalara Dön
       </Link>
       <h1 className="text-2xl font-bold text-gray-900 mb-6">{form.title || "Sayfa Düzenle"}</h1>
@@ -138,7 +139,7 @@ export default function EditPage() {
             ) : null}
             {form.template === "contact" ? (
               <p className="mb-2 text-xs text-blue-700 bg-blue-50 border border-blue-100 rounded-lg px-3 py-2">
-                İletişim bilgileri <Link href="/admin/footer-settings" className="underline">Footer Ayarları</Link>ndan gelir. Buraya yalnızca üst açıklama metnini yazın.
+                İletişim bilgileri (e-posta, telefon, adres) <Link href={toAdminUrl("/admin/footer-settings")} className="underline">Footer Ayarları</Link>ndan gelir. Buraya yalnızca üst açıklama metnini yazın. Form alanları sabittir.
               </p>
             ) : null}
             <RichTextEditor content={form.content} onChange={(html) => setForm({ ...form, content: html })} />
@@ -153,7 +154,7 @@ export default function EditPage() {
           >
             <Save size={14} /> {saving ? "Kaydediliyor..." : "Kaydet"}
           </button>
-          <Link href="/admin/pages">
+          <Link href={toAdminUrl("/admin/pages")}>
             <button type="button" className="px-4 py-2 border border-gray-200 rounded-lg text-sm text-gray-600 hover:bg-gray-50 transition-colors">
               İptal
             </button>

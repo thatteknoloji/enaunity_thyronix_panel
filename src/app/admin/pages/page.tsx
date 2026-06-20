@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Plus, Edit, Trash2, FileText, Eye, EyeOff, ChevronUp, ChevronDown } from "lucide-react";
+import { Plus, Edit, Trash2, FileText, Eye, EyeOff, ChevronUp, ChevronDown, Download } from "lucide-react";
 import toast from "react-hot-toast";
+import { toAdminUrl } from "@/lib/auth/admin-access";
 
 import { PAGE_TEMPLATE_LABELS, type PageTemplate } from "@/lib/pages/types";
 
@@ -20,19 +21,40 @@ interface PageItem {
 export default function AdminPagesPage() {
   const [pages, setPages] = useState<PageItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [seeding, setSeeding] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ title: "", slug: "" });
 
   const fetchPages = () => {
+    setLoading(true);
     fetch("/api/admin/pages")
       .then((r) => r.json())
       .then((d) => {
         setPages(d.data || []);
         setLoading(false);
-      });
+      })
+      .catch(() => setLoading(false));
   };
 
   useEffect(() => { fetchPages(); }, []);
+
+  const handleSeedDefaults = async () => {
+    setSeeding(true);
+    try {
+      const res = await fetch("/api/admin/seed-site-content", { method: "POST" });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        toast.success(`${data.data.pages} sayfa yüklendi`);
+        fetchPages();
+      } else {
+        toast.error(data.error || "Varsayılan sayfalar yüklenemedi");
+      }
+    } catch {
+      toast.error("Bağlantı hatası");
+    } finally {
+      setSeeding(false);
+    }
+  };
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -71,15 +93,31 @@ export default function AdminPagesPage() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Sayfalar</h1>
-          <p className="text-sm text-gray-500 mt-1">Statik sayfaları yönetin (SSS, Kargo, İade, İletişim...)</p>
+          <p className="text-sm text-gray-500 mt-1 max-w-2xl">
+            SSS, İletişim, Kargo ve İade gibi statik sayfaları düzenleyin. İletişim sayfasında e-posta, telefon ve adres kartları{" "}
+            <Link href={toAdminUrl("/admin/footer-settings")} className="text-blue-600 hover:underline">Footer Ayarları</Link>
+            ndan gelir.
+          </p>
         </div>
-        <button onClick={() => setShowForm(!showForm)}
-          className="inline-flex items-center gap-1.5 px-4 py-2 bg-gray-900 text-white rounded-lg text-sm hover:bg-gray-800 transition-colors">
-          <Plus size={15} /> Yeni Sayfa
-        </button>
+        <div className="flex flex-wrap gap-2 shrink-0">
+          {pages.length === 0 && (
+            <button
+              type="button"
+              onClick={handleSeedDefaults}
+              disabled={seeding}
+              className="inline-flex items-center gap-1.5 px-4 py-2 border border-gray-300 bg-white text-gray-700 rounded-lg text-sm hover:bg-gray-50 transition-colors disabled:opacity-50"
+            >
+              <Download size={15} /> {seeding ? "Yükleniyor..." : "Varsayılan Sayfaları Yükle"}
+            </button>
+          )}
+          <button onClick={() => setShowForm(!showForm)}
+            className="inline-flex items-center gap-1.5 px-4 py-2 bg-gray-900 text-white rounded-lg text-sm hover:bg-gray-800 transition-colors">
+            <Plus size={15} /> Yeni Sayfa
+          </button>
+        </div>
       </div>
 
       {showForm && (
@@ -100,7 +138,7 @@ export default function AdminPagesPage() {
               />
             </div>
           </div>
-          <p className="text-xs text-gray-400">Sayfa şu URL'de yayınlanacak: /{form.slug || "..."}</p>
+          <p className="text-xs text-gray-400">Sayfa şu URL&apos;de yayınlanacak: /{form.slug || "..."}</p>
           <button type="submit" className="px-4 py-2 bg-gray-900 text-white rounded-lg text-sm hover:bg-gray-800 transition-colors">Oluştur</button>
         </form>
       )}
@@ -114,10 +152,19 @@ export default function AdminPagesPage() {
         <div className="text-center py-16 border border-dashed border-gray-200 rounded-xl bg-white">
           <FileText size={40} className="mx-auto text-gray-300" />
           <p className="mt-3 text-gray-500">Henüz sayfa eklenmemiş</p>
+          <p className="mt-1 text-xs text-gray-400 mb-4">İletişim, SSS, Kargo ve İade sayfalarını tek tıkla yükleyebilirsiniz.</p>
+          <button
+            type="button"
+            onClick={handleSeedDefaults}
+            disabled={seeding}
+            className="inline-flex items-center gap-1.5 px-4 py-2 bg-gray-900 text-white rounded-lg text-sm hover:bg-gray-800 transition-colors disabled:opacity-50"
+          >
+            <Download size={15} /> {seeding ? "Yükleniyor..." : "Varsayılan Sayfaları Yükle"}
+          </button>
         </div>
       ) : (
-        <div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
-          <table className="w-full text-sm">
+        <div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm table-scroll">
+          <table className="w-full text-sm min-w-[640px]">
             <thead>
               <tr className="border-b border-gray-100 bg-gray-50/50">
                 <th className="px-4 py-3 text-left font-semibold text-gray-600">Sıra</th>
@@ -147,7 +194,7 @@ export default function AdminPagesPage() {
                     </span>
                   </td>
                   <td className="px-4 py-3 hidden md:table-cell">
-                    <a href={`/${p.slug}`} target="_blank" className="text-xs text-blue-600 hover:underline font-mono">
+                    <a href={`/${p.slug}`} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-600 hover:underline font-mono">
                       /{p.slug}
                     </a>
                   </td>
@@ -162,7 +209,7 @@ export default function AdminPagesPage() {
                   </td>
                   <td className="px-4 py-3 text-right">
                     <div className="flex justify-end gap-1">
-                      <Link href={`/admin/pages/${p.id}`}
+                      <Link href={toAdminUrl(`/admin/pages/${p.id}`)}
                         className="p-1.5 rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors">
                         <Edit size={14} />
                       </Link>

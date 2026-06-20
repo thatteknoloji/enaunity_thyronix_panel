@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Save, ArrowLeft } from "lucide-react";
 import RichTextEditor from "@/components/ui/rich-text-editor";
 import toast from "react-hot-toast";
+import { toAdminUrl } from "@/lib/auth/admin-access";
 
 const DEFAULTS = {
   about_text: "İşletmeniz için toptan çözümler. Binlerce ürün, kurumsal fiyatlar.",
@@ -60,6 +61,16 @@ export default function FooterSettingsPage() {
         <Link href="/admin" className="text-gray-400 hover:text-gray-600"><ArrowLeft size={20} /></Link>
         <div><h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Footer Ayarları</h1><p className="mt-1 text-sm text-gray-500 dark:text-gray-400">Alt bilgi (footer) içeriğini düzenle</p></div>
         <div className="ml-auto"><Button size="sm" onClick={handleSave} disabled={saving}><Save size={14} className="mr-1" />{saving ? "Kaydediliyor..." : "Kaydet"}</Button></div>
+      </div>
+
+      <div className="mb-6 rounded-xl border border-blue-100 bg-blue-50 px-4 py-3 text-sm text-blue-900">
+        <p className="font-medium">İletişim sayfası ile ilişki</p>
+        <p className="mt-1 text-blue-800/90 text-xs leading-relaxed">
+          <strong>/iletisim</strong> sayfasındaki e-posta, telefon ve adres kartları buradan gelir.
+          &quot;Bize Ulaşın&quot; üst metni ve çalışma saatleri için{" "}
+          <Link href={toAdminUrl("/admin/pages")} className="underline font-medium">Sayfalar → İletişim</Link>
+          {" "}bölümünü düzenleyin. İletişim formu (Ad, Konu, Gönder) sabittir.
+        </p>
       </div>
 
       {loading ? <p className="text-gray-400">Yükleniyor...</p> : (
