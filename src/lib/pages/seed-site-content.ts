@@ -56,6 +56,11 @@ export async function seedSiteContent(): Promise<SiteContentSeedResult> {
   }
 
   const footerDefaults = [
+    {
+      key: "about_intro",
+      value:
+        "E-ticarete girişin en kolay yolu. Dropshipping, XML Bayilik ve Stoksuz E-Ticaret ile binlerce ürüne tek merkezden ulaşın.",
+    },
     { key: "contact_email", value: "info@enaunity.com" },
     { key: "contact_phone", value: "+90 (212) 555 00 00" },
     { key: "address", value: "Maslak Mah. Büyükdere Cad. No:1\nSarıyer / İstanbul" },

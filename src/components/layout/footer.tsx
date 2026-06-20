@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useT } from "@/lib/i18n/provider";
+import { resolveFooterIntro } from "@/lib/footer-intro";
 
 const footerCategories = ["Cam Tablo","Mdf Tablo","Halı","Kilim","Perde","Nevresim","Yastık Kılıfı","Minder","Puzzle","Hediyelik Ürünler"];
 
@@ -23,18 +24,26 @@ export default function Footer() {
     }).catch(() => {});
   }, []);
 
-  const aboutText = settings.about_text || "İşletmeniz için toptan çözümler. Binlerce ürün, kurumsal fiyatlar.";
+  const intro = resolveFooterIntro(settings);
+  const helpPages = pages.filter((p) => p.slug !== "hakkimizda");
+  const aboutPage = pages.find((p) => p.slug === "hakkimizda");
 
   return (
     <footer className="w-full max-w-full overflow-x-clip border-t border-ena-border bg-ena-dark">
       <div className="mx-auto max-w-7xl px-4 py-12">
         <div className="grid gap-10 md:grid-cols-4">
-          <div>
+          <div className="min-w-0">
             <div className="flex items-baseline gap-1">
               <span className="text-xl font-black" style={{color:"#e50914"}}>ENA</span>
               <span className="text-xl font-light text-ena-text relative">UNITY<sup className="absolute -top-[0.15em] -right-[0.35em] text-[0.35em] font-light">®</sup></span>
             </div>
-            <div className="mt-2 text-sm text-ena-light leading-relaxed max-w-xs" dangerouslySetInnerHTML={{ __html: aboutText }} />
+            <p className="mt-2 text-sm text-ena-light leading-relaxed max-w-xs line-clamp-4">{intro}</p>
+            <Link
+              href={aboutPage ? `/${aboutPage.slug}` : "/hakkimizda"}
+              className="mt-3 inline-flex text-sm font-medium text-ena-primary hover:text-ena-text transition-colors"
+            >
+              Hakkımızda →
+            </Link>
           </div>
           <div>
             <h3 className="mb-4 text-xs font-semibold uppercase tracking-widest text-ena-light">{t("footer.categories")}</h3>
@@ -45,9 +54,14 @@ export default function Footer() {
           <div>
             <h3 className="mb-4 text-xs font-semibold uppercase tracking-widest text-ena-light">{t("footer.help")}</h3>
             <ul className="space-y-2 text-sm text-ena-light/70">
+              {aboutPage ? (
+                <li><Link href={`/${aboutPage.slug}`} className="hover:text-ena-text transition-colors font-medium text-ena-primary/90">Hakkımızda</Link></li>
+              ) : (
+                <li><Link href="/hakkimizda" className="hover:text-ena-text transition-colors font-medium text-ena-primary/90">Hakkımızda</Link></li>
+              )}
               <li><Link href="/is-ortakligi" className="hover:text-ena-text transition-colors text-ena-primary/80 font-medium">İş Ortaklığı</Link></li>
               <li><Link href="/contracts" className="hover:text-ena-text transition-colors">{t("common.contracts")}</Link></li>
-              {pages.map((p) => (
+              {helpPages.map((p) => (
                 <li key={p.id}><Link href={`/${p.slug}`} className="hover:text-ena-text transition-colors">{p.title}</Link></li>
               ))}
             </ul>

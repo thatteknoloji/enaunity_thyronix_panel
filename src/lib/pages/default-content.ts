@@ -17,6 +17,63 @@ export type DefaultContractSeed = {
 
 export const DEFAULT_PAGES: DefaultPageSeed[] = [
   {
+    title: "Hakkımızda",
+    slug: "hakkimizda",
+    template: "default",
+    order: 0,
+    content: `<h2>E-Ticarete Girişin En Kolay Yolu</h2>
+<p><strong>Ena Unity</strong>, e-ticaret yapmak isteyen girişimciler, işletmeler ve bayiler için geliştirilmiş yeni nesil bir B2B tedarik ve iş ortaklığı platformudur.</p>
+<p>Amacımız, ürün üretmek isteyen değil <strong>ürün satmak isteyen</strong> girişimcilerin önündeki maliyet, stok, operasyon ve tedarik engellerini ortadan kaldırmaktır.</p>
+<p>Bugün yüzlerce ürün grubunda faaliyet gösteren iş ortaklarımız; stok tutmadan, depo maliyetine katlanmadan ve yüksek yatırım yapmadan satış yapabilmektedir. <strong>Dropshipping</strong>, <strong>XML Bayilik</strong> ve <strong>Stoksuz E-Ticaret</strong> modelleriyle binlerce ürüne tek merkezden ulaşın.</p>
+<p>Ena Unity olarak işletmeleri doğru ürünlerle, doğru tedarik ağıyla ve sürdürülebilir ticaret modeliyle buluşturuyoruz.</p>
+
+<h2>Nasıl Çalışıyoruz?</h2>
+<p>Geleneksel ticarette ürün bulmak, stoklamak, paketlemek ve yönetmek ciddi maliyetler oluşturur. Ena Unity iş modeli ise bu süreci kolaylaştırır.</p>
+<p>İş ortaklarımız;</p>
+<ul>
+<li><strong>XML ve Excel</strong> ürün entegrasyonlarıyla,</li>
+<li><strong>Bayilik sistemi</strong> üzerinden,</li>
+<li><strong>Dropshipping</strong> modeliyle,</li>
+<li><strong>Stoksuz E-Ticaret</strong> ve toplu ürün tedarikiyle,</li>
+</ul>
+<p>binlerce ürüne tek merkezden ulaşabilir. Böylece girişimciler zamanlarını operasyon yönetimine değil, satış ve büyümeye ayırabilir.</p>
+
+<h2>Sadece Tedarikçi Değil, İş Ortağıyız</h2>
+<p>Bizim için ticaret yalnızca ürün göndermekten ibaret değildir. Bir iş ortağının başarılı olması, Ena Unity'nin başarısıdır.</p>
+<p>Bu nedenle;</p>
+<ul>
+<li>Sürekli güncellenen ürün havuzu,</li>
+<li>Bayi destek sistemi,</li>
+<li>E-ticaret odaklı çözümler,</li>
+<li>Ürün veri yönetimi,</li>
+<li>Satış süreçlerine yönelik destekler</li>
+</ul>
+<p>ile iş ortaklarımızın yanında yer alıyoruz.</p>
+
+<h2>Kimler İçin?</h2>
+<h3>Yeni Başlayan Girişimciler</h3>
+<p>İlk satışını yapmak isteyen ancak yüksek sermayesi olmayan girişimciler için güçlü bir başlangıç noktasıdır.</p>
+<h3>E-Ticaret Satıcıları</h3>
+<p>Pazar yerlerinde veya kendi web sitelerinde satış yapan işletmeler için geniş ürün erişimi sunar.</p>
+<h3>Bayiler ve Toptancılar</h3>
+<p>Daha fazla ürün çeşidiyle müşterilerine ulaşmak isteyen işletmeler için güvenilir bir tedarik ağı oluşturur.</p>
+<h3>Kurumsal İşletmeler</h3>
+<p>Toplu ürün ihtiyaçlarında sürdürülebilir ve ölçeklenebilir çözümler sağlar.</p>
+
+<h2>Güven, Süreklilik ve Büyüme</h2>
+<p>E-ticaret dünyasında başarı yalnızca ürün satmakla değil, doğru tedarik zincirine sahip olmakla mümkündür.</p>
+<p>Ena Unity olarak hedefimiz; iş ortaklarımızın büyümesini destekleyen, güvenilir ve sürdürülebilir bir ticaret ekosistemi oluşturmaktır.</p>
+<p>Her geçen gün gelişen ürün ağımız, yeni iş ortaklarımız ve büyüyen operasyonlarımızla birlikte Türkiye'nin güçlü B2B ticaret platformlarından biri olma yolunda ilerliyoruz.</p>
+
+<h2>Birlikte Büyüyoruz</h2>
+<p>Bugün birçok girişimci ve işletme Ena Unity altyapısını kullanarak satış yapıyor, yeni müşterilere ulaşıyor ve işini büyütüyor.</p>
+<p>Çünkü biz yalnızca ürün sunmuyoruz. Yeni fırsatlar, yeni iş modelleri ve yeni kazanç kapıları sunuyoruz.</p>
+
+<p><strong>Ena Unity®</strong><br>
+B2B Tedarik • Bayilik Sistemleri • XML &amp; Excel Entegrasyonları • Dropshipping Çözümleri</p>
+<p><em>&quot;Ticareti kolaylaştırıyor, büyümeyi hızlandırıyoruz.&quot;</em></p>`,
+  },
+  {
     title: "SSS",
     slug: "sss",
     template: "faq",
