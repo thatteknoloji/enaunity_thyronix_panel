@@ -10,6 +10,15 @@ import {
 } from "./checklist";
 import { userMissingRequiredSlugs } from "@/lib/legal/acceptance";
 import { DEALER_REQUIRED_SLUGS } from "@/lib/legal/constants";
+import {
+  applyAdminWaivers,
+  isChecklistReadyForAdmin,
+  parseAdminWaivers,
+  type AdminApprovalWaivers,
+} from "./waivers";
+
+export type { AdminApprovalWaivers };
+export { parseAdminWaivers, applyAdminWaivers, isChecklistReadyForAdmin };
 
 export type MemberProfileInput = {
   name?: string;
@@ -135,14 +144,21 @@ export async function getMemberWithDetails(userId: string) {
     return item;
   });
   const contractsAccepted = parseContractsAccepted(user.contractsAcceptedJson);
+  const adminWaivers = parseAdminWaivers(user.adminApprovalWaiversJson);
+  checklist = applyAdminWaivers(checklist, adminWaivers, user.memberDocuments);
+  const waivedDocSet = new Set(adminWaivers.documentTypes);
 
   return {
     ...user,
     checklist,
+    adminWaivers,
     contractsAccepted,
     checklistComplete: checklistItemsComplete(checklist),
+    adminApprovalReady: checklistItemsComplete(checklist),
     missingDocuments: MEMBER_REQUIRED_DOCUMENTS.filter(
-      (t) => !user.memberDocuments.some((d) => d.type === t && d.status === "approved")
+      (t) =>
+        !waivedDocSet.has(t) &&
+        !user.memberDocuments.some((d) => d.type === t && d.status === "approved")
     ),
   };
 }
@@ -158,14 +174,10 @@ export async function promoteMemberToDealer(userId: string, adminName: string) {
   }
   if (user.status !== "active") throw new Error("Önce üye onayı tamamlanmalı");
 
-  const missingDealerLegal = await userMissingRequiredSlugs(userId, DEALER_REQUIRED_SLUGS);
-  if (missingDealerLegal.length > 0) {
-    throw new Error(`Bayiye çevirmek için bayi sözleşmeleri onaylanmalı: ${missingDealerLegal.join(", ")}`);
-  }
-
-  const checklist = computeMemberChecklist(user, user.memberDocuments);
-  if (!checklistItemsComplete(checklist)) {
-    throw new Error("Bayiye çevirmek için tüm koşullar ve evrak onayları tamamlanmalı");
+  const details = await getMemberWithDetails(userId);
+  if (!details?.adminApprovalReady) {
+    const pending = details?.checklist.filter((c) => !c.ok).map((c) => c.label).join(", ");
+    throw new Error(`Bayiye çevirmek için koşullar tamamlanmalı veya admin muafiyeti verilmeli. Eksik: ${pending}`);
   }
 
   const existingDealer = await prisma.dealer.findUnique({ where: { email: user.email } });

@@ -21,6 +21,7 @@ model User {
   kvkkAcceptedAt DateTime?
   contractsAcceptedJson String @default("[]")
   approvalChecklistJson String @default("{}")
+  adminApprovalWaiversJson String @default("{}")
   adminNote String          @default("")
   rejectionReason String    @default("")
   approvedAt DateTime?

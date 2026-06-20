@@ -21,6 +21,7 @@ export type MemberChecklistItem = {
   label: string;
   ok: boolean;
   detail: string;
+  waived?: boolean;
 };
 
 export const MEMBER_CHECKLIST_LABELS: Record<MemberChecklistKey, string> = {

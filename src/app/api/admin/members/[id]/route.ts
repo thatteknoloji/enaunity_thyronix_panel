@@ -5,9 +5,10 @@ import {
   getMemberWithDetails,
   promoteMemberToDealer,
   syncMemberChecklistSnapshot,
-  computeMemberChecklist,
+  parseAdminWaivers,
   type MemberProfileInput,
 } from "@/lib/members/service";
+import { MEMBER_REQUIRED_DOCUMENTS } from "@/lib/members/checklist";
 
 export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -67,22 +68,44 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
       return NextResponse.json({ success: true, data });
     }
 
+    if (body.action === "update_waivers") {
+      const current = parseAdminWaivers(user.adminApprovalWaiversJson);
+      const checklistKeys = Array.isArray(body.checklistKeys)
+        ? body.checklistKeys.filter((k: string) => typeof k === "string")
+        : current.checklistKeys;
+      const documentTypes = Array.isArray(body.documentTypes)
+        ? body.documentTypes.filter((t: string) =>
+            (MEMBER_REQUIRED_DOCUMENTS as readonly string[]).includes(t)
+          )
+        : current.documentTypes;
+      await prisma.user.update({
+        where: { id },
+        data: {
+          adminApprovalWaiversJson: JSON.stringify({ checklistKeys, documentTypes }),
+        },
+      });
+      await syncMemberChecklistSnapshot(id);
+      const data = await getMemberWithDetails(id);
+      return NextResponse.json({ success: true, data });
+    }
+
     if (body.action === "approve") {
+      const dataBefore = await getMemberWithDetails(id);
+      if (!dataBefore?.adminApprovalReady) {
+        const missing = dataBefore?.checklist.filter((c) => !c.ok).map((c) => c.label).join(", ");
+        return NextResponse.json(
+          { success: false, error: `Onay için tüm koşullar tamamlanmalı veya muaf tutulmalı. Eksik: ${missing}` },
+          { status: 400 }
+        );
+      }
+
       const fresh = await prisma.user.findUnique({
         where: { id },
         include: { memberDocuments: true },
       });
       if (!fresh) return NextResponse.json({ success: false, error: "Üye bulunamadı" }, { status: 404 });
 
-      const checklist = computeMemberChecklist(fresh, fresh.memberDocuments);
-      if (!checklist.every((c) => c.ok)) {
-        const missing = checklist.filter((c) => !c.ok).map((c) => c.label).join(", ");
-        return NextResponse.json(
-          { success: false, error: `Eksik koşullar: ${missing}` },
-          { status: 400 }
-        );
-      }
-
+      const checklist = dataBefore.checklist;
       await prisma.user.update({
         where: { id },
         data: {

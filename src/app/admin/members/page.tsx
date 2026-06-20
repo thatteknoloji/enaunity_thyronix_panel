@@ -9,6 +9,7 @@ import {
   MEMBER_STATUS_LABELS,
   checklistItemsProgress,
   type MemberChecklistItem,
+  type MemberChecklistKey,
   type MemberStatus,
 } from "@/lib/members/checklist";
 import {
@@ -54,6 +55,8 @@ type MemberRow = {
   dealerId: string | null;
   checklist: MemberChecklistItem[];
   checklistComplete: boolean;
+  adminApprovalReady?: boolean;
+  adminWaivers?: { checklistKeys: MemberChecklistKey[]; documentTypes: string[] };
   memberDocuments?: MemberDoc[];
   _count: { orders: number };
 };
@@ -146,6 +149,27 @@ export default function AdminMembersPage() {
     if (d) toast.success(status === "approved" ? "Evrak onaylandı" : "Evrak reddedildi");
   };
 
+  const saveWaivers = async (checklistKeys: MemberChecklistKey[], documentTypes: string[]) => {
+    const d = await patch({ action: "update_waivers", checklistKeys, documentTypes });
+    if (d) toast.success("Muafiyet güncellendi");
+  };
+
+  const toggleChecklistWaiver = (key: MemberChecklistKey) => {
+    if (!detail) return;
+    const current = detail.adminWaivers?.checklistKeys || [];
+    const next = current.includes(key) ? current.filter((k) => k !== key) : [...current, key];
+    saveWaivers(next, (detail.adminWaivers?.documentTypes || []) as typeof MEMBER_REQUIRED_DOCUMENTS[number][]);
+  };
+
+  const toggleDocumentWaiver = (type: (typeof MEMBER_REQUIRED_DOCUMENTS)[number]) => {
+    if (!detail) return;
+    const current = (detail.adminWaivers?.documentTypes || []) as (typeof MEMBER_REQUIRED_DOCUMENTS)[number][];
+    const next = current.includes(type) ? current.filter((t) => t !== type) : [...current, type];
+    saveWaivers(detail.adminWaivers?.checklistKeys || [], next);
+  };
+
+  const canProceed = detail?.adminApprovalReady ?? detail?.checklistComplete ?? false;
+
   const approveMember = async () => {
     const d = await patch({ action: "approve" });
     if (d) { toast.success("Üye onaylandı"); setSelectedId(null); }
@@ -175,7 +199,7 @@ export default function AdminMembersPage() {
             <Users size={24} /> Üyeler
           </h1>
           <p className="text-sm text-gray-500 mt-1">
-            Koşullar sistemden otomatik hesaplanır · Evrakları görüntüleyip onaylayın · Sonra bayiye çevirin
+            Koşullar otomatik hesaplanır · Eksik evrak/koşul için admin muafiyeti verebilirsiniz · Sonra onaylayın veya bayiye çevirin
           </p>
         </div>
         <div className="relative">
@@ -313,11 +337,14 @@ export default function AdminMembersPage() {
                 <div className="space-y-2">
                   {MEMBER_REQUIRED_DOCUMENTS.map((type) => {
                     const doc = detail.memberDocuments?.find((d) => d.type === type);
+                    const docWaived = detail.adminWaivers?.documentTypes?.includes(type);
                     return (
-                      <div key={type} className="rounded-lg border border-gray-100 p-3 flex flex-col sm:flex-row sm:items-center gap-3">
+                      <div key={type} className={`rounded-lg border p-3 flex flex-col sm:flex-row sm:items-center gap-3 ${docWaived ? "border-blue-100 bg-blue-50/40" : "border-gray-100"}`}>
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-medium text-gray-900">{MEMBER_DOCUMENT_LABELS[type]}</p>
-                          {doc ? (
+                          {docWaived ? (
+                            <p className="text-xs text-blue-700">Admin: gerekli değil (muaf)</p>
+                          ) : doc ? (
                             <>
                               <p className="text-xs text-gray-500 truncate">{doc.fileName}</p>
                               <a href={doc.fileUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs text-blue-600 hover:underline mt-1">
@@ -328,23 +355,34 @@ export default function AdminMembersPage() {
                             <p className="text-xs text-red-600">Henüz yüklenmedi</p>
                           )}
                         </div>
-                        {doc && (
-                          <div className="flex items-center gap-2 shrink-0">
-                            <span className={`text-xs px-2 py-0.5 rounded-full ${docStatusColors[doc.status] || ""}`}>
-                              {doc.status === "approved" ? "Onaylı" : doc.status === "rejected" ? "Reddedildi" : "Bekliyor"}
-                            </span>
-                            {doc.status !== "approved" && (
-                              <button disabled={saving} onClick={() => reviewDoc(doc.id, "approved")} className="px-2 py-1 text-xs rounded bg-emerald-600 text-white">
-                                Onayla
-                              </button>
-                            )}
-                            {doc.status !== "rejected" && (
-                              <button disabled={saving} onClick={() => reviewDoc(doc.id, "rejected")} className="px-2 py-1 text-xs rounded border border-red-200 text-red-600">
-                                Reddet
-                              </button>
-                            )}
-                          </div>
-                        )}
+                        <div className="flex items-center gap-2 shrink-0 flex-wrap">
+                          {!doc && (
+                            <button
+                              disabled={saving}
+                              onClick={() => toggleDocumentWaiver(type)}
+                              className={`px-2 py-1 text-xs rounded border ${docWaived ? "border-blue-300 text-blue-700 bg-white" : "border-gray-300 text-gray-700 hover:bg-gray-50"}`}
+                            >
+                              {docWaived ? "Muafiyeti kaldır" : "Gerekli değil"}
+                            </button>
+                          )}
+                          {doc && (
+                            <>
+                              <span className={`text-xs px-2 py-0.5 rounded-full ${docStatusColors[doc.status] || ""}`}>
+                                {doc.status === "approved" ? "Onaylı" : doc.status === "rejected" ? "Reddedildi" : "Bekliyor"}
+                              </span>
+                              {doc.status !== "approved" && (
+                                <button disabled={saving} onClick={() => reviewDoc(doc.id, "approved")} className="px-2 py-1 text-xs rounded bg-emerald-600 text-white">
+                                  Onayla
+                                </button>
+                              )}
+                              {doc.status !== "rejected" && (
+                                <button disabled={saving} onClick={() => reviewDoc(doc.id, "rejected")} className="px-2 py-1 text-xs rounded border border-red-200 text-red-600">
+                                  Reddet
+                                </button>
+                              )}
+                            </>
+                          )}
+                        </div>
                       </div>
                     );
                   })}
@@ -361,12 +399,45 @@ export default function AdminMembersPage() {
                 </div>
                 <div className="space-y-2">
                   {detail.checklist.map((item) => (
-                    <div key={item.key} className={`flex gap-3 rounded-lg border px-3 py-2 ${item.ok ? "border-emerald-100 bg-emerald-50/50" : "border-amber-100 bg-amber-50/50"}`}>
-                      {item.ok ? <CheckCircle2 size={16} className="text-emerald-600 shrink-0 mt-0.5" /> : <XCircle size={16} className="text-amber-600 shrink-0 mt-0.5" />}
-                      <div>
+                    <div
+                      key={item.key}
+                      className={`flex gap-3 rounded-lg border px-3 py-2 ${
+                        item.waived
+                          ? "border-blue-100 bg-blue-50/50"
+                          : item.ok
+                            ? "border-emerald-100 bg-emerald-50/50"
+                            : "border-amber-100 bg-amber-50/50"
+                      }`}
+                    >
+                      {item.waived ? (
+                        <Clock size={16} className="text-blue-600 shrink-0 mt-0.5" />
+                      ) : item.ok ? (
+                        <CheckCircle2 size={16} className="text-emerald-600 shrink-0 mt-0.5" />
+                      ) : (
+                        <XCircle size={16} className="text-amber-600 shrink-0 mt-0.5" />
+                      )}
+                      <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium text-gray-900">{item.label}</p>
                         <p className="text-xs text-gray-600">{item.detail}</p>
                       </div>
+                      {!item.ok && !item.waived && item.key !== "documentsUploaded" && (
+                        <button
+                          disabled={saving}
+                          onClick={() => toggleChecklistWaiver(item.key)}
+                          className="shrink-0 self-center px-2 py-1 text-xs rounded border border-blue-200 text-blue-700 hover:bg-blue-50"
+                        >
+                          Muaf tut
+                        </button>
+                      )}
+                      {item.waived && (
+                        <button
+                          disabled={saving}
+                          onClick={() => toggleChecklistWaiver(item.key)}
+                          className="shrink-0 self-center px-2 py-1 text-xs rounded border border-blue-300 text-blue-700 bg-white"
+                        >
+                          Muafiyeti kaldır
+                        </button>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -377,14 +448,14 @@ export default function AdminMembersPage() {
                 {detail.status === "pending" && (
                   <>
                     <button
-                      disabled={saving || !detail.checklistComplete}
+                      disabled={saving || !canProceed}
                       onClick={approveMember}
                       className="w-full sm:w-auto px-5 py-2.5 text-sm rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 disabled:opacity-50 flex items-center justify-center gap-2"
                     >
                       <UserCheck size={16} /> Üyeliği Onayla
                     </button>
-                    {!detail.checklistComplete && (
-                      <p className="text-xs text-amber-700">Tüm koşullar ve evrak onayları tamamlanmadan üye onaylanamaz.</p>
+                    {!canProceed && (
+                      <p className="text-xs text-amber-700">Koşulları tamamlayın veya eksik maddeler için &quot;Muaf tut&quot; / &quot;Gerekli değil&quot; kullanın.</p>
                     )}
                     <div className="space-y-2 pt-2">
                       <textarea value={rejectReason} onChange={(e) => setRejectReason(e.target.value)} placeholder="Red sebebi…" rows={2} className="w-full rounded-lg border px-3 py-2 text-sm" />
@@ -396,13 +467,18 @@ export default function AdminMembersPage() {
                 )}
 
                 {detail.status === "active" && detail.role === "user" && (
-                  <button
-                    disabled={saving || !detail.checklistComplete}
-                    onClick={promoteDealer}
-                    className="w-full sm:w-auto px-5 py-2.5 text-sm rounded-lg bg-purple-600 text-white hover:bg-purple-700 disabled:opacity-50 flex items-center justify-center gap-2"
-                  >
-                    <Store size={16} /> Bayiye Çevir
-                  </button>
+                  <>
+                    <button
+                      disabled={saving || !canProceed}
+                      onClick={promoteDealer}
+                      className="w-full sm:w-auto px-5 py-2.5 text-sm rounded-lg bg-purple-600 text-white hover:bg-purple-700 disabled:opacity-50 flex items-center justify-center gap-2"
+                    >
+                      <Store size={16} /> Bayiye Çevir
+                    </button>
+                    {!canProceed && (
+                      <p className="text-xs text-amber-700">Bayiye çevirmek için koşulları tamamlayın veya admin muafiyeti verin.</p>
+                    )}
+                  </>
                 )}
 
                 {detail.role === "dealer" && detail.dealerId && (
