@@ -5,10 +5,13 @@ import Link from "next/link";
 import { Plus, Edit, Trash2, FileText, Eye, EyeOff, ChevronUp, ChevronDown } from "lucide-react";
 import toast from "react-hot-toast";
 
+import { PAGE_TEMPLATE_LABELS, type PageTemplate } from "@/lib/pages/types";
+
 interface PageItem {
   id: string;
   title: string;
   slug: string;
+  template?: PageTemplate;
   active: boolean;
   order: number;
   createdAt: string;
@@ -119,6 +122,7 @@ export default function AdminPagesPage() {
               <tr className="border-b border-gray-100 bg-gray-50/50">
                 <th className="px-4 py-3 text-left font-semibold text-gray-600">Sıra</th>
                 <th className="px-4 py-3 text-left font-semibold text-gray-600">Başlık</th>
+                <th className="px-4 py-3 text-left font-semibold text-gray-600 hidden md:table-cell">Şablon</th>
                 <th className="px-4 py-3 text-left font-semibold text-gray-600 hidden md:table-cell">URL</th>
                 <th className="px-4 py-3 text-left font-semibold text-gray-600">Durum</th>
                 <th className="px-4 py-3 text-right font-semibold text-gray-600">İşlem</th>
@@ -136,6 +140,11 @@ export default function AdminPagesPage() {
                   </td>
                   <td className="px-4 py-3">
                     <p className="font-medium text-gray-900">{p.title}</p>
+                  </td>
+                  <td className="px-4 py-3 hidden md:table-cell">
+                    <span className="text-xs rounded-full bg-gray-100 px-2 py-0.5 text-gray-600">
+                      {PAGE_TEMPLATE_LABELS[p.template || "default"]}
+                    </span>
                   </td>
                   <td className="px-4 py-3 hidden md:table-cell">
                     <a href={`/${p.slug}`} target="_blank" className="text-xs text-blue-600 hover:underline font-mono">

@@ -1,7 +1,23 @@
 import { prisma } from "@/lib/db";
-import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
 import { notFound } from "next/navigation";
+import type { Metadata } from "next";
+import SitePageShell from "@/components/site/SitePageShell";
+import PageRenderer from "@/components/site/PageRenderer";
+import { normalizePageTemplate } from "@/lib/pages/types";
+
+async function getFooterSettings() {
+  const rows = await prisma.footerSettings.findMany();
+  const data: Record<string, string> = {};
+  rows.forEach((r) => { data[r.key] = r.value; });
+  return data;
+}
+
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  const { slug } = await params;
+  const page = await prisma.page.findUnique({ where: { slug, active: true }, select: { title: true } });
+  if (!page) return { title: "Sayfa bulunamadı" };
+  return { title: page.title };
+}
 
 export default async function CMSPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
@@ -12,20 +28,24 @@ export default async function CMSPage({ params }: { params: Promise<{ slug: stri
 
   if (!page) notFound();
 
+  const template = normalizePageTemplate(page.template);
+  const footerSettings = template === "contact" ? await getFooterSettings() : undefined;
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50">
-      <div className="max-w-3xl mx-auto px-4 py-12">
-        <Link href="/" className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700 mb-8 transition-colors">
-          <ArrowLeft size={14} /> Ana Sayfaya Dön
-        </Link>
-
-        <h1 className="text-3xl font-bold text-gray-900 mb-8">{page.title}</h1>
-
-        <div
-          className="prose prose-gray max-w-none prose-headings:text-gray-900 prose-a:text-blue-600 prose-img:rounded-xl"
-          dangerouslySetInnerHTML={{ __html: page.content }}
-        />
-      </div>
-    </div>
+    <SitePageShell title={page.title}>
+      <PageRenderer
+        template={template}
+        content={page.content}
+        contactSettings={
+          footerSettings
+            ? {
+                contactEmail: footerSettings.contact_email,
+                contactPhone: footerSettings.contact_phone,
+                address: footerSettings.address,
+              }
+            : undefined
+        }
+      />
+    </SitePageShell>
   );
 }

@@ -4,8 +4,8 @@ import { prisma } from "@/lib/db";
 export async function GET() {
   try {
     const contracts = await prisma.contract.findMany({
-      where: { active: true },
-      orderBy: { createdAt: "desc" },
+      where: { active: true, type: { in: ["public", "page"] } },
+      orderBy: [{ title: "asc" }],
       select: { id: true, slug: true, title: true, active: true },
     });
     return NextResponse.json({ success: true, data: contracts });

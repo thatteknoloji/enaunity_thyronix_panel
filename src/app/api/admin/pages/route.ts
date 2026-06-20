@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { requireAdmin } from "@/lib/auth";
+import { normalizePageTemplate } from "@/lib/pages/types";
 
 export async function GET() {
   try {
@@ -15,12 +16,13 @@ export async function GET() {
 export async function POST(req: Request) {
   try {
     await requireAdmin();
-    const { title, slug, content, active, order } = await req.json();
+    const { title, slug, content, template, active, order } = await req.json();
     const page = await prisma.page.create({
       data: {
         title,
         slug: slug || title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, ""),
         content: content || "",
+        template: normalizePageTemplate(template),
         active: active !== false,
         order: order || 0,
       },

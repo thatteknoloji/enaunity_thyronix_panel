@@ -215,15 +215,14 @@ async function seed() {
   console.log(`Dealer accounts synced: ${dealers.length}`);
   console.log(`Dealer login: any dealer email / Dealer123`);
 
-  // Seed default pages
-  const defaultPages = [
-    { title: "SSS", slug: "sss", content: "<h2>Sıkça Sorulan Sorular</h2><p>Bu sayfa yapım aşamasındadır.</p>", order: 1 },
-    { title: "Kargo ve Teslimat", slug: "kargo-ve-teslimat", content: "<h2>Kargo ve Teslimat</h2><p>Kargo ve teslimat bilgilerimiz burada yer alacaktır.</p>", order: 2 },
-    { title: "İade Politikası", slug: "iade-politikasi", content: "<h2>İade Politikası</h2><p>İade politikamız burada yer alacaktır.</p>", order: 3 },
-    { title: "İletişim", slug: "iletisim", content: "<h2>İletişim</h2><p>E-posta: info@enaunity.com<br>Telefon: +90 (212) 555 00 00</p>", order: 4 },
-  ];
-  for (const p of defaultPages) {
-    await prisma.page.upsert({ where: { slug: p.slug }, update: p, create: p });
+  // Seed default pages — full content in scripts/seed-site-content.ts
+  const { DEFAULT_PAGES } = await import("./pages/default-content");
+  for (const p of DEFAULT_PAGES) {
+    await prisma.page.upsert({
+      where: { slug: p.slug },
+      update: { title: p.title, template: p.template, content: p.content, order: p.order, active: true },
+      create: { title: p.title, slug: p.slug, template: p.template, content: p.content, order: p.order, active: true },
+    });
   }
 
   console.log("Seed completed successfully!");
