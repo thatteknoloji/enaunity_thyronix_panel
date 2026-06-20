@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { Plus, Edit, Trash2, FileText, Eye, EyeOff, ChevronUp, ChevronDown, Download } from "lucide-react";
+import { Plus, Edit, Trash2, FileText, Eye, EyeOff, ChevronUp, ChevronDown, Download, GripVertical } from "lucide-react";
 import toast from "react-hot-toast";
 import { toAdminUrl } from "@/lib/auth/admin-access";
+import { useT } from "@/lib/i18n/provider";
 
 import { PAGE_TEMPLATE_LABELS, type PageTemplate } from "@/lib/pages/types";
 
@@ -18,25 +19,80 @@ interface PageItem {
   createdAt: string;
 }
 
+function sortPages(list: PageItem[]) {
+  return [...list].sort((a, b) => a.order - b.order || a.title.localeCompare(b.title, "tr"));
+}
+
 export default function AdminPagesPage() {
+  const { t } = useT();
   const [pages, setPages] = useState<PageItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [seeding, setSeeding] = useState(false);
+  const [savingOrder, setSavingOrder] = useState(false);
+  const [dragId, setDragId] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ title: "", slug: "" });
 
-  const fetchPages = () => {
+  const sortedPages = useMemo(() => sortPages(pages), [pages]);
+
+  const fetchPages = useCallback(() => {
     setLoading(true);
     fetch("/api/admin/pages")
       .then((r) => r.json())
       .then((d) => {
-        setPages(d.data || []);
+        setPages(sortPages(d.data || []));
         setLoading(false);
       })
       .catch(() => setLoading(false));
+  }, []);
+
+  useEffect(() => { fetchPages(); }, [fetchPages]);
+
+  const saveOrder = async (next: PageItem[]) => {
+    const ordered = next.map((p, index) => ({ ...p, order: index }));
+    setPages(ordered);
+    setSavingOrder(true);
+    try {
+      const res = await fetch("/api/admin/pages/reorder", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ids: ordered.map((p) => p.id) }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) toast.success("Sıralama kaydedildi");
+      else {
+        toast.error(data.error || "Sıralama kaydedilemedi");
+        fetchPages();
+      }
+    } catch {
+      toast.error("Bağlantı hatası");
+      fetchPages();
+    } finally {
+      setSavingOrder(false);
+    }
   };
 
-  useEffect(() => { fetchPages(); }, []);
+  const onDrop = (targetId: string) => {
+    if (!dragId || dragId === targetId) return;
+    const from = sortedPages.findIndex((p) => p.id === dragId);
+    const to = sortedPages.findIndex((p) => p.id === targetId);
+    if (from < 0 || to < 0) return;
+    const next = [...sortedPages];
+    const [moved] = next.splice(from, 1);
+    next.splice(to, 0, moved);
+    setDragId(null);
+    saveOrder(next);
+  };
+
+  const movePage = (id: string, direction: "up" | "down") => {
+    const idx = sortedPages.findIndex((p) => p.id === id);
+    if (idx < 0) return;
+    const swapWith = direction === "up" ? idx - 1 : idx + 1;
+    if (swapWith < 0 || swapWith >= sortedPages.length) return;
+    const next = [...sortedPages];
+    [next[idx], next[swapWith]] = [next[swapWith], next[idx]];
+    saveOrder(next);
+  };
 
   const handleSeedDefaults = async () => {
     setSeeding(true);
@@ -97,7 +153,8 @@ export default function AdminPagesPage() {
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Sayfalar</h1>
           <p className="text-sm text-gray-500 mt-1 max-w-2xl">
-            SSS, İletişim, Kargo ve İade gibi statik sayfaları düzenleyin. İletişim sayfasında e-posta, telefon ve adres kartları{" "}
+            SSS, İletişim, Kargo ve İade gibi statik sayfaları düzenleyin. Footer&apos;daki link sırası buradaki sıralamayı takip eder.
+            İletişim kartları{" "}
             <Link href={toAdminUrl("/admin/footer-settings")} className="text-blue-600 hover:underline">Footer Ayarları</Link>
             ndan gelir.
           </p>
@@ -164,9 +221,17 @@ export default function AdminPagesPage() {
         </div>
       ) : (
         <div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm table-scroll">
+          <div className="flex items-center justify-between border-b border-gray-100 bg-gray-50/80 px-4 py-2.5 text-xs text-gray-500">
+            <span className="inline-flex items-center gap-1.5">
+              <GripVertical size={14} className="text-gray-400" />
+              {t("admin.drag_to_reorder")}
+            </span>
+            {savingOrder ? <span className="text-gray-400">Kaydediliyor…</span> : null}
+          </div>
           <table className="w-full text-sm min-w-[640px]">
             <thead>
               <tr className="border-b border-gray-100 bg-gray-50/50">
+                <th className="px-3 py-3 w-10" />
                 <th className="px-4 py-3 text-left font-semibold text-gray-600">Sıra</th>
                 <th className="px-4 py-3 text-left font-semibold text-gray-600">Başlık</th>
                 <th className="px-4 py-3 text-left font-semibold text-gray-600 hidden md:table-cell">Şablon</th>
@@ -176,13 +241,40 @@ export default function AdminPagesPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
-              {pages.map((p) => (
-                <tr key={p.id} className="hover:bg-gray-50/50 transition-colors">
+              {sortedPages.map((p, idx) => (
+                <tr
+                  key={p.id}
+                  draggable={!savingOrder}
+                  onDragStart={() => setDragId(p.id)}
+                  onDragEnd={() => setDragId(null)}
+                  onDragOver={(e) => e.preventDefault()}
+                  onDrop={() => onDrop(p.id)}
+                  className={`hover:bg-gray-50/50 transition-colors ${dragId === p.id ? "opacity-50 bg-gray-50" : ""}`}
+                >
+                  <td className="px-3 py-3 text-gray-300 cursor-grab active:cursor-grabbing">
+                    <GripVertical size={16} />
+                  </td>
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-0.5">
-                      <ChevronUp size={14} className="text-gray-300" />
-                      <span className="text-xs text-gray-400 w-4 text-center">{p.order}</span>
-                      <ChevronDown size={14} className="text-gray-300" />
+                      <button
+                        type="button"
+                        disabled={idx === 0 || savingOrder}
+                        onClick={() => movePage(p.id, "up")}
+                        className="p-0.5 rounded text-gray-400 hover:text-gray-700 hover:bg-gray-100 disabled:opacity-30 disabled:pointer-events-none"
+                        aria-label="Yukarı taşı"
+                      >
+                        <ChevronUp size={14} />
+                      </button>
+                      <span className="text-xs text-gray-500 w-5 text-center tabular-nums">{idx + 1}</span>
+                      <button
+                        type="button"
+                        disabled={idx === sortedPages.length - 1 || savingOrder}
+                        onClick={() => movePage(p.id, "down")}
+                        className="p-0.5 rounded text-gray-400 hover:text-gray-700 hover:bg-gray-100 disabled:opacity-30 disabled:pointer-events-none"
+                        aria-label="Aşağı taşı"
+                      >
+                        <ChevronDown size={14} />
+                      </button>
                     </div>
                   </td>
                   <td className="px-4 py-3">
