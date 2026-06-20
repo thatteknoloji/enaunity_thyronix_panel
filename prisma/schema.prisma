@@ -13,6 +13,15 @@ model User {
   name      String
   password  String
   role      String          @default("user")
+  status    String          @default("active") // pending, active, rejected, suspended
+  phone     String          @default("")
+  company   String          @default("")
+  taxNumber String          @default("")
+  taxOffice String          @default("")
+  approvalChecklistJson String @default("{}")
+  rejectionReason String    @default("")
+  approvedAt DateTime?
+  reviewedBy String         @default("")
   dealerId  String?
   dealer    Dealer?         @relation(fields: [dealerId], references: [id])
   adminRoleId String?

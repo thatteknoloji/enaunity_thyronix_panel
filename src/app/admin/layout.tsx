@@ -56,6 +56,8 @@ function buildNavGroups(t: (key: string) => string) {
       icon: Store,
       items: [
         { href: "/admin/dealers", label: t("admin.dealers"), icon: Store },
+        { href: "/admin/members", label: "Üyeler", icon: Users },
+        { href: "/admin/dealer-approvals", label: "Bayi Onayları", icon: ClipboardCheck },
         { href: "/admin/dealer-groups", label: t("admin.dealer_groups"), icon: Building2 },
         { href: "/admin/sales-rep", label: t("admin.sales_rep"), icon: Users },
         { href: "/admin/dealer-assignments", label: t("admin.assignment"), icon: Building2 },

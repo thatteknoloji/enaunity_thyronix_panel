@@ -29,6 +29,32 @@ export async function POST(req: Request) {
         return NextResponse.json({ success: false, error: "Geçersiz giriş bilgileri" }, { status: 401 });
       }
 
+      if (user.role === "user") {
+        if (user.status === "pending") {
+          return NextResponse.json(
+            { success: false, error: "Hesabınız admin onayı bekliyor. Onaylandıktan sonra giriş yapabilirsiniz." },
+            { status: 403 }
+          );
+        }
+        if (user.status === "rejected") {
+          return NextResponse.json(
+            {
+              success: false,
+              error: user.rejectionReason
+                ? `Başvurunuz reddedildi: ${user.rejectionReason}`
+                : "Başvurunuz reddedildi. Destek ile iletişime geçin.",
+            },
+            { status: 403 }
+          );
+        }
+        if (user.status === "suspended") {
+          return NextResponse.json(
+            { success: false, error: "Hesabınız askıya alınmış. Destek ile iletişime geçin." },
+            { status: 403 }
+          );
+        }
+      }
+
       if (user.totpEnabled) {
         return NextResponse.json({
           success: true,
