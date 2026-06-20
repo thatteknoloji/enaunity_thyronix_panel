@@ -5,7 +5,7 @@ import { ensureHiveWorkspace, recordHiveSession } from "@/lib/hive/integration";
 import { recordThyronixSession } from "@/lib/thyronix/integration";
 import type { ProductType } from "@/lib/product-links/types";
 
-export type AdminModuleKey = "THYRONIX" | "HIVE";
+export type AdminModuleKey = "THYRONIX" | "HIVE" | "LINKSLASH";
 
 const LICENSE_STATUSES = [
   "ACTIVE",
@@ -21,7 +21,7 @@ const LICENSE_STATUSES = [
 export type AdminLicenseStatus = (typeof LICENSE_STATUSES)[number];
 
 export function isAdminModuleKey(v: string): v is AdminModuleKey {
-  return v === "THYRONIX" || v === "HIVE";
+  return v === "THYRONIX" || v === "HIVE" || v === "LINKSLASH";
 }
 
 function computeEndsAt(status: string, months?: number, trialDays?: number): Date | null {
@@ -186,7 +186,7 @@ export async function provisionModuleAccess(input: {
   let linkResult: Awaited<ReturnType<typeof createProductAccountLink>> | null = null;
   let workspace: { id: string; name: string } | null = null;
 
-  if (input.createProductUser) {
+  if (input.createProductUser && input.moduleKey !== "LINKSLASH") {
     let user = input.userId
       ? await prisma.user.findUnique({ where: { id: input.userId } })
       : await prisma.user.findFirst({ where: { dealerId: input.dealerId }, orderBy: { createdAt: "asc" } });
