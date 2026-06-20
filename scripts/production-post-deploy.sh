@@ -37,6 +37,7 @@ echo "→ site content seed…"
 npm run seed:site-content
 
 echo "→ production build…"
+rm -rf .next
 npm run build
 
 echo "→ pm2 restart…"
