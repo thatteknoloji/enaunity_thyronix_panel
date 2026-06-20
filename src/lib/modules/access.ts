@@ -26,6 +26,12 @@ export async function getModuleLicenseState(dealerId: string, moduleKey: string)
   const license = await getDealerModuleLicense(dealerId, moduleKey);
   if (!license) return "none";
 
+  const now = new Date();
+  if (["blocked", "purged"].includes(license.lifecycleStage)) return "none";
+  if (license.endsAt && license.endsAt < now) return "none";
+  if (["expired", "passive"].includes(license.lifecycleStage)) return "none";
+  if (license.status === "SUSPENDED" || license.status === "EXPIRED" || license.status === "CANCELLED") return "none";
+
   if (license.status === "ACTIVE" || license.status === "TRIAL") return "active";
   if (license.status === "PENDING_PAYMENT" || license.status === "PENDING_APPROVAL") return "pending";
 

@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { formatDate } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { User, Building2, Mail, Phone, Globe, MapPin, Users, Tag, CreditCard, Wallet, ReceiptText, Truck, Save, Pencil } from "lucide-react";
+import { User, Building2, Mail, Phone, Globe, MapPin, Users, Tag, CreditCard, Wallet, ReceiptText, Truck, Save, Pencil, CalendarClock } from "lucide-react";
 import toast from "react-hot-toast";
 
 interface DP {
@@ -14,6 +14,18 @@ interface DP {
   allowNegative: boolean; taxNumber: string; taxOffice: string;
   billingAddress: string; shippingAddress: string; status: string; group: string; createdAt: string;
   dealerGroup?: { paymentDays: number; allowNegativeBalance: boolean; creditLimit: number; discountRate: number } | null;
+  subscriptions?: {
+    moduleKey: string;
+    moduleLabel: string;
+    planKey: string;
+    status: string;
+    billingPeriod: string;
+    endsAt: string | null;
+    daysRemaining: number | null;
+    lifecycleStage: string;
+    isExpiringSoon: boolean;
+    isExpired: boolean;
+  }[];
 }
 
 export default function DealerProfilePage() {
@@ -107,6 +119,54 @@ export default function DealerProfilePage() {
           <p className="text-[10px] text-ena-light/40 mt-0.5 capitalize">{profile.group} grup</p>
         </div>
       </div>
+
+      {(profile.subscriptions?.length ?? 0) > 0 && (
+        <section id="subscriptions" className="mb-6">
+          <h2 className="text-lg font-semibold text-ena-text mb-3 flex items-center gap-2">
+            <CalendarClock size={18} className="text-ena-primary" /> Modül Abonelikleri
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {profile.subscriptions!.map((sub) => {
+              const days = sub.daysRemaining;
+              const urgent = days !== null && days >= 0 && days <= 15;
+              const expired = sub.isExpired || (days !== null && days < 0);
+              return (
+                <div
+                  key={sub.moduleKey}
+                  className={`rounded-xl border p-4 ${
+                    expired ? "border-red-300 bg-red-500/10" : urgent ? "border-amber-300 bg-amber-500/10" : "border-ena-border bg-ena-card/30"
+                  }`}
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <p className="font-semibold text-ena-text">{sub.moduleLabel}</p>
+                      <p className="text-xs text-ena-light/50 mt-0.5">{sub.planKey || "—"} · {sub.billingPeriod === "yearly" ? "Yıllık" : "Aylık"}</p>
+                    </div>
+                    <Badge variant={expired ? "danger" : urgent ? "warning" : "success"}>
+                      {sub.status}
+                    </Badge>
+                  </div>
+                  {sub.endsAt && (
+                    <p className="text-sm mt-3 text-ena-light/80">
+                      Bitiş: <strong>{formatDate(sub.endsAt)}</strong>
+                    </p>
+                  )}
+                  {days !== null && !expired && (
+                    <p className={`text-lg font-bold mt-1 ${urgent ? "text-amber-500" : "text-emerald-500"}`}>
+                      {days === 0 ? "Bugün son gün" : days === 1 ? "Yarın sona eriyor" : `${days} gün kaldı`}
+                    </p>
+                  )}
+                  {expired && (
+                    <p className="text-sm text-red-400 mt-2">
+                      Süre doldu · {sub.lifecycleStage === "passive" ? "Pasif" : sub.lifecycleStage === "blocked" ? "Engelli" : sub.lifecycleStage === "purged" ? "Veriler silindi" : "Yenileme gerekli"}
+                    </p>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </section>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Firma Bilgileri */}

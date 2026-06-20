@@ -5,7 +5,7 @@ import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import {
   LayoutDashboard, Package, ShoppingCart, Users, LogOut, ChevronLeft, ChevronRight, ChevronDown,
-  ClipboardList, Store, DollarSign, Eye, Banknote, RotateCcw, Warehouse, FileText, Tag, Layers, Building2, Percent, Key, MessageSquare, ScrollText, Layout, PackagePlus, Truck, Shield, BarChart3, ClipboardCheck, Barcode, Bell, Webhook, Clock, CalendarClock, Upload, Link2, Plug, Zap, Sparkles, CreditCard
+  ClipboardList, Store, DollarSign, Eye, Banknote, RotateCcw, Warehouse, FileText, Tag, Layers, Building2, Percent, Key, MessageSquare, ScrollText, Layout, PackagePlus, Truck, Shield, BarChart3, ClipboardCheck, Barcode, Bell, Megaphone, Webhook, Clock, CalendarClock, Upload, Link2, Plug, Zap, Sparkles, CreditCard
 } from "lucide-react";
 import { getNavPermissionMap, hasAnyPermission } from "@/lib/permissions";
 import { getAdminLoginPath, isAdminLoginPath, isAdminRole, toAdminUrl } from "@/lib/auth/admin-access";
@@ -120,6 +120,7 @@ function buildNavGroups(t: (key: string) => string) {
       items: [
         { href: "/admin/users", label: t("admin.users"), icon: Users },
         { href: "/admin/roles", label: t("admin.roles"), icon: Shield },
+        { href: "/admin/broadcasts", label: "Bildirim Yayınları", icon: Megaphone },
         { href: "/admin/notifications", label: t("admin.notifications"), icon: Bell },
         { href: "/admin/admin-logs", label: "Admin Logları", icon: ClipboardList },
         { href: "/admin/approval-rules", label: t("admin.approval_rules"), icon: ClipboardCheck },

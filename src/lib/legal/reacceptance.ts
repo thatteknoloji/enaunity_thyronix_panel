@@ -35,6 +35,7 @@ export type PendingReacceptState = {
 
 const SLUG_SERVICE_BLOCKS: Record<string, PendingReacceptItem["blocks"][number][]> = {
   "kvkk-aydinlatma-metni": ["account"],
+  "acik-riza-metni": ["account"],
   "gizlilik-politikasi": ["account"],
   "cerez-politikasi": ["account"],
   "uyelik-sozlesmesi": ["account"],
@@ -42,6 +43,12 @@ const SLUG_SERVICE_BLOCKS: Record<string, PendingReacceptItem["blocks"][number][
   "iade-degisim-teslimat-politikasi": ["dealer"],
   "hive-thyronix-sozlesmesi": ["hive", "thyronix"],
 };
+
+const DEALER_ONLY_REACCEPT_SLUGS = new Set<string>([
+  ...DEALER_REQUIRED_SLUGS,
+  HIVE_PURCHASE_SLUG,
+  THYRONIX_PURCHASE_SLUG,
+]);
 
 export function getApplicableSlugsForUser(user: {
   role: string;
@@ -142,6 +149,14 @@ export async function notifyUsersOnContractPublish(input: {
   }
 
   for (const [userId, info] of userMap) {
+    if (DEALER_ONLY_REACCEPT_SLUGS.has(input.contractSlug)) {
+      const user = await prisma.user.findUnique({
+        where: { id: userId },
+        select: { role: true, dealerId: true },
+      });
+      if (!user || (user.role !== "dealer" && !user.dealerId)) continue;
+    }
+
     await prisma.legalReacceptanceTask.upsert({
       where: {
         userId_contractVersionId: { userId, contractVersionId: input.contractVersionId },

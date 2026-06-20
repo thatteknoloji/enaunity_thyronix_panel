@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getSession } from "@/lib/auth";
+import { getDealerSubscriptionSummaries } from "@/lib/modules/subscription-lifecycle-worker";
 
 export async function GET() {
   try {
@@ -18,7 +19,9 @@ export async function GET() {
       return NextResponse.json({ success: false, error: "Bayi bulunamadı" }, { status: 404 });
     }
 
-    return NextResponse.json({ success: true, data: dealer });
+    const subscriptions = await getDealerSubscriptionSummaries(user.dealerId);
+
+    return NextResponse.json({ success: true, data: { ...dealer, subscriptions } });
   } catch {
     return NextResponse.json({ success: false, error: "Sunucu hatası" }, { status: 500 });
   }

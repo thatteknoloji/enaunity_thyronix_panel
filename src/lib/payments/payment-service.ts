@@ -175,13 +175,16 @@ export async function approvePayment(paymentId: string): Promise<PaymentResult> 
     where: { dealerId: payment.dealerId, moduleKey: payment.moduleKey },
     orderBy: { createdAt: "desc" },
   });
-  const endsAt = new Date();
-  endsAt.setMonth(endsAt.getMonth() + 1);
+  const billingPeriod = payment.paymentType === "subscription" ? "monthly" : "monthly";
+  const { computeLicenseEndsAt } = await import("@/lib/modules/subscription-utils");
+  const endsAt = computeLicenseEndsAt(new Date(), billingPeriod);
 
   if (existingLicense) {
+    const { resetLicenseLifecycleFlags } = await import("@/lib/modules/subscription-lifecycle-worker");
+    await resetLicenseLifecycleFlags(existingLicense.id, endsAt, billingPeriod);
     await prisma.moduleLicense.update({
       where: { id: existingLicense.id },
-      data: { status: "ACTIVE", startsAt: new Date(), endsAt, planKey: payment.planKey },
+      data: { planKey: payment.planKey },
     });
   } else {
     await prisma.moduleLicense.create({
@@ -190,8 +193,10 @@ export async function approvePayment(paymentId: string): Promise<PaymentResult> 
         moduleKey: payment.moduleKey,
         planKey: payment.planKey,
         status: "ACTIVE",
+        billingPeriod,
         startsAt: new Date(),
         endsAt,
+        lifecycleStage: "active",
       },
     });
   }

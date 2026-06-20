@@ -1,10 +1,12 @@
 "use client";
 
+import { Fragment } from "react";
 import { useEffect, useState, useCallback } from "react";
 import { formatDate } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Store, Plus, Search, Check, X, Pencil, Trash2, ChevronDown } from "lucide-react";
+import { DealerCredentialsPanel } from "@/components/admin/DealerCredentialsPanel";
 
 interface DealerGroup { id: string; name: string; discountRate: number; creditLimit: number; allowNegativeBalance: boolean; paymentDays: number; }
 
@@ -234,9 +236,13 @@ export default function AdminDealersPage() {
             </thead>
             <tbody className="divide-y divide-gray-100">
               {filtered.map((dealer) => (
-                <tr key={dealer.id} className="hover:bg-gray-50/80 transition-colors">
+                <Fragment key={dealer.id}>
+                <tr className="hover:bg-gray-50/80 transition-colors">
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-2.5">
+                      <button type="button" onClick={() => setExpanded(expanded === dealer.id ? null : dealer.id)} className="p-1 rounded hover:bg-gray-100">
+                        <ChevronDown size={14} className={`transition-transform ${expanded === dealer.id ? "rotate-180" : ""}`} />
+                      </button>
                       <div className="h-8 w-8 rounded-full bg-gradient-to-br from-purple-600 to-purple-400 flex items-center justify-center text-white text-xs font-bold shrink-0">
                         {dealer.company.charAt(0).toUpperCase()}
                       </div>
@@ -279,6 +285,14 @@ export default function AdminDealersPage() {
                     </div>
                   </td>
                 </tr>
+                {expanded === dealer.id && (
+                  <tr key={`${dealer.id}-creds`}>
+                    <td colSpan={8} className="px-4 pb-4 bg-gray-50/50">
+                      <DealerCredentialsPanel dealerId={dealer.id} />
+                    </td>
+                  </tr>
+                )}
+                </Fragment>
               ))}
             </tbody>
           </table>

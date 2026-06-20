@@ -38,7 +38,7 @@ export async function seedSiteContent(): Promise<SiteContentSeedResult> {
 
   const contractSlugs: string[] = [];
   for (const contract of LEGAL_CONTRACT_SEEDS) {
-    await upsertContractWithVersion(contract);
+    await upsertContractWithVersion(contract, { silent: true });
     contractSlugs.push(contract.slug);
   }
 

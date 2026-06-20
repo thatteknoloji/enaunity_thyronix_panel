@@ -11,6 +11,7 @@ import { REGISTRATION_OPTIONAL_SLUGS, REGISTRATION_REQUIRED_SLUGS } from "@/lib/
 
 const CONTRACT_UI: Record<string, { title: string; required: boolean }> = {
   "kvkk-aydinlatma-metni": { title: "KVKK Aydınlatma Metni", required: true },
+  "acik-riza-metni": { title: "Açık Rıza Metni", required: true },
   "gizlilik-politikasi": { title: "Gizlilik Politikası", required: true },
   "cerez-politikasi": { title: "Çerez Politikası", required: true },
   "uyelik-sozlesmesi": { title: "Üyelik ve Platform Kullanım Sözleşmesi", required: true },

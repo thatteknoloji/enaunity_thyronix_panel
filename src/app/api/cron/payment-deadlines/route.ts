@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { runPaymentDeadlineJobs } from "@/lib/payments/payment-deadline-worker";
 import { runThyronixBulkJob } from "@/lib/thyronix/bulk-job-worker";
+import { runSubscriptionLifecycleJobs } from "@/lib/modules/subscription-lifecycle-worker";
+import { runScheduledCampaignJobs } from "@/lib/notifications/campaigns";
 import { prisma } from "@/lib/db";
 
 export async function GET(req: Request) {
@@ -11,6 +13,8 @@ export async function GET(req: Request) {
     }
 
     const paymentResult = await runPaymentDeadlineJobs();
+    const subscriptionResult = await runSubscriptionLifecycleJobs();
+    const campaignResult = await runScheduledCampaignJobs();
 
     const pendingJobs = await prisma.thyronixBulkJob.findMany({
       where: { status: { in: ["pending", "running"] } },
@@ -21,7 +25,15 @@ export async function GET(req: Request) {
       bulkResults.push(await runThyronixBulkJob(job.id, 5));
     }
 
-    return NextResponse.json({ success: true, data: { payments: paymentResult, bulkJobs: bulkResults.length } });
+    return NextResponse.json({
+      success: true,
+      data: {
+        payments: paymentResult,
+        subscriptions: subscriptionResult,
+        campaigns: campaignResult,
+        bulkJobs: bulkResults.length,
+      },
+    });
   } catch (e) {
     return NextResponse.json(
       { success: false, error: e instanceof Error ? e.message : "Cron hatası" },

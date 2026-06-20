@@ -10,12 +10,12 @@ const transporter = nodemailer.createTransport({
 });
 
 export async function createNotification({
-  dealerId, userId, title, message, type = "info", link = "",
+  dealerId, userId, title, message, type = "info", link = "", campaignId,
 }: {
-  dealerId?: string; userId?: string; title: string; message: string; type?: string; link?: string;
+  dealerId?: string; userId?: string; title: string; message: string; type?: string; link?: string; campaignId?: string;
 }) {
   return prisma.notification.create({
-    data: { dealerId: dealerId || null, userId: userId || null, title, message, type, link },
+    data: { dealerId: dealerId || null, userId: userId || null, title, message, type, link, campaignId: campaignId || null },
   });
 }
 

@@ -137,6 +137,16 @@ export async function upsertModuleLicense(input: {
     startsAt: input.status === "ACTIVE" || input.status === "TRIAL" ? new Date() : existing?.startsAt,
     endsAt,
     trialEndsAt,
+    billingPeriod: (input.months && input.months >= 12) ? "yearly" : "monthly",
+    ...(input.status === "ACTIVE" || input.status === "TRIAL"
+      ? {
+          lifecycleStage: "active",
+          lifecycleUpdatedAt: new Date(),
+          reminder30Sent: false,
+          reminder15Sent: false,
+          reminderLastDaySent: false,
+        }
+      : {}),
   };
 
   if (existing) {

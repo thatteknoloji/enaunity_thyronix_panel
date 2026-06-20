@@ -1,6 +1,7 @@
-/** Kayıt sırasında zorunlu sözleşmeler — her biri ayrı checkbox */
+/** Kayıt sırasında zorunlu sözleşmeler — her biri ayrı checkbox (admin muafiyeti ile esnetilebilir) */
 export const REGISTRATION_REQUIRED_SLUGS = [
   "kvkk-aydinlatma-metni",
+  "acik-riza-metni",
   "gizlilik-politikasi",
   "cerez-politikasi",
   "uyelik-sozlesmesi",

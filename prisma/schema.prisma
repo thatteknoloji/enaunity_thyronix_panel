@@ -552,16 +552,66 @@ model ProductWarehouse {
 }
 
 model Notification {
-  id        String   @id @default(cuid())
-  userId    String?
-  dealerId  String?
-  dealer    Dealer?  @relation(fields: [dealerId], references: [id])
-  title     String
-  message   String
-  type      String   @default("info")
-  read      Boolean  @default(false)
-  link      String   @default("")
-  createdAt DateTime @default(now())
+  id         String   @id @default(cuid())
+  userId     String?
+  dealerId   String?
+  dealer     Dealer?  @relation(fields: [dealerId], references: [id])
+  campaignId String?
+  campaign   NotificationCampaign? @relation(fields: [campaignId], references: [id], onDelete: SetNull)
+  title      String
+  message    String
+  type       String   @default("info")
+  read       Boolean  @default(false)
+  link       String   @default("")
+  createdAt  DateTime @default(now())
+
+  @@index([campaignId])
+  @@index([userId, read])
+  @@index([dealerId, read])
+}
+
+model NotificationCampaign {
+  id                 String   @id @default(cuid())
+  title              String
+  message            String
+  emailSubject       String   @default("")
+  emailHtml          String   @default("")
+  channel            String   @default("panel_and_email") // panel_only | email_only | panel_and_email
+  audience           String   @default("all") // all | members | dealers | custom
+  audienceFilterJson String   @default("{}")
+  link               String   @default("")
+  type               String   @default("announcement")
+  status             String   @default("draft") // draft | scheduled | sending | sent | cancelled
+  scheduledAt        DateTime?
+  sentAt             DateTime?
+  timezone           String   @default("Europe/Istanbul")
+  recipientCount     Int      @default(0)
+  deliveredCount     Int      @default(0)
+  emailSentCount     Int      @default(0)
+  createdById        String   @default("")
+  createdByName      String   @default("")
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+  notifications      Notification[]
+  deliveries         NotificationDelivery[]
+
+  @@index([status, scheduledAt])
+}
+
+model NotificationDelivery {
+  id             String   @id @default(cuid())
+  campaignId     String
+  campaign       NotificationCampaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  userId         String?
+  dealerId       String?
+  email          String   @default("")
+  channel        String
+  status         String   @default("pending") // pending | delivered | failed | skipped
+  error          String   @default("")
+  notificationId String   @default("")
+  createdAt      DateTime @default(now())
+
+  @@index([campaignId])
 }
 
 model Quote {
@@ -1127,18 +1177,27 @@ model ModulePlan {
 }
 
 model ModuleLicense {
-  id              String   @id @default(cuid())
-  dealerId        String
-  moduleKey       String   // ENA_COMMERCE, THYRONIX, HIVE, HIVE_PRO
-  planKey         String   @default("")
-  status          String   @default("INACTIVE") // INACTIVE, TRIAL, PENDING_PAYMENT, PENDING_APPROVAL, ACTIVE, SUSPENDED, CANCELLED, EXPIRED
-  trialEndsAt     DateTime?
-  startsAt        DateTime?
-  endsAt          DateTime?
-  usageLimitJson  String   @default("{}")
-  metadataJson    String   @default("{}")
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  id                  String   @id @default(cuid())
+  dealerId            String
+  moduleKey           String   // ENA_COMMERCE, THYRONIX, HIVE, HIVE_PRO
+  planKey             String   @default("")
+  status              String   @default("INACTIVE") // INACTIVE, TRIAL, PENDING_PAYMENT, PENDING_APPROVAL, ACTIVE, SUSPENDED, CANCELLED, EXPIRED
+  billingPeriod       String   @default("monthly") // monthly | yearly
+  trialEndsAt         DateTime?
+  startsAt            DateTime?
+  endsAt              DateTime?
+  reminder30Sent      Boolean  @default(false)
+  reminder15Sent      Boolean  @default(false)
+  reminderLastDaySent Boolean  @default(false)
+  lifecycleStage      String   @default("active") // active | expired | passive | blocked | purged
+  lifecycleUpdatedAt  DateTime?
+  usageLimitJson      String   @default("{}")
+  metadataJson        String   @default("{}")
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  @@index([dealerId, moduleKey])
+  @@index([endsAt, status])
 }
 
 model ModulePayment {

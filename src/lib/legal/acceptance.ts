@@ -158,7 +158,12 @@ export async function userMissingRequiredSlugs(
   return missing;
 }
 
-export async function publishContractVersion(contractId: string, title: string, content: string) {
+export async function publishContractVersion(
+  contractId: string,
+  title: string,
+  content: string,
+  options?: { notifyUsers?: boolean }
+) {
   const { sha256Content } = await import("./hash");
   const hash = sha256Content(content);
   const contract = await prisma.contract.findUnique({ where: { id: contractId } });
@@ -208,25 +213,30 @@ export async function publishContractVersion(contractId: string, title: string, 
     payload: { contractId, slug: contract.slug, version: nextVersion, hash, pdfUrl, pdfHash },
   });
 
-  await notifyUsersOnContractPublish({
-    contractId,
-    contractSlug: contract.slug,
-    contractTitle: title,
-    contractVersionId: version.id,
-    newVersionNum: nextVersion,
-    previousVersionNum,
-  });
+  if (options?.notifyUsers !== false) {
+    await notifyUsersOnContractPublish({
+      contractId,
+      contractSlug: contract.slug,
+      contractTitle: title,
+      contractVersionId: version.id,
+      newVersionNum: nextVersion,
+      previousVersionNum,
+    });
+  }
 
   return version;
 }
 
-export async function upsertContractWithVersion(seed: {
-  title: string;
-  slug: string;
-  type: string;
-  category: string;
-  content: string;
-}) {
+export async function upsertContractWithVersion(
+  seed: {
+    title: string;
+    slug: string;
+    type: string;
+    category: string;
+    content: string;
+  },
+  options?: { silent?: boolean }
+) {
   const { sha256Content } = await import("./hash");
   const hash = sha256Content(seed.content);
 
@@ -278,6 +288,8 @@ export async function upsertContractWithVersion(seed: {
     return existing;
   }
 
-  await publishContractVersion(existing.id, seed.title, seed.content);
+  await publishContractVersion(existing.id, seed.title, seed.content, {
+    notifyUsers: !options?.silent,
+  });
   return prisma.contract.findUniqueOrThrow({ where: { slug: seed.slug } });
 }
