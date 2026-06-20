@@ -41,7 +41,7 @@ export default function ProductGatewayPage({ productType }: { productType: Produ
         const payload = d.data;
         setState(payload);
         if (payload.step === "ready" && payload.redirectTo) {
-          setTimeout(() => { window.location.href = payload.redirectTo; }, 1200);
+          window.location.href = payload.redirectTo;
         }
       })
       .catch(() => setState({ step: "error", message: "Bağlantı hatası" }));

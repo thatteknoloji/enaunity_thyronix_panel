@@ -5,6 +5,76 @@ import { isCoreOrderEngine } from "@/lib/orders/config";
 import { createCoreOrder, findCoreOrderByMarketplace } from "@/lib/orders/core-order-service";
 import { buildOrderMetadata } from "@/lib/orders/config";
 
+function parseMeta(json: string | null | undefined): Record<string, unknown> {
+  try {
+    return JSON.parse(json || "{}");
+  } catch {
+    return {};
+  }
+}
+
+async function refreshExistingMarketplaceOrder(
+  orderId: string,
+  payload: MarketplaceOrderPayload
+) {
+  const core = await prisma.order.findUnique({
+    where: { id: orderId },
+    include: { items: true, shipments: true },
+  });
+  if (!core) return;
+
+  const meta = parseMeta(core.metadataJson);
+  const orderUpdate: Record<string, unknown> = {};
+
+  if (payload.cargoTrackingNumber) {
+    const tracking = String(payload.cargoTrackingNumber);
+    if (meta.cargoTrackingNumber !== tracking) {
+      meta.cargoTrackingNumber = tracking;
+      meta.cargoProviderName = payload.cargoProviderName || meta.cargoProviderName || "";
+      orderUpdate.metadataJson = JSON.stringify(meta);
+    }
+    if (!core.trackingNumber || core.trackingNumber === core.marketplaceOrderId) {
+      orderUpdate.trackingNumber = tracking;
+    }
+    if (payload.cargoProviderName && !core.carrier) {
+      orderUpdate.carrier = payload.cargoProviderName;
+    }
+  }
+
+  if (Object.keys(orderUpdate).length) {
+    await prisma.order.update({ where: { id: orderId }, data: orderUpdate });
+  }
+
+  const shipment = core.shipments[0];
+  if (payload.cargoTrackingNumber && shipment && !shipment.trackingNumber) {
+    await prisma.dealerShipment.update({
+      where: { id: shipment.id },
+      data: {
+        trackingNumber: String(payload.cargoTrackingNumber),
+        cargoCompany: payload.cargoProviderName || shipment.cargoCompany || "",
+      },
+    });
+  }
+
+  for (const line of payload.items) {
+    if (!line.imageUrl) continue;
+    const item = core.items.find(
+      (i) =>
+        (line.barcode && i.barcode === line.barcode) ||
+        i.name === line.productName
+    );
+    if (!item) continue;
+    const itemMeta = parseMeta(item.metadataJson);
+    if (itemMeta.imageUrl) continue;
+    await prisma.orderItem.update({
+      where: { id: item.id },
+      data: {
+        metadataJson: JSON.stringify({ ...itemMeta, imageUrl: line.imageUrl }),
+      },
+    });
+  }
+}
+
 export type MarketplaceOrderPayload = {
   platform: string;
   platformOrderId: string;
@@ -42,7 +112,9 @@ export async function importMarketplaceOrderToFulfillment(params: {
   if (isCoreOrderEngine()) {
     const existingCore = await findCoreOrderByMarketplace(dealerId, marketplace, marketplaceOrderId);
     if (existingCore) {
-      return { order: existingCore, duplicate: true };
+      await refreshExistingMarketplaceOrder(existingCore.id, payload);
+      const refreshed = await findCoreOrderByMarketplace(dealerId, marketplace, marketplaceOrderId);
+      return { order: refreshed || existingCore, duplicate: true };
     }
   } else {
     const existing = await prisma.dealerOrder.findFirst({
@@ -112,6 +184,23 @@ export async function importMarketplaceOrderToFulfillment(params: {
     });
     order = result.order;
     duplicate = result.duplicate;
+
+    if (payload.cargoTrackingNumber && !duplicate) {
+      await prisma.order.update({
+        where: { id: order.id },
+        data: { trackingNumber: String(payload.cargoTrackingNumber) },
+      });
+      const shipment = await prisma.dealerShipment.findFirst({ where: { coreOrderId: order.id } });
+      if (shipment) {
+        await prisma.dealerShipment.update({
+          where: { id: shipment.id },
+          data: {
+            trackingNumber: String(payload.cargoTrackingNumber),
+            cargoCompany: payload.cargoProviderName || "",
+          },
+        });
+      }
+    }
   } else {
     const { createDealerOrder: legacyCreate } = await import("@/lib/fulfillment/orders");
     order = await legacyCreate({

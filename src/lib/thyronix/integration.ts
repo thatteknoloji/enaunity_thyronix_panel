@@ -33,18 +33,23 @@ type EnaUser = {
 };
 
 export async function resolveThyronixGatewayState(enaUser: EnaUser): Promise<ThyronixGatewayState> {
-  if (!isAdminRole(enaUser.role)) {
-    if (!enaUser.dealerId) {
-      return { step: "dealer_required", reason: "THYRONIX için bayi hesabı gerekli", code: "DEALER_REQUIRED" };
-    }
+  if (isAdminRole(enaUser.role)) {
+    return {
+      step: "ready",
+      redirectTo: "/thyronix",
+    };
+  }
 
-    const licenseState = await getModuleLicenseState(enaUser.dealerId, "THYRONIX");
-    if (licenseState === "none") {
-      return { step: "pricing", reason: "THYRONIX lisansı bulunamadı", code: "LISANS_YOK" };
-    }
-    if (licenseState === "pending") {
-      return { step: "pending", reason: "THYRONIX lisansınız onay veya ödeme bekliyor", code: "LISANS_BEKLIYOR" };
-    }
+  if (!enaUser.dealerId) {
+    return { step: "dealer_required", reason: "THYRONIX için bayi hesabı gerekli", code: "DEALER_REQUIRED" };
+  }
+
+  const licenseState = await getModuleLicenseState(enaUser.dealerId, "THYRONIX");
+  if (licenseState === "none") {
+    return { step: "pricing", reason: "THYRONIX lisansı bulunamadı", code: "LISANS_YOK" };
+  }
+  if (licenseState === "pending") {
+    return { step: "pending", reason: "THYRONIX lisansınız onay veya ödeme bekliyor", code: "LISANS_BEKLIYOR" };
   }
 
   const link = await getActiveLink(enaUser.id, "THYRONIX");

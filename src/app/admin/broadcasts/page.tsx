@@ -29,11 +29,13 @@ const CHANNELS = [
   { value: "email_only", label: "Sadece e-posta" },
 ];
 
+type DealerOption = { id: string; name: string; company: string };
+
 const AUDIENCES = [
   { value: "all", label: "Herkes" },
   { value: "members", label: "Sadece üyeler" },
   { value: "dealers", label: "Sadece bayiler" },
-  { value: "custom", label: "Özel (e-posta / bayi ID)" },
+  { value: "custom", label: "Özel (e-posta / kullanıcı ID)" },
 ];
 
 export default function AdminBroadcastsPage() {
@@ -41,6 +43,7 @@ export default function AdminBroadcastsPage() {
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [dealers, setDealers] = useState<DealerOption[]>([]);
   const [form, setForm] = useState({
     title: "",
     message: "",
@@ -48,6 +51,8 @@ export default function AdminBroadcastsPage() {
     emailHtml: "",
     channel: "panel_and_email",
     audience: "all",
+    dealerScope: "all" as "all" | "one",
+    selectedDealerId: "",
     link: "",
     type: "announcement",
     scheduledAt: "",
@@ -66,8 +71,18 @@ export default function AdminBroadcastsPage() {
 
   useEffect(() => { load(); }, [load]);
 
+  useEffect(() => {
+    fetch("/api/admin/dealers")
+      .then((r) => r.json())
+      .then((d) => { if (d.success) setDealers(d.data || []); })
+      .catch(() => {});
+  }, []);
+
   const audienceFilter = () => {
     const filter: Record<string, unknown> = {};
+    if (form.audience === "dealers" && form.dealerScope === "one" && form.selectedDealerId) {
+      filter.dealerIds = [form.selectedDealerId];
+    }
     if (form.audience === "custom") {
       const emails = form.customEmails.split(/[\n,;]+/).map((s) => s.trim()).filter(Boolean);
       const dealerIds = form.customDealerIds.split(/[\n,;]+/).map((s) => s.trim()).filter(Boolean);
@@ -78,9 +93,20 @@ export default function AdminBroadcastsPage() {
     return filter;
   };
 
+  const resolvedAudience = () => {
+    if (form.audience === "dealers" && form.dealerScope === "one" && form.selectedDealerId) {
+      return "custom";
+    }
+    return form.audience;
+  };
+
   const submit = async (sendNow: boolean) => {
     if (!form.title.trim() || !form.message.trim()) {
       toast.error("Başlık ve mesaj gerekli");
+      return;
+    }
+    if (form.audience === "dealers" && form.dealerScope === "one" && !form.selectedDealerId) {
+      toast.error("Tek bayi seçimi için bir bayi seçin");
       return;
     }
     setSaving(true);
@@ -89,6 +115,7 @@ export default function AdminBroadcastsPage() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         ...form,
+        audience: resolvedAudience(),
         emailSubject: form.emailSubject || form.title,
         audienceFilter: audienceFilter(),
         sendNow,
@@ -169,10 +196,50 @@ export default function AdminBroadcastsPage() {
             </label>
           </div>
 
+          {form.audience === "dealers" && (
+            <div className="rounded-lg border border-gray-100 bg-gray-50 p-4 space-y-3">
+              <p className="text-xs font-semibold text-gray-600 uppercase">Bayi hedefi</p>
+              <div className="flex flex-wrap gap-4 text-sm">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="dealerScope"
+                    checked={form.dealerScope === "all"}
+                    onChange={() => setForm({ ...form, dealerScope: "all", selectedDealerId: "" })}
+                  />
+                  Tüm bayiler
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="dealerScope"
+                    checked={form.dealerScope === "one"}
+                    onChange={() => setForm({ ...form, dealerScope: "one" })}
+                  />
+                  Tek bayi
+                </label>
+              </div>
+              {form.dealerScope === "one" && (
+                <select
+                  className="w-full rounded-lg border px-3 py-2 text-sm"
+                  value={form.selectedDealerId}
+                  onChange={(e) => setForm({ ...form, selectedDealerId: e.target.value })}
+                >
+                  <option value="">Bayi seçin…</option>
+                  {dealers.map((d) => (
+                    <option key={d.id} value={d.id}>
+                      {d.name}{d.company ? ` (${d.company})` : ""}
+                    </option>
+                  ))}
+                </select>
+              )}
+            </div>
+          )}
+
           {form.audience === "custom" && (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <label className="text-sm">
-                <span className="text-gray-600">Bayi ID (virgülle)</span>
+                <span className="text-gray-600">Bayi ID (virgülle, opsiyonel)</span>
                 <textarea className="mt-1 w-full rounded-lg border px-3 py-2 text-sm" rows={2} value={form.customDealerIds} onChange={(e) => setForm({ ...form, customDealerIds: e.target.value })} />
               </label>
               <label className="text-sm">

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useT } from "@/lib/i18n/provider";
 import { resolveFooterIntro } from "@/lib/footer-intro";
+import { openCookiePreferences } from "@/components/legal/CookieConsentBanner";
 
 const footerCategories = ["Cam Tablo","Mdf Tablo","Halı","Kilim","Perde","Nevresim","Yastık Kılıfı","Minder","Puzzle","Hediyelik Ürünler"];
 
@@ -80,9 +81,21 @@ export default function Footer() {
             </ul>
           </div>
         </div>
-        <div className="mt-10 border-t border-ena-border pt-6 text-center text-xs text-ena-light/50">
-          © 2026 Enaunity®. {t("footer.rights") || "Tüm hakları saklıdır."} Powered by{" "}
-          <a href="https://thatteknoloji.com" target="_blank" rel="noopener noreferrer" className="text-ena-primary/70 hover:text-ena-primary transition-colors">ThatTeknoloji®</a>
+        <div className="mt-10 border-t border-ena-border pt-6 text-center text-xs text-ena-light/50 space-y-2">
+          <p>
+            © 2026 Enaunity®. {t("footer.rights") || "Tüm hakları saklıdır."}{" "}
+            <button
+              type="button"
+              onClick={() => openCookiePreferences(true)}
+              className="text-ena-primary/70 hover:text-ena-primary transition-colors underline-offset-2 hover:underline"
+            >
+              Çerez Tercihleri
+            </button>
+          </p>
+          <p>
+            Powered by{" "}
+            <a href="https://thatteknoloji.com" target="_blank" rel="noopener noreferrer" className="text-ena-primary/70 hover:text-ena-primary transition-colors">ThatTeknoloji®</a>
+          </p>
         </div>
       </div>
     </footer>

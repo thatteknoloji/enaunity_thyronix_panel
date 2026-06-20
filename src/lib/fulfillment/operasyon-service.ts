@@ -35,6 +35,7 @@ export type OperasyonOrderView = {
   dealer?: { id?: string; name?: string; company?: string };
   items: OperasyonItemView[];
   trackingNumber: string;
+  cargoTrackingNumber: string;
   cargoCompany: string;
   shippingLabelUrl: string;
   shippingLabelFileName: string;
@@ -103,12 +104,32 @@ type CoreOrderShape = {
   dealer?: { id: string; name: string; company: string } | null;
 };
 
+function resolveCargoTrackingNumber(order: {
+  marketplaceOrderId: string;
+  trackingNumber: string;
+  metadataJson: string;
+  shipments?: Array<{ trackingNumber?: string }>;
+}): string {
+  const meta = parseMeta(order.metadataJson);
+  const candidates = [
+    String(meta.cargoTrackingNumber || "").trim(),
+    order.shipments?.[0]?.trackingNumber?.trim() || "",
+    order.trackingNumber?.trim() || "",
+  ].filter(Boolean);
+
+  for (const value of candidates) {
+    if (value !== order.marketplaceOrderId) return value;
+  }
+  return "";
+}
+
 function coreToView(order: CoreOrderShape): OperasyonOrderView {
   const meta = parseMeta(order.metadataJson);
   const labelAttachment = order.attachments?.find(
     (a) => a.fileType === "shipping_label" || a.fileType === "pdf"
   );
   const shipment = order.shipments?.[0];
+  const cargoTrackingNumber = resolveCargoTrackingNumber(order);
 
   return {
     id: order.id,
@@ -127,7 +148,8 @@ function coreToView(order: CoreOrderShape): OperasyonOrderView {
     engine: "core",
     dealer: order.dealer || undefined,
     items: mapItems(order.items || []),
-    trackingNumber: shipment?.trackingNumber || order.trackingNumber || String(meta.cargoTrackingNumber || ""),
+    trackingNumber: shipment?.trackingNumber || order.trackingNumber || cargoTrackingNumber,
+    cargoTrackingNumber,
     cargoCompany: shipment?.cargoCompany || order.carrier || String(meta.cargoProviderName || ""),
     shippingLabelUrl: labelAttachment?.fileUrl || String(meta.shippingLabelUrl || ""),
     shippingLabelFileName: labelAttachment?.fileName || "",
@@ -193,6 +215,7 @@ export async function listOperasyonOrders(filters: {
       dealer: unified.dealer as OperasyonOrderView["dealer"],
       items: mapItems((o.items || []) as Parameters<typeof mapItems>[0]),
       trackingNumber: o.shipments[0]?.trackingNumber || "",
+      cargoTrackingNumber: "",
       cargoCompany: o.shipments[0]?.cargoCompany || "",
       shippingLabelUrl: "",
       shippingLabelFileName: "",
@@ -236,6 +259,7 @@ export async function getOperasyonOrderDetail(orderId: string, dealerId?: string
     dealer: unified.dealer as OperasyonOrderView["dealer"],
     items: mapItems((legacy.items || []) as Parameters<typeof mapItems>[0]),
     trackingNumber: legacy.shipments[0]?.trackingNumber || "",
+    cargoTrackingNumber: "",
     cargoCompany: legacy.shipments[0]?.cargoCompany || "",
     shippingLabelUrl: "",
     shippingLabelFileName: "",
@@ -269,11 +293,16 @@ export async function setOperasyonTracking(
 ) {
   const core = await prisma.order.findUnique({ where: { id: orderId } });
   if (core) {
+    const meta = parseMeta(core.metadataJson);
+    if (data.trackingNumber && data.trackingNumber !== core.marketplaceOrderId) {
+      meta.cargoTrackingNumber = data.trackingNumber;
+    }
     await prisma.order.update({
       where: { id: orderId },
       data: {
         trackingNumber: data.trackingNumber ?? core.trackingNumber,
         carrier: data.cargoCompany ?? core.carrier,
+        metadataJson: JSON.stringify(meta),
       },
     });
     const shipment = await prisma.dealerShipment.findFirst({ where: { coreOrderId: orderId } });
@@ -347,17 +376,17 @@ export async function attachOperasyonShippingLabel(
 }
 
 export async function fetchOperasyonLabelFromTrendyol(orderId: string) {
-  const core = await prisma.order.findUnique({ where: { id: orderId } });
+  const core = await prisma.order.findUnique({
+    where: { id: orderId },
+    include: { shipments: true },
+  });
   if (!core?.dealerId) throw new Error("Sipariş bulunamadı");
 
-  const meta = parseMeta(core.metadataJson);
-  const tracking =
-    core.trackingNumber ||
-    String(meta.cargoTrackingNumber || "") ||
-    core.marketplaceOrderId;
-
+  const tracking = resolveCargoTrackingNumber(core);
   if (!tracking) {
-    throw new Error("Kargo takip numarası yok — önce takip no girin veya TY sync yapın");
+    throw new Error(
+      "Trendyol kargo takip numarası (cargoTrackingNumber) henüz yok. Sipariş paketlendikten sonra sync yapın veya TY panelindeki kargo no ile kaydedin — sipariş numarası etiket için kullanılamaz."
+    );
   }
 
   const conn = await prisma.marketplaceConnection.findFirst({

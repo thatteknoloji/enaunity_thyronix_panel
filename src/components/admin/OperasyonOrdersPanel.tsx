@@ -302,7 +302,7 @@ export default function OperasyonOrdersPanel({ scope }: Props) {
                   className="flex-1 min-w-[120px] rounded border px-2 py-1.5 text-sm"
                 />
                 <input
-                  placeholder="Takip no"
+                  placeholder="TY kargo takip no (cargoTrackingNumber)"
                   value={tracking.trackingNumber}
                   onChange={(e) => setTracking({ ...tracking, trackingNumber: e.target.value })}
                   className="flex-1 min-w-[120px] rounded border px-2 py-1.5 text-sm"
@@ -316,12 +316,25 @@ export default function OperasyonOrdersPanel({ scope }: Props) {
                   Kaydet
                 </button>
               </div>
+              {selected.marketplace?.toUpperCase() === "TRENDYOL" && (
+                <p className="text-[10px] text-gray-500">
+                  TY sipariş no: #{selected.marketplaceOrderId}
+                  {selected.cargoTrackingNumber
+                    ? ` · Kargo no: ${selected.cargoTrackingNumber}`
+                    : " · Kargo no henüz yok — paketlendikten sonra sync yapın"}
+                </p>
+              )}
 
               <div className="flex flex-wrap gap-2 items-center">
                 {selected.marketplace?.toUpperCase() === "TRENDYOL" && (
                   <button
                     type="button"
-                    disabled={acting}
+                    disabled={acting || !selected.cargoTrackingNumber}
+                    title={
+                      selected.cargoTrackingNumber
+                        ? "Trendyol common-label API"
+                        : "Önce TY kargo takip numarası gerekli (sync veya manuel)"
+                    }
                     onClick={() => patchOrder(selected.id, { action: "fetch_ty_label" })}
                     className="inline-flex items-center gap-1 px-3 py-1.5 text-xs border border-orange-200 text-orange-700 rounded-lg hover:bg-orange-50 disabled:opacity-50"
                   >

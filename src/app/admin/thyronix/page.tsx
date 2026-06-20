@@ -127,7 +127,7 @@ export default function AdminThyronixPage() {
           <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
             <h2 className="text-sm font-semibold text-gray-700">Kaynaklar</h2>
             <div className="flex gap-2">
-              <Link href="/gateway/thyronix" className="text-xs text-blue-600 hover:text-blue-700 flex items-center gap-1"><ExternalLink size={12} /> THYRONIX&apos;a Git</Link>
+              <Link href="/thyronix" className="text-xs text-blue-600 hover:text-blue-700 flex items-center gap-1"><ExternalLink size={12} /> THYRONIX&apos;a Git</Link>
               <button type="button" onClick={() => refreshTab("sources")} className="text-xs text-gray-500 hover:text-gray-700"><RefreshCw size={12} /></button>
             </div>
           </div>

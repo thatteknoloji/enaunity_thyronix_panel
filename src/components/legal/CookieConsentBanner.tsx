@@ -12,33 +12,61 @@ type ConsentState = {
   preferences: boolean;
 };
 
-const STORAGE_KEY = "ena_cookie_consent_v1";
+export const COOKIE_CONSENT_STORAGE_KEY = "ena_cookie_consent_v1";
+export const OPEN_COOKIE_PREFERENCES_EVENT = "ena:open-cookie-preferences";
 
 function readStored(): ConsentState | null {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    const raw = localStorage.getItem(COOKIE_CONSENT_STORAGE_KEY);
     return raw ? JSON.parse(raw) : null;
   } catch {
     return null;
   }
 }
 
+export function openCookiePreferences(showCustomize = true) {
+  if (typeof window === "undefined") return;
+  window.dispatchEvent(
+    new CustomEvent(OPEN_COOKIE_PREFERENCES_EVENT, { detail: { showCustomize } }),
+  );
+}
+
 export default function CookieConsentBanner() {
   const [visible, setVisible] = useState(false);
   const [showPrefs, setShowPrefs] = useState(false);
-  const [prefs, setPrefs] = useState<ConsentState>({
-    necessary: true,
-    analytics: false,
-    marketing: false,
-    preferences: false,
+  const [prefs, setPrefs] = useState<ConsentState>(() => {
+    const stored = typeof window !== "undefined" ? readStored() : null;
+    return stored ?? {
+      necessary: true,
+      analytics: false,
+      marketing: false,
+      preferences: false,
+    };
   });
 
   useEffect(() => {
-    if (!readStored()) setVisible(true);
+    const stored = readStored();
+    const forceOpen =
+      typeof window !== "undefined" &&
+      new URLSearchParams(window.location.search).has("cerez");
+
+    if (!stored || forceOpen) setVisible(true);
+    if (forceOpen) setShowPrefs(true);
+
+    const onOpen = (event: Event) => {
+      const detail = (event as CustomEvent<{ showCustomize?: boolean }>).detail;
+      const current = readStored();
+      if (current) setPrefs(current);
+      setShowPrefs(detail?.showCustomize ?? true);
+      setVisible(true);
+    };
+
+    window.addEventListener(OPEN_COOKIE_PREFERENCES_EVENT, onOpen);
+    return () => window.removeEventListener(OPEN_COOKIE_PREFERENCES_EVENT, onOpen);
   }, []);
 
   const save = useCallback(async (consent: ConsentState) => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(consent));
+    localStorage.setItem(COOKIE_CONSENT_STORAGE_KEY, JSON.stringify(consent));
     window.dispatchEvent(new CustomEvent("ena:cookie-consent", { detail: consent }));
     await fetch("/api/public/cookie-consent", {
       method: "POST",
@@ -51,7 +79,8 @@ export default function CookieConsentBanner() {
   if (!visible) return null;
 
   return (
-    <div className="fixed inset-x-0 bottom-0 z-[100] p-4 sm:p-6">
+    <div className="fixed inset-x-0 bottom-0 z-[200] p-4 sm:p-6 pointer-events-none">
+      <div className="pointer-events-auto">
       <div className="mx-auto max-w-3xl rounded-2xl border border-ena-border bg-ena-card/95 backdrop-blur shadow-2xl p-5 sm:p-6">
         <div className="flex items-start gap-3">
           <Cookie className="text-ena-primary shrink-0 mt-0.5" size={22} />
@@ -91,6 +120,7 @@ export default function CookieConsentBanner() {
             <X size={16} />
           </button>
         </div>
+      </div>
       </div>
     </div>
   );

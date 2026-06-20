@@ -2,6 +2,7 @@ import { prisma } from "@/lib/db";
 import { getMarketplaceEngine } from "./config";
 import { importMarketplaceOrderToFulfillment } from "./import-engine";
 import { fetchTrendyolPackages } from "./providers/trendyol-provider";
+import { enrichMarketplaceLines } from "./line-enrichment";
 
 const DEFAULT_PACKAGING = 15;
 const DEFAULT_SERVICE = 15;
@@ -82,6 +83,13 @@ export async function syncConnection(connectionId: string) {
           imageUrl: line.productImageUrl || line.imageUrl || "",
         }));
 
+        const tyConn = {
+          sellerId: conn.sellerId,
+          apiKey: conn.apiKey,
+          apiSecret: conn.apiSecret,
+        };
+        const enrichedLines = await enrichMarketplaceLines(rawLines, conn.dealerId, tyConn);
+
         let mpOrder = existingMp;
         if (!mpOrder) {
           mpOrder = await prisma.marketplaceOrder.create({
@@ -93,16 +101,17 @@ export async function syncConnection(connectionId: string) {
               customerPhone: addr.phoneNumber || "",
               customerAddress: addr.addressDetail || addr.address1 || "",
               customerCity: `${addr.city || ""} / ${addr.district || ""}`,
-              totalAmount: rawLines.reduce((s, l) => s + l.unitPrice * l.quantity, 0),
+              totalAmount: enrichedLines.reduce((s, l) => s + l.unitPrice * l.quantity, 0),
               status: "new",
               items: {
-                create: rawLines.map((l) => ({
+                create: enrichedLines.map((l) => ({
                   productName: l.productName,
                   barcode: l.barcode,
                   quantity: l.quantity,
                   unitPrice: l.unitPrice,
                   total: l.unitPrice * l.quantity,
                   productSku: l.sku,
+                  productImage: l.imageUrl || "",
                 })),
               },
             },
@@ -110,19 +119,33 @@ export async function syncConnection(connectionId: string) {
           newOrders++;
         } else {
           updatedOrders++;
+          for (const line of enrichedLines) {
+            if (!line.barcode && !line.productName) continue;
+            const mpItem = await prisma.marketplaceOrderItem.findFirst({
+              where: {
+                orderId: mpOrder.id,
+                OR: [
+                  ...(line.barcode ? [{ barcode: line.barcode }] : []),
+                  { productName: line.productName },
+                ],
+              },
+            });
+            if (mpItem && line.imageUrl && !mpItem.productImage) {
+              await prisma.marketplaceOrderItem.update({
+                where: { id: mpItem.id },
+                data: { productImage: line.imageUrl },
+              });
+            }
+          }
         }
 
-        const mpItems = mpOrder.id
-          ? await prisma.marketplaceOrderItem.findMany({ where: { orderId: mpOrder.id } })
-          : [];
-
-        const importLines = (mpItems.length ? mpItems : rawLines).map((l) => ({
+        const importLines = enrichedLines.map((l) => ({
           productName: l.productName,
           barcode: l.barcode,
-          sku: ("productSku" in l ? l.productSku : l.sku) || l.barcode,
+          sku: l.sku || l.barcode,
           quantity: l.quantity,
           unitPrice: l.unitPrice,
-          imageUrl: ("productImage" in l ? l.productImage : "") || ("imageUrl" in l ? l.imageUrl : ""),
+          imageUrl: l.imageUrl || "",
         }));
 
         const result = await importMarketplaceOrderToFulfillment({
