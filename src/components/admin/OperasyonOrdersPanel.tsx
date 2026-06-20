@@ -327,19 +327,29 @@ export default function OperasyonOrdersPanel({ scope }: Props) {
 
               <div className="flex flex-wrap gap-2 items-center">
                 {selected.marketplace?.toUpperCase() === "TRENDYOL" && (
-                  <button
-                    type="button"
-                    disabled={acting || !selected.cargoTrackingNumber}
-                    title={
-                      selected.cargoTrackingNumber
-                        ? "Trendyol common-label API"
-                        : "Önce TY kargo takip numarası gerekli (sync veya manuel)"
-                    }
-                    onClick={() => patchOrder(selected.id, { action: "fetch_ty_label" })}
-                    className="inline-flex items-center gap-1 px-3 py-1.5 text-xs border border-orange-200 text-orange-700 rounded-lg hover:bg-orange-50 disabled:opacity-50"
-                  >
-                    <Truck size={14} /> TY&apos;den etiket çek
-                  </button>
+                  <>
+                    <button
+                      type="button"
+                      disabled={acting}
+                      onClick={() => patchOrder(selected.id, { action: "refresh_ty_order" })}
+                      className="inline-flex items-center gap-1 px-3 py-1.5 text-xs border border-blue-200 text-blue-700 rounded-lg hover:bg-blue-50 disabled:opacity-50"
+                    >
+                      <RefreshCw size={14} /> TY&apos;den yenile
+                    </button>
+                    <button
+                      type="button"
+                      disabled={acting || !selected.cargoTrackingNumber}
+                      title={
+                        selected.cargoTrackingNumber
+                          ? "Trendyol ortak etiket (ZPL)"
+                          : "Önce TY kargo takip numarası gerekli — TY'den yenile veya sync yapın"
+                      }
+                      onClick={() => patchOrder(selected.id, { action: "fetch_ty_label" })}
+                      className="inline-flex items-center gap-1 px-3 py-1.5 text-xs border border-orange-200 text-orange-700 rounded-lg hover:bg-orange-50 disabled:opacity-50"
+                    >
+                      <Truck size={14} /> TY&apos;den etiket çek (ZPL)
+                    </button>
+                  </>
                 )}
                 <label className="inline-flex items-center gap-1 px-3 py-1.5 text-xs border rounded-lg cursor-pointer hover:bg-gray-50">
                   <Upload size={14} />

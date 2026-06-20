@@ -20,6 +20,13 @@ function inlineFormat(text: string): string {
   return out;
 }
 
+function headingTag(level: number): string {
+  if (level <= 1) return "h1";
+  if (level === 2) return "h2";
+  if (level === 3) return "h3";
+  return "h4";
+}
+
 export function markdownToHtml(markdown: string): string {
   const lines = markdown.replace(/\r\n/g, "\n").split("\n");
   const parts: string[] = [];
@@ -34,10 +41,10 @@ export function markdownToHtml(markdown: string): string {
       continue;
     }
 
-    if (/^#{1,3}\s/.test(trimmed)) {
-      const level = trimmed.match(/^#+/)?.[0].length || 2;
+    if (/^#{1,6}\s/.test(trimmed)) {
+      const level = trimmed.match(/^#+/)?.[0].length || 1;
       const text = trimmed.replace(/^#+\s*/, "");
-      const tag = level === 3 ? "h3" : "h2";
+      const tag = headingTag(level);
       parts.push(`<${tag}>${inlineFormat(text)}</${tag}>`);
       i++;
       continue;
@@ -67,7 +74,7 @@ export function markdownToHtml(markdown: string): string {
     i++;
     while (i < lines.length) {
       const next = lines[i].trim();
-      if (!next || /^#{1,3}\s/.test(next) || /^[-*]\s/.test(next) || /^\d+\.\s/.test(next)) break;
+      if (!next || /^#{1,6}\s/.test(next) || /^[-*]\s/.test(next) || /^\d+\.\s/.test(next)) break;
       paraLines.push(next);
       i++;
     }

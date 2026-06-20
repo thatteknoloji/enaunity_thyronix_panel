@@ -283,8 +283,21 @@ export async function upsertContractWithVersion(
   if (activeVersion && activeVersion.contentHash === hash) {
     await prisma.contract.update({
       where: { id: existing.id },
-      data: { title: seed.title, type: seed.type, category: seed.category, active: true },
+      data: {
+        title: seed.title,
+        type: seed.type,
+        category: seed.category,
+        content: seed.content,
+        contentHash: hash,
+        active: true,
+      },
     });
+    if (activeVersion.content !== seed.content || activeVersion.title !== seed.title) {
+      await prisma.contractVersion.update({
+        where: { id: activeVersion.id },
+        data: { content: seed.content, title: seed.title, contentHash: hash },
+      });
+    }
     return existing;
   }
 

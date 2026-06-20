@@ -6,6 +6,7 @@ import {
   setOperasyonTracking,
   attachOperasyonShippingLabel,
   fetchOperasyonLabelFromTrendyol,
+  refreshOperasyonOrderFromTrendyol,
 } from "@/lib/fulfillment/operasyon-service";
 
 export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -62,6 +63,11 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
 
     if (body.action === "fetch_ty_label") {
       const order = await fetchOperasyonLabelFromTrendyol(id);
+      return NextResponse.json({ success: true, data: order });
+    }
+
+    if (body.action === "refresh_ty_order") {
+      const order = await refreshOperasyonOrderFromTrendyol(id);
       return NextResponse.json({ success: true, data: order });
     }
 

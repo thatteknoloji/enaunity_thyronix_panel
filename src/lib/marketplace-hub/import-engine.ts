@@ -28,11 +28,9 @@ async function refreshExistingMarketplaceOrder(
 
   if (payload.cargoTrackingNumber) {
     const tracking = String(payload.cargoTrackingNumber);
-    if (meta.cargoTrackingNumber !== tracking) {
-      meta.cargoTrackingNumber = tracking;
-      meta.cargoProviderName = payload.cargoProviderName || meta.cargoProviderName || "";
-      orderUpdate.metadataJson = JSON.stringify(meta);
-    }
+    meta.cargoTrackingNumber = tracking;
+    meta.cargoProviderName = payload.cargoProviderName || meta.cargoProviderName || "";
+    orderUpdate.metadataJson = JSON.stringify(meta);
     if (!core.trackingNumber || core.trackingNumber === core.marketplaceOrderId) {
       orderUpdate.trackingNumber = tracking;
     }

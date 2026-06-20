@@ -5,7 +5,9 @@ import { dealerOrderToUnified } from "@/lib/orders/compat-adapter";
 import { getCoreOrderDetail, listCoreOrders } from "@/lib/orders/core-order-service";
 import { isCoreOrderEngine } from "@/lib/orders/config";
 import { HUB_MARKETPLACE_SOURCE } from "@/lib/marketplace-hub/config";
-import { fetchTrendyolCommonLabel } from "@/lib/marketplace-hub/trendyol-label";
+import { fetchTrendyolLabelWithCreate, saveTrendyolZplLabel } from "@/lib/marketplace-hub/trendyol-label";
+import { fetchTrendyolOrderByNumber } from "@/lib/marketplace-hub/trendyol-integration-orders";
+import { importMarketplaceOrderToFulfillment } from "@/lib/marketplace-hub/import-engine";
 
 export type OperasyonItemView = {
   id: string;
@@ -400,21 +402,78 @@ export async function fetchOperasyonLabelFromTrendyol(orderId: string) {
     throw new Error("Aktif Trendyol bağlantısı bulunamadı");
   }
 
-  const labels = await fetchTrendyolCommonLabel(
+  const labels = await fetchTrendyolLabelWithCreate(
     { sellerId: conn.sellerId, apiKey: conn.apiKey, apiSecret: conn.apiSecret },
     tracking
   );
 
-  const pdf =
-    labels.find((l) => l.format?.toUpperCase() === "PDF") ||
-    labels.find((l) => l.label?.toLowerCase().includes(".pdf"));
+  const zpl =
+    labels.find((l) => l.format?.toUpperCase() === "ZPL" && l.label) ||
+    labels.find((l) => l.label);
 
-  if (!pdf?.label) {
-    throw new Error("Trendyol etiket PDF dönmedi — manuel yükleyin");
+  if (!zpl?.label) {
+    throw new Error("Trendyol etiket dönmedi — manuel yükleyin");
   }
 
+  const saved = await saveTrendyolZplLabel(orderId, tracking, zpl.label);
+
   return attachOperasyonShippingLabel(orderId, {
-    fileUrl: pdf.label,
-    fileName: `ty-etiket-${tracking}.pdf`,
+    fileUrl: saved.fileUrl,
+    fileName: saved.fileName,
   });
+}
+
+export async function refreshOperasyonOrderFromTrendyol(orderId: string) {
+  const core = await prisma.order.findUnique({ where: { id: orderId } });
+  if (!core?.dealerId || !core.marketplaceOrderId) throw new Error("Sipariş bulunamadı");
+
+  const conn = await prisma.marketplaceConnection.findFirst({
+    where: {
+      dealerId: core.dealerId,
+      active: true,
+      platform: { in: ["trendyol", "TRENDYOL", "Trendyol"] },
+    },
+  });
+  if (!conn?.apiKey || !conn.apiSecret) {
+    throw new Error("Aktif Trendyol bağlantısı bulunamadı");
+  }
+
+  const pkg = await fetchTrendyolOrderByNumber(
+    { sellerId: conn.sellerId, apiKey: conn.apiKey, apiSecret: conn.apiSecret },
+    core.marketplaceOrderId
+  );
+  if (!pkg) throw new Error("Trendyol'da sipariş bulunamadı");
+
+  const addr = pkg.shipmentAddress || {};
+  const { enrichMarketplaceLines } = await import("@/lib/marketplace-hub/line-enrichment");
+  const enriched = await enrichMarketplaceLines(
+    (pkg.lines || []).map((line) => ({
+      productName: line.productName || "Ürün",
+      barcode: line.barcode || "",
+      sku: line.barcode || "",
+      quantity: line.quantity || 1,
+      unitPrice: line.price || line.amount || 0,
+      imageUrl: "",
+    })),
+    core.dealerId,
+    { sellerId: conn.sellerId, apiKey: conn.apiKey, apiSecret: conn.apiSecret }
+  );
+
+  await importMarketplaceOrderToFulfillment({
+    dealerId: core.dealerId,
+    connectionId: conn.id,
+    payload: {
+      platform: "TRENDYOL",
+      platformOrderId: String(pkg.orderNumber),
+      customerName: `${addr.firstName || ""} ${addr.lastName || ""}`.trim(),
+      customerPhone: addr.phoneNumber || "",
+      customerCity: `${addr.city || ""} / ${addr.district || ""}`,
+      customerAddress: addr.addressDetail || addr.address1 || "",
+      cargoTrackingNumber: pkg.cargoTrackingNumber ? String(pkg.cargoTrackingNumber) : "",
+      cargoProviderName: pkg.cargoProviderName || "",
+      items: enriched,
+    },
+  });
+
+  return getOperasyonOrderDetail(orderId, core.dealerId);
 }

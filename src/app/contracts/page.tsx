@@ -1,13 +1,13 @@
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
-import { PUBLIC_CONTRACT_TYPES } from "@/lib/pages/public-contracts";
+import { sortContractsByLegalOrder } from "@/lib/legal/package-content";
 
 export default async function ContractsIndexPage() {
-  const first = await prisma.contract.findFirst({
-    where: { active: true, type: { in: [...PUBLIC_CONTRACT_TYPES] } },
-    orderBy: [{ title: "asc" }],
+  const rows = await prisma.contract.findMany({
+    where: { active: true },
     select: { slug: true },
   });
+  const first = sortContractsByLegalOrder(rows)[0];
 
   if (first) redirect(`/contracts/${first.slug}`);
   redirect("/");

@@ -25,6 +25,19 @@ const PACKAGE_MAP: Omit<LegalPackageSeed, "content" | "sourceFile">[] = [
   { title: "Ticari Elektronik İleti Onayı", slug: "ticari-elektronik-ileti-onayi", type: "public", category: "commercial" },
 ];
 
+export const LEGAL_CONTRACT_SLUG_ORDER = [
+  ...PACKAGE_MAP.map((p) => p.slug),
+  "mesafeli-satis-sozlesmesi",
+  "bayi-sozlesmesi",
+];
+
+export function sortContractsByLegalOrder<T extends { slug: string }>(items: T[]): T[] {
+  const order = new Map(LEGAL_CONTRACT_SLUG_ORDER.map((slug, i) => [slug, i]));
+  return [...items].sort(
+    (a, b) => (order.get(a.slug) ?? 999) - (order.get(b.slug) ?? 999)
+  );
+}
+
 const FILE_BY_SLUG: Record<string, string> = {
   "kvkk-aydinlatma-metni": "01_KVKK_Aydinlatma_Metni.md",
   "acik-riza-metni": "02_Acik_Riza_Metni.md",

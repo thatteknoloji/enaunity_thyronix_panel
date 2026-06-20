@@ -2,6 +2,7 @@ import {
   getPlatformClient,
   type TrendyolPackage,
 } from "@/lib/marketplaces/trendyol";
+import { fetchTrendyolIntegrationPackages } from "../trendyol-integration-orders";
 import { isDevOrTestMode } from "../config";
 
 export type TrendyolConnectionCredentials = {
@@ -28,6 +29,11 @@ export async function fetchTrendyolPackages(
   };
 
   try {
+    const packages = await fetchTrendyolIntegrationPackages(credentials, lastSyncAt);
+    if (packages.length > 0) {
+      return { packages, usedMock: false };
+    }
+
     const client = await getPlatformClient({
       platform: "trendyol",
       sellerId: credentials.sellerId,
@@ -35,8 +41,8 @@ export async function fetchTrendyolPackages(
       apiSecret: credentials.apiSecret,
     });
 
-    const packages = await client.getAllNewPackages(connWithSecret, lastSyncAt);
-    return { packages, usedMock: false };
+    const legacyPackages = await client.getAllNewPackages(connWithSecret, lastSyncAt);
+    return { packages: legacyPackages, usedMock: false };
   } catch (err) {
     const apiError = err instanceof Error ? err.message : "Trendyol API hatası";
 
