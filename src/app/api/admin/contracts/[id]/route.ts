@@ -14,6 +14,20 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   }
 }
 
+export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
+  try {
+    await requireAdmin();
+    const { id } = await params;
+    const contract = await prisma.contract.findUnique({ where: { id } });
+    if (!contract) {
+      return NextResponse.json({ success: false, error: "Bulunamadı" }, { status: 404 });
+    }
+    return NextResponse.json({ success: true, data: contract });
+  } catch {
+    return NextResponse.json({ success: false, error: "Yetkisiz" }, { status: 401 });
+  }
+}
+
 export async function DELETE(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     await requireAdmin();
