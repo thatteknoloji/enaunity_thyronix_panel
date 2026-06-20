@@ -1,30 +1,20 @@
 import { prisma } from "@/lib/db";
 import { trendyol } from "@/lib/marketplaces/trendyol";
+import {
+  isUsableImageUrl,
+  marketplaceImagePlaceholder,
+  normalizeImageUrl,
+  resolveMarketplaceItemImageUrl,
+} from "./marketplace-image";
+
+export {
+  isUsableImageUrl,
+  marketplaceImagePlaceholder,
+  normalizeImageUrl,
+  resolveMarketplaceItemImageUrl,
+} from "./marketplace-image";
 
 type TyConn = { sellerId: string; apiKey: string; apiSecret: string };
-
-const PLACEHOLDER_BY_CATEGORY: Record<string, string> = {
-  "Cam Tablo": "https://images.unsplash.com/photo-1513519245088-0e12902e35ca?w=400&h=400&fit=crop",
-  "Mdf Tablo": "https://images.unsplash.com/photo-1578301978693-85fa9c0320b9?w=400&h=400&fit=crop",
-  Puzzle: "https://images.unsplash.com/photo-1580541832628-2a7131ee809f?w=400&h=400&fit=crop",
-  Halı: "https://images.unsplash.com/photo-1600166898405-da9535204843?w=400&h=400&fit=crop",
-  Perde: "https://images.unsplash.com/photo-1519710164239-da123dc03ef4?w=400&h=400&fit=crop",
-  Nevresim: "https://images.unsplash.com/photo-1616627547584-bf28cee262db?w=400&h=400&fit=crop",
-  default: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400&h=400&fit=crop",
-};
-
-function detectCategory(name: string): string {
-  const n = name.toLowerCase();
-  if (n.includes("cam") || n.includes("tablo")) return "Cam Tablo";
-  if (n.includes("halı") || n.includes("hali") || n.includes("kilim")) return "Halı";
-  if (n.includes("perde")) return "Perde";
-  return "default";
-}
-
-function placeholderFor(name: string): string {
-  const cat = detectCategory(name);
-  return PLACEHOLDER_BY_CATEGORY[cat] || PLACEHOLDER_BY_CATEGORY.default;
-}
 
 type CatalogRow = { id: string; name: string; image: string; sku: string; barcode: string };
 
@@ -35,49 +25,58 @@ export async function loadDealerCatalogProducts(_dealerId: string): Promise<Cata
   });
 }
 
+async function fetchTrendyolProductImage(tyConn: TyConn, code: string): Promise<string> {
+  try {
+    const res = await trendyol.fetchProducts(
+      { sellerId: tyConn.sellerId, apiKey: tyConn.apiKey, apiSecret: tyConn.apiSecret },
+      { barcode: code, size: 1 }
+    );
+    const img = normalizeImageUrl(res.products?.[0]?.images?.[0]?.url);
+    if (img) return img;
+  } catch {
+    /* sapigw yoksa integration dene */
+  }
+
+  try {
+    const auth = Buffer.from(`${tyConn.apiKey}:${tyConn.apiSecret}`).toString("base64");
+    const query = new URLSearchParams({ barcode: code, page: "0", size: "1", approved: "true" });
+    const url = `https://apigw.trendyol.com/integration/product/sellers/${tyConn.sellerId}/products?${query}`;
+    const res = await fetch(url, {
+      headers: {
+        Authorization: `Basic ${auth}`,
+        "User-Agent": `${tyConn.sellerId} - SelfIntegration`,
+        Accept: "application/json",
+      },
+    });
+    if (!res.ok) return "";
+    const json = (await res.json()) as { content?: Array<{ images?: Array<{ url?: string }> }> };
+    return normalizeImageUrl(json.content?.[0]?.images?.[0]?.url);
+  } catch {
+    return "";
+  }
+}
+
 export async function resolveMarketplaceLineImage(
   line: { productName: string; barcode?: string; sku?: string; imageUrl?: string },
   catalog: CatalogRow[],
   tyConn?: TyConn
 ): Promise<string> {
-  if (line.imageUrl?.trim()) return line.imageUrl.trim();
+  const fromLine = normalizeImageUrl(line.imageUrl);
+  if (isUsableImageUrl(fromLine)) return fromLine;
 
   const code = (line.barcode || line.sku || "").trim();
   if (code) {
     const matched = catalog.find((p) => p.barcode === code || p.sku === code);
-    if (matched?.image) return matched.image;
+    const catalogImg = normalizeImageUrl(matched?.image);
+    if (isUsableImageUrl(catalogImg)) return catalogImg;
   }
 
   if (tyConn && code) {
-    try {
-      const res = await trendyol.fetchProducts(
-        { sellerId: tyConn.sellerId, apiKey: tyConn.apiKey, apiSecret: tyConn.apiSecret },
-        { barcode: code, size: 1 }
-      );
-      const img = res.products?.[0]?.images?.[0]?.url;
-      if (img) return img;
-    } catch {
-      /* TY ürün API yoksa placeholder */
-    }
+    const tyImg = await fetchTrendyolProductImage(tyConn, code);
+    if (tyImg) return tyImg;
   }
 
-  return placeholderFor(line.productName || "");
-}
-
-export function marketplaceImagePlaceholder(productName: string): string {
-  return placeholderFor(productName || "");
-}
-
-export function resolveMarketplaceItemImageUrl(input: {
-  name: string;
-  metaImage?: string;
-  productImage?: string | null;
-}): string {
-  const meta = (input.metaImage || "").trim();
-  if (meta && meta !== "/placeholder.svg") return meta;
-  const product = (input.productImage || "").trim();
-  if (product && product !== "/placeholder.svg") return product;
-  return marketplaceImagePlaceholder(input.name);
+  return marketplaceImagePlaceholder(line.productName || "");
 }
 
 export async function enrichMarketplaceLines(

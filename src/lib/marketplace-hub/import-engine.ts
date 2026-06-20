@@ -4,6 +4,7 @@ import { defaultCosts } from "./product-match";
 import { isCoreOrderEngine } from "@/lib/orders/config";
 import { createCoreOrder, findCoreOrderByMarketplace } from "@/lib/orders/core-order-service";
 import { buildOrderMetadata } from "@/lib/orders/config";
+import { isUsableImageUrl, normalizeImageUrl } from "./marketplace-image";
 
 function parseMeta(json: string | null | undefined): Record<string, unknown> {
   try {
@@ -88,14 +89,14 @@ async function refreshExistingMarketplaceOrder(
   }
 
   for (const line of payload.items) {
-    const imageUrl = (line.imageUrl || "").trim();
-    if (!imageUrl) continue;
+    const imageUrl = normalizeImageUrl(line.imageUrl);
+    if (!isUsableImageUrl(imageUrl)) continue;
     const item = matchOrderItem(core.items, line);
     if (!item) continue;
     const itemMeta = parseMeta(item.metadataJson);
-    const current = String(itemMeta.imageUrl || "").trim();
-    const isWeak = !current || current === "/placeholder.svg" || current.includes("unsplash.com");
-    if (current && !isWeak && current === imageUrl) continue;
+    const current = normalizeImageUrl(String(itemMeta.imageUrl || ""));
+    const isWeak = !isUsableImageUrl(current) || current.includes("unsplash.com");
+    if (!isWeak && current === imageUrl) continue;
     await prisma.orderItem.update({
       where: { id: item.id },
       data: {

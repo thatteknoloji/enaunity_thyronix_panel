@@ -14,11 +14,40 @@ import {
   normalizeOperationStatus,
 } from "@/lib/fulfillment/operasyon-status";
 import type { OperasyonOrderView } from "@/lib/fulfillment/operasyon-service";
+import { marketplaceImagePlaceholder } from "@/lib/marketplace-hub/marketplace-image";
 import { toAdminUrl } from "@/lib/auth/admin-access";
 
 type Props = {
   scope: "admin" | "dealer";
 };
+
+function tyCommonLabelSupported(cargo?: string): boolean {
+  const name = (cargo || "").toLowerCase();
+  if (!name) return true;
+  return !["yurtiçi", "yurtici", "mng", "ptt", "sürat", "surat"].some((k) => name.includes(k));
+}
+
+function ProductThumb({ name, imageUrl }: { name: string; imageUrl?: string }) {
+  const [src, setSrc] = useState(imageUrl || marketplaceImagePlaceholder(name));
+  useEffect(() => {
+    setSrc(imageUrl || marketplaceImagePlaceholder(name));
+  }, [imageUrl, name]);
+  return (
+    <div className="h-14 w-14 rounded-lg bg-gray-100 shrink-0 overflow-hidden flex items-center justify-center">
+      {src ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={src}
+          alt=""
+          className="h-full w-full object-cover"
+          onError={() => setSrc(marketplaceImagePlaceholder(name))}
+        />
+      ) : (
+        <Package size={20} className="text-gray-300" />
+      )}
+    </div>
+  );
+}
 
 const STATUS_COLORS: Record<string, string> = {
   NEW: "text-blue-700 bg-blue-50 border-blue-200",
@@ -296,14 +325,7 @@ export default function OperasyonOrdersPanel({ scope }: Props) {
               <div className="space-y-2">
                 {selected.items?.map((i) => (
                   <div key={i.id} className="flex gap-3 items-start border border-gray-100 rounded-lg p-2">
-                    <div className="h-14 w-14 rounded-lg bg-gray-100 shrink-0 overflow-hidden flex items-center justify-center">
-                      {i.imageUrl ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img src={i.imageUrl} alt="" className="h-full w-full object-cover" />
-                      ) : (
-                        <Package size={20} className="text-gray-300" />
-                      )}
-                    </div>
+                    <ProductThumb name={i.name} imageUrl={i.imageUrl} />
                     <div className="min-w-0 flex-1">
                       <p className="text-sm font-medium text-gray-900">{i.name}</p>
                       <p className="text-[10px] text-gray-400">Barkod: {i.barcode || "—"} · ×{i.quantity}</p>
@@ -347,6 +369,14 @@ export default function OperasyonOrdersPanel({ scope }: Props) {
                   {selected.cargoTrackingNumber
                     ? ` · Kargo no: ${selected.cargoTrackingNumber}`
                     : " · Kargo no henüz yok — paketlendikten sonra sync yapın"}
+                  {selected.cargoCompany && ` · ${selected.cargoCompany}`}
+                </p>
+              )}
+              {selected.marketplace?.toUpperCase() === "TRENDYOL" &&
+                !tyCommonLabelSupported(selected.cargoCompany) && (
+                <p className="text-[10px] text-amber-700 bg-amber-50 border border-amber-100 rounded px-2 py-1.5">
+                  {selected.cargoCompany || "Bu kargo firması"} için TY ortak etiket API kullanılamaz.
+                  Etiketi Trendyol panelinden indirip aşağıdan PDF yükleyin.
                 </p>
               )}
 
@@ -361,19 +391,21 @@ export default function OperasyonOrdersPanel({ scope }: Props) {
                     >
                       <RefreshCw size={14} /> TY&apos;den yenile
                     </button>
-                    <button
-                      type="button"
-                      disabled={acting || !selected.cargoTrackingNumber}
-                      title={
-                        selected.cargoTrackingNumber
-                          ? "Trendyol ortak etiket (ZPL)"
-                          : "Önce TY kargo takip numarası gerekli — TY'den yenile veya sync yapın"
-                      }
-                      onClick={() => patchOrder(selected.id, { action: "fetch_ty_label" })}
-                      className="inline-flex items-center gap-1 px-3 py-1.5 text-xs border border-orange-200 text-orange-700 rounded-lg hover:bg-orange-50 disabled:opacity-50"
-                    >
-                      <Truck size={14} /> TY&apos;den etiket çek (ZPL)
-                    </button>
+                    {tyCommonLabelSupported(selected.cargoCompany) && (
+                      <button
+                        type="button"
+                        disabled={acting || !selected.cargoTrackingNumber}
+                        title={
+                          selected.cargoTrackingNumber
+                            ? "Trendyol ortak etiket (ZPL) — sadece TEX/Aras"
+                            : "Önce TY kargo takip numarası gerekli — TY'den yenile veya sync yapın"
+                        }
+                        onClick={() => patchOrder(selected.id, { action: "fetch_ty_label" })}
+                        className="inline-flex items-center gap-1 px-3 py-1.5 text-xs border border-orange-200 text-orange-700 rounded-lg hover:bg-orange-50 disabled:opacity-50"
+                      >
+                        <Truck size={14} /> TY&apos;den etiket çek (ZPL)
+                      </button>
+                    )}
                   </>
                 )}
                 <label className="inline-flex items-center gap-1 px-3 py-1.5 text-xs border rounded-lg cursor-pointer hover:bg-gray-50">

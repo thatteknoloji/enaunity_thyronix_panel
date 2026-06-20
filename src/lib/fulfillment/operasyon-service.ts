@@ -8,7 +8,8 @@ import { HUB_MARKETPLACE_SOURCE } from "@/lib/marketplace-hub/config";
 import { fetchTrendyolLabelWithCreate, saveTrendyolZplLabel } from "@/lib/marketplace-hub/trendyol-label";
 import { fetchTrendyolOrderByNumber } from "@/lib/marketplace-hub/trendyol-integration-orders";
 import { importMarketplaceOrderToFulfillment } from "@/lib/marketplace-hub/import-engine";
-import { resolveMarketplaceItemImageUrl } from "@/lib/marketplace-hub/line-enrichment";
+import { resolveMarketplaceItemImageUrl } from "@/lib/marketplace-hub/marketplace-image";
+import { supportsTrendyolCommonLabel } from "@/lib/marketplace-hub/trendyol-label-policy";
 
 export type OperasyonItemView = {
   id: string;
@@ -474,6 +475,17 @@ export async function fetchOperasyonLabelFromTrendyol(orderId: string) {
   if (!tracking) {
     throw new Error(
       "Trendyol kargo takip numarası (cargoTrackingNumber) henüz yok. Sipariş paketlendikten sonra TY'den yenile yapın."
+    );
+  }
+
+  const cargoProvider =
+    pkg?.cargoProviderName ||
+    core.carrier ||
+    String(parseMeta(core.metadataJson).cargoProviderName || "");
+
+  if (!supportsTrendyolCommonLabel(cargoProvider)) {
+    throw new Error(
+      `${cargoProvider || "Bu kargo firması"} için Trendyol ortak etiket API kullanılamaz. Etiketi Trendyol panelinden indirip PDF yükleyin.`
     );
   }
 

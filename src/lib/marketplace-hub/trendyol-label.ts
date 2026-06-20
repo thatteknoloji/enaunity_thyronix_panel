@@ -5,6 +5,10 @@ import {
   updateTrendyolPackageStatus,
   type TrendyolLabelContext,
 } from "./trendyol-integration-orders";
+import {
+  formatTrendyolLabelError,
+  isTrendyolLabelPermissionError,
+} from "./trendyol-label-policy";
 
 const INTEGRATION_BASE = "https://apigw.trendyol.com/integration/sellers";
 
@@ -41,7 +45,7 @@ async function tyRequest(
 
   const text = await res.text();
   if (!res.ok) {
-    throw new Error(`Trendyol etiket API ${res.status}: ${text.slice(0, 300)}`);
+    throw new Error(formatTrendyolLabelError(`Trendyol etiket API ${res.status}: ${text.slice(0, 300)}`));
   }
 
   if (method === "POST") return null;
@@ -101,6 +105,7 @@ export async function fetchTrendyolLabelWithCreate(
       break;
     } catch (err) {
       createError = err instanceof Error ? err.message : "createCommonLabel hatası";
+      if (isTrendyolLabelPermissionError(createError)) throw err;
       if (i < 2) await sleep(1500);
     }
   }
@@ -120,6 +125,7 @@ export async function fetchTrendyolLabelWithCreate(
       if (labels.length > 0 && labels.some((l) => l.label)) return labels;
     } catch (err) {
       const msg = err instanceof Error ? err.message : "";
+      if (isTrendyolLabelPermissionError(msg)) throw err;
       const retriable =
         msg.includes("COMMON_LABEL_NOT_FOUND") ||
         msg.includes("NOT_FOUND") ||
