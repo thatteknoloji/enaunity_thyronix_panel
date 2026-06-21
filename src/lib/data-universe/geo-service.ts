@@ -42,6 +42,7 @@ export async function listGeoDistricts(searchParams: URLSearchParams) {
   const { page, limit, search, activeOnly } = parsePagination(searchParams);
   const provinceId = searchParams.get("provinceId") || "";
   const provinceSlug = searchParams.get("province") || searchParams.get("provinceSlug") || "";
+  const districtSlug = searchParams.get("district") || searchParams.get("districtSlug") || "";
 
   let resolvedProvinceId = provinceId;
   if (!resolvedProvinceId && provinceSlug) {
@@ -51,6 +52,7 @@ export async function listGeoDistricts(searchParams: URLSearchParams) {
 
   const where = {
     ...(resolvedProvinceId ? { provinceId: resolvedProvinceId } : {}),
+    ...(districtSlug ? { slug: districtSlug } : {}),
     ...(activeOnly ? { isActive: true } : {}),
     ...(search ? { name: { contains: search } } : {}),
   };
@@ -272,12 +274,13 @@ export async function deleteGeoEntity(
 }
 
 export async function getGeoStats() {
-  const [countries, provinces, districts, neighborhoods, villages] = await Promise.all([
+  const [countries, provinces, districts, neighborhoods, villages, streets] = await Promise.all([
     prisma.geoCountry.count(),
     prisma.geoProvince.count(),
     prisma.geoDistrict.count(),
     prisma.geoNeighborhood.count(),
     prisma.geoVillage.count(),
+    prisma.geoStreet.count(),
   ]);
-  return { countries, provinces, districts, neighborhoods, villages };
+  return { countries, provinces, districts, neighborhoods, villages, streets };
 }

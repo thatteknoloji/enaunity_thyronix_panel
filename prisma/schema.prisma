@@ -3012,8 +3012,28 @@ model GeoNeighborhood {
   createdAt  DateTime    @default(now())
   updatedAt  DateTime    @updatedAt
 
+  streets GeoStreet[]
+
   @@unique([districtId, slug])
   @@index([districtId])
+  @@index([isActive])
+  @@index([name])
+}
+
+model GeoStreet {
+  id             String          @id @default(cuid())
+  neighborhoodId String
+  neighborhood   GeoNeighborhood @relation(fields: [neighborhoodId], references: [id], onDelete: Cascade)
+  name           String
+  slug           String
+  latitude       Float?
+  longitude      Float?
+  isActive       Boolean         @default(true)
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  @@unique([neighborhoodId, slug])
+  @@index([neighborhoodId])
   @@index([isActive])
   @@index([name])
 }
@@ -3091,4 +3111,25 @@ model QuestionPattern {
 
   @@index([type])
   @@index([isActive])
+}
+
+model DataUniverseImportJob {
+  id           String    @id @default(cuid())
+  type         String
+  status       String    @default("PENDING")
+  fileName     String    @default("")
+  dryRun       Boolean   @default(false)
+  totalRows    Int       @default(0)
+  insertedRows Int       @default(0)
+  updatedRows  Int       @default(0)
+  skippedRows  Int       @default(0)
+  errorRows    Int       @default(0)
+  metadataJson String    @default("{}")
+  createdById  String    @default("")
+  createdAt    DateTime  @default(now())
+  completedAt  DateTime?
+
+  @@index([status])
+  @@index([type])
+  @@index([createdAt])
 }

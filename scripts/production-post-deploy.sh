@@ -33,6 +33,12 @@ echo "→ prisma generate + db push…"
 npx prisma generate
 npx prisma db push --skip-generate
 
+echo "→ data universe migration (idempotent)…"
+npx prisma migrate deploy || echo "  (migrate deploy atlandı — db push yeterli)"
+
+echo "→ data universe seed (81 il, 973 ilçe)…"
+npm run seed:turkiye-geo || echo "  (turkiye geo seed atlandı)"
+
 echo "→ site content seed…"
 npm run seed:site-content
 

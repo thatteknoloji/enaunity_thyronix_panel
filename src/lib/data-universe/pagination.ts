@@ -25,7 +25,10 @@ export type PaginatedResult<T> = {
 export function parsePagination(searchParams: URLSearchParams, defaultLimit = 50): ParsedPagination {
   const page = Math.max(1, parseInt(searchParams.get("page") || "1", 10) || 1);
   const limit = Math.min(200, Math.max(1, parseInt(searchParams.get("limit") || String(defaultLimit), 10) || defaultLimit));
-  const search = searchParams.get("search")?.trim() || "";
+  const search =
+    searchParams.get("q")?.trim() ||
+    searchParams.get("search")?.trim() ||
+    "";
   const activeOnly = searchParams.get("activeOnly") !== "false";
   return { page, limit, search, activeOnly };
 }

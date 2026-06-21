@@ -73,7 +73,7 @@ export const MARKETPLACE_MODULES: Record<MarketplaceModuleKey, MarketplaceModule
     color: "violet",
     appPath: "/dealer/page-factory",
     gatewayPath: "/gateway/page-factory",
-    marketingPath: "/dealer/modules",
+    marketingPath: "/platform/page-factory",
     checkoutPath: "/payment/checkout?type=module&moduleKey=AI_PAGE_FACTORY&planKey=starter",
     icon: Layers,
   },

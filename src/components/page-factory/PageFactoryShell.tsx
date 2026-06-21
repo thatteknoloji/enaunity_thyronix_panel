@@ -10,6 +10,10 @@ import {
   Plus,
   Sparkles,
   ChevronRight,
+  Pencil,
+  Trash2,
+  Eye,
+  X,
 } from "lucide-react";
 import { PRODUCTION_TYPES, type ProductionType } from "@/lib/page-factory/types";
 import { AdminModuleAccessPanel } from "@/components/admin/AdminModuleAccessPanel";
@@ -62,6 +66,9 @@ export function PageFactoryShell({ showLicensePanel = false }: Props) {
   const [selected, setSelected] = useState<ProjectDetail | null>(null);
   const [creating, setCreating] = useState(false);
   const [generating, setGenerating] = useState(false);
+  const [editing, setEditing] = useState(false);
+  const [editForm, setEditForm] = useState({ name: "", sector: "", country: "TR", language: "tr", productionType: "GEO_SEO" as ProductionType });
+  const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [form, setForm] = useState({
     name: "",
@@ -93,7 +100,56 @@ export function PageFactoryShell({ showLicensePanel = false }: Props) {
   const loadProject = async (id: string) => {
     const r = await fetch(`/api/page-factory/projects/${id}`);
     const d = await r.json();
-    if (d.success) setSelected(d.data);
+    if (d.success) {
+      setSelected(d.data);
+      setEditing(false);
+      setEditForm({
+        name: d.data.name,
+        sector: d.data.sector,
+        country: d.data.country,
+        language: d.data.language,
+        productionType: d.data.productionType,
+      });
+    }
+  };
+
+  const handleUpdate = async () => {
+    if (!selected) return;
+    setCreating(true);
+    setError(null);
+    try {
+      const r = await fetch(`/api/page-factory/projects/${selected.id}`, {
+        method: "PATCH",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify(editForm),
+      });
+      const d = await r.json();
+      if (!d.success) throw new Error(d.error || "Güncellenemedi");
+      setEditing(false);
+      await loadDashboard();
+      await loadProject(selected.id);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Güncellenemedi");
+    } finally {
+      setCreating(false);
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm("Bu proje ve tüm topology/blueprint kayıtları silinecek. Emin misiniz?")) return;
+    setDeleting(true);
+    setError(null);
+    try {
+      const r = await fetch(`/api/page-factory/projects/${id}`, { method: "DELETE" });
+      const d = await r.json();
+      if (!d.success) throw new Error(d.error || "Silinemedi");
+      if (selected?.id === id) setSelected(null);
+      await loadDashboard();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Silinemedi");
+    } finally {
+      setDeleting(false);
+    }
   };
 
   const handleCreate = async (e: React.FormEvent) => {
@@ -246,20 +302,30 @@ export function PageFactoryShell({ showLicensePanel = false }: Props) {
               <h2 className="text-sm font-semibold text-gray-800 mb-4">Projeler</h2>
               <div className="space-y-2 max-h-80 overflow-y-auto">
                 {dashboard.projects.map((p) => (
-                  <button
-                    key={p.id}
-                    type="button"
-                    onClick={() => loadProject(p.id)}
-                    className="flex w-full items-center justify-between rounded-lg border border-gray-100 px-3 py-2.5 text-left hover:bg-gray-50"
-                  >
-                    <div>
-                      <p className="text-sm font-medium text-gray-900">{p.name}</p>
-                      <p className="text-xs text-gray-500">
-                        {p.sector} · {PRODUCTION_LABELS[p.productionType as ProductionType] || p.productionType} · {p.status}
-                      </p>
-                    </div>
-                    <ChevronRight size={14} className="text-gray-400 shrink-0" />
-                  </button>
+                  <div key={p.id} className="flex items-center gap-1 rounded-lg border border-gray-100 hover:bg-gray-50">
+                    <button
+                      type="button"
+                      onClick={() => loadProject(p.id)}
+                      className="flex flex-1 items-center justify-between px-3 py-2.5 text-left min-w-0"
+                    >
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium text-gray-900 truncate">{p.name}</p>
+                        <p className="text-xs text-gray-500 truncate">
+                          {p.sector} · {PRODUCTION_LABELS[p.productionType as ProductionType] || p.productionType} · {p.status}
+                        </p>
+                      </div>
+                      <ChevronRight size={14} className="text-gray-400 shrink-0 ml-2" />
+                    </button>
+                    <button
+                      type="button"
+                      title="Sil"
+                      disabled={deleting}
+                      onClick={() => handleDelete(p.id)}
+                      className="p-2 text-red-500 hover:bg-red-50 rounded-lg shrink-0"
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
                 ))}
                 {dashboard.projects.length === 0 && (
                   <p className="text-sm text-gray-400 text-center py-6">Henüz proje yok</p>
@@ -273,18 +339,56 @@ export function PageFactoryShell({ showLicensePanel = false }: Props) {
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
                   <h2 className="text-lg font-bold text-gray-900">{selected.name}</h2>
-                  <p className="text-sm text-gray-500">{selected.sector} · {selected.country.toUpperCase()}</p>
+                  <p className="text-sm text-gray-500">{selected.sector} · {selected.country.toUpperCase()} · {selected.status}</p>
                 </div>
-                <button
-                  type="button"
-                  disabled={generating}
-                  onClick={() => handleGenerate(selected.id)}
-                  className="inline-flex items-center gap-2 rounded-lg bg-violet-600 px-4 py-2 text-sm font-medium text-white hover:bg-violet-500 disabled:opacity-50"
-                >
-                  {generating ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} />}
-                  Topology + Cluster + Blueprint Üret
-                </button>
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setEditing((v) => !v)}
+                    className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                  >
+                    {editing ? <X size={14} /> : <Pencil size={14} />}
+                    {editing ? "İptal" : "Düzenle"}
+                  </button>
+                  <button
+                    type="button"
+                    disabled={generating}
+                    onClick={() => handleGenerate(selected.id)}
+                    className="inline-flex items-center gap-2 rounded-lg bg-violet-600 px-4 py-2 text-sm font-medium text-white hover:bg-violet-500 disabled:opacity-50"
+                  >
+                    {generating ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} />}
+                    Plan Üret
+                  </button>
+                  <button
+                    type="button"
+                    disabled={deleting}
+                    onClick={() => handleDelete(selected.id)}
+                    className="inline-flex items-center gap-1.5 rounded-lg border border-red-200 bg-white px-3 py-2 text-sm text-red-600 hover:bg-red-50"
+                  >
+                    <Trash2 size={14} /> Sil
+                  </button>
+                </div>
               </div>
+
+              {editing ? (
+                <div className="rounded-lg bg-white border border-gray-200 p-4 grid gap-3 sm:grid-cols-2">
+                  <input value={editForm.name} onChange={(e) => setEditForm({ ...editForm, name: e.target.value })} placeholder="Proje adı" className="rounded-lg border px-3 py-2 text-sm" />
+                  <input value={editForm.sector} onChange={(e) => setEditForm({ ...editForm, sector: e.target.value })} placeholder="Sektör" className="rounded-lg border px-3 py-2 text-sm" />
+                  <input value={editForm.country} onChange={(e) => setEditForm({ ...editForm, country: e.target.value })} placeholder="Ülke" className="rounded-lg border px-3 py-2 text-sm" />
+                  <select value={editForm.productionType} onChange={(e) => setEditForm({ ...editForm, productionType: e.target.value as ProductionType })} className="rounded-lg border px-3 py-2 text-sm">
+                    {PRODUCTION_TYPES.map((t) => (
+                      <option key={t} value={t}>{PRODUCTION_LABELS[t]}</option>
+                    ))}
+                  </select>
+                  <button type="button" onClick={handleUpdate} disabled={creating} className="sm:col-span-2 rounded-lg bg-violet-600 py-2 text-sm font-medium text-white">
+                    {creating ? "Kaydediliyor…" : "Değişiklikleri Kaydet"}
+                  </button>
+                </div>
+              ) : (
+                <div className="flex items-center gap-2 text-xs text-gray-500">
+                  <Eye size={14} /> Görüntüleme modu — {selected._count?.blueprints ?? 0} blueprint, {selected._count?.topologies ?? 0} topology
+                </div>
+              )}
 
               {selected.metadata?.estimate && (
                 <div className="rounded-lg bg-white border border-gray-200 p-4">

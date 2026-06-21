@@ -1,5 +1,5 @@
 /**
- * Eksik built-in vitrin ürünlerini oluşturur (ENA, THYRONIX, HIVE, LinkSlash).
+ * Eksik built-in vitrin ürünlerini oluşturur (ENA, THYRONIX, HIVE, LinkSlash, Page Factory).
  * Mevcut admin düzenlemelerini ezmez.
  * Run: npm run seed:ecosystem-showcase
  */

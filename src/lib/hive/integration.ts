@@ -39,7 +39,7 @@ export const DEFAULT_HIVE_SETTINGS = {
   locale: "tr",
   timezone: "Europe/Istanbul",
   seoEnabled: true,
-  geoEnabled: false,
+  geoEnabled: true,
   contentLimitMonthly: 10,
   sitesLimit: 1,
   onboardingCompleted: false,

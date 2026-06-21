@@ -159,11 +159,17 @@ export function DataUniverseAdmin() {
           <ArrowLeft size={20} />
         </Link>
         <div>
-          <p className="text-[10px] font-semibold uppercase tracking-wider text-violet-600">Data Universe v1.5</p>
+          <p className="text-[10px] font-semibold uppercase tracking-wider text-violet-600">Data Universe V2</p>
           <h1 className="text-2xl font-bold text-gray-900">Veri Evreni Yönetimi</h1>
-          <p className="text-sm text-gray-500">GEO · Sektör · Niyet · Soru kalıpları — içerik üretimi yok</p>
+          <p className="text-sm text-gray-500">GEO · Bulk import · Sektör · Niyet · Soru kalıpları</p>
         </div>
-        <button type="button" onClick={() => { load(); loadGeoStats(); }} className="ml-auto p-2 text-gray-500 hover:text-gray-700">
+        <Link
+          href={toAdminUrl("/admin/page-factory/data/import")}
+          className="ml-auto rounded-lg border border-violet-200 bg-violet-50 px-3 py-1.5 text-xs font-medium text-violet-800 hover:bg-violet-100"
+        >
+          Bulk Import →
+        </Link>
+        <button type="button" onClick={() => { load(); loadGeoStats(); }} className="p-2 text-gray-500 hover:text-gray-700">
           <RefreshCw size={16} />
         </button>
       </div>

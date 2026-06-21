@@ -165,4 +165,26 @@ export async function getProjectDetail(id: string) {
   });
 }
 
+export async function updatePageFactoryProject(
+  id: string,
+  input: Partial<CreateProjectInput> & { status?: string }
+) {
+  const data: Record<string, unknown> = {};
+  if (input.name) data.name = input.name.trim();
+  if (input.sector) data.sector = input.sector.trim();
+  if (input.country) data.country = input.country.trim().toUpperCase();
+  if (input.language) data.language = input.language.trim().toLowerCase();
+  if (input.productionType && isValidProductionType(input.productionType)) {
+    data.productionType = input.productionType;
+  }
+  if (input.status) data.status = input.status;
+  return prisma.pageFactoryProject.update({ where: { id }, data });
+}
+
+export async function deletePageFactoryProject(id: string) {
+  await prisma.pageFactoryTopology.deleteMany({ where: { projectId: id } });
+  await prisma.pageFactoryBlueprint.deleteMany({ where: { projectId: id } });
+  return prisma.pageFactoryProject.delete({ where: { id } });
+}
+
 export { parseMetadata };

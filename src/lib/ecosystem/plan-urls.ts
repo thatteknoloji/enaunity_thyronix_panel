@@ -4,12 +4,14 @@ const MODULE_BY_SLUG: Record<string, string> = {
   thyronix: "THYRONIX",
   hive: "HIVE",
   linkslash: "LINKSLASH",
+  "page-factory": "AI_PAGE_FACTORY",
 };
 
 const DEFAULT_PLAN_KEYS: Record<string, string[]> = {
   thyronix: ["starter", "pro", "enterprise"],
   hive: ["starter", "growth", "dominance"],
   linkslash: ["starter", "pro", "pro"],
+  "page-factory": ["starter", "pro", "pro"],
 };
 
 /** Eski /thyronix/pricing veya boş CTA → ödeme checkout */

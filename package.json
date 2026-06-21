@@ -25,6 +25,7 @@
     "seed:pod-plans": "tsx scripts/seed-pod-plans.ts",
     "seed:ecosystem-showcase": "tsx scripts/sync-ecosystem-showcase.ts",
     "seed:turkiye-geo": "tsx scripts/seed-turkiye-geo.ts",
+    "fetch:turkiye-geo": "node scripts/fetch-turkiye-geo-data.mjs",
     "seed:esra-bezos": "tsx scripts/seed-esra-bezos-source.ts",
     "test:bezos-xml": "tsx scripts/test-bezos-xml-parser.ts",
     "seed:page-factory-plans": "tsx scripts/seed-page-factory-plans.ts",

@@ -1,100 +1,63 @@
-/** Türkiye 81 il — plateCode, name */
-export const TR_PROVINCES: Array<{ plateCode: string; name: string }> = [
-  { plateCode: "01", name: "Adana" },
-  { plateCode: "02", name: "Adıyaman" },
-  { plateCode: "03", name: "Afyonkarahisar" },
-  { plateCode: "04", name: "Ağrı" },
-  { plateCode: "05", name: "Amasya" },
-  { plateCode: "06", name: "Ankara" },
-  { plateCode: "07", name: "Antalya" },
-  { plateCode: "08", name: "Artvin" },
-  { plateCode: "09", name: "Aydın" },
-  { plateCode: "10", name: "Balıkesir" },
-  { plateCode: "11", name: "Bilecik" },
-  { plateCode: "12", name: "Bingöl" },
-  { plateCode: "13", name: "Bitlis" },
-  { plateCode: "14", name: "Bolu" },
-  { plateCode: "15", name: "Burdur" },
-  { plateCode: "16", name: "Bursa" },
-  { plateCode: "17", name: "Çanakkale" },
-  { plateCode: "18", name: "Çankırı" },
-  { plateCode: "19", name: "Çorum" },
-  { plateCode: "20", name: "Denizli" },
-  { plateCode: "21", name: "Diyarbakır" },
-  { plateCode: "22", name: "Edirne" },
-  { plateCode: "23", name: "Elazığ" },
-  { plateCode: "24", name: "Erzincan" },
-  { plateCode: "25", name: "Erzurum" },
-  { plateCode: "26", name: "Eskişehir" },
-  { plateCode: "27", name: "Gaziantep" },
-  { plateCode: "28", name: "Giresun" },
-  { plateCode: "29", name: "Gümüşhane" },
-  { plateCode: "30", name: "Hakkari" },
-  { plateCode: "31", name: "Hatay" },
-  { plateCode: "32", name: "Isparta" },
-  { plateCode: "33", name: "Mersin" },
-  { plateCode: "34", name: "İstanbul" },
-  { plateCode: "35", name: "İzmir" },
-  { plateCode: "36", name: "Kars" },
-  { plateCode: "37", name: "Kastamonu" },
-  { plateCode: "38", name: "Kayseri" },
-  { plateCode: "39", name: "Kırklareli" },
-  { plateCode: "40", name: "Kırşehir" },
-  { plateCode: "41", name: "Kocaeli" },
-  { plateCode: "42", name: "Konya" },
-  { plateCode: "43", name: "Kütahya" },
-  { plateCode: "44", name: "Malatya" },
-  { plateCode: "45", name: "Manisa" },
-  { plateCode: "46", name: "Kahramanmaraş" },
-  { plateCode: "47", name: "Mardin" },
-  { plateCode: "48", name: "Muğla" },
-  { plateCode: "49", name: "Muş" },
-  { plateCode: "50", name: "Nevşehir" },
-  { plateCode: "51", name: "Niğde" },
-  { plateCode: "52", name: "Ordu" },
-  { plateCode: "53", name: "Rize" },
-  { plateCode: "54", name: "Sakarya" },
-  { plateCode: "55", name: "Samsun" },
-  { plateCode: "56", name: "Siirt" },
-  { plateCode: "57", name: "Sinop" },
-  { plateCode: "58", name: "Sivas" },
-  { plateCode: "59", name: "Tekirdağ" },
-  { plateCode: "60", name: "Tokat" },
-  { plateCode: "61", name: "Trabzon" },
-  { plateCode: "62", name: "Tunceli" },
-  { plateCode: "63", name: "Şanlıurfa" },
-  { plateCode: "64", name: "Uşak" },
-  { plateCode: "65", name: "Van" },
-  { plateCode: "66", name: "Yozgat" },
-  { plateCode: "67", name: "Zonguldak" },
-  { plateCode: "68", name: "Aksaray" },
-  { plateCode: "69", name: "Bayburt" },
-  { plateCode: "70", name: "Karaman" },
-  { plateCode: "71", name: "Kırıkkale" },
-  { plateCode: "72", name: "Batman" },
-  { plateCode: "73", name: "Şırnak" },
-  { plateCode: "74", name: "Bartın" },
-  { plateCode: "75", name: "Ardahan" },
-  { plateCode: "76", name: "Iğdır" },
-  { plateCode: "77", name: "Yalova" },
-  { plateCode: "78", name: "Karabük" },
-  { plateCode: "79", name: "Kilis" },
-  { plateCode: "80", name: "Osmaniye" },
-  { plateCode: "81", name: "Düzce" },
-];
+/**
+ * Türkiye GEO — tam veri (turkiye-geo-full.json) veya starter fallback
+ * Güncellemek için: npm run fetch:turkiye-geo
+ */
+import { existsSync, readFileSync } from "fs";
+import path from "path";
+import { fileURLToPath } from "url";
 
-/** plateCode → ilçe adları (genişletilebilir; tam 973 ilçe import pipeline ile eklenecek) */
-export const TR_DISTRICTS_BY_PLATE: Record<string, string[]> = {
-  "01": ["Seyhan", "Yüreğir", "Çukurova", "Sarıçam", "Ceyhan", "Kozan"],
-  "06": ["Çankaya", "Keçiören", "Yenimahalle", "Mamak", "Etimesgut", "Sincan", "Altındağ", "Pursaklar", "Gölbaşı"],
-  "07": ["Muratpaşa", "Kepez", "Konyaaltı", "Alanya", "Manavgat", "Serik"],
-  "16": ["Osmangazi", "Nilüfer", "Yıldırım", "Gemlik", "İnegöl", "Mudanya"],
-  "34": [
-    "Kadıköy", "Beşiktaş", "Üsküdar", "Şişli", "Bakırköy", "Fatih", "Beyoğlu", "Maltepe", "Kartal",
-    "Pendik", "Ümraniye", "Ataşehir", "Sarıyer", "Başakşehir", "Esenyurt", "Beylikdüzü", "Sultanbeyli",
-  ],
-  "35": ["Konak", "Karşıyaka", "Bornova", "Buca", "Bayraklı", "Çiğli", "Gaziemir", "Karabağlar"],
-  "41": ["İzmit", "Gebze", "Darıca", "Körfez", "Gölcük", "Derince"],
-  "42": ["Selçuklu", "Meram", "Karatay", "Ereğli", "Akşehir"],
-  "54": ["Adapazarı", "Serdivan", "Erenler", "Akyazı", "Hendek"],
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const FULL_JSON = path.join(__dirname, "turkiye-geo-full.json");
+
+export type TurkiyeProvinceSeed = {
+  plateCode: string;
+  name: string;
+  latitude: number | null;
+  longitude: number | null;
+  districts: Array<{ name: string; latitude: number | null; longitude: number | null }>;
 };
+
+function loadFullData(): TurkiyeProvinceSeed[] | null {
+  if (!existsSync(FULL_JSON)) return null;
+  try {
+    const raw = JSON.parse(readFileSync(FULL_JSON, "utf8"));
+    if (Array.isArray(raw?.provinces) && raw.provinces.length > 0) return raw.provinces;
+  } catch {
+    return null;
+  }
+  return null;
+}
+
+/** Starter fallback — 81 il, her il için Merkez ilçe */
+function buildStarterData(): TurkiyeProvinceSeed[] {
+  const names = [
+    "Adana", "Adıyaman", "Afyonkarahisar", "Ağrı", "Amasya", "Ankara", "Antalya", "Artvin", "Aydın", "Balıkesir",
+    "Bilecik", "Bingöl", "Bitlis", "Bolu", "Burdur", "Bursa", "Çanakkale", "Çankırı", "Çorum", "Denizli",
+    "Diyarbakır", "Edirne", "Elazığ", "Erzincan", "Erzurum", "Eskişehir", "Gaziantep", "Giresun", "Gümüşhane", "Hakkari",
+    "Hatay", "Isparta", "Mersin", "İstanbul", "İzmir", "Kars", "Kastamonu", "Kayseri", "Kırklareli", "Kırşehir",
+    "Kocaeli", "Konya", "Kütahya", "Malatya", "Manisa", "Kahramanmaraş", "Mardin", "Muğla", "Muş", "Nevşehir",
+    "Niğde", "Ordu", "Rize", "Sakarya", "Samsun", "Siirt", "Sinop", "Sivas", "Tekirdağ", "Tokat",
+    "Trabzon", "Tunceli", "Şanlıurfa", "Uşak", "Van", "Yozgat", "Zonguldak", "Aksaray", "Bayburt", "Karaman",
+    "Kırıkkale", "Batman", "Şırnak", "Bartın", "Ardahan", "Iğdır", "Yalova", "Karabük", "Kilis", "Osmaniye", "Düzce",
+  ];
+  return names.map((name, i) => ({
+    plateCode: String(i + 1).padStart(2, "0"),
+    name,
+    latitude: null,
+    longitude: null,
+    districts: [{ name: `${name} Merkez`, latitude: null, longitude: null }],
+  }));
+}
+
+const full = loadFullData();
+export const TR_PROVINCES_FULL: TurkiyeProvinceSeed[] = full ?? buildStarterData();
+export const GEO_DATA_SOURCE = full ? "full" : "starter";
+
+export const TR_PROVINCES = TR_PROVINCES_FULL.map((p) => ({
+  plateCode: p.plateCode,
+  name: p.name,
+}));
+
+export const TR_DISTRICTS_BY_PLATE: Record<string, string[]> = Object.fromEntries(
+  TR_PROVINCES_FULL.map((p) => [p.plateCode, p.districts.map((d) => d.name)])
+);

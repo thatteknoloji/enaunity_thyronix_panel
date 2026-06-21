@@ -1,9 +1,11 @@
 import { prisma } from "../src/lib/db";
 import { toSlug } from "../src/lib/data-universe/pagination";
-import { TR_DISTRICTS_BY_PLATE, TR_PROVINCES } from "./data/turkiye-geo";
+import { TR_PROVINCES_FULL, GEO_DATA_SOURCE } from "./data/turkiye-geo";
+
+const BATCH = 50;
 
 async function seedTurkiyeGeo() {
-  console.log("→ Türkiye GEO evreni…");
+  console.log(`→ Türkiye GEO evreni (${GEO_DATA_SOURCE === "full" ? "81 il, 973 ilçe" : "starter fallback"})…`);
 
   const country = await prisma.geoCountry.upsert({
     where: { code: "TR" },
@@ -14,7 +16,7 @@ async function seedTurkiyeGeo() {
   let provinceCount = 0;
   let districtCount = 0;
 
-  for (const p of TR_PROVINCES) {
+  for (const p of TR_PROVINCES_FULL) {
     const slug = toSlug(p.name);
     const province = await prisma.geoProvince.upsert({
       where: { countryId_slug: { countryId: country.id, slug } },
@@ -23,35 +25,50 @@ async function seedTurkiyeGeo() {
         plateCode: p.plateCode,
         name: p.name,
         slug,
+        latitude: p.latitude,
+        longitude: p.longitude,
         isActive: true,
       },
       update: {
         plateCode: p.plateCode,
         name: p.name,
+        latitude: p.latitude,
+        longitude: p.longitude,
         isActive: true,
       },
     });
     provinceCount += 1;
 
-    const districts = TR_DISTRICTS_BY_PLATE[p.plateCode] || [`${p.name} Merkez`];
-    for (const dName of districts) {
-      const dSlug = toSlug(dName);
-      await prisma.geoDistrict.upsert({
-        where: { provinceId_slug: { provinceId: province.id, slug: dSlug } },
-        create: {
-          provinceId: province.id,
-          name: dName,
-          slug: dSlug,
-          isActive: true,
-        },
-        update: { name: dName, isActive: true },
-      });
-      districtCount += 1;
+    for (let i = 0; i < p.districts.length; i += BATCH) {
+      const chunk = p.districts.slice(i, i + BATCH);
+      await prisma.$transaction(
+        chunk.map((d) => {
+          const dSlug = toSlug(d.name);
+          return prisma.geoDistrict.upsert({
+            where: { provinceId_slug: { provinceId: province.id, slug: dSlug } },
+            create: {
+              provinceId: province.id,
+              name: d.name,
+              slug: dSlug,
+              latitude: d.latitude,
+              longitude: d.longitude,
+              isActive: true,
+            },
+            update: {
+              name: d.name,
+              latitude: d.latitude,
+              longitude: d.longitude,
+              isActive: true,
+            },
+          });
+        })
+      );
+      districtCount += chunk.length;
     }
   }
 
   console.log(`  ✓ ${provinceCount} il, ${districtCount} ilçe yüklendi`);
-  console.log("  ℹ Mahalle/köy/sokak katmanları admin CRUD veya bulk import ile genişletilebilir");
+  console.log("  ℹ Mahalle/köy katmanları admin CRUD veya bulk import ile genişletilebilir");
 }
 
 async function seedReferenceData() {

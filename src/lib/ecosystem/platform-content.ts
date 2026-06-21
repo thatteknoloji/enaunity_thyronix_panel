@@ -90,6 +90,42 @@ const linkSlashPlans: ShowcasePlan[] = [
   },
 ];
 
+const pageFactoryPlans: ShowcasePlan[] = [
+  {
+    id: "pf-starter",
+    name: "Starter",
+    description: "Sayfa evreni planlama başlangıç",
+    monthlyPrice: 299,
+    yearlyPrice: 2990,
+    features: ["5 proje", "Topology engine", "Cluster engine", "Blueprint şablonları", "Data Universe TR"],
+    sortOrder: 0,
+    ctaText: "Başla",
+    ctaUrl: "/payment/checkout?type=module&moduleKey=AI_PAGE_FACTORY&planKey=starter",
+  },
+  {
+    id: "pf-pro",
+    name: "Pro",
+    description: "Geniş ölçekli GEO + SEO planlama",
+    monthlyPrice: 799,
+    yearlyPrice: 7990,
+    features: ["50 proje", "GEO engine", "Page estimator", "Bulk import", "Öncelikli destek"],
+    sortOrder: 1,
+    highlighted: true,
+    ctaText: "Başla",
+    ctaUrl: "/payment/checkout?type=module&moduleKey=AI_PAGE_FACTORY&planKey=pro",
+  },
+  {
+    id: "pf-ent",
+    name: "Enterprise",
+    description: "Kurumsal sayfa evreni operasyonu",
+    monthlyPrice: undefined,
+    features: ["Sınırsız proje", "Özel GEO import", "Dedicated onboarding", "SLA"],
+    sortOrder: 2,
+    ctaText: "İletişim",
+    ctaUrl: "/iletisim",
+  },
+];
+
 export const PLATFORM_CONTENT: Record<string, PlatformContent> = {
   ena: {
     slug: "ena",
@@ -448,9 +484,95 @@ export const PLATFORM_CONTENT: Record<string, PlatformContent> = {
       secondaryUrl: "/linkslash/downloads",
     },
   },
+  "page-factory": {
+    slug: "page-factory",
+    name: "AI Page Factory",
+    subtitle: "Sayfa Evreni Planlama",
+    description:
+      "Topology, cluster ve blueprint motorları ile GEO + SEO sayfa evreninizi planlayın. Data Universe ile 81 il, 973 ilçe ve mahalle/köy verisi. Faz 1: içerik üretimi yok.",
+    icon: "Layers",
+    themeColor: "#7c3aed",
+    accentColor: "#a855f7",
+    badgeText: "ENGINE",
+    cardFeatures: ["Topology Engine", "Cluster Engine", "Blueprint", "GEO Data Universe", "Page Estimator", "Bulk Import"],
+    hero: {
+      title: "Sayfa Evreninizi\nÖnce Planlayın",
+      subtitle: "AI Page Factory",
+      description:
+        "Cam tablo, otel, gayrimenkul veya herhangi bir sektör için GEO + SEO sayfa ağını topology ve cluster mantığıyla tasarlayın. İçerik basmadan evreninizi görün.",
+    },
+    problems: [
+      { title: "Plansız GEO Üretimi", description: "İl/ilçe bazlı sayfalar rastgele açılıyor; yapı ve ölçek kontrol edilemiyor." },
+      { title: "Dağınık Veri Kaynakları", description: "GEO verileri Excel ve farklı kaynaklarda; import ve dedup yok." },
+      { title: "Tahmin Edilemeyen Maliyet", description: "Kaç sayfa üretileceği plan aşamasında net değil." },
+      { title: "Modül Kopukluğu", description: "HIVE, Page Factory ve B2B aynı GEO evrenini paylaşmıyor." },
+    ],
+    solution: {
+      title: "Tek Data Universe, Net Plan",
+      description:
+        "AI Page Factory; Data Universe Engine ile Türkiye GEO verisini merkezileştirir. Topology, cluster ve blueprint katmanlarıyla sayfa evreninizi üretim öncesi modeller.",
+    },
+    features: [
+      { title: "Topology Engine", description: "Ülke → il → ilçe → mahalle hiyerarşisinde düğüm ağacı.", icon: "GitBranch" },
+      { title: "Cluster Engine", description: "Sektör + GEO + niyet kombinasyonlarıyla cluster zincirleri.", icon: "Layers" },
+      { title: "Blueprint Engine", description: "Sayfa tipi ve hiyerarşi şablonları — içerik yok.", icon: "FileStack" },
+      { title: "Data Universe", description: "81 il, 973 ilçe, mahalle/köy bulk import ve admin CRUD.", icon: "Database" },
+      { title: "Page Estimator", description: "Plan aşamasında tahmini sayfa sayısı ve formül.", icon: "Calculator" },
+      { title: "HIVE Paylaşımı", description: "Aynı GEO katmanı HIVE GEO Engine ile ortak.", icon: "Sparkles" },
+    ],
+    sections: [
+      {
+        id: "engines",
+        title: "Planlama Motorları",
+        description: "Faz 1 — içerik üretimi ve sayfa basma yok.",
+        items: [
+          { title: "Topology", description: "GEO hiyerarşisi ve düğüm sayıları." },
+          { title: "Cluster", description: "Sektör × lokasyon × niyet yolları." },
+          { title: "Blueprint", description: "Sayfa tipi şablonları ve metadata." },
+          { title: "Estimator", description: "Toplam sayfa tahmini ve breakdown." },
+        ],
+      },
+      {
+        id: "data",
+        title: "Data Universe V2",
+        description: "CSV, JSON, XLSX bulk import pipeline.",
+        items: [
+          { title: "Tam Türkiye GEO", description: "81 il, 973 ilçe seed + bulk import." },
+          { title: "Mahalle / Köy", description: "Admin import ile genişletilebilir katmanlar." },
+          { title: "Dry-run & Dedup", description: "Import öncesi doğrulama ve tekrar kontrolü." },
+          { title: "Import Job Geçmişi", description: "Her import için rapor ve istatistik." },
+        ],
+      },
+    ],
+    flow: {
+      label: "Page Factory Akışı",
+      steps: ["Proje Oluştur", "GEO + Sektör", "Topology Üret", "Cluster + Blueprint", "Tahmin"],
+    },
+    stats: [
+      { value: 81, suffix: "", label: "İl" },
+      { value: 973, suffix: "", label: "İlçe" },
+      { value: 6, suffix: "", label: "Planlama Motoru" },
+    ],
+    plans: pageFactoryPlans,
+    faq: [
+      { id: "pf-1", question: "AI Page Factory içerik üretir mi?", answer: "Hayır. Faz 1 yalnızca topology, cluster, blueprint planlama ve Data Universe veri yönetimidir.", sortOrder: 0, active: true },
+      { id: "pf-2", question: "Data Universe nedir?", answer: "GEO, sektör, niyet ve soru kalıplarını tek veri katmanında toplayan paylaşımlı engine'dir.", sortOrder: 1, active: true },
+      { id: "pf-3", question: "Hangi dosya formatları desteklenir?", answer: "CSV, JSON ve XLSX ile il, ilçe, mahalle, köy ve sokak importu yapılabilir.", sortOrder: 2, active: true },
+      { id: "pf-4", question: "HIVE ile ilişkisi nedir?", answer: "Aynı Data Universe GEO katmanını HIVE GEO Engine de kullanır.", sortOrder: 3, active: true },
+      { id: "pf-5", question: "Starter ve Pro farkı nedir?", answer: "Starter 5 proje, Pro 50 proje ve bulk import içerir.", sortOrder: 4, active: true },
+    ],
+    cta: {
+      title: "Sayfa evreninizi planlamaya başlayın",
+      description: "Data Universe ile GEO altyapınızı kurun, projelerinizi modelleyin.",
+      primaryText: "Page Factory'a Giriş",
+      primaryUrl: "/gateway/page-factory",
+      secondaryText: "Paketleri İncele",
+      secondaryUrl: "#plans",
+    },
+  },
 };
 
-export const PLATFORM_SLUGS = ["ena", "thyronix", "hive", "linkslash"] as const;
+export const PLATFORM_SLUGS = ["ena", "thyronix", "hive", "linkslash", "page-factory"] as const;
 export type PlatformSlug = (typeof PLATFORM_SLUGS)[number];
 
 export function getPlatformContent(slug: string): PlatformContent | null {

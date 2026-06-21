@@ -36,6 +36,7 @@ const DEFAULTS = [
   buildSeedFromPlatform("thyronix", 1),
   buildSeedFromPlatform("hive", 2),
   buildSeedFromPlatform("linkslash", 3),
+  buildSeedFromPlatform("page-factory", 4),
 ];
 
 export async function ensureDefaultShowcaseProducts() {
