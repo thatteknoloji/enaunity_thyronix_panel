@@ -1,13 +1,14 @@
 /**
  * Eksik built-in vitrin ürünlerini oluşturur (ENA, THYRONIX, HIVE, LinkSlash, Page Factory).
- * Mevcut admin düzenlemelerini ezmez.
+ * Kart linklerini /platform/* + _self olarak düzeltir.
  * Run: npm run seed:ecosystem-showcase
  */
-import { syncBuiltInShowcaseProducts } from "../src/lib/ecosystem/seed-defaults";
+import { syncBuiltInShowcaseCardLinks, syncBuiltInShowcaseProducts } from "../src/lib/ecosystem/seed-defaults";
 
 async function main() {
   await syncBuiltInShowcaseProducts();
-  console.log("✓ Ekosistem vitrin senkron tamam (linkslash dahil).");
+  await syncBuiltInShowcaseCardLinks();
+  console.log("✓ Ekosistem vitrin senkron tamam (kart linkleri + page-factory).");
 }
 
 main()

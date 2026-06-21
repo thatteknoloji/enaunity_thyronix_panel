@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/db";
+import { TRUST_BADGE_LABELS, type TrustBadgeKey } from "./footer-trust-badges";
 
 export type FooterLegalStripItemDTO = {
   id: string;
@@ -9,14 +10,35 @@ export type FooterLegalStripItemDTO = {
   active: boolean;
 };
 
-export const DEFAULT_LEGAL_STRIP_ITEMS: Omit<FooterLegalStripItemDTO, "id">[] = [
-  { label: "256 Bit SSL & 3D Secure", imageUrl: "", linkUrl: "", sortOrder: 0, active: true },
+const DEFAULT_BADGE_KEYS: TrustBadgeKey[] = [
+  "visa",
+  "mastercard",
+  "troy",
+  "ssl",
+  "3dsecure",
+  "pci",
+  "iyzico",
+  "paytr",
 ];
 
+export const DEFAULT_LEGAL_STRIP_ITEMS: Omit<FooterLegalStripItemDTO, "id">[] = DEFAULT_BADGE_KEYS.map(
+  (key, sortOrder) => ({
+    label: TRUST_BADGE_LABELS[key],
+    imageUrl: "",
+    linkUrl: "",
+    sortOrder,
+    active: true,
+  })
+);
+
 export async function ensureDefaultLegalStripItems() {
-  const count = await prisma.footerLegalStripItem.count();
-  if (count > 0) return;
+  const existing = await prisma.footerLegalStripItem.findMany({
+    select: { label: true },
+  });
+  const labels = new Set(existing.map((r) => r.label.toLowerCase()));
+
   for (const item of DEFAULT_LEGAL_STRIP_ITEMS) {
+    if (labels.has(item.label.toLowerCase())) continue;
     await prisma.footerLegalStripItem.create({ data: item });
   }
 }

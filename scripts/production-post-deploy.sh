@@ -57,6 +57,10 @@ npm run seed:pod-plans || echo "  (pod plans seed atlandı)"
 echo "→ ecosystem showcase sync (LinkSlash vitrin)…"
 npm run seed:ecosystem-showcase || echo "  (ecosystem sync atlandı)"
 
+echo "→ linkslash apk verify + db sync…"
+npm run verify:linkslash-android || echo "  (linkslash verify atlandı)"
+npx tsx scripts/ensure-linkslash-apk.ts || echo "  (linkslash apk sync atlandı)"
+
 echo "→ production build…"
 rm -rf .next node_modules/.cache 2>/dev/null || true
 find .next -mindepth 1 -delete 2>/dev/null || rm -rf .next 2>/dev/null || true

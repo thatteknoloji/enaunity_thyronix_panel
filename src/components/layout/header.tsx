@@ -1,10 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { ShoppingCart, User, LogOut, LayoutDashboard, Zap, Sparkles, Link2, Globe, Search, Menu, X, FileText } from "lucide-react";
+import { ShoppingCart, User, LogOut, LayoutDashboard, Globe, Search, Menu, X, FileText } from "lucide-react";
 import { canSeeAdminEntry, getAdminSecretPath } from "@/lib/auth/admin-access";
-import { PRODUCT_GATEWAY_PATHS } from "@/lib/product-links/types";
-import { MARKETPLACE_MODULES, type MarketplaceModuleKey } from "@/lib/modules/marketplace";
+import { PlatformNavDropdown } from "@/components/layout/PlatformNavDropdown";
 import { useCartStore } from "@/lib/cart-store";
 import { useT, LOCALE_LABELS, type Locale } from "@/lib/i18n/provider";
 import { useEffect, useState } from "react";
@@ -15,14 +14,6 @@ import ThemeSwitcher from "@/components/layout/ThemeSwitcher";
 import { usePathname, useRouter } from "next/navigation";
 
 const locales = Object.entries(LOCALE_LABELS) as [Locale, string][];
-
-const MODULE_BTN_CLASS: Record<string, string> = {
-  THYRONIX: "text-blue-400 hover:text-blue-300",
-  HIVE: "text-violet-400 hover:text-violet-300",
-  LINKSLASH: "text-cyan-400 hover:text-cyan-300",
-  POD_CREATOR: "text-emerald-400 hover:text-emerald-300",
-  AI_PAGE_FACTORY: "text-violet-400 hover:text-violet-300",
-};
 
 export default function Header() {
   const { t, locale, setLocale } = useT();
@@ -169,6 +160,7 @@ export default function Header() {
 
             {loading ? null : user ? (
               <div className="hidden md:flex items-center gap-1">
+                <PlatformNavDropdown user={user} dealerModules={dealerModules} />
                 {canSeeAdminEntry(user.role) && (
                   <Link href={getAdminSecretPath()}>
                     <Button variant="ghost" size="sm" className="text-ena-light">
@@ -185,42 +177,6 @@ export default function Header() {
                     </Button>
                   </Link>
                 )}
-                {canSeeAdminEntry(user.role) && (
-                  <Link href={PRODUCT_GATEWAY_PATHS.THYRONIX}>
-                    <Button variant="ghost" size="sm" className="text-blue-400 hover:text-blue-300">
-                      <Zap size={14} className="mr-1" />
-                      THYRONIX
-                    </Button>
-                  </Link>
-                )}
-                {canSeeAdminEntry(user.role) && (
-                  <Link href={PRODUCT_GATEWAY_PATHS.HIVE}>
-                    <Button variant="ghost" size="sm" className="text-violet-400 hover:text-violet-300">
-                      <Sparkles size={14} className="mr-1" />
-                      HIVE
-                    </Button>
-                  </Link>
-                )}
-                {canSeeAdminEntry(user.role) && (
-                  <Link href="/gateway/linkslash">
-                    <Button variant="ghost" size="sm" className="text-cyan-400 hover:text-cyan-300">
-                      <Link2 size={14} className="mr-1" />
-                      LinkSlash
-                    </Button>
-                  </Link>
-                )}
-                {user.role === "dealer" && dealerModules.map((m) => {
-                  const meta = MARKETPLACE_MODULES[m.moduleKey as MarketplaceModuleKey];
-                  const Icon = meta?.icon || Zap;
-                  return (
-                    <Link key={m.moduleKey} href={m.href}>
-                      <Button variant="ghost" size="sm" className={MODULE_BTN_CLASS[m.moduleKey] || "text-ena-light"}>
-                        <Icon size={14} className="mr-1" />
-                        {m.label}
-                      </Button>
-                    </Link>
-                  );
-                })}
                 <Link href="/account">
                   <Button variant="ghost" size="sm" className="text-ena-light">
                     <User size={16} className="mr-1" />
@@ -233,6 +189,7 @@ export default function Header() {
               </div>
             ) : (
               <div className="hidden sm:flex items-center gap-2">
+                <PlatformNavDropdown user={null} />
                 <Link href="/auth/login">
                   <Button size="sm" variant="ghost" className="text-ena-light">{t("common.login")}</Button>
                 </Link>
@@ -295,6 +252,13 @@ export default function Header() {
           <Link href="/is-ortakligi" onClick={() => setMenuOpen(false)} className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-semibold text-ena-primary hover:bg-ena-card transition-colors mb-1">
             İş Ortaklığı
           </Link>
+          <div className="h-px bg-ena-border my-2" />
+          <PlatformNavDropdown
+            user={user}
+            dealerModules={dealerModules}
+            variant="drawer"
+            onNavigate={() => setMenuOpen(false)}
+          />
           <div className="h-px bg-ena-border my-2" />
           {Object.entries({ "Cam Tablo":["Yatay","Dikey"], "Mdf Tablo":["Çerçeveli","Çerçevesiz"], "Halı":[], "Kilim":[], "Perde":[], "Nevresim":["Çocuk","2 Kişilik","Tek Kişilik"], "Yastık Kılıfı":[], "Minder":[], "Puzzle":["Çocuk","Yetişkin"], "Hediyelik Ürünler":[] } as Record<string, string[]>).map(([cat, subs]) => (
             <div key={cat}>
@@ -360,39 +324,6 @@ export default function Header() {
                   Admin Paneli
                 </Link>
               )}
-              {canSeeAdminEntry(user.role) && (
-                <Link href={PRODUCT_GATEWAY_PATHS.THYRONIX} onClick={() => setMenuOpen(false)} className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-blue-400 hover:text-blue-300 hover:bg-ena-card transition-colors">
-                  <Zap size={16} />
-                  THYRONIX
-                </Link>
-              )}
-              {canSeeAdminEntry(user.role) && (
-                <Link href={PRODUCT_GATEWAY_PATHS.HIVE} onClick={() => setMenuOpen(false)} className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-violet-400 hover:text-violet-300 hover:bg-ena-card transition-colors">
-                  <Sparkles size={16} />
-                  HIVE
-                </Link>
-              )}
-              {canSeeAdminEntry(user.role) && (
-                <Link href="/gateway/linkslash" onClick={() => setMenuOpen(false)} className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-cyan-400 hover:text-cyan-300 hover:bg-ena-card transition-colors">
-                  <Link2 size={16} />
-                  LinkSlash
-                </Link>
-              )}
-              {user.role === "dealer" && dealerModules.map((m) => {
-                const meta = MARKETPLACE_MODULES[m.moduleKey as MarketplaceModuleKey];
-                const Icon = meta?.icon || Zap;
-                return (
-                  <Link
-                    key={m.moduleKey}
-                    href={m.href}
-                    onClick={() => setMenuOpen(false)}
-                    className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm hover:bg-ena-card transition-colors ${MODULE_BTN_CLASS[m.moduleKey] || "text-ena-light hover:text-ena-text"}`}
-                  >
-                    <Icon size={16} />
-                    {m.label}
-                  </Link>
-                );
-              })}
               {user.role === "dealer" && (
                 <Link href="/dealer" onClick={() => setMenuOpen(false)} className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-ena-light hover:text-ena-text hover:bg-ena-card transition-colors">
                   <LayoutDashboard size={16} />

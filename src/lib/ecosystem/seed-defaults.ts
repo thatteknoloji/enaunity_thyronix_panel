@@ -62,6 +62,20 @@ export async function ensureDefaultShowcaseProducts() {
   }
 }
 
+/** Built-in vitrin kartları: tıklama /platform/* ve aynı sekmede açılır */
+export async function syncBuiltInShowcaseCardLinks() {
+  for (const item of DEFAULTS) {
+    await prisma.productShowcase.updateMany({
+      where: { slug: item.slug },
+      data: {
+        ctaUrl: `/platform/${item.slug}`,
+        productUrl: `/platform/${item.slug}`,
+        linkTarget: "_self",
+      },
+    });
+  }
+}
+
 /** Only creates missing built-in slugs — never overwrites admin edits */
 export async function syncBuiltInShowcaseProducts() {
   for (const item of DEFAULTS) {

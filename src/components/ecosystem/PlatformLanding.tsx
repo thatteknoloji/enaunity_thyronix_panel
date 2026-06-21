@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import type { PlatformContent } from "@/lib/ecosystem/platform-content";
 import { ShowcaseIcon, hexToRgb } from "./ShowcaseIcon";
 import { resolvePlanCheckoutUrl } from "@/lib/ecosystem/plan-urls";
+import { PlatformStartActions } from "./PlatformStartActions";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 24 },
@@ -102,20 +103,15 @@ export function PlatformLanding({ content }: { content: PlatformContent }) {
             <p className="mt-6 text-base md:text-lg text-ena-light max-w-2xl mx-auto leading-relaxed">
               {content.hero.description}
             </p>
-            <div className="mt-10 flex flex-wrap justify-center gap-3">
-              <Link href={content.cta.primaryUrl}>
-                <Button size="lg" className="group">
-                  {content.cta.primaryText}
-                  <ArrowRight size={16} className="ml-2 group-hover:translate-x-0.5 transition-transform" />
-                </Button>
-              </Link>
-              {content.cta.secondaryUrl && (
-                <Link href={content.cta.secondaryUrl}>
-                  <Button variant="outline" size="lg">
-                    {content.cta.secondaryText}
-                  </Button>
-                </Link>
-              )}
+            <div className="mt-10">
+              <PlatformStartActions
+                slug={content.slug}
+                primaryText={content.cta.primaryText}
+                primaryUrl={content.cta.primaryUrl}
+                secondaryText={content.cta.secondaryText}
+                secondaryUrl={content.cta.secondaryUrl}
+                layout="hero"
+              />
             </div>
           </motion.div>
         </div>
@@ -380,18 +376,15 @@ export function PlatformLanding({ content }: { content: PlatformContent }) {
           >
             <h2 className="text-2xl md:text-3xl font-bold text-ena-text">{content.cta.title}</h2>
             <p className="mt-3 text-ena-light">{content.cta.description}</p>
-            <div className="mt-8 flex flex-wrap justify-center gap-3">
-              <Link href={content.cta.primaryUrl}>
-                <Button size="lg" className="group">
-                  {content.cta.primaryText}
-                  <ArrowRight size={16} className="ml-2 group-hover:translate-x-0.5 transition-transform" />
-                </Button>
-              </Link>
-              {content.cta.secondaryUrl && (
-                <Link href={content.cta.secondaryUrl}>
-                  <Button variant="outline" size="lg">{content.cta.secondaryText}</Button>
-                </Link>
-              )}
+            <div className="mt-8">
+              <PlatformStartActions
+                slug={content.slug}
+                primaryText={content.cta.primaryText}
+                primaryUrl={content.cta.primaryUrl}
+                secondaryText={content.cta.secondaryText}
+                secondaryUrl={content.cta.secondaryUrl}
+                layout="footer"
+              />
             </div>
           </motion.div>
         </div>

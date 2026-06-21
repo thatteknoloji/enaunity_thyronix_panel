@@ -44,10 +44,7 @@ export function mergePlatformWithShowcase(
         slug === "linkslash"
           ? staticContent.cta.primaryText
           : showcase.ctaText || staticContent.cta.primaryText,
-      primaryUrl:
-        slug === "linkslash"
-          ? staticContent.cta.primaryUrl
-          : showcase.ctaUrl || showcase.productUrl || staticContent.cta.primaryUrl,
+      primaryUrl: staticContent.cta.primaryUrl,
       secondaryText: slug === "linkslash" ? "İndirmeler" : staticContent.cta.secondaryText,
       secondaryUrl: slug === "linkslash" ? "/linkslash/downloads" : resolvePricingSecondaryUrl(slug),
     },
