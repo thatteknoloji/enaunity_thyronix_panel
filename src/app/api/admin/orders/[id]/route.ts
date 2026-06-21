@@ -115,6 +115,11 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
       );
     }
 
+    if (status === "delivered" || status === "shipped") {
+      const { processOrderCommission } = await import("@/lib/partners/commission-service");
+      await processOrderCommission(id).catch(() => {});
+    }
+
     return NextResponse.json({ success: true, data: order });
   } catch {
     return NextResponse.json({ success: false, error: "Sunucu hatası" }, { status: 500 });

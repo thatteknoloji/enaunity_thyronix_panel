@@ -88,6 +88,50 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL("/auth/login", request.url));
   }
 
+  // ── Affiliate referral (?ref=ENA-XXXXXX) — cookie + VISIT kaydı ──
+  const refCode = request.nextUrl.searchParams.get("ref");
+  const isReferralLanding =
+    refCode &&
+    !isApi &&
+    (pathname === "/" ||
+      pathname === "/linkslash" ||
+      pathname.startsWith("/platform/") ||
+      pathname.startsWith("/products/"));
+
+  if (isReferralLanding) {
+    try {
+      const trackRes = await fetch(`${request.nextUrl.origin}/api/internal/track-referral`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          referralCode: refCode,
+          landingPath: pathname,
+          sourceUrl: request.url,
+          ip: request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || request.headers.get("x-real-ip") || "",
+          userAgent: request.headers.get("user-agent") || "",
+        }),
+      });
+      const res = NextResponse.next();
+      if (trackRes.ok) {
+        res.cookies.set("ena_ref", refCode.toUpperCase(), {
+          httpOnly: true,
+          sameSite: "lax",
+          secure: process.env.NODE_ENV === "production",
+          maxAge: 30 * 24 * 60 * 60,
+          path: "/",
+        });
+      }
+      return res;
+    } catch {
+      // devam et
+    }
+  }
+
+  // /r/{slug} route handler tarafından işlenir
+  if (pathname.startsWith("/r/")) {
+    return NextResponse.next();
+  }
+
   // ── Block direct public APK downloads (license-gated API only) ──
   if (/^\/downloads\/linkslash\/.*\.apk$/i.test(pathname)) {
     if (isApi) {
@@ -314,6 +358,7 @@ export async function middleware(request: NextRequest) {
   const isDealerPage = pathname.startsWith("/dealer") && !pathname.startsWith("/api/");
   const isProductLibraryPage = pathname.startsWith("/product-library");
   const isDealerApi = pathname.startsWith("/api/dealer/");
+  const isAiPartnerApi = pathname.startsWith("/api/ai-partner/");
   const isAdminApi = pathname.startsWith("/api/admin/");
   const isProductLibraryApi = pathname.startsWith("/api/product-library/");
   const isThyronixApi = pathname.startsWith("/api/thyronix/");
@@ -337,6 +382,11 @@ export async function middleware(request: NextRequest) {
 
   if (isAdminApi) {
     if (!isAdminRole(role)) return jsonError(403, "Yetkisiz erişim");
+    return NextResponse.next();
+  }
+
+  if (isAiPartnerApi) {
+    if (role !== "dealer" && !isAdminRole(role)) return jsonError(403, "Yetkisiz erişim");
     return NextResponse.next();
   }
 
@@ -442,5 +492,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/admin", "/admin/:path*", "/thyronix", "/thyronix/:path*", "/hive", "/hive/:path*", "/gateway", "/gateway/:path*", "/linkslash", "/linkslash/:path*", "/nexa", "/nexa/:path*", "/x-control-eu-7294", "/x-control-eu-7294/:path*", "/account", "/account/:path*", "/dealer", "/dealer/:path*", "/product-library", "/product-library/:path*", "/api/dealer/:path*", "/api/admin/:path*", "/api/thyronix/:path*", "/api/nexa/:path*", "/api/product-library", "/api/product-library/:path*", "/api/fulfillment", "/api/fulfillment/:path*", "/api/my", "/api/my/:path*", "/api/marketplace-hub", "/api/marketplace-hub/:path*", "/api/product-links", "/api/product-links/:path*", "/api/product-auth/:path*", "/api/gateway/:path*", "/api/linkslash/:path*", "/login", "/giris"],
+  matcher: ["/admin", "/admin/:path*", "/thyronix", "/thyronix/:path*", "/hive", "/hive/:path*", "/gateway", "/gateway/:path*", "/linkslash", "/linkslash/:path*", "/nexa", "/nexa/:path*", "/x-control-eu-7294", "/x-control-eu-7294/:path*", "/account", "/account/:path*", "/dealer", "/dealer/:path*", "/product-library", "/product-library/:path*", "/api/dealer/:path*", "/api/admin/:path*", "/api/ai-partner/:path*", "/api/thyronix/:path*", "/api/nexa/:path*", "/api/product-library", "/api/product-library/:path*", "/api/fulfillment", "/api/fulfillment/:path*", "/api/my", "/api/my/:path*", "/api/marketplace-hub", "/api/marketplace-hub/:path*", "/api/product-links", "/api/product-links/:path*", "/api/product-auth/:path*", "/api/gateway/:path*", "/api/linkslash/:path*", "/login", "/giris", "/r/:path*", "/", "/platform/:path*", "/products/:path*"],
 };

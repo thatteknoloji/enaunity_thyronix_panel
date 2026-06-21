@@ -5,7 +5,7 @@ import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import {
   LayoutDashboard, Package, ShoppingCart, Users, LogOut, ChevronLeft, ChevronRight, ChevronDown,
-  ClipboardList, Store, DollarSign, Eye, Banknote, RotateCcw, Warehouse, FileText, Tag, Layers, Building2, Percent, Key, MessageSquare, ScrollText, Layout, PackagePlus, Truck, Shield, BarChart3, ClipboardCheck, Barcode, Bell, Megaphone, Webhook, Clock, CalendarClock, Upload, Link2, Plug, Zap, Sparkles, CreditCard, Globe, Smartphone
+  ClipboardList, Store, DollarSign, Eye, Banknote, RotateCcw, Warehouse, FileText, Tag, Layers, Building2, Percent, Key, MessageSquare, ScrollText, Layout, PackagePlus, Truck, Shield, BarChart3, ClipboardCheck, Barcode, Bell, Megaphone, Webhook, Clock, CalendarClock, Upload, Link2, Plug, Zap, Sparkles, CreditCard, Globe, Smartphone, Handshake, Brain, Shirt
 } from "lucide-react";
 import { getNavPermissionMap, hasAnyPermission } from "@/lib/permissions";
 import { getAdminLoginPath, isAdminLoginPath, isAdminRole, toAdminUrl } from "@/lib/auth/admin-access";
@@ -96,6 +96,18 @@ function buildNavGroups(t: (key: string) => string) {
         { href: "/admin/stock/scan", label: t("admin.stock_scan"), icon: Barcode },
         { href: "/admin/warehouses", label: t("admin.warehouses"), icon: Warehouse },
         { href: "/admin/shipping", label: t("admin.shipping"), icon: Truck },
+      ],
+    },
+    {
+      label: "Partner Ecosystem",
+      icon: Handshake,
+      items: [
+        { href: "/admin/partners", label: "Partner Ecosystem", icon: Handshake },
+        { href: "/admin/partners/affiliates", label: "Affiliate Program", icon: Users },
+        { href: "/admin/partners/commissions", label: "Komisyonlar", icon: DollarSign },
+        { href: "/admin/partners/payouts", label: "Ödemeler", icon: Banknote },
+        { href: "/admin/ai-partner", label: "AI Partner Merkezi", icon: Brain },
+        { href: "/admin/pod", label: "POD Merkezi", icon: Shirt },
       ],
     },
     {

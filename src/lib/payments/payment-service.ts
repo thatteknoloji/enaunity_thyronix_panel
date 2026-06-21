@@ -182,12 +182,19 @@ export async function approvePayment(paymentId: string): Promise<PaymentResult> 
   if (existingLicense) {
     const { resetLicenseLifecycleFlags } = await import("@/lib/modules/subscription-lifecycle-worker");
     await resetLicenseLifecycleFlags(existingLicense.id, endsAt, billingPeriod);
-    await prisma.moduleLicense.update({
+    const license = await prisma.moduleLicense.update({
       where: { id: existingLicense.id },
       data: { planKey: payment.planKey },
     });
+    const { processModuleLicenseCommission } = await import("@/lib/partners/commission-service");
+    await processModuleLicenseCommission({
+      dealerId: payment.dealerId,
+      moduleLicenseId: license.id,
+      moduleKey: payment.moduleKey,
+      amount: payment.amount,
+    }).catch(() => {});
   } else {
-    await prisma.moduleLicense.create({
+    const license = await prisma.moduleLicense.create({
       data: {
         dealerId: payment.dealerId,
         moduleKey: payment.moduleKey,
@@ -199,6 +206,13 @@ export async function approvePayment(paymentId: string): Promise<PaymentResult> 
         lifecycleStage: "active",
       },
     });
+    const { processModuleLicenseCommission } = await import("@/lib/partners/commission-service");
+    await processModuleLicenseCommission({
+      dealerId: payment.dealerId,
+      moduleLicenseId: license.id,
+      moduleKey: payment.moduleKey,
+      amount: payment.amount,
+    }).catch(() => {});
   }
 
   return { success: true, status: "PAID", message: "Ödeme onaylandı, lisans aktifleştirildi." };

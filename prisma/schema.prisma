@@ -2612,3 +2612,214 @@ model LinkSlashDownloadToken {
   @@index([userId])
   @@index([expiresAt])
 }
+
+// ═══════════════════════════════════════════
+// ENAUNITY PARTNER ECOSYSTEM — Faz 1
+// ═══════════════════════════════════════════
+
+enum PartnerType {
+  CUSTOMER
+  AFFILIATE
+  BAYI_PLUS
+  FRANCHISE
+  POD_CREATOR
+  AI_PARTNER
+}
+
+enum PartnerStatus {
+  PENDING
+  ACTIVE
+  SUSPENDED
+  REJECTED
+}
+
+enum ReferralStatus {
+  VISIT
+  REGISTERED
+  LICENSED
+  FIRST_ORDER
+  CONVERTED
+  CANCELLED
+}
+
+enum CommissionType {
+  FIRST_ORDER
+  RECURRING_ORDER
+  MODULE_LICENSE
+  POD_ORDER
+  MANUAL
+}
+
+enum CommissionStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  PAID
+}
+
+enum PayoutStatus {
+  REQUESTED
+  PROCESSING
+  PAID
+  CANCELLED
+}
+
+model PartnerProfile {
+  id                      String        @id @default(cuid())
+  userId                  String        @unique
+  dealerId                String?
+  partnerType             PartnerType   @default(CUSTOMER)
+  referralCode            String        @unique
+  referralSlug            String        @unique
+  status                  PartnerStatus @default(PENDING)
+  commissionRate          Float         @default(0)
+  recurringCommissionRate Float         @default(0)
+  metadataJson            String        @default("{}")
+  createdAt               DateTime      @default(now())
+  updatedAt               DateTime      @updatedAt
+
+  referrals   AffiliateReferral[]
+  commissions AffiliateCommission[]
+  payouts     AffiliatePayout[]
+  podStores   PODCreatorStore[]
+
+  @@index([dealerId])
+  @@index([partnerType, status])
+}
+
+model AffiliateReferral {
+  id               String         @id @default(cuid())
+  partnerId        String
+  partner          PartnerProfile @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+  referredUserId   String?
+  referredDealerId String?
+  referralCode     String
+  sourceUrl        String?
+  landingPath      String?
+  ipHash           String?
+  userAgent        String?
+  status           ReferralStatus @default(VISIT)
+  createdAt        DateTime       @default(now())
+  convertedAt      DateTime?
+
+  commissions AffiliateCommission[]
+
+  @@index([partnerId])
+  @@index([referralCode])
+  @@index([referredUserId])
+  @@index([referredDealerId])
+  @@index([ipHash, createdAt])
+}
+
+model AffiliateCommission {
+  id              String           @id @default(cuid())
+  partnerId       String
+  partner         PartnerProfile   @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+  referralId      String?
+  referral        AffiliateReferral? @relation(fields: [referralId], references: [id], onDelete: SetNull)
+  orderId         String?
+  moduleLicenseId String?
+  commissionType  CommissionType
+  baseAmount      Float            @default(0)
+  rate            Float            @default(0)
+  amount          Float            @default(0)
+  status          CommissionStatus @default(PENDING)
+  note            String?
+  createdAt       DateTime         @default(now())
+  approvedAt      DateTime?
+  paidAt          DateTime?
+
+  @@index([partnerId, status])
+  @@index([orderId])
+}
+
+model AffiliatePayout {
+  id            String         @id @default(cuid())
+  partnerId     String
+  partner       PartnerProfile @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+  amount        Float          @default(0)
+  status        PayoutStatus   @default(REQUESTED)
+  paymentMethod String?
+  paymentNote   String?
+  createdAt     DateTime       @default(now())
+  paidAt        DateTime?
+
+  @@index([partnerId, status])
+}
+
+model PODProductTemplate {
+  id           String   @id @default(cuid())
+  name         String
+  slug         String   @unique
+  category     String   @default("")
+  basePrice    Float    @default(0)
+  printAreasJson String @default("[]")
+  status       String   @default("draft")
+  metadataJson String   @default("{}")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  designs PODDesign[]
+}
+
+model PODDesign {
+  id         String   @id @default(cuid())
+  templateId String?
+  template   PODProductTemplate? @relation(fields: [templateId], references: [id], onDelete: SetNull)
+  storeId    String?
+  store      PODCreatorStore? @relation(fields: [storeId], references: [id], onDelete: SetNull)
+  creatorUserId String
+  title      String   @default("")
+  previewUrl String   @default("")
+  status     String   @default("draft")
+  metadataJson String @default("{}")
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  orders PODOrder[]
+}
+
+model PODCreatorStore {
+  id               String   @id @default(cuid())
+  partnerId        String?
+  partner          PartnerProfile? @relation(fields: [partnerId], references: [id], onDelete: SetNull)
+  ownerUserId      String
+  name             String
+  slug             String   @unique
+  status           String   @default("draft")
+  metadataJson     String   @default("{}")
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  designs PODDesign[]
+  orders  PODOrder[]
+}
+
+model PODOrder {
+  id         String   @id @default(cuid())
+  storeId    String?
+  store      PODCreatorStore? @relation(fields: [storeId], references: [id], onDelete: SetNull)
+  designId   String?
+  design     PODDesign? @relation(fields: [designId], references: [id], onDelete: SetNull)
+  orderId    String   @default("")
+  amount     Float    @default(0)
+  status     String   @default("pending")
+  metadataJson String @default("{}")
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  commissions PODCommission[]
+}
+
+model PODCommission {
+  id        String   @id @default(cuid())
+  podOrderId String
+  podOrder  PODOrder @relation(fields: [podOrderId], references: [id], onDelete: Cascade)
+  partnerProfileId String @default("")
+  amount    Float    @default(0)
+  status    String   @default("pending")
+  createdAt DateTime @default(now())
+
+  @@index([podOrderId])
+  @@index([partnerProfileId])
+}

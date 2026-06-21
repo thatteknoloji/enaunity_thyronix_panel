@@ -40,10 +40,16 @@ export function mergePlatformWithShowcase(
     faq: showcase.faq.length > 0 ? showcase.faq : staticContent.faq,
     cta: {
       ...staticContent.cta,
-      primaryText: showcase.ctaText || staticContent.cta.primaryText,
-      primaryUrl: showcase.ctaUrl || showcase.productUrl || staticContent.cta.primaryUrl,
-      secondaryText: staticContent.cta.secondaryText,
-      secondaryUrl: resolvePricingSecondaryUrl(slug),
+      primaryText:
+        slug === "linkslash"
+          ? staticContent.cta.primaryText
+          : showcase.ctaText || staticContent.cta.primaryText,
+      primaryUrl:
+        slug === "linkslash"
+          ? staticContent.cta.primaryUrl
+          : showcase.ctaUrl || showcase.productUrl || staticContent.cta.primaryUrl,
+      secondaryText: slug === "linkslash" ? "İndirmeler" : staticContent.cta.secondaryText,
+      secondaryUrl: slug === "linkslash" ? "/linkslash/downloads" : resolvePricingSecondaryUrl(slug),
     },
   };
 }

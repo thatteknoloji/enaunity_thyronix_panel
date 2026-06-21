@@ -3,7 +3,7 @@
 import { useEffect, useState, useMemo } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
-import { LayoutDashboard, ShoppingCart, User, LogOut, ChevronLeft, ChevronRight, Home, Store, Wallet, FileText, Users, RotateCcw, Bell, ReceiptText, Menu, X, Heart, Zap, MapPin, Upload, FileSignature, Library, Truck, Plug, Package, Link2 } from "lucide-react";
+import { LayoutDashboard, ShoppingCart, User, LogOut, ChevronLeft, ChevronRight, Home, Store, Wallet, FileText, Users, RotateCcw, Bell, ReceiptText, Menu, X, Heart, Zap, MapPin, Upload, FileSignature, Library, Truck, Plug, Package, Link2, Handshake, Brain, Shirt } from "lucide-react";
 import NotificationBell from "@/components/NotificationBell";
 import { LegalReacceptanceGate } from "@/components/legal/LegalReacceptanceGate";
 import { useT } from "@/lib/i18n/provider";
@@ -18,6 +18,9 @@ function buildNavItems(t: (key: string) => string) {
   { href: "/dealer/balance", label: "Bakiye / Cari Hesap", icon: Wallet },
   { href: "/products", label: "Ürünlerim", icon: Store },
   { href: "/gateway/linkslash", label: "LinkSlash", icon: Link2 },
+  { href: "/dealer/partner", label: "Partner Merkezi", icon: Handshake },
+  { href: "/dealer/ai-partner", label: "AI Partner Merkezi", icon: Brain },
+  { href: "/dealer/pod", label: "POD Creator", icon: Shirt },
   { href: "/dealer/my-products", label: "Bayi Ürünlerim", icon: Package },
   { href: "/dealer/manual-order", label: "Manuel Sipariş", icon: Upload },
   { href: "/dealer/product-library", label: "Hazır Ürünler", icon: Library },

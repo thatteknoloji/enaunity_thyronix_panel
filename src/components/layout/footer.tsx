@@ -92,9 +92,12 @@ export default function Footer() {
               Çerez Tercihleri
             </button>
           </p>
-          <p>
-            Powered by{" "}
-            <a href="https://thatteknoloji.com" target="_blank" rel="noopener noreferrer" className="text-ena-primary/70 hover:text-ena-primary transition-colors">ThatTeknoloji®</a>
+          <p className="text-[10px] text-ena-light/40">
+            Teknoloji altyapısı{" "}
+            <a href="https://thatteknoloji.com" target="_blank" rel="noopener noreferrer" className="hover:text-ena-light/60 transition-colors">
+              THAT Teknoloji
+            </a>{" "}
+            tarafından geliştirilmiştir.
           </p>
         </div>
       </div>

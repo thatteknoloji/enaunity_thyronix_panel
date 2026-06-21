@@ -144,6 +144,8 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
 
     if (body.action === "promote_dealer") {
       const result = await promoteMemberToDealer(id, admin.name);
+      const { attachReferralOnRegistration } = await import("@/lib/partners/referral");
+      await attachReferralOnRegistration(id, result.dealerId).catch(() => {});
       await logAdminAction(admin.id, admin.name, "member_promote_dealer", user.email, result.dealerId);
       const data = await getMemberWithDetails(id);
       return NextResponse.json({ success: true, data, dealerId: result.dealerId });

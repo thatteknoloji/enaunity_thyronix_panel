@@ -121,7 +121,22 @@ export function PlatformLanding({ content }: { content: PlatformContent }) {
         </div>
       </section>
 
-      {/* Stats */}
+      {content.slug === "linkslash" && (
+        <section className="border-b border-ena-border py-12">
+          <div className="mx-auto max-w-3xl px-4 text-center">
+            <h2 className="text-xl font-bold text-ena-text mb-2">İndirmeler</h2>
+            <p className="text-sm text-ena-light mb-6">Chrome eklentisi, Android APK ve PWA — lisanslı bayiler için.</p>
+            <div className="flex flex-wrap justify-center gap-3">
+              <Link href="/linkslash/downloads">
+                <Button variant="outline" size="lg">İndirme Merkezi</Button>
+              </Link>
+              <Link href="/gateway/linkslash">
+                <Button size="lg">LinkSlash&apos;a Giriş</Button>
+              </Link>
+            </div>
+          </div>
+        </section>
+      )}
       {content.stats.length > 0 && (
         <section className="border-b border-ena-border py-12">
           <div className="mx-auto max-w-4xl px-4 grid grid-cols-3 gap-6 text-center">

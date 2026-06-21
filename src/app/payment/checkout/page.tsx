@@ -16,6 +16,8 @@ interface CheckoutContext {
   moduleKey?: string;
   planKey?: string;
   packageId?: string;
+  requiresLogin?: boolean;
+  requiresDealer?: boolean;
 }
 
 function CheckoutContent() {
@@ -42,10 +44,6 @@ function CheckoutContent() {
       .then((r) => r.json())
       .then((d) => {
         if (!d.success) {
-          if (d.error?.includes("Yetkisiz") || d.error?.includes("Giriş")) {
-            router.push(`/auth/login?redirect=/payment/checkout?${qs}`);
-            return;
-          }
           setError(d.error || "Ödeme bilgisi yüklenemedi");
           return;
         }
@@ -57,6 +55,14 @@ function CheckoutContent() {
 
   const handleConfirm = async (paymentMethod: string, installmentCount: number) => {
     if (!ctx) return;
+    if (ctx.requiresLogin || ctx.requiresDealer) {
+      const qs = new URLSearchParams();
+      if (type) qs.set("type", type);
+      if (moduleKey) qs.set("moduleKey", moduleKey);
+      if (planKey) qs.set("planKey", planKey);
+      router.push(`/auth/login?redirect=${encodeURIComponent(`/payment/checkout?${qs}`)}`);
+      return;
+    }
     setSubmitting(true);
     setError("");
     try {
@@ -127,6 +133,11 @@ function CheckoutContent() {
           <>
             {ctx.description && (
               <p className="text-sm text-gray-500 mb-4">{ctx.description}</p>
+            )}
+            {(ctx.requiresLogin || ctx.requiresDealer) && (
+              <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800 mb-4">
+                Ödeme için bayi hesabı ile giriş yapmanız gerekir. &quot;Ödemeyi Onayla&quot; butonuna tıklayınca giriş sayfasına yönlendirilirsiniz.
+              </div>
             )}
             {error && (
               <div className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700 mb-4">{error}</div>

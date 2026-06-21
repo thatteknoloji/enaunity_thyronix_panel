@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/db";
 import { getProductLibraryOverview } from "@/lib/product-library/package-access-service";
 import { isAdminRole } from "@/lib/auth/admin-access";
-import { getDealerApprovalStatus, getModuleLabel } from "@/lib/modules/access";
+import { getDealerApprovalStatus, getModuleLabel, getModuleLicenseState } from "@/lib/modules/access";
 import {
   CUSTOMER_PRODUCT_KEYS,
   PRODUCT_META,
@@ -163,6 +163,17 @@ async function buildProductCard(
     rawStatus = license?.status || null;
     planKey = license?.planKey || null;
     licenseId = license?.id || null;
+
+    const licenseState = await getModuleLicenseState(dealerId, moduleKey);
+    if (licenseState === "active") {
+      rawStatus = "ACTIVE";
+    } else if (licenseState === "pending") {
+      rawStatus = license?.status === "TRIAL" ? "TRIAL" : "PENDING_APPROVAL";
+    } else if (license) {
+      rawStatus = license.status === "EXPIRED" ? "EXPIRED" : "INACTIVE";
+    } else {
+      rawStatus = "INACTIVE";
+    }
   }
 
   const link =

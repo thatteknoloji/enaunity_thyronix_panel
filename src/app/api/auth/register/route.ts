@@ -110,6 +110,9 @@ export async function POST(req: Request) {
 
     await syncMemberChecklistSnapshot(user.id);
 
+    const { attachReferralOnRegistration } = await import("@/lib/partners/referral");
+    await attachReferralOnRegistration(user.id).catch(() => {});
+
     return NextResponse.json({
       success: true,
       data: {

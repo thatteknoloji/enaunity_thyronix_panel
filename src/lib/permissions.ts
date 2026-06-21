@@ -65,6 +65,10 @@ export const ALL_PERMISSIONS = {
   pages_manage: { label: "Site Sayfalarını Yönet", group: "Site & İçerik" },
   ecosystem_view: { label: "Ecosystem Showcase Görüntüle", group: "Ecosystem" },
   ecosystem_manage: { label: "Ecosystem Showcase Yönet", group: "Ecosystem" },
+
+  partners_view: { label: "Partner Ecosystem Görüntüle", group: "Partner Ecosystem" },
+  partners_manage: { label: "Partner Ecosystem Yönet", group: "Partner Ecosystem" },
+  pod_view: { label: "POD Merkezi Görüntüle", group: "Partner Ecosystem" },
 } as const;
 
 export type PermissionKey = keyof typeof ALL_PERMISSIONS;
@@ -99,6 +103,7 @@ export const DEFAULT_ADMIN_PERMISSIONS: PermissionKey[] = [
   "reports_view", "reports_export",
   "settings_view", "settings_manage", "pages_manage",
   "ecosystem_view", "ecosystem_manage",
+  "partners_view", "partners_manage", "pod_view",
 ];
 
 export function getNavPermissionMap(): Record<string, PermissionKey[]> {
@@ -164,5 +169,14 @@ export function getNavPermissionMap(): Record<string, PermissionKey[]> {
     "/admin/product-library": ["products_view"],
     "/admin/marketplace-hub": ["marketplace_view"],
     "/admin/ecosystem": ["ecosystem_view"],
+    "/admin/partners": ["partners_view", "partners_manage"],
+    "/admin/partners/affiliates": ["partners_view", "partners_manage"],
+    "/admin/partners/commissions": ["partners_view", "partners_manage"],
+    "/admin/partners/payouts": ["partners_view", "partners_manage"],
+    "/admin/ai-partner": ["partners_view"],
+    "/admin/pod": ["pod_view", "partners_manage"],
+    "/admin/pod/templates": ["pod_view", "partners_manage"],
+    "/admin/pod/designs": ["pod_view", "partners_manage"],
+    "/admin/pod/orders": ["pod_view", "partners_manage"],
   };
 }

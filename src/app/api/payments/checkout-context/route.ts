@@ -1,13 +1,13 @@
 import { NextResponse } from "next/server";
-import { requireDealer } from "@/lib/auth";
+import { getSession } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { resolvePackagePrice } from "@/lib/product-library/package-access-service";
 
 export async function GET(req: Request) {
   try {
-    await requireDealer();
     const { searchParams } = new URL(req.url);
     const type = searchParams.get("type");
+    const user = await getSession();
 
     if (type === "module") {
       const moduleKey = searchParams.get("moduleKey");
@@ -29,11 +29,19 @@ export async function GET(req: Request) {
           currency: plan.currency || "TRY",
           moduleKey,
           planKey,
+          requiresLogin: !user,
+          requiresDealer: !user?.dealerId,
         },
       });
     }
 
     if (type === "package") {
+      if (!user?.dealerId) {
+        return NextResponse.json(
+          { success: false, error: "Paket satın almak için bayi hesabı ile giriş yapmalısınız" },
+          { status: 401 }
+        );
+      }
       const packageId = searchParams.get("packageId");
       if (!packageId) {
         return NextResponse.json({ success: false, error: "packageId zorunlu" }, { status: 400 });
@@ -51,13 +59,15 @@ export async function GET(req: Request) {
           amount: resolvePackagePrice(pkg),
           currency: "TRY",
           packageId,
+          requiresLogin: false,
+          requiresDealer: false,
         },
       });
     }
 
     return NextResponse.json({ success: false, error: "Geçersiz type" }, { status: 400 });
   } catch (e) {
-    const msg = e instanceof Error ? e.message : "Yetkisiz";
-    return NextResponse.json({ success: false, error: msg }, { status: 401 });
+    const msg = e instanceof Error ? e.message : "Sunucu hatası";
+    return NextResponse.json({ success: false, error: msg }, { status: 500 });
   }
 }

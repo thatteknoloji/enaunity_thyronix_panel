@@ -27,16 +27,26 @@ export async function POST(req: Request) {
   try {
     await requireAdmin();
     const body = await req.json();
-    const { dealerId, moduleKey, planKey, status } = body;
+    const { dealerId, moduleKey, planKey, status, months: monthsRaw } = body;
     if (!dealerId || !moduleKey) {
       return NextResponse.json({ success: false, error: "dealerId ve moduleKey zorunlu" }, { status: 400 });
     }
 
     const existing = await prisma.moduleLicense.findFirst({ where: { dealerId, moduleKey } });
+    const months = monthsRaw ?? 12;
+    const { computeLicenseEndsAt } = await import("@/lib/modules/subscription-utils");
+    const endsAt = (status || "ACTIVE") === "ACTIVE" ? computeLicenseEndsAt(new Date(), months >= 12 ? "yearly" : "monthly") : null;
+
     if (existing) {
       const license = await prisma.moduleLicense.update({
         where: { id: existing.id },
-        data: { planKey: planKey || existing.planKey, status: status || "ACTIVE", startsAt: new Date() },
+        data: {
+          planKey: planKey || existing.planKey,
+          status: status || "ACTIVE",
+          startsAt: new Date(),
+          endsAt,
+          lifecycleStage: "active",
+        },
       });
       return NextResponse.json({ success: true, data: license });
     }
@@ -48,6 +58,9 @@ export async function POST(req: Request) {
         planKey: planKey || "starter",
         status: status || "ACTIVE",
         startsAt: new Date(),
+        endsAt,
+        lifecycleStage: "active",
+        billingPeriod: months >= 12 ? "yearly" : "monthly",
       },
     });
     return NextResponse.json({ success: true, data: license }, { status: 201 });
