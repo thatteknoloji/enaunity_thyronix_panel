@@ -199,6 +199,11 @@ export async function middleware(request: NextRequest) {
     }
   }
 
+  // LinkSlash session probe — oturumsuz erişim (extension auth kontrolü)
+  if (pathname === "/api/linkslash/session" && request.method === "GET") {
+    return NextResponse.next();
+  }
+
   if (!token) {
     if (isApi) return jsonError(401, "Oturum bulunamadı");
     if (pathname === "/thyronix/login") return NextResponse.next();
