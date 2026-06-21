@@ -30,7 +30,7 @@ export async function resolveLinkSlashGatewayState(user: EnaUser | null): Promis
     if (access.code === "DEALER_REQUIRED") {
       return { step: "dealer_required", reason: access.reason, code: access.code };
     }
-    if (access.code === "LISANS_BEKLIYOR") {
+    if (access.code === "LISANS_BEKLIYOR" || access.code === "BAYI_ONAYI_YOK") {
       return { step: "pending", reason: access.reason, code: access.code };
     }
     return { step: "pricing", reason: access.reason, code: access.code || "LISANS_YOK" };

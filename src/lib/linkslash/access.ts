@@ -1,12 +1,12 @@
 import { isAdminRole } from "@/lib/auth/admin-access";
-import { getModuleLicenseState } from "@/lib/modules/access";
+import { getDealerApprovalStatus, getModuleLicenseState } from "@/lib/modules/access";
 
 export const LINKSLASH_MODULE_KEY = "LINKSLASH";
 
 export type LinkSlashAccessResult = {
   allowed: boolean;
   reason?: string;
-  code?: "AUTH_REQUIRED" | "DEALER_REQUIRED" | "LISANS_YOK" | "LISANS_BEKLIYOR";
+  code?: "AUTH_REQUIRED" | "DEALER_REQUIRED" | "LISANS_YOK" | "LISANS_BEKLIYOR" | "BAYI_ONAYI_YOK";
 };
 
 type UserLike = {
@@ -25,6 +25,15 @@ export async function assertLinkSlashAccess(user: UserLike | null): Promise<Link
 
   if (!user.dealerId) {
     return { allowed: false, reason: "LinkSlash için bayi hesabı gerekli", code: "DEALER_REQUIRED" };
+  }
+
+  const approval = await getDealerApprovalStatus(user.dealerId);
+  if (!approval || approval.status !== "ACTIVE") {
+    return {
+      allowed: false,
+      reason: "Bayi onayınız tamamlanmadan LinkSlash erişilemez",
+      code: "BAYI_ONAYI_YOK",
+    };
   }
 
   const state = await getModuleLicenseState(user.dealerId, LINKSLASH_MODULE_KEY);

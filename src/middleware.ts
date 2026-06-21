@@ -46,6 +46,35 @@ function jsonError(status: number, message: string) {
   return NextResponse.json({ success: false, error: message }, { status });
 }
 
+/** LinkSlash bayi erişimi — gateway ↔ dealer döngüsünü önler */
+async function guardLinkSlashDealerAccess(
+  request: NextRequest,
+  dealerId: string,
+  opts?: { allowOnCheckFailure?: boolean }
+): Promise<NextResponse | null> {
+  try {
+    const checkRes = await fetch(
+      `${request.nextUrl.origin}/api/internal/check-module-access?dealerId=${dealerId}&moduleKey=LINKSLASH`
+    );
+    const checkData = await checkRes.json();
+    if (checkData.access) return null;
+    if (checkData.reason === "LISANS_YOK") {
+      return NextResponse.redirect(
+        new URL("/payment/checkout?type=module&moduleKey=LINKSLASH&planKey=starter", request.url)
+      );
+    }
+    if (checkData.reason === "BAYI_ONAYI_YOK") {
+      return NextResponse.redirect(new URL("/dealer/profile", request.url));
+    }
+    return NextResponse.redirect(new URL("/gateway/linkslash", request.url));
+  } catch {
+    if (opts?.allowOnCheckFailure) return null;
+    return NextResponse.redirect(
+      new URL("/payment/checkout?type=module&moduleKey=LINKSLASH&planKey=starter", request.url)
+    );
+  }
+}
+
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const isApi = pathname.startsWith("/api/");
@@ -168,21 +197,9 @@ export async function middleware(request: NextRequest) {
     if (isAdminRole((payloadLs.role as string) || "")) return NextResponse.next();
     const dealerIdLs = (payloadLs as { dealerId?: string }).dealerId;
     if (dealerIdLs) {
-      try {
-        const checkRes = await fetch(
-          `${request.nextUrl.origin}/api/internal/check-module-access?dealerId=${dealerIdLs}&moduleKey=LINKSLASH`
-        );
-        const checkData = await checkRes.json();
-        if (!checkData.access) {
-          if (checkData.reason === "LISANS_YOK") {
-            return NextResponse.redirect(new URL("/payment/checkout?type=module&moduleKey=LINKSLASH&planKey=starter", request.url));
-          }
-          return NextResponse.redirect(new URL("/gateway/linkslash", request.url));
-        }
-        return NextResponse.next();
-      } catch {
-        return NextResponse.redirect(new URL("/gateway/linkslash", request.url));
-      }
+      const blocked = await guardLinkSlashDealerAccess(request, dealerIdLs, { allowOnCheckFailure: true });
+      if (blocked) return blocked;
+      return NextResponse.next();
     }
     return NextResponse.redirect(new URL("/gateway/linkslash", request.url));
   }
@@ -199,20 +216,8 @@ export async function middleware(request: NextRequest) {
     if (isAdminRole((payloadLs.role as string) || "")) return NextResponse.next();
     const dealerIdLs = (payloadLs as { dealerId?: string }).dealerId;
     if (dealerIdLs) {
-      try {
-        const checkRes = await fetch(
-          `${request.nextUrl.origin}/api/internal/check-module-access?dealerId=${dealerIdLs}&moduleKey=LINKSLASH`
-        );
-        const checkData = await checkRes.json();
-        if (!checkData.access) {
-          if (checkData.reason === "LISANS_YOK") {
-            return NextResponse.redirect(new URL("/payment/checkout?type=module&moduleKey=LINKSLASH&planKey=starter", request.url));
-          }
-          return NextResponse.redirect(new URL("/gateway/linkslash", request.url));
-        }
-      } catch {
-        return NextResponse.redirect(new URL("/gateway/linkslash", request.url));
-      }
+      const blocked = await guardLinkSlashDealerAccess(request, dealerIdLs, { allowOnCheckFailure: true });
+      if (blocked) return blocked;
     }
     return NextResponse.next();
   }
