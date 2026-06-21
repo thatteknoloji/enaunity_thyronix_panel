@@ -83,12 +83,25 @@ export default function ThyronixLayout({ children }: { children: React.ReactNode
         }
 
         if (d.data?.role === "dealer" && d.data?.dealerId) {
+          const gw = await fetch("/api/gateway/thyronix");
+          const gwj = await gw.json();
+          if (gwj.success && gwj.data?.step === "ready") {
+            setAuthorized(true);
+            setIsAdmin(false);
+            setUserName(d.data.name || d.data.email || "Bayi");
+            return;
+          }
+          if (gwj.success && (gwj.data?.step === "pricing" || gwj.data?.step === "pending" || gwj.data?.step === "setup")) {
+            router.replace("/gateway/thyronix");
+            return;
+          }
+
           const cp = await fetch("/api/customer-products");
           const cj = await cp.json();
           const thy = cj.success
-            ? cj.data.products.find((p: { moduleKey: string; status: string }) => p.moduleKey === "THYRONIX")
+            ? cj.data.products.find((p: { moduleKey: string; status: string; entitled?: boolean }) => p.moduleKey === "THYRONIX")
             : null;
-          if (thy && (thy.status === "ACTIVE" || thy.status === "TRIAL")) {
+          if (thy && (thy.entitled || thy.status === "ACTIVE" || thy.status === "TRIAL")) {
             setAuthorized(true);
             setIsAdmin(false);
             setUserName(d.data.name || d.data.email || "Bayi");
@@ -96,7 +109,7 @@ export default function ThyronixLayout({ children }: { children: React.ReactNode
           }
         }
 
-        router.push("/gateway/thyronix");
+        router.replace("/gateway/thyronix");
       } catch {
         setAuthError(true);
       }

@@ -39,10 +39,11 @@ export default function ProductGatewayPage({ productType }: { productType: Produ
           return;
         }
         const payload = d.data;
-        setState(payload);
         if (payload.step === "ready" && payload.redirectTo) {
-          window.location.href = payload.redirectTo;
+          window.location.replace(payload.redirectTo);
+          return;
         }
+        setState(payload);
       })
       .catch(() => setState({ step: "error", message: "Bağlantı hatası" }));
   }, [productType]);
@@ -216,9 +217,16 @@ export default function ProductGatewayPage({ productType }: { productType: Produ
       <div className="min-h-screen bg-ena-dark flex items-center justify-center p-4">
         <div className="max-w-md w-full rounded-2xl border border-white/10 bg-ena-card p-8 text-center space-y-4">
           <CheckCircle2 className="mx-auto text-green-400" size={40} />
-          <h1 className="text-xl font-bold text-white">{label} Hesabı Tanındı</h1>
-          <p className="text-sm text-ena-light">Bağlı hesabınız bulundu. {label} giriş ekranına yönlendiriliyorsunuz...</p>
-          <Loader2 className="animate-spin mx-auto text-ena-primary" size={24} />
+          <h1 className="text-xl font-bold text-white">{label} Erişimi Hazır</h1>
+          <p className="text-sm text-ena-light">
+            Lisansınız aktif. {label} paneline yönlendiriliyorsunuz…
+          </p>
+          <a
+            href={state.redirectTo}
+            className="inline-flex w-full items-center justify-center gap-2 py-2.5 rounded-lg bg-ena-primary text-white text-sm font-medium"
+          >
+            {label} Paneline Git <ArrowRight size={16} />
+          </a>
         </div>
       </div>
     );
