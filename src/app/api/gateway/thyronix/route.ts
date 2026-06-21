@@ -17,7 +17,7 @@ export async function GET() {
         step: "ready",
         linkId: result.link.id,
         externalEmail: result.link.externalEmail,
-        redirectTo: result.redirectTo,
+        redirectTo: "/thyronix",
       };
     } catch {
       /* setup ekranı — manuel oluşturma */

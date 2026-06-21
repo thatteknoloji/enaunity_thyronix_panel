@@ -155,6 +155,20 @@ export default function ThyronixLoginPage() {
         return;
       }
       if (data.data.role !== "admin" && !isPlatformAdmin(data.data.role)) {
+        if (data.data.role === "dealer" && data.data.dealerId) {
+          const cp = await fetch("/api/customer-products");
+          const cj = await cp.json();
+          const thy = cj.success
+            ? cj.data.products.find((p: { moduleKey: string; status: string }) => p.moduleKey === "THYRONIX")
+            : null;
+          if (thy && (thy.status === "ACTIVE" || thy.status === "TRIAL")) {
+            const params = new URLSearchParams(window.location.search);
+            window.location.href = params.get("redirect") || "/thyronix";
+            return;
+          }
+          window.location.href = "/gateway/thyronix";
+          return;
+        }
         setError("THYRONIX hesabınız bulunamadı. Önce ENA üzerinden hesap bağlantısı oluşturun.");
         setLoading(false);
         return;

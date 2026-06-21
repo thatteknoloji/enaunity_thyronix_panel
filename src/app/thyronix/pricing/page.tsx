@@ -18,7 +18,16 @@ export default function ThyronixPricingPage() {
   useEffect(() => {
     fetch("/api/auth/me").then(r => r.json()).then(d => { setUser(d.data); });
     fetch("/api/modules/plans?moduleKey=THYRONIX").then(r => r.json()).then(d => { if (d.success) setPlans(d.data); setLoading(false); });
-  }, []);
+    fetch("/api/customer-products")
+      .then((r) => r.json())
+      .then((d) => {
+        if (!d.success) return;
+        const thy = d.data.products.find((p: { moduleKey: string; status: string }) => p.moduleKey === "THYRONIX");
+        if (thy && (thy.status === "ACTIVE" || thy.status === "TRIAL")) {
+          router.replace("/thyronix");
+        }
+      });
+  }, [router]);
 
   const handleRequest = (planKey: string) => {
     if (!user) return toast.error("Önce giriş yapın");

@@ -328,31 +328,30 @@ export async function middleware(request: NextRequest) {
 
   // ── THYRONIX route protection ──
   if (pathname.startsWith("/thyronix") && pathname !== "/thyronix/login" && !pathname.startsWith("/thyronix/pricing") && !pathname.startsWith("/thyronix/pending")) {
-    // Platform admin: ENA token yeterli, thyronix_ok gerekmez
     if (token && payload && isAdminRole(role)) return NextResponse.next();
 
-    const thyronixOk = request.cookies.get("thyronix_ok")?.value;
-    if (!thyronixOk) {
-      const redirect = new URL("/thyronix/login", request.url);
-      redirect.searchParams.set("redirect", pathname);
-      return NextResponse.redirect(redirect);
-    }
-    if (isAdminRole(role)) return NextResponse.next();
-    // Dealer: check license via internal API
     const dealerId = (payload as any).dealerId;
+    // Lisanslı bayi: ENA oturumu yeterli — ayrı thyronix_ok cookie zorunlu değil
     if (dealerId) {
       try {
         const checkRes = await fetch(`${request.nextUrl.origin}/api/internal/check-module-access?dealerId=${dealerId}&moduleKey=THYRONIX`);
         const checkData = await checkRes.json();
-        if (!checkData.access) {
-          if (checkData.reason === "LISANS_YOK") return NextResponse.redirect(new URL("/thyronix/pricing", request.url));
-          return NextResponse.redirect(new URL("/thyronix/pending", request.url));
+        if (checkData.access) return NextResponse.next();
+        if (checkData.reason === "LISANS_YOK") {
+          return NextResponse.redirect(new URL("/gateway/thyronix", request.url));
         }
-        return NextResponse.next();
-      } catch { return NextResponse.redirect(new URL("/thyronix/pricing", request.url)); }
+        return NextResponse.redirect(new URL("/thyronix/pending", request.url));
+      } catch {
+        return NextResponse.redirect(new URL("/gateway/thyronix", request.url));
+      }
     }
-    if (isApi) return jsonError(403, "Yetkisiz erişim");
-    return NextResponse.redirect(new URL("/thyronix/login", request.url));
+
+    const thyronixOk = request.cookies.get("thyronix_ok")?.value;
+    if (thyronixOk) return NextResponse.next();
+
+    const redirect = new URL("/thyronix/login", request.url);
+    redirect.searchParams.set("redirect", pathname);
+    return NextResponse.redirect(redirect);
   }
 
   // ── HIVE route protection ──

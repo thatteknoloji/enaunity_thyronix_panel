@@ -102,15 +102,20 @@ export default function ProductGatewayPage({ productType }: { productType: Produ
   }
 
   if (state.step === "pricing" || state.step === "no_license") {
-    const pricingPath = productType === "THYRONIX" ? "/thyronix/pricing" : "/hive/pricing";
+    const checkoutPath =
+      productType === "THYRONIX"
+        ? "/payment/checkout?type=module&moduleKey=THYRONIX&planKey=starter"
+        : productType === "HIVE"
+          ? "/payment/checkout?type=module&moduleKey=HIVE&planKey=starter"
+          : "/hive/pricing";
     return (
       <div className="min-h-screen bg-ena-dark flex items-center justify-center p-4">
         <div className="max-w-md w-full rounded-2xl border border-white/10 bg-ena-card p-8 text-center space-y-4">
           <ShieldAlert className="mx-auto text-red-400" size={40} />
           <h1 className="text-xl font-bold text-white">Lisans Gerekli</h1>
           <p className="text-sm text-ena-light">{state.reason || "Bu ürün için aktif lisans bulunamadı."}</p>
-          <button onClick={() => router.push(pricingPath)} className="w-full py-2.5 rounded-lg bg-ena-primary text-white text-sm font-medium">
-            Lisans Planlarını Gör
+          <button onClick={() => router.push(checkoutPath)} className="w-full py-2.5 rounded-lg bg-ena-primary text-white text-sm font-medium">
+            Lisans Satın Al
           </button>
         </div>
       </div>

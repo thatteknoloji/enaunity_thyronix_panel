@@ -65,7 +65,7 @@ export async function resolveThyronixGatewayState(enaUser: EnaUser): Promise<Thy
     step: "ready",
     linkId: link.id,
     externalEmail: link.externalEmail,
-    redirectTo: getProductLoginRedirect("THYRONIX", link.externalEmail),
+    redirectTo: "/thyronix",
   };
 }
 
