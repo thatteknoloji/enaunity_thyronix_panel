@@ -8,7 +8,12 @@ import { ArrowLeft, Plus, Trash2, Save, Package, Barcode, Hash, X } from "lucide
 import Link from "next/link";
 import toast from "react-hot-toast";
 import { toAdminUrl } from "@/lib/auth/admin-access";
-
+import {
+  ProductMerchandisingPanel,
+  defaultMerchandisingState,
+  type ProductMerchandisingState,
+} from "@/components/admin/ProductMerchandisingPanel";
+import { ProductImagesField } from "@/components/admin/ProductImagesField";
 interface VariantGroup { id?: string; name: string; options: string[]; }
 interface VariantCombo { id?: string; sku: string; barcode: string; price: string; stock: string; options: string; }
 
@@ -31,14 +36,32 @@ export default function ProductFormPage() {
   const [newGroupName, setNewGroupName] = useState("");
   const [newOptionInputs, setNewOptionInputs] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
+  const [imagesJson, setImagesJson] = useState("[]");
+  const [merchandising, setMerchandising] = useState<ProductMerchandisingState>(defaultMerchandisingState());
 
   useEffect(() => {
     if (isEdit && productId) {
-      Promise.all([fetch(`/api/products/${productId}`).then(r=>r.json()), fetch(`/api/admin/variants?productId=${productId}`).then(r=>r.json())])
-        .then(([p, v]) => {
+      Promise.all([
+        fetch(`/api/products/${productId}`).then(r=>r.json()),
+        fetch(`/api/admin/variants?productId=${productId}`).then(r=>r.json()),
+        fetch(`/api/admin/campaigns`).then(r=>r.json()),
+      ])
+        .then(([p, v, camps]) => {
           const d = p.data || {};
           setForm({ name:d.name||"", description:d.description||"", price:String(d.price||""), image:d.image||"", category:d.category||"Cam Tablo", subcategory:d.subcategory||"", brand:d.brand||"", modelCode:d.modelCode||"", sku:d.sku||"", barcode:d.barcode||"", weight:String(d.weight||""), dimensions:d.dimensions||"", tags:d.tags||"", stock:String(d.stock||""), minStockLevel:String(d.minStockLevel||""), maxStockLevel:String(d.maxStockLevel||""), backorderable:d.backorderable||false, eta:d.eta||"" });
+          setImagesJson(d.images || "[]");
           try { const s=JSON.parse(d.specs||"[]"); setSpecs(Array.isArray(s)?s:[]); } catch { setSpecs([]); }
+          const assigned = (camps.data || [])
+            .filter((c: { products?: { productId: string }[] }) =>
+              c.products?.some((cp) => cp.productId === productId)
+            )
+            .map((c: { id: string }) => c.id);
+          setMerchandising({
+            variantDisplayMode: d.variantDisplayMode || "buttons",
+            salePrice: d.salePrice > 0 ? String(d.salePrice) : "",
+            discountLabel: d.discountLabel || "",
+            campaignIds: assigned,
+          });
           if (v.success) {
             setVariantGroups((v.data.groups||[]).map((g:any)=>({id:g.id,name:g.name,options:g.options.map((o:any)=>o.value)})));
             setVariants((v.data.combinations||[]).map((c:any)=>({id:c.id,sku:c.sku,barcode:c.barcode,price:String(c.price),stock:String(c.stock),options:c.options})));
@@ -49,7 +72,22 @@ export default function ProductFormPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault(); setSubmitting(true);
-    const body = { ...form, price:parseFloat(form.price)||0, stock:parseInt(form.stock)||0, weight:parseFloat(form.weight)||0, minStockLevel:parseInt(form.minStockLevel)||0, maxStockLevel:parseInt(form.maxStockLevel)||0, backorderable:form.backorderable, eta:form.eta, specs:JSON.stringify(specs.filter(s=>s.key)) };
+    const body = {
+      ...form,
+      price: parseFloat(form.price) || 0,
+      stock: parseInt(form.stock) || 0,
+      weight: parseFloat(form.weight) || 0,
+      minStockLevel: parseInt(form.minStockLevel) || 0,
+      maxStockLevel: parseInt(form.maxStockLevel) || 0,
+      backorderable: form.backorderable,
+      eta: form.eta,
+      specs: JSON.stringify(specs.filter(s => s.key)),
+      variantDisplayMode: merchandising.variantDisplayMode,
+      salePrice: parseFloat(merchandising.salePrice) || 0,
+      discountLabel: merchandising.discountLabel,
+      campaignIds: merchandising.campaignIds,
+      images: imagesJson,
+    };
     const url = isEdit ? `/api/admin/products/${productId}` : "/api/admin/products";
     const res = await fetch(url, { method: isEdit?"PUT":"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(body) });
     if (res.ok) {
@@ -85,6 +123,20 @@ export default function ProductFormPage() {
   const addSpec = () => setSpecs([...specs,{key:"",value:""}]);
   const removeSpec = (i:number) => setSpecs(specs.filter((_,j)=>j!==i));
   const update = (k:string,v:string) => setForm({...form,[k]:v});
+
+  const loadCamTabloEbat = (options: string[]) => {
+    const ebatIdx = variantGroups.findIndex((g) =>
+      /ebat|boyut|ölçü/i.test(g.name)
+    );
+    if (ebatIdx >= 0) {
+      const u = [...variantGroups];
+      u[ebatIdx] = { ...u[ebatIdx], options };
+      setVariantGroups(u);
+    } else {
+      setVariantGroups([...variantGroups, { name: "Ebat", options }]);
+    }
+  };
+
   const ic = "w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm focus:border-gray-400 focus:outline-none";
 
   return (
@@ -107,7 +159,6 @@ export default function ProductFormPage() {
             <div><label className="block text-xs font-semibold text-gray-600 uppercase mb-1">Etiketler</label><input className={ic} value={form.tags} onChange={e=>update("tags",e.target.value)} placeholder="etiket1, etiket2" /></div>
             <div><label className="block text-xs font-semibold text-gray-600 uppercase mb-1">Ağırlık (kg)</label><input type="number" step="0.01" className={ic} value={form.weight} onChange={e=>update("weight",e.target.value)} /></div>
             <div><label className="block text-xs font-semibold text-gray-600 uppercase mb-1">Boyutlar</label><input className={ic} value={form.dimensions} onChange={e=>update("dimensions",e.target.value)} placeholder="100x50x20 cm" /></div>
-            <div><label className="block text-xs font-semibold text-gray-600 uppercase mb-1">Görsel URL</label><input className={ic} value={form.image} onChange={e=>update("image",e.target.value)} placeholder="https://..." /></div>
             <div className="flex items-center gap-2">
               <input type="checkbox" id="backorderable" className="rounded border-gray-300" checked={form.backorderable as any} onChange={e => setForm({...form, backorderable: e.target.checked, eta: !e.target.checked ? "" : form.eta})} />
               <label htmlFor="backorderable" className="text-xs font-semibold text-gray-600 uppercase">Ön Siparişe İzin Ver</label>
@@ -119,6 +170,15 @@ export default function ProductFormPage() {
           <div className="mt-4"><label className="block text-xs font-semibold text-gray-600 uppercase mb-1">Açıklama</label><textarea className={ic} rows={4} value={form.description} onChange={e=>update("description",e.target.value)} required /></div>
         </div>
 
+        <ProductImagesField
+          image={form.image}
+          imagesJson={imagesJson}
+          onChange={(image, json) => {
+            setForm({ ...form, image });
+            setImagesJson(json);
+          }}
+        />
+
         <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
           <h2 className="text-sm font-semibold text-gray-700 mb-4 flex items-center gap-2"><Barcode size={16} /> Kodlar</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -127,6 +187,16 @@ export default function ProductFormPage() {
             <div><label className="block text-xs font-semibold text-gray-600 uppercase mb-1">Barkod</label><div className="flex gap-1"><input className={ic} value={form.barcode} onChange={e=>update("barcode",e.target.value)} /><button type="button" onClick={()=>update("barcode",genBarcode())} className="px-2 py-2 text-xs bg-gray-100 hover:bg-gray-200 rounded-lg"><Barcode size={14}/></button></div></div>
           </div>
         </div>
+
+        <ProductMerchandisingPanel
+          value={merchandising}
+          onChange={setMerchandising}
+          productId={isEdit ? productId : undefined}
+          category={form.category}
+          variantGroups={variantGroups}
+          onNormalizeOptions={setVariantGroups}
+          onLoadCamTabloEbat={loadCamTabloEbat}
+        />
 
         <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
           <h2 className="text-sm font-semibold text-gray-700 mb-4">Varyant Matrisi (Grup × Seçenek = Kombinasyon)</h2>

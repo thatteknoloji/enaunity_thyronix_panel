@@ -28,8 +28,9 @@ const EXTENSION_ZIP_FS = path.join(DOWNLOADS_DIR, "linkslash-extension.zip");
 const APK_PUBLIC_FS = path.join(DOWNLOADS_DIR, "linkslash-debug.apk");
 const APK_BUILD_FS = path.join(ROOT, "mobile/linkslash/android/app/build/outputs/apk/debug/app-debug.apk");
 const ANDROID_BUILD_JSON = path.join(DOWNLOADS_DIR, "android-build.json");
-const EXTENSION_DIR = path.join(ROOT, "public/linkslash/extension");
-const EXTENSION_MANIFEST = path.join(EXTENSION_DIR, "manifest.json");
+const EXTENSION_RELEASE_FS = path.join(ROOT, "public/linkslash/extension/RELEASE.md");
+const ANDROID_RELEASE_FS = path.join(ROOT, "mobile/linkslash/RELEASE.md");
+const ANDROID_RELEASE_PUBLIC = path.join(DOWNLOADS_DIR, "android/RELEASE.md");
 
 function fileInfo(publicPath: string, fsPath: string): DownloadFileInfo {
   if (!existsSync(fsPath)) {
@@ -72,8 +73,18 @@ function resolveApkInfo(): DownloadFileInfo & { buildStatus: "ready" | "missing"
 
 function extensionBuildStatus(): "ready" | "missing" | "preparing" {
   if (existsSync(EXTENSION_ZIP_FS)) return "ready";
-  if (existsSync(EXTENSION_MANIFEST)) return "preparing";
+  if (existsSync(path.join(ROOT, "public/linkslash/extension/manifest.json"))) return "preparing";
   return "missing";
+}
+
+function resolveReleaseDocs(): { extension: string; android: string } {
+  const extension = existsSync(EXTENSION_RELEASE_FS) ? "/linkslash/extension/RELEASE.md" : "";
+  const android = existsSync(ANDROID_RELEASE_PUBLIC)
+    ? "/downloads/linkslash/android/RELEASE.md"
+    : existsSync(ANDROID_RELEASE_FS)
+      ? "/downloads/linkslash/INSTALLATION.md"
+      : "";
+  return { extension, android };
 }
 
 export function getLinkSlashDownloadStatus(includeAdmin = false): LinkSlashDownloadStatus {
@@ -90,17 +101,16 @@ export function getLinkSlashDownloadStatus(includeAdmin = false): LinkSlashDownl
       available: existsSync(path.join(ROOT, "public/linkslash/mobile/index.html")),
       path: LINKSLASH_BRAND.routes.mobileWeb,
     },
-    releaseDocs: {
-      extension: LINKSLASH_BRAND.routes.extensionRelease,
-      android: "/downloads/linkslash/INSTALLATION.md#android-apk-build",
-    },
+    releaseDocs: resolveReleaseDocs(),
   };
 
   if (includeAdmin) {
     const missingFiles: string[] = [];
     if (!existsSync(EXTENSION_ZIP_FS)) missingFiles.push("public/downloads/linkslash/linkslash-extension.zip");
     if (!existsSync(APK_PUBLIC_FS)) missingFiles.push("public/downloads/linkslash/linkslash-debug.apk");
-    if (!existsSync(EXTENSION_MANIFEST)) missingFiles.push("public/linkslash/extension/manifest.json");
+    if (!existsSync(path.join(ROOT, "public/linkslash/extension/manifest.json"))) {
+      missingFiles.push("public/linkslash/extension/manifest.json");
+    }
 
     status.admin = {
       extensionSourceDir: "public/linkslash/extension",

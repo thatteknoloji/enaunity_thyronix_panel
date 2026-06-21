@@ -122,6 +122,9 @@ model Product {
   minStockLevel     Int                   @default(0)
   maxStockLevel     Int                   @default(0)
   minOrderQuantity  Int                   @default(1)
+  variantDisplayMode String               @default("buttons") // buttons, select, modal, popup, grid
+  salePrice         Float                 @default(0)
+  discountLabel     String                @default("")
   backorderable     Boolean               @default(false)
   eta               String                @default("")
   createdAt         DateTime              @default(now())

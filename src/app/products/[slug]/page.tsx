@@ -11,6 +11,8 @@ import { useCartStore } from "@/lib/cart-store";
 import type { Product } from "@/types";
 import { Play, ChevronLeft, ChevronRight, Building2, Package, Truck, Minus, Plus, Star, ShieldCheck, RefreshCw, Headphones, Clock, Heart } from "lucide-react";
 import CountdownTimer from "@/components/CountdownTimer";
+import { VariantSelector } from "@/components/products/VariantSelector";
+import { normalizeVariantDisplayMode } from "@/lib/products/variant-display";
 
 export default function ProductDetailPage() {
   const { slug } = useParams<{ slug: string }>();
@@ -147,11 +149,11 @@ export default function ProductDetailPage() {
     try { options = JSON.parse(v.options || "[]"); } catch {}
     return { ...v, parsedOptions: options };
   });
-  const variantGroups: Record<string, Set<string>> = {};
+  const variantGroups: Record<string, string[]> = {};
   parsedVariants.forEach((v: any) => {
     v.parsedOptions.forEach((opt: { group: string; value: string }) => {
-      if (!variantGroups[opt.group]) variantGroups[opt.group] = new Set();
-      variantGroups[opt.group].add(opt.value);
+      if (!variantGroups[opt.group]) variantGroups[opt.group] = [];
+      if (!variantGroups[opt.group].includes(opt.value)) variantGroups[opt.group].push(opt.value);
     });
   });
 
@@ -163,7 +165,18 @@ export default function ProductDetailPage() {
       )
     : null;
 
-  const displayPrice = matchedVariant?.price || effectivePrice;
+  const basePrice = product.effectivePrice ?? product.price;
+  const productSalePrice = (product as any).salePrice as number | undefined;
+  const hasProductSale = productSalePrice != null && productSalePrice > 0 && productSalePrice < basePrice;
+  const variantDisplayMode = normalizeVariantDisplayMode((product as any).variantDisplayMode);
+  const discountLabel = ((product as any).discountLabel as string) || "";
+
+  const displayPrice = matchedVariant?.price || (hasProductSale ? productSalePrice! : basePrice);
+  const compareAtPrice = matchedVariant?.price
+    ? (matchedVariant.price < basePrice ? basePrice : undefined)
+    : hasProductSale
+      ? basePrice
+      : undefined;
   const displayStock = matchedVariant ? matchedVariant.stock : product.stock;
   const minOrderQty = product.minOrderQuantity ?? 1;
   const bulkPrice = effectivePrice * 0.85;
@@ -289,28 +302,20 @@ export default function ProductDetailPage() {
           {/* Fiyat + Varyantlar */}
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="bg-ena-card rounded-xl p-4 space-y-2">
             {Object.keys(variantGroups).length > 0 && (
-              <div className="space-y-3 mb-3 pb-3 border-b border-ena-border">
-                {Object.entries(variantGroups).map(([group, values]) => (
-                  <div key={group}>
-                    <p className="text-xs text-ena-light mb-1.5">{group}</p>
-                    <div className="flex flex-wrap gap-1.5">
-                      {Array.from(values).map(v => (
-                        <button key={v} onClick={() => setSelectedOptions({ ...selectedOptions, [group]: v })}
-                          className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
-                            selectedOptions[group] === v ? "bg-ena-primary text-white border-ena-primary" : "text-ena-text bg-white/5 border-white/20 hover:bg-white/10 hover:border-white/40"
-                          }`}>
-                          {v}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                ))}
-              </div>
+              <VariantSelector
+                variantGroups={variantGroups}
+                selectedOptions={selectedOptions}
+                onSelect={(group, v) => setSelectedOptions({ ...selectedOptions, [group]: v })}
+                mode={variantDisplayMode}
+              />
             )}
-            <div className="flex items-baseline gap-3">
+            <div className="flex items-baseline gap-3 flex-wrap">
               <span className="text-3xl font-bold text-ena-primary">{formatPrice(displayPrice)}</span>
-              {displayPrice < product.price && (
-                <span className="text-sm text-ena-light line-through">{formatPrice(product.price)}</span>
+              {compareAtPrice != null && compareAtPrice > displayPrice && (
+                <span className="text-sm text-ena-light line-through">{formatPrice(compareAtPrice)}</span>
+              )}
+              {discountLabel && (
+                <span className="text-xs bg-ena-primary/20 text-ena-primary px-2 py-0.5 rounded-full font-semibold">{discountLabel}</span>
               )}
               {isDealer && dealerDiscount > 0 ? (
                 <span className="text-xs bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded-full font-semibold">Bayi %{dealerDiscount} İndirim</span>

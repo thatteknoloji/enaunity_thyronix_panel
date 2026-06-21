@@ -61,7 +61,7 @@ export const LINKSLASH_SOURCES = [
   "PDF",
   "Google Docs",
   "Notion",
-  "Genel web",
+  "Genel Web",
 ] as const;
 
 export const LINKSLASH_USE_CASES = [

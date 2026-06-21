@@ -36,6 +36,12 @@ npx prisma db push --skip-generate
 echo "→ site content seed…"
 npm run seed:site-content
 
+echo "→ product slug backfill…"
+npx tsx scripts/backfill-product-slugs.ts || echo "  (slug backfill atlandı)"
+
+echo "→ bayi cam tablo seed (görseller + ebat)…"
+npx tsx scripts/seed-bayi-cam-tablo-full.ts || echo "  (cam tablo seed atlandı)"
+
 echo "→ linkslash plan seed…"
 npm run seed:linkslash-plans || echo "  (linkslash seed atlandı)"
 

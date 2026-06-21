@@ -18,7 +18,13 @@ const SHARE_PLUGIN = join(MOBILE, "native/android/ShareReceiverPlugin.java");
 const BUILD_APK = join(ANDROID_DIR, "app/build/outputs/apk/debug/app-debug.apk");
 const PUBLIC_DIR = join(ROOT, "public/downloads/linkslash");
 const PUBLIC_APK = join(PUBLIC_DIR, "linkslash-debug.apk");
+const ANDROID_RELEASE_SRC = join(MOBILE, "RELEASE.md");
+const ANDROID_RELEASE_PUBLIC = join(PUBLIC_DIR, "android/RELEASE.md");
 const META_JSON = join(PUBLIC_DIR, "android-build.json");
+
+function ok(msg) {
+  console.log(`✓ ${msg}`);
+}
 
 const checks = {
   mobileDir: existsSync(MOBILE),
@@ -46,6 +52,16 @@ if (checks.capacitorConfig) {
 checks.productNameLinkSlash = appNameOk;
 
 mkdirSync(PUBLIC_DIR, { recursive: true });
+mkdirSync(join(PUBLIC_DIR, "android"), { recursive: true });
+
+if (existsSync(ANDROID_RELEASE_SRC)) {
+  try {
+    copyFileSync(ANDROID_RELEASE_SRC, ANDROID_RELEASE_PUBLIC);
+    ok("Android RELEASE.md → public/downloads/linkslash/android/RELEASE.md");
+  } catch (e) {
+    console.warn("⚠ Android RELEASE kopyalanamadı:", e.message);
+  }
+}
 
 let apkSource = null;
 if (checks.buildApk) apkSource = BUILD_APK;

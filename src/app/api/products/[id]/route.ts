@@ -2,21 +2,12 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getSession } from "@/lib/auth";
 import { getDealerPrice } from "@/lib/dealer-pricing";
+import { findProductByKey } from "@/lib/products/resolve-product";
 
 export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
-    let product = await prisma.product.findUnique({
-      where: { id },
-      include: { tieredPrices: { orderBy: { minQuantity: "asc" } }, variants: { where: { active: true }, orderBy: { createdAt: "asc" } } },
-    });
-
-    if (!product) {
-      product = await prisma.product.findFirst({
-        where: { slug: id },
-        include: { tieredPrices: { orderBy: { minQuantity: "asc" } }, variants: { where: { active: true }, orderBy: { createdAt: "asc" } } },
-      });
-    }
+    const product = await findProductByKey(id);
 
     if (!product) {
       return NextResponse.json({ success: false, error: "Ürün bulunamadı" }, { status: 404 });

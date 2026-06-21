@@ -4,7 +4,7 @@
  * public/linkslash/extension → public/downloads/linkslash/linkslash-extension.zip
  */
 import { execSync } from "child_process";
-import { existsSync, mkdirSync, readFileSync } from "fs";
+import { existsSync, mkdirSync, readFileSync, readdirSync } from "fs";
 import { dirname, join } from "path";
 import { fileURLToPath } from "url";
 
@@ -15,7 +15,26 @@ const OUT_DIR = join(ROOT, "public/downloads/linkslash");
 const OUT_ZIP = join(OUT_DIR, "linkslash-extension.zip");
 const MANIFEST = join(EXT_DIR, "manifest.json");
 
-const EXCLUDE = ["*.DS_Store", "RELEASE.md", "*.md"];
+const EXCLUDE = [
+  "*.DS_Store",
+  "node_modules/*",
+  "*.map",
+  "RELEASE.md",
+  "*.md",
+];
+
+const LEGACY_ORIGINS = [
+  "localhost:3000",
+  "localhost:5000",
+  "localhost:8000",
+  "127.0.0.1:3000",
+  "127.0.0.1:5000",
+  "127.0.0.1:8000",
+];
+
+function warn(msg) {
+  console.warn(`⚠ ${msg}`);
+}
 
 function fail(msg) {
   console.error(`✗ ${msg}`);
@@ -45,6 +64,34 @@ if (!/linkslash/i.test(name)) {
 }
 
 ok(`manifest doğrulandı: ${name} v${manifest.version || "?"}`);
+
+// Eski localhost portları — config ve extension dosyalarında
+function scanDir(dir, hits = []) {
+  for (const entry of readdirSync(dir, { withFileTypes: true })) {
+    const full = join(dir, entry.name);
+    if (entry.isDirectory()) {
+      if (entry.name === "node_modules") continue;
+      scanDir(full, hits);
+    } else if (/\.(js|json|html|ts|tsx)$/i.test(entry.name)) {
+      try {
+        const text = readFileSync(full, "utf8");
+        for (const origin of LEGACY_ORIGINS) {
+          if (text.includes(origin)) hits.push({ file: full.replace(EXT_DIR + "/", ""), origin });
+        }
+      } catch {
+        /* ignore */
+      }
+    }
+  }
+  return hits;
+}
+const legacyHits = scanDir(EXT_DIR);
+if (legacyHits.length) {
+  warn("Eski localhost portları bulundu (production öncesi düzeltin):");
+  legacyHits.forEach(({ file, origin }) => warn(`  ${file}: ${origin}`));
+} else {
+  ok("Eski localhost portları (3000/5000/8000) yok");
+}
 
 mkdirSync(OUT_DIR, { recursive: true });
 

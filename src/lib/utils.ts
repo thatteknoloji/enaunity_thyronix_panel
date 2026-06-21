@@ -19,7 +19,9 @@ export function slugify(text: string): string {
 }
 
 export function productUrl(product: { id: string; name: string; slug?: string }): string {
-  return `/products/${product.slug || (slugify(product.name) + '-' + product.id.slice(-8))}`;
+  const slug = (product.slug || "").trim();
+  if (slug) return `/products/${slug}`;
+  return `/products/${slugify(product.name)}-${product.id.slice(-8)}`;
 }
 
 export function formatPrice(price: number): string {

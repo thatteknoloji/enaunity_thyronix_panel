@@ -182,12 +182,24 @@ npm run verify:linkslash-android`}
             <FileText size={20} /> Release notes
           </h2>
           <div className="flex flex-wrap gap-3">
-            <Link href={routes.extensionRelease} className="text-sm text-cyan-400 hover:underline">
-              Extension RELEASE.md
-            </Link>
+            {status.releaseDocs.extension ? (
+              <Link href={status.releaseDocs.extension} className="text-sm text-cyan-400 hover:underline">
+                Extension RELEASE.md
+              </Link>
+            ) : (
+              <span className="text-sm text-white/40">Extension RELEASE.md (henüz yok)</span>
+            )}
+            <span className="text-white/30">·</span>
+            {status.releaseDocs.android ? (
+              <Link href={status.releaseDocs.android} className="text-sm text-cyan-400 hover:underline">
+                Android RELEASE.md
+              </Link>
+            ) : (
+              <span className="text-sm text-white/40">Android RELEASE.md (henüz yok)</span>
+            )}
             <span className="text-white/30">·</span>
             <Link href="/downloads/linkslash/INSTALLATION.md" className="text-sm text-cyan-400 hover:underline">
-              Kurulum rehberi (INSTALLATION.md)
+              Kurulum rehberi
             </Link>
           </div>
         </section>

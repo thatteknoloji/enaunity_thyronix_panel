@@ -1,17 +1,28 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { requireAdmin } from "@/lib/auth";
+import { bulkAssignCampaigns } from "@/lib/products/campaign-assign";
+import { normalizeVariantDisplayMode } from "@/lib/products/variant-display";
 
 function genBarcode(): string { return `2${Date.now().toString().slice(-11)}${Math.random().toString(36).slice(2, 5)}`; }
 
 export async function PATCH(req: Request) {
   try {
     await requireAdmin();
-    const { ids, action, value, type, mode, categoryId } = await req.json();
+    const { ids, action, value, type, mode, categoryId, campaignId } = await req.json();
     if (!ids?.length) return NextResponse.json({ success: false, error: "Ürün seçilmedi" }, { status: 400 });
 
     const products = await prisma.product.findMany({ where: { id: { in: ids } } });
     let updated = 0;
+
+    if (action === "assignCampaign" || action === "removeCampaign") {
+      updated = await bulkAssignCampaigns(
+        ids,
+        campaignId || value,
+        action === "removeCampaign" ? "remove" : (mode === "replace" ? "replace" : "add")
+      );
+      return NextResponse.json({ success: true, data: { updated } });
+    }
 
     for (const p of products) {
       const update: Record<string, unknown> = {};
@@ -51,6 +62,12 @@ export async function PATCH(req: Request) {
           const cat = await prisma.category.findUnique({ where: { id: categoryId } });
           if (cat) { update.category = cat.name; update.subcategory = ""; }
         }
+      } else if (action === "variantDisplay") {
+        update.variantDisplayMode = normalizeVariantDisplayMode(value);
+      } else if (action === "salePrice") {
+        update.salePrice = Math.max(0, parseFloat(value) || 0);
+      } else if (action === "discountLabel") {
+        update.discountLabel = String(value || "");
       }
 
       if (Object.keys(update).length > 0) {

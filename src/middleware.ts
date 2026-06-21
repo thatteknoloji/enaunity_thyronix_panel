@@ -88,6 +88,11 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL("/auth/login", request.url));
   }
 
+  // ── Public LinkSlash marketing (no auth) ──
+  if (pathname === "/linkslash" || pathname.startsWith("/linkslash/downloads")) {
+    return NextResponse.next();
+  }
+
   // ── LinkSlash static app (SPA assets) — lisans gerekli ──
   if (
     pathname.startsWith("/linkslash/") &&

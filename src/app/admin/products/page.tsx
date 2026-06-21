@@ -7,15 +7,18 @@ import { Modal } from "@/components/ui/modal";
 import { formatPrice, formatDate, productUrl } from "@/lib/utils";
 import { toAdminUrl } from "@/lib/auth/admin-access";
 import { ProductsTabs } from "@/components/admin/ProductsTabs";
-import { Plus, Trash2, Search, Upload, FileDown, Barcode, Hash, DollarSign, Tag, AlignLeft, FolderOpen, Percent, X, Check, Pencil, Filter, XCircle, Eye } from "lucide-react";
+import { Plus, Trash2, Search, Upload, FileDown, Barcode, Hash, DollarSign, Tag, AlignLeft, FolderOpen, Percent, X, Check, Pencil, Filter, XCircle, Eye, LayoutGrid, Megaphone } from "lucide-react";
 import toast from "react-hot-toast";
+import { VARIANT_DISPLAY_LABELS, VARIANT_DISPLAY_MODES } from "@/lib/products/variant-display";
 
-interface Product { id:string; name:string; category:string; price:number; stock:number; sku:string; barcode:string; createdAt:string; minStockLevel:number; maxStockLevel:number; brand:string; tags:string; image?:string; description?:string; _count?:{variants:number}; }
+interface Product { id:string; name:string; slug?:string; category:string; price:number; stock:number; sku:string; barcode:string; createdAt:string; minStockLevel:number; maxStockLevel:number; brand:string; tags:string; image?:string; description?:string; _count?:{variants:number}; }
 interface Category { id:string; name:string; parentId?:string|null; }
+interface CampaignRow { id: string; name: string; active: boolean; }
 
 export default function AdminProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [campaigns, setCampaigns] = useState<CampaignRow[]>([]);
   const [loading, setLoading] = useState(true);
 
   // Search & Filter
@@ -34,6 +37,7 @@ export default function AdminProductsPage() {
   const [bulkType, setBulkType] = useState("percentage");
   const [bulkMode, setBulkMode] = useState("replace");
   const [bulkCategoryId, setBulkCategoryId] = useState("");
+  const [bulkCampaignId, setBulkCampaignId] = useState("");
   const [bulkLoading, setBulkLoading] = useState(false);
   const [detailProduct, setDetailProduct] = useState<Product|null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
@@ -57,6 +61,7 @@ export default function AdminProductsPage() {
   useEffect(() => {
     fetchProducts();
     fetch("/api/admin/categories").then(r=>r.json()).then(d=>setCategories(d.data||[]));
+    fetch("/api/admin/campaigns").then(r=>r.json()).then(d=>setCampaigns((d.data||[]).map((c: CampaignRow)=>({id:c.id,name:c.name,active:c.active}))));
     try {
       const stored = sessionStorage.getItem("importProductIds");
       if (stored) {
@@ -86,7 +91,10 @@ export default function AdminProductsPage() {
   };
 
   const startBulkAction = (action: string) => {
-    setBulkAction(action); setBulkOpen(true);
+    setBulkAction(action);
+    setBulkOpen(true);
+    if (action === "variantDisplay") setBulkValue("buttons");
+    if (action === "assignCampaign") setBulkMode("add");
   };
 
   const executeBulk = async () => {
@@ -94,7 +102,15 @@ export default function AdminProductsPage() {
     setBulkLoading(true);
     const res = await fetch("/api/admin/products/bulk", {
       method:"PATCH", headers:{"Content-Type":"application/json"},
-      body: JSON.stringify({ ids:Array.from(selected), action:bulkAction, value:bulkValue, type:bulkType, mode:bulkMode, categoryId:bulkCategoryId }),
+      body: JSON.stringify({
+        ids: Array.from(selected),
+        action: bulkAction,
+        value: bulkValue,
+        type: bulkType,
+        mode: bulkMode,
+        categoryId: bulkCategoryId,
+        campaignId: bulkCampaignId,
+      }),
     });
     if (res.ok) {
       const d = await res.json();
@@ -179,6 +195,11 @@ export default function AdminProductsPage() {
     { key:"barcode", label:"Barkod", icon:Barcode, modes:["replace","prefix","suffix"] },
     { key:"sku", label:"SKU", icon:Hash, modes:["replace","prefix","suffix"] },
     { key:"price", label:"Fiyat", icon:DollarSign, modes:["increase","decrease"], types:["percentage","fixed"] },
+    { key:"salePrice", label:"İndirimli Fiyat", icon:Percent, inputType:"number" },
+    { key:"discountLabel", label:"İndirim Etiketi", icon:Tag, inputType:"text" },
+    { key:"assignCampaign", label:"Kampanya Ata", icon:Megaphone, showCampaign:true, campaignModes:["add","replace"] },
+    { key:"removeCampaign", label:"Kampanya Kaldır", icon:Megaphone, showCampaign:true },
+    { key:"variantDisplay", label:"Varyant Gösterimi", icon:LayoutGrid, showVariantDisplay:true },
     { key:"vat", label:"KDV", icon:Percent, modes:["apply","remove"] },
     { key:"name", label:"İsim", icon:Tag, modes:["prefix","suffix","replace","replaceFirst","replaceLast"] },
     { key:"description", label:"Açıklama", icon:AlignLeft, modes:["prefix","suffix","replace"] },
@@ -237,7 +258,32 @@ export default function AdminProductsPage() {
                 <button onClick={() => setBulkType("fixed")} className={`px-3 py-1.5 rounded text-sm ${bulkType === "fixed" ? "bg-gray-900 text-white" : "bg-gray-100 text-gray-600"}`}>Sabit (₺)</button>
               </div></div>
             )}
-            <div><label className="block text-xs font-semibold text-gray-600 uppercase mb-1">Değer</label><input type={bulkAction === "price" || bulkAction === "vat" ? "number" : "text"} step="0.01" value={bulkValue} onChange={e => setBulkValue(e.target.value)} className="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-gray-900" autoFocus /></div>
+            {BUNDLE_ACTIONS.find(a => a.key === bulkAction)?.showVariantDisplay && (
+              <div><label className="block text-xs font-semibold text-gray-600 uppercase mb-1">Gösterim Modu</label>
+                <select value={bulkValue} onChange={e => setBulkValue(e.target.value)} className="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm focus:outline-none">
+                  {VARIANT_DISPLAY_MODES.map(m => (<option key={m} value={m}>{VARIANT_DISPLAY_LABELS[m]}</option>))}
+                </select>
+              </div>
+            )}
+            {BUNDLE_ACTIONS.find(a => a.key === bulkAction)?.showCampaign && (
+              <div className="space-y-3">
+                <div><label className="block text-xs font-semibold text-gray-600 uppercase mb-1">Kampanya</label>
+                  <select value={bulkCampaignId} onChange={e => setBulkCampaignId(e.target.value)} className="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm focus:outline-none">
+                    <option value="">Seçiniz</option>
+                    {campaigns.map(c => (<option key={c.id} value={c.id}>{c.name}{!c.active ? " (pasif)" : ""}</option>))}
+                  </select>
+                </div>
+                {BUNDLE_ACTIONS.find(a => a.key === bulkAction)?.campaignModes && (
+                  <div><label className="block text-xs font-semibold text-gray-600 uppercase mb-1">Mod</label><div className="flex gap-2">
+                    <button onClick={() => setBulkMode("add")} className={`px-3 py-1.5 rounded text-sm ${bulkMode === "add" ? "bg-gray-900 text-white" : "bg-gray-100 text-gray-600"}`}>Ekle</button>
+                    <button onClick={() => setBulkMode("replace")} className={`px-3 py-1.5 rounded text-sm ${bulkMode === "replace" ? "bg-gray-900 text-white" : "bg-gray-100 text-gray-600"}`}>Değiştir</button>
+                  </div></div>
+                )}
+              </div>
+            )}
+            {!BUNDLE_ACTIONS.find(a => a.key === bulkAction)?.showVariantDisplay && !BUNDLE_ACTIONS.find(a => a.key === bulkAction)?.showCampaign && (
+            <div><label className="block text-xs font-semibold text-gray-600 uppercase mb-1">Değer</label><input type={BUNDLE_ACTIONS.find(a => a.key === bulkAction)?.inputType === "number" || bulkAction === "price" || bulkAction === "vat" || bulkAction === "salePrice" ? "number" : "text"} step="0.01" value={bulkValue} onChange={e => setBulkValue(e.target.value)} className="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-gray-900" autoFocus /></div>
+            )}
             {(BUNDLE_ACTIONS.find(a => a.key === bulkAction)?.modes || []).length > 0 && (
               <div><label className="block text-xs font-semibold text-gray-600 uppercase mb-1">Mod</label><div className="flex flex-wrap gap-2">
                 {(BUNDLE_ACTIONS.find(a => a.key === bulkAction)?.modes || []).map(m => (<button key={m} onClick={() => setBulkMode(m)} className={`px-3 py-1.5 rounded text-sm capitalize ${bulkMode === m ? "bg-gray-900 text-white" : "bg-gray-100 text-gray-600"}`}>{m === "increase" ? "Artır" : m === "decrease" ? "Azalt" : m === "apply" ? "KDV Ekle" : m === "remove" ? "KDV Çıkar" : m === "prefix" ? "Ön Ek" : m === "suffix" ? "Son Ek" : m === "replaceFirst" ? "Baştan Kaldır" : m === "replaceLast" ? "Sondan Kaldır" : m}</button>))}
@@ -305,12 +351,38 @@ export default function AdminProductsPage() {
                   <span className={`text-sm font-medium ${p.stock>10&&(!p.maxStockLevel||p.stock<p.maxStockLevel)?"text-green-600":p.stock===0?"text-ena-primary":p.stock<=p.minStockLevel?"text-ena-primary":p.maxStockLevel>0&&p.stock>=p.maxStockLevel?"text-amber-600":"text-amber-600"}`}>{p.stock}</span>
                   {p.maxStockLevel>0&&<span className="text-[10px] text-gray-400 ml-1">/ {p.maxStockLevel}</span>}
                 </td>
-                <td className="px-3 py-3 text-right"><div className="flex justify-end gap-1 flex-nowrap">
-                  <a href={productUrl(p)} target="_blank" rel="noopener noreferrer"><Button variant="ghost" size="sm" className="text-gray-500 hover:text-emerald-600" title="Sitede gör"><Eye size={14}/></Button></a>
-                  <Button variant="ghost" size="sm" onClick={()=>{setDetailProduct(p);setDetailOpen(true)}} className="text-gray-500 hover:text-blue-600" title="Hızlı bak"><Search size={14}/></Button>
-                  <Link href={toAdminUrl(`/admin/products/${p.id}`)}><Button variant="ghost" size="sm" className="text-gray-500" title="Düzenle"><Pencil size={14}/></Button></Link>
-                  <Button variant="ghost" size="sm" onClick={()=>handleDelete(p.id)} className="text-gray-500 hover:text-ena-primary" title="Sil"><Trash2 size={14}/></Button>
-                </div></td>
+                <td className="px-3 py-3 text-right">
+                  <div className="flex justify-end gap-1.5 flex-nowrap min-w-[220px]">
+                    <a
+                      href={productUrl(p)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium rounded-md border border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 whitespace-nowrap"
+                    >
+                      <Eye size={13} /> Sitede
+                    </a>
+                    <button
+                      type="button"
+                      onClick={() => { setDetailProduct(p); setDetailOpen(true); }}
+                      className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium rounded-md border border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100 whitespace-nowrap"
+                    >
+                      <Search size={13} /> Bak
+                    </button>
+                    <Link
+                      href={toAdminUrl(`/admin/products/${p.id}`)}
+                      className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium rounded-md border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 whitespace-nowrap"
+                    >
+                      <Pencil size={13} /> Düzenle
+                    </Link>
+                    <button
+                      type="button"
+                      onClick={() => handleDelete(p.id)}
+                      className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium rounded-md border border-red-200 bg-red-50 text-red-700 hover:bg-red-100 whitespace-nowrap"
+                    >
+                      <Trash2 size={13} /> Sil
+                    </button>
+                  </div>
+                </td>
               </tr>
             ))
           }</tbody>
