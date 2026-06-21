@@ -2618,12 +2618,15 @@ model LinkSlashDownloadToken {
 // ═══════════════════════════════════════════
 
 enum PartnerType {
+  PROFESSIONAL_DEALER
+  SOCIAL_DEALER
+  POD_CREATOR
+  AI_PARTNER
+  // Legacy — mevcut kayıtlar kırılmasın
   CUSTOMER
   AFFILIATE
   BAYI_PLUS
   FRANCHISE
-  POD_CREATOR
-  AI_PARTNER
 }
 
 enum PartnerStatus {
@@ -2643,11 +2646,15 @@ enum ReferralStatus {
 }
 
 enum CommissionType {
+  PRODUCT_ORDER
+  MODULE_LICENSE
+  POD_SALE
+  NETWORK_OVERRIDE
   FIRST_ORDER
   RECURRING_ORDER
-  MODULE_LICENSE
-  POD_ORDER
   MANUAL
+  // Legacy
+  POD_ORDER
 }
 
 enum CommissionStatus {
@@ -2661,17 +2668,31 @@ enum PayoutStatus {
   REQUESTED
   PROCESSING
   PAID
+  REJECTED
   CANCELLED
+}
+
+enum PartnerApplicationStatus {
+  PENDING
+  APPROVED
+  REJECTED
 }
 
 model PartnerProfile {
   id                      String        @id @default(cuid())
   userId                  String        @unique
   dealerId                String?
-  partnerType             PartnerType   @default(CUSTOMER)
+  partnerType             PartnerType   @default(SOCIAL_DEALER)
   referralCode            String        @unique
   referralSlug            String        @unique
   status                  PartnerStatus @default(PENDING)
+  sponsorPartnerId        String?
+  sponsorPartner          PartnerProfile?  @relation("PartnerSponsor", fields: [sponsorPartnerId], references: [id], onDelete: SetNull)
+  sponsoredPartners       PartnerProfile[] @relation("PartnerSponsor")
+  defaultCommissionRate   Float         @default(0)
+  moduleCommissionRate    Float         @default(0)
+  podCommissionRate       Float         @default(0)
+  networkOverrideRate     Float         @default(0)
   commissionRate          Float         @default(0)
   recurringCommissionRate Float         @default(0)
   metadataJson            String        @default("{}")
@@ -2685,6 +2706,33 @@ model PartnerProfile {
 
   @@index([dealerId])
   @@index([partnerType, status])
+  @@index([sponsorPartnerId])
+}
+
+model PartnerNetworkApplication {
+  id              String                 @id @default(cuid())
+  userId          String?
+  dealerId        String?
+  fullName        String
+  companyName     String                 @default("")
+  email           String
+  phone           String                 @default("")
+  requestedType   PartnerType
+  hasTaxPlate     Boolean                @default(false)
+  socialMedia     String                 @default("")
+  applicationNote String                 @default("")
+  sponsorPartnerId String?
+  status          PartnerApplicationStatus @default(PENDING)
+  adminNote       String                 @default("")
+  reviewedBy      String                 @default("")
+  reviewedAt      DateTime?
+  metadataJson    String                 @default("{}")
+  createdAt       DateTime               @default(now())
+  updatedAt       DateTime               @updatedAt
+
+  @@index([email])
+  @@index([userId])
+  @@index([status])
 }
 
 model AffiliateReferral {
@@ -2724,27 +2772,43 @@ model AffiliateCommission {
   rate            Float            @default(0)
   amount          Float            @default(0)
   status          CommissionStatus @default(PENDING)
+  payoutId        String?
+  payout          AffiliatePayout? @relation(fields: [payoutId], references: [id], onDelete: SetNull)
   note            String?
   createdAt       DateTime         @default(now())
   approvedAt      DateTime?
   paidAt          DateTime?
 
   @@index([partnerId, status])
+  @@index([partnerId, status, payoutId])
   @@index([orderId])
+  @@index([payoutId])
 }
 
 model AffiliatePayout {
-  id            String         @id @default(cuid())
-  partnerId     String
-  partner       PartnerProfile @relation(fields: [partnerId], references: [id], onDelete: Cascade)
-  amount        Float          @default(0)
-  status        PayoutStatus   @default(REQUESTED)
-  paymentMethod String?
-  paymentNote   String?
-  createdAt     DateTime       @default(now())
-  paidAt        DateTime?
+  id                String         @id @default(cuid())
+  partnerId         String
+  partner           PartnerProfile @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+  amount            Float          @default(0)
+  currency          String         @default("TRY")
+  status            PayoutStatus   @default(REQUESTED)
+  iban              String         @default("")
+  accountHolder     String         @default("")
+  taxIdentityNumber String?
+  invoiceUrl        String?
+  note              String?
+  adminNote         String?
+  paymentMethod     String?
+  paymentNote       String?
+  requestedAt       DateTime       @default(now())
+  processedAt       DateTime?
+  paidAt            DateTime?
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+  commissions       AffiliateCommission[]
 
   @@index([partnerId, status])
+  @@index([status, requestedAt])
 }
 
 model PODProductTemplate {

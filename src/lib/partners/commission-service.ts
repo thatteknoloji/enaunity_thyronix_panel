@@ -1,65 +1,71 @@
 import { prisma } from "@/lib/db";
-import { DEFAULT_COMMISSION_RATES, type PartnerType } from "./types";
+import { resolvePartnerRates, normalizePartnerType } from "./types";
 import { findActiveReferralForUser } from "./referral";
 
 function roundMoney(n: number) {
   return Math.round(n * 100) / 100;
 }
 
-export function resolveCommissionRates(partner: {
-  partnerType: PartnerType;
-  commissionRate: number;
-  recurringCommissionRate: number;
-}) {
-  const defaults = DEFAULT_COMMISSION_RATES[partner.partnerType] || DEFAULT_COMMISSION_RATES.AFFILIATE;
-  return {
-    first: partner.commissionRate > 0 ? partner.commissionRate : defaults.first,
-    recurring: partner.recurringCommissionRate > 0 ? partner.recurringCommissionRate : defaults.recurring,
-    module: defaults.module ?? defaults.first,
-    pod: defaults.pod ?? 0,
-  };
-}
-
 async function hasPriorOrderCommission(referralId: string): Promise<boolean> {
   const count = await prisma.affiliateCommission.count({
     where: {
       referralId,
-      commissionType: { in: ["FIRST_ORDER", "RECURRING_ORDER"] },
+      commissionType: { in: ["FIRST_ORDER", "RECURRING_ORDER", "PRODUCT_ORDER"] },
       status: { not: "REJECTED" },
     },
   });
   return count > 0;
 }
 
-/** B2B sipariş tamamlandığında komisyon — bayi iskontosu baseAmount'tan düşülür */
+/** Sponsor override — tek kat */
+async function processNetworkOverride(input: {
+  sponsorPartnerId: string;
+  baseAmount: number;
+  sourceNote: string;
+  orderId?: string;
+  moduleLicenseId?: string;
+}) {
+  const sponsor = await prisma.partnerProfile.findUnique({ where: { id: input.sponsorPartnerId } });
+  if (!sponsor || sponsor.status !== "ACTIVE") return null;
+
+  const rates = resolvePartnerRates(sponsor);
+  if (rates.networkOverride <= 0) return null;
+
+  const amount = roundMoney(input.baseAmount * rates.networkOverride);
+  return prisma.affiliateCommission.create({
+    data: {
+      partnerId: sponsor.id,
+      orderId: input.orderId,
+      moduleLicenseId: input.moduleLicenseId,
+      commissionType: "NETWORK_OVERRIDE",
+      baseAmount: input.baseAmount,
+      rate: rates.networkOverride,
+      amount,
+      status: "PENDING",
+      note: input.sourceNote,
+    },
+  });
+}
+
 export async function processOrderCommission(orderId: string) {
   const order = await prisma.order.findUnique({
     where: { id: orderId },
-    select: {
-      id: true,
-      userId: true,
-      dealerId: true,
-      total: true,
-      discount: true,
-      status: true,
-    },
+    select: { id: true, userId: true, dealerId: true, total: true, discount: true, status: true },
   });
   if (!order || !["delivered", "shipped", "approved"].includes(order.status)) return null;
-  if (order.dealerId && order.userId) {
-    // only process once per order
-    const existing = await prisma.affiliateCommission.findFirst({
-      where: { orderId: order.id, status: { not: "REJECTED" } },
-    });
-    if (existing) return existing;
-  }
+
+  const existing = await prisma.affiliateCommission.findFirst({
+    where: { orderId: order.id, commissionType: { in: ["FIRST_ORDER", "RECURRING_ORDER", "PRODUCT_ORDER"] }, status: { not: "REJECTED" } },
+  });
+  if (existing) return existing;
 
   const referral = await findActiveReferralForUser(order.userId, order.dealerId || undefined);
   if (!referral || referral.partner.status !== "ACTIVE") return null;
 
-  const rates = resolveCommissionRates(referral.partner);
+  const rates = resolvePartnerRates(referral.partner);
   const prior = referral.id ? await hasPriorOrderCommission(referral.id) : false;
   const commissionType = prior ? "RECURRING_ORDER" : "FIRST_ORDER";
-  const rate = prior ? rates.recurring : rates.first;
+  const rate = prior ? rates.recurringOrder : rates.firstOrder;
   if (rate <= 0) return null;
 
   const baseAmount = Math.max(0, order.total - (order.discount || 0));
@@ -81,41 +87,43 @@ export async function processOrderCommission(orderId: string) {
 
   await prisma.affiliateReferral.update({
     where: { id: referral.id },
-    data: {
-      status: prior ? "CONVERTED" : "FIRST_ORDER",
-      convertedAt: new Date(),
-    },
+    data: { status: prior ? "CONVERTED" : "FIRST_ORDER", convertedAt: new Date() },
   });
+
+  // Sponsor override
+  const referredProfile = await prisma.partnerProfile.findFirst({
+    where: { OR: [{ userId: order.userId }, ...(order.dealerId ? [{ dealerId: order.dealerId }] : [])] },
+  });
+  if (referredProfile?.sponsorPartnerId) {
+    await processNetworkOverride({
+      sponsorPartnerId: referredProfile.sponsorPartnerId,
+      baseAmount,
+      sourceNote: "Referans ağı override",
+      orderId: order.id,
+    });
+  }
 
   return commission;
 }
 
-/** Modül lisans ödemesi tamamlandığında */
 export async function processModuleLicenseCommission(input: {
   dealerId: string;
   moduleLicenseId: string;
   moduleKey: string;
   amount: number;
 }) {
-  const dealerUser = await prisma.user.findFirst({
-    where: { dealerId: input.dealerId },
-    select: { id: true },
-  });
+  const dealerUser = await prisma.user.findFirst({ where: { dealerId: input.dealerId }, select: { id: true } });
   if (!dealerUser) return null;
 
   const referral = await findActiveReferralForUser(dealerUser.id, input.dealerId);
   if (!referral || referral.partner.status !== "ACTIVE") return null;
 
-  const rates = resolveCommissionRates(referral.partner);
-  const rate =
-    referral.partner.partnerType === "AI_PARTNER"
-      ? rates.module
-      : rates.module || rates.first;
+  const rates = resolvePartnerRates(referral.partner);
+  const type = normalizePartnerType(referral.partner.partnerType);
+  const rate = type === "AI_PARTNER" ? rates.module : rates.module || rates.firstOrder;
   if (rate <= 0) return null;
 
-  const existing = await prisma.affiliateCommission.findFirst({
-    where: { moduleLicenseId: input.moduleLicenseId },
-  });
+  const existing = await prisma.affiliateCommission.findFirst({ where: { moduleLicenseId: input.moduleLicenseId } });
   if (existing) return existing;
 
   const amount = roundMoney(input.amount * rate);
@@ -134,33 +142,33 @@ export async function processModuleLicenseCommission(input: {
     },
   });
 
-  await prisma.affiliateReferral.update({
-    where: { id: referral.id },
-    data: { status: "LICENSED" },
-  });
+  await prisma.affiliateReferral.update({ where: { id: referral.id }, data: { status: "LICENSED" } });
+
+  const referredProfile = await prisma.partnerProfile.findFirst({ where: { userId: dealerUser.id } });
+  if (referredProfile?.sponsorPartnerId) {
+    await processNetworkOverride({
+      sponsorPartnerId: referredProfile.sponsorPartnerId,
+      baseAmount: input.amount,
+      sourceNote: `${input.moduleKey} modül override`,
+      moduleLicenseId: input.moduleLicenseId,
+    });
+  }
 
   return commission;
 }
 
 export async function getPartnerStats(partnerId: string) {
-  const [visits, registrations, orders, pending, approved, paid] = await Promise.all([
+  const [visits, registrations, networkCount, pending, approved, paid, totalEarned] = await Promise.all([
     prisma.affiliateReferral.count({ where: { partnerId, status: "VISIT" } }),
     prisma.affiliateReferral.count({
       where: { partnerId, status: { in: ["REGISTERED", "LICENSED", "FIRST_ORDER", "CONVERTED"] } },
     }),
-    prisma.affiliateReferral.count({
-      where: { partnerId, status: { in: ["FIRST_ORDER", "CONVERTED"] } },
-    }),
+    prisma.partnerProfile.count({ where: { sponsorPartnerId: partnerId } }),
+    prisma.affiliateCommission.aggregate({ where: { partnerId, status: "PENDING" }, _sum: { amount: true } }),
+    prisma.affiliateCommission.aggregate({ where: { partnerId, status: "APPROVED" }, _sum: { amount: true } }),
+    prisma.affiliateCommission.aggregate({ where: { partnerId, status: "PAID" }, _sum: { amount: true } }),
     prisma.affiliateCommission.aggregate({
-      where: { partnerId, status: "PENDING" },
-      _sum: { amount: true },
-    }),
-    prisma.affiliateCommission.aggregate({
-      where: { partnerId, status: "APPROVED" },
-      _sum: { amount: true },
-    }),
-    prisma.affiliateCommission.aggregate({
-      where: { partnerId, status: "PAID" },
+      where: { partnerId, status: { in: ["APPROVED", "PAID"] } },
       _sum: { amount: true },
     }),
   ]);
@@ -168,9 +176,21 @@ export async function getPartnerStats(partnerId: string) {
   return {
     visits,
     registrations,
-    orders,
+    networkCount,
+    orders: registrations,
     pendingCommission: pending._sum.amount || 0,
     approvedCommission: approved._sum.amount || 0,
     paidCommission: paid._sum.amount || 0,
+    totalEarned: totalEarned._sum.amount || 0,
   };
 }
+
+/** @alias PartnerCommission service */
+export {
+  listCommissions,
+  listPayouts,
+  listReferralsForPartner,
+  updateCommissionStatus,
+  updatePayoutStatus,
+  getReferralLinkForProfile,
+} from "./partner-commissions";

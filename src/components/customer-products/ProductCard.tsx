@@ -50,6 +50,12 @@ export function CustomerProductCardView({ product }: { product: CustomerProductC
         product.status === "TRIAL"
       : product.status === "ACTIVE" || product.status === "TRIAL";
 
+  const enterHref = canEnter
+    ? product.moduleKey === "LINKSLASH" || product.moduleKey === "PRODUCT_LIBRARY"
+      ? meta.gatewayPath
+      : meta.appPath
+    : meta.pricingPath;
+
   return (
     <div className={`rounded-2xl border bg-gradient-to-br p-6 space-y-5 ${accent}`}>
       <div className="flex items-start justify-between gap-3">
@@ -110,7 +116,7 @@ export function CustomerProductCardView({ product }: { product: CustomerProductC
 
       <div className="flex flex-wrap gap-2 pt-1">
         <Link
-          href={canEnter ? meta.gatewayPath : meta.pricingPath}
+          href={enterHref}
           className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/15 text-white text-xs font-medium transition-colors"
         >
           {canEnter ? <ArrowRight size={14} /> : <ArrowUpRight size={14} />}

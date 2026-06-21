@@ -3,42 +3,131 @@
 import { useEffect, useState, useMemo } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
-import { LayoutDashboard, ShoppingCart, User, LogOut, ChevronLeft, ChevronRight, Home, Store, Wallet, FileText, Users, RotateCcw, Bell, ReceiptText, Menu, X, Heart, Zap, MapPin, Upload, FileSignature, Library, Truck, Plug, Package, Link2, Handshake, Brain, Shirt } from "lucide-react";
+import {
+  LayoutDashboard, ShoppingCart, User, LogOut, ChevronLeft, ChevronRight, Home, Store, Wallet,
+  FileText, Users, RotateCcw, Bell, ReceiptText, Menu, X, Heart, Zap, MapPin, Upload,
+  FileSignature, Library, Truck, Plug, Package, Link2, Handshake, ChevronDown, Sparkles,
+  type LucideIcon,
+} from "lucide-react";
 import NotificationBell from "@/components/NotificationBell";
 import { LegalReacceptanceGate } from "@/components/legal/LegalReacceptanceGate";
 import { useT } from "@/lib/i18n/provider";
+import { PRODUCT_META, type CustomerProductKey } from "@/lib/customer-products/types";
 
-function buildNavItems(t: (key: string) => string) {
+type NavItem = { href: string; label: string; icon: LucideIcon; offer?: boolean };
+type NavGroup = { label: string; items: NavItem[]; collapsible?: boolean; defaultOpen?: boolean };
+
+const MODULE_ICONS: Partial<Record<CustomerProductKey, LucideIcon>> = {
+  THYRONIX: Package,
+  HIVE: Sparkles,
+  LINKSLASH: Link2,
+  PRODUCT_LIBRARY: Library,
+};
+
+function buildStaticGroups(t: (key: string) => string): NavGroup[] {
   return [
-  { href: "/dealer", label: t("dealer.overview"), icon: LayoutDashboard },
-  { href: "/dealer/orders", label: "Siparişlerim", icon: ShoppingCart },
-  { href: "/dealer/quick-order", label: t("dealer.quick_order"), icon: Zap },
-  { href: "/dealer/returns", label: t("dealer.returns"), icon: RotateCcw },
-  { href: "/dealer/quotes", label: t("dealer.my_quotes"), icon: FileText },
-  { href: "/dealer/balance", label: "Bakiye / Cari Hesap", icon: Wallet },
-  { href: "/products", label: "Ürünlerim", icon: Store },
-  { href: "/gateway/linkslash", label: "LinkSlash", icon: Link2 },
-  { href: "/dealer/partner", label: "Partner Merkezi", icon: Handshake },
-  { href: "/dealer/ai-partner", label: "AI Partner Merkezi", icon: Brain },
-  { href: "/dealer/pod", label: "POD Creator", icon: Shirt },
-  { href: "/dealer/my-products", label: "Bayi Ürünlerim", icon: Package },
-  { href: "/dealer/manual-order", label: "Manuel Sipariş", icon: Upload },
-  { href: "/dealer/product-library", label: "Hazır Ürünler", icon: Library },
-  { href: "/dealer/fulfillment/orders", label: "Siparişlerim", icon: ShoppingCart },
-  { href: "/dealer/fulfillment/shipments", label: "Kargolarım", icon: Truck },
-  { href: "/dealer/fulfillment/statements", label: "Ekstrelerim", icon: ReceiptText },
-  { href: "/dealer/marketplace/connections", label: "Pazaryeri Bağlantıları", icon: Plug },
-  { href: "/dealer/marketplace/orders", label: "Pazaryeri Siparişleri", icon: ShoppingCart },
-  { href: "/account#contracts", label: "Sözleşmelerim", icon: FileSignature },
-  { href: "/account#addresses", label: "Adreslerim", icon: MapPin },
-  { href: "/account#documents", label: "Evraklarım", icon: Upload },
-  { href: "/dealer/invoices", label: t("dealer.billing"), icon: ReceiptText },
-  { href: "/dealer/saved-carts", label: t("dealer.saved_carts"), icon: ShoppingCart },
-  { href: "/dealer/sub-users", label: t("dealer.sub_users"), icon: Users },
-  { href: "/dealer/wishlist", label: t("dealer.wishlist"), icon: Heart },
-  { href: "/dealer/profile", label: t("dealer.my_profile"), icon: User },
-  { href: "/dealer/notifications", label: t("dealer.notifications"), icon: Bell },
-];
+    {
+      label: "Genel",
+      items: [
+        { href: "/dealer", label: t("dealer.overview"), icon: LayoutDashboard },
+        { href: "/dealer/notifications", label: t("dealer.notifications"), icon: Bell },
+      ],
+    },
+    {
+      label: "Alışveriş",
+      items: [
+        { href: "/dealer/orders", label: "Siparişlerim", icon: ShoppingCart },
+        { href: "/dealer/quick-order", label: t("dealer.quick_order"), icon: Zap },
+        { href: "/dealer/returns", label: t("dealer.returns"), icon: RotateCcw },
+        { href: "/dealer/quotes", label: t("dealer.my_quotes"), icon: FileText },
+        { href: "/dealer/saved-carts", label: t("dealer.saved_carts"), icon: ShoppingCart },
+        { href: "/dealer/wishlist", label: t("dealer.wishlist"), icon: Heart },
+      ],
+    },
+    {
+      label: "Finans",
+      items: [
+        { href: "/dealer/balance", label: "Bakiye / Cari Hesap", icon: Wallet },
+        { href: "/dealer/invoices", label: t("dealer.billing"), icon: ReceiptText },
+      ],
+    },
+    {
+      label: "Operasyon",
+      items: [
+        { href: "/dealer/my-products", label: "Bayi Ürünlerim", icon: Package },
+        { href: "/dealer/manual-order", label: "Manuel Sipariş", icon: Upload },
+        { href: "/dealer/fulfillment/orders", label: "Fulfillment Siparişleri", icon: ShoppingCart },
+        { href: "/dealer/fulfillment/shipments", label: "Kargolarım", icon: Truck },
+        { href: "/dealer/fulfillment/statements", label: "Ekstrelerim", icon: ReceiptText },
+      ],
+    },
+    {
+      label: "Pazaryeri",
+      items: [
+        { href: "/dealer/marketplace/connections", label: "Pazaryeri Bağlantıları", icon: Plug },
+        { href: "/dealer/marketplace/orders", label: "Pazaryeri Siparişleri", icon: ShoppingCart },
+      ],
+    },
+    {
+      label: "Partner",
+      items: [{ href: "/dealer/partner", label: "Partner Merkezi", icon: Handshake }],
+    },
+    {
+      label: "Hesabım",
+      items: [
+        { href: "/dealer/profile", label: t("dealer.my_profile"), icon: User },
+        { href: "/dealer/sub-users", label: t("dealer.sub_users"), icon: Users },
+        { href: "/account#contracts", label: "Sözleşmelerim", icon: FileSignature },
+        { href: "/account#addresses", label: "Adreslerim", icon: MapPin },
+        { href: "/account#documents", label: "Evraklarım", icon: Upload },
+      ],
+    },
+  ];
+}
+
+function buildModuleGroups(
+  products: Array<{ moduleKey: string; status: string }>
+): { owned: NavGroup | null; offers: NavGroup | null } {
+  const ownedItems: NavItem[] = [];
+  const offerItems: NavItem[] = [];
+
+  for (const p of products) {
+    if (p.moduleKey === "ENA_COMMERCE") continue;
+    const key = p.moduleKey as CustomerProductKey;
+    const meta = PRODUCT_META[key];
+    if (!meta) continue;
+
+    const active = p.status === "ACTIVE" || p.status === "TRIAL";
+    const href = active
+      ? key === "LINKSLASH"
+        ? meta.gatewayPath
+        : meta.appPath
+      : meta.pricingPath;
+
+    const item: NavItem = {
+      href,
+      label: meta.label,
+      icon: MODULE_ICONS[key] || Package,
+      offer: !active,
+    };
+
+    if (active) ownedItems.push(item);
+    else if (p.status === "INACTIVE" || p.status === "EXPIRED" || p.status === "PENDING") {
+      offerItems.push({ ...item, label: `${meta.label} — Teklif` });
+    }
+  }
+
+  return {
+    owned: ownedItems.length
+      ? {
+          label: "Modüllerim",
+          items: [{ href: "/products", label: "Modül Merkezi", icon: Store }, ...ownedItems],
+        }
+      : null,
+    offers: offerItems.length
+      ? { label: "Modül Teklifleri", items: offerItems, collapsible: true, defaultOpen: false }
+      : null,
+  };
 }
 
 export default function DealerLayout({ children }: { children: React.ReactNode }) {
@@ -49,18 +138,35 @@ export default function DealerLayout({ children }: { children: React.ReactNode }
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [dealerName, setDealerName] = useState("");
+  const [moduleProducts, setModuleProducts] = useState<Array<{ moduleKey: string; status: string }>>([]);
+  const [offersOpen, setOffersOpen] = useState(false);
 
-  const navItems = useMemo(() => buildNavItems(t), [t]);
+  const navGroups = useMemo(() => {
+    const staticGroups = buildStaticGroups(t);
+    const { owned, offers } = buildModuleGroups(moduleProducts);
+    const groups: NavGroup[] = [...staticGroups.slice(0, 2)];
+    if (owned) groups.push(owned);
+    groups.push(...staticGroups.slice(2));
+    if (offers) groups.push(offers);
+    return groups;
+  }, [t, moduleProducts]);
 
   useEffect(() => {
-    fetch("/api/auth/me").then((r) => r.json()).then((d) => {
-      if (d.data?.role !== "dealer") {
-        router.push("/");
-      } else {
-        setAuthorized(true);
-        setDealerName(d.data.name || t("dealer.dealer_label"));
-      }
-    });
+    fetch("/api/auth/me")
+      .then((r) => r.json())
+      .then((d) => {
+        if (d.data?.role !== "dealer") {
+          router.push("/");
+        } else {
+          setAuthorized(true);
+          setDealerName(d.data.name || t("dealer.dealer_label"));
+        }
+      });
+    fetch("/api/customer-products")
+      .then((r) => r.json())
+      .then((d) => {
+        if (d.success) setModuleProducts(d.data.products || []);
+      });
   }, [router, t]);
 
   useEffect(() => {
@@ -78,12 +184,35 @@ export default function DealerLayout({ children }: { children: React.ReactNode }
     return <>{children}</>;
   }
 
+  const renderNavItem = (item: NavItem) => {
+    const isActive = pathname === item.href || (item.href !== "/dealer" && pathname.startsWith(item.href));
+    return (
+      <Link
+        key={item.href + item.label}
+        href={item.href}
+        className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200 ${
+          isActive
+            ? "bg-ena-primary/10 text-ena-primary border border-ena-primary/20"
+            : item.offer
+              ? "text-ena-light/70 hover:text-ena-light hover:bg-white/5 border border-transparent border-dashed border-ena-border/30"
+              : "text-ena-light hover:text-white hover:bg-white/5"
+        }`}
+        title={collapsed ? item.label : undefined}
+      >
+        <item.icon size={18} className="shrink-0" />
+        {!collapsed && <span className="truncate">{item.label}</span>}
+      </Link>
+    );
+  };
+
   const sidebar = (
     <>
       <div className="flex items-center justify-between h-16 px-4 border-b border-white/10 shrink-0">
         {!collapsed ? (
           <Link href="/" className="flex items-baseline gap-0.5">
-            <span className="text-lg font-black" style={{color:"#e50914"}}>ENA</span>
+            <span className="text-lg font-black" style={{ color: "#e50914" }}>
+              ENA
+            </span>
             <span className="text-lg font-light text-white">{t("dealer.dealer_label")}</span>
           </Link>
         ) : (
@@ -93,23 +222,28 @@ export default function DealerLayout({ children }: { children: React.ReactNode }
         )}
       </div>
 
-      <nav className="flex-1 overflow-y-auto p-2 space-y-1 scrollbar-none">
-        {navItems.map((item) => {
-          const isActive = pathname === item.href;
+      <nav className="flex-1 overflow-y-auto p-2 space-y-3 scrollbar-none">
+        {navGroups.map((group) => {
+          const isOffers = group.collapsible;
+          const open = isOffers ? offersOpen : true;
           return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200 ${
-                isActive
-                  ? "bg-ena-primary/10 text-ena-primary border border-ena-primary/20"
-                  : "text-ena-light hover:text-white hover:bg-white/5"
-              }`}
-              title={collapsed ? item.label : undefined}
-            >
-              <item.icon size={18} className="shrink-0" />
-              {!collapsed && <span>{item.label}</span>}
-            </Link>
+            <div key={group.label}>
+              {!collapsed && (
+                <button
+                  type="button"
+                  onClick={() => isOffers && setOffersOpen(!offersOpen)}
+                  className={`w-full flex items-center justify-between px-3 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-ena-light/50 ${
+                    isOffers ? "hover:text-ena-light cursor-pointer" : "cursor-default"
+                  }`}
+                >
+                  {group.label}
+                  {isOffers && <ChevronDown size={12} className={`transition-transform ${open ? "rotate-180" : ""}`} />}
+                </button>
+              )}
+              {(open || collapsed) && (
+                <div className="space-y-0.5">{group.items.map(renderNavItem)}</div>
+              )}
+            </div>
           );
         })}
       </nav>
@@ -151,8 +285,11 @@ export default function DealerLayout({ children }: { children: React.ReactNode }
 
   return (
     <div className="app-viewport flex h-screen max-w-[100dvw] bg-ena-dark">
-      {/* Desktop sidebar */}
-      <aside className={`hidden md:flex flex-col shrink-0 border-r border-white/10 bg-ena-dark transition-all duration-300 relative ${collapsed ? "w-16" : "w-60"}`}>
+      <aside
+        className={`hidden md:flex flex-col shrink-0 border-r border-white/10 bg-ena-dark transition-all duration-300 relative ${
+          collapsed ? "w-16" : "w-60"
+        }`}
+      >
         {sidebar}
         <button
           onClick={() => setCollapsed(!collapsed)}
@@ -162,7 +299,6 @@ export default function DealerLayout({ children }: { children: React.ReactNode }
         </button>
       </aside>
 
-      {/* Mobile sidebar overlay */}
       {mobileOpen && (
         <div className="fixed inset-0 z-40 md:hidden">
           <div className="absolute inset-0 bg-black/50" onClick={() => setMobileOpen(false)} />
@@ -173,19 +309,19 @@ export default function DealerLayout({ children }: { children: React.ReactNode }
       )}
 
       <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
-        {/* Mobile top bar */}
         <div className="md:hidden flex items-center justify-between h-14 px-4 border-b border-white/10 bg-ena-dark/95 backdrop-blur shrink-0 relative z-50">
           <button onClick={() => setMobileOpen(true)} className="p-1.5 rounded-lg text-ena-light hover:text-white">
             <Menu size={20} />
           </button>
           <Link href="/" className="flex items-baseline gap-0.5">
-            <span className="text-lg font-black" style={{color:"#e50914"}}>ENA</span>
+            <span className="text-lg font-black" style={{ color: "#e50914" }}>
+              ENA
+            </span>
             <span className="text-lg font-light text-white">{t("dealer.dealer_label")}</span>
           </Link>
           <NotificationBell />
         </div>
 
-        {/* Desktop top bar */}
         <div className="hidden md:flex items-center justify-end px-6 py-3 border-b border-white/10 bg-ena-dark/95 backdrop-blur shrink-0 relative z-50">
           <NotificationBell />
         </div>

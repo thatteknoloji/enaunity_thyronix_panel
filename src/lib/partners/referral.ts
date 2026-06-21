@@ -67,8 +67,8 @@ export async function getPartnerBySlug(slug: string) {
 export async function getOrCreatePartnerProfile(
   userId: string,
   dealerId?: string | null,
-  type: PartnerType = "CUSTOMER",
-  opts?: { activate?: boolean; name?: string }
+  type: PartnerType = "SOCIAL_DEALER",
+  opts?: { activate?: boolean; name?: string; sponsorPartnerId?: string }
 ) {
   const existing = await prisma.partnerProfile.findUnique({ where: { userId } });
   if (existing) return existing;
@@ -85,6 +85,7 @@ export async function getOrCreatePartnerProfile(
       partnerType: type,
       referralCode,
       referralSlug,
+      sponsorPartnerId: opts?.sponsorPartnerId || null,
       status: opts?.activate ? "ACTIVE" : "PENDING",
       metadataJson: "{}",
     },
@@ -204,8 +205,9 @@ export async function attachReferralOnRegistration(userId: string, dealerId?: st
     orderBy: { createdAt: "desc" },
   });
 
+  let referral;
   if (open) {
-    return prisma.affiliateReferral.update({
+    referral = await prisma.affiliateReferral.update({
       where: { id: open.id },
       data: {
         referredUserId: userId,
@@ -213,17 +215,33 @@ export async function attachReferralOnRegistration(userId: string, dealerId?: st
         status: "REGISTERED",
       },
     });
+  } else {
+    referral = await prisma.affiliateReferral.create({
+      data: {
+        partnerId: partner.id,
+        referralCode: code,
+        referredUserId: userId,
+        referredDealerId: dealerId || null,
+        status: "REGISTERED",
+      },
+    });
   }
 
-  return prisma.affiliateReferral.create({
-    data: {
-      partnerId: partner.id,
-      referralCode: code,
-      referredUserId: userId,
-      referredDealerId: dealerId || null,
-      status: "REGISTERED",
-    },
-  });
+  // Sponsor ata — tek kat
+  const existingProfile = await prisma.partnerProfile.findUnique({ where: { userId } });
+  if (existingProfile && !existingProfile.sponsorPartnerId) {
+    await prisma.partnerProfile.update({
+      where: { id: existingProfile.id },
+      data: { sponsorPartnerId: partner.id },
+    });
+  } else if (!existingProfile) {
+    await getOrCreatePartnerProfile(userId, dealerId, "SOCIAL_DEALER", {
+      activate: false,
+      sponsorPartnerId: partner.id,
+    });
+  }
+
+  return referral;
 }
 
 export async function findActiveReferralForUser(userId: string, dealerId?: string | null) {

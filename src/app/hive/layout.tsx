@@ -26,9 +26,20 @@ export default function HiveLayout({ children }: { children: React.ReactNode }) 
 
       const me = await fetch("/api/auth/me");
       const d = await me.json();
-      if (d.data && (isPlatformAdmin(d.data.role) || d.data.role === "dealer")) {
+      if (d.data && isPlatformAdmin(d.data.role)) {
         setAuthorized(true);
         return;
+      }
+      if (d.data?.role === "dealer" && d.data?.dealerId) {
+        const cp = await fetch("/api/customer-products");
+        const cj = await cp.json();
+        const hive = cj.success
+          ? cj.data.products.find((p: { moduleKey: string; status: string }) => p.moduleKey === "HIVE")
+          : null;
+        if (hive && (hive.status === "ACTIVE" || hive.status === "TRIAL")) {
+          setAuthorized(true);
+          return;
+        }
       }
 
       router.push("/gateway/hive");
@@ -46,5 +57,5 @@ export default function HiveLayout({ children }: { children: React.ReactNode }) 
     );
   }
 
-  return <LegalReacceptanceGate scope="hive">{children}</LegalReacceptanceGate>;
+  return <LegalReacceptanceGate scope="hive"><div data-module-shell="hive" className="min-h-screen bg-nexa-bg text-nexa-text">{children}</div></LegalReacceptanceGate>;
 }

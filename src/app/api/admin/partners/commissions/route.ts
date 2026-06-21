@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/auth";
-import { listCommissions, updateCommissionStatus } from "@/lib/partners/affiliate";
+import { listCommissions, updateCommissionStatus } from "@/lib/partners/partner-commissions";
+import { COMMISSION_TYPE_LABELS } from "@/lib/partners/types";
 
 export async function GET(req: Request) {
   try {
@@ -15,6 +16,7 @@ export async function GET(req: Request) {
         partnerId: c.partnerId,
         orderId: c.orderId,
         commissionType: c.commissionType,
+        typeLabel: COMMISSION_TYPE_LABELS[c.commissionType] || c.commissionType,
         amount: c.amount,
         baseAmount: c.baseAmount,
         rate: c.rate,

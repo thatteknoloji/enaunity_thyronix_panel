@@ -22,7 +22,7 @@ export default function AdminPartnersCommissionsPage() {
   }
 
   return (
-    <PartnerAdminShell title="Affiliate Komisyonları" description="PENDING → APPROVED → PAID">
+    <PartnerAdminShell title="Partner Komisyonları" description="PENDING → APPROVED → PAID">
       <table className="w-full text-sm rounded-xl border bg-white overflow-hidden">
         <thead className="bg-gray-50 text-xs uppercase text-gray-500">
           <tr><th className="px-4 py-2 text-left">Tip</th><th className="px-4 py-2 text-left">Tutar</th><th className="px-4 py-2 text-left">Durum</th><th className="px-4 py-2 text-left">İşlem</th></tr>
@@ -30,7 +30,7 @@ export default function AdminPartnersCommissionsPage() {
         <tbody className="divide-y">
           {rows.map((r) => (
             <tr key={r.id}>
-              <td className="px-4 py-2">{r.commissionType}</td>
+              <td className="px-4 py-2">{(r as { typeLabel?: string }).typeLabel || r.commissionType}</td>
               <td className="px-4 py-2">{r.amount.toFixed(2)} ₺</td>
               <td className="px-4 py-2">{r.status}</td>
               <td className="px-4 py-2 space-x-2 text-xs">

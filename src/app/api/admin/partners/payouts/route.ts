@@ -1,44 +1,51 @@
 import { NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/auth";
-import { listPayouts, updatePayoutStatus } from "@/lib/partners/affiliate";
+import { listAdminPayouts } from "@/lib/partners/payout-service";
+import { PARTNER_TYPE_LABELS, PAYOUT_STATUS_LABELS, normalizePartnerType } from "@/lib/partners/types";
 
-export async function GET() {
+export async function GET(req: Request) {
   try {
     await requireAdmin();
-    const data = await listPayouts(undefined, 200);
+    const url = new URL(req.url);
+    const filters = {
+      status: url.searchParams.get("status") || undefined,
+      partnerType: url.searchParams.get("partnerType") || undefined,
+      dateFrom: url.searchParams.get("dateFrom") || undefined,
+      dateTo: url.searchParams.get("dateTo") || undefined,
+      search: url.searchParams.get("search") || undefined,
+    };
+
+    const rows = await listAdminPayouts(filters, 300);
+
     return NextResponse.json({
       success: true,
-      data: data.map((p) => ({
+      data: rows.map((p) => ({
         id: p.id,
         partnerId: p.partnerId,
+        partnerName: p.partnerName,
+        partnerEmail: p.partnerEmail,
+        partnerType: p.partnerType,
+        partnerTypeLabel: PARTNER_TYPE_LABELS[normalizePartnerType(p.partnerType)],
+        referralCode: p.referralCode,
         amount: p.amount,
+        currency: p.currency,
         status: p.status,
-        paymentMethod: p.paymentMethod,
-        createdAt: p.createdAt,
+        statusLabel: PAYOUT_STATUS_LABELS[p.status] || p.status,
+        iban: p.iban,
+        accountHolder: p.accountHolder,
+        taxIdentityNumber: p.taxIdentityNumber,
+        invoiceUrl: p.invoiceUrl,
+        note: p.note,
+        adminNote: p.adminNote,
+        requestedAt: p.requestedAt,
+        processedAt: p.processedAt,
         paidAt: p.paidAt,
+        commissionCount: p.commissionCount,
+        createdAt: p.createdAt,
       })),
     });
   } catch (e) {
     const msg = e instanceof Error ? e.message : "Ödemeler alınamadı";
     return NextResponse.json({ success: false, error: msg }, { status: 403 });
-  }
-}
-
-export async function PATCH(req: Request) {
-  try {
-    await requireAdmin();
-    const body = (await req.json()) as {
-      id?: string;
-      status?: "REQUESTED" | "PROCESSING" | "PAID" | "CANCELLED";
-      paymentNote?: string;
-    };
-    if (!body.id || !body.status) {
-      return NextResponse.json({ success: false, error: "id ve status gerekli" }, { status: 400 });
-    }
-    const row = await updatePayoutStatus(body.id, body.status, body.paymentNote);
-    return NextResponse.json({ success: true, data: row });
-  } catch (e) {
-    const msg = e instanceof Error ? e.message : "Güncelleme başarısız";
-    return NextResponse.json({ success: false, error: msg }, { status: 500 });
   }
 }

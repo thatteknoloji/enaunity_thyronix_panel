@@ -7,6 +7,18 @@ export async function getDealerModuleLicense(dealerId: string, moduleKey: string
   return prisma.moduleLicense.findFirst({ where: { dealerId, moduleKey }, orderBy: { createdAt: "desc" } });
 }
 
+/** Geçerli modül lisansı — admin grant dahil; ENA_COMMERCE hariç bayi onayına bağlı değil */
+export function isModuleLicenseEntitled(
+  license: { status: string; lifecycleStage: string; endsAt: Date | null },
+  now = new Date()
+): boolean {
+  if (["blocked", "purged"].includes(license.lifecycleStage)) return false;
+  if (license.endsAt && license.endsAt < now) return false;
+  if (["expired", "passive"].includes(license.lifecycleStage)) return false;
+  if (["SUSPENDED", "EXPIRED", "CANCELLED"].includes(license.status)) return false;
+  return license.status === "ACTIVE" || license.status === "TRIAL";
+}
+
 export async function hasModuleAccess(dealerId: string, moduleKey: string): Promise<boolean> {
   const state = await getModuleLicenseState(dealerId, moduleKey);
   return state === "active";
@@ -20,19 +32,10 @@ export async function getModuleLicenseState(dealerId: string, moduleKey: string)
     return approval?.status === "ACTIVE" ? "active" : approval ? "pending" : "none";
   }
 
-  const approval = await prisma.dealerApproval.findUnique({ where: { dealerId } });
-  if (!approval || approval.status !== "ACTIVE") return "pending";
-
   const license = await getDealerModuleLicense(dealerId, moduleKey);
   if (!license) return "none";
 
-  const now = new Date();
-  if (["blocked", "purged"].includes(license.lifecycleStage)) return "none";
-  if (license.endsAt && license.endsAt < now) return "none";
-  if (["expired", "passive"].includes(license.lifecycleStage)) return "none";
-  if (license.status === "SUSPENDED" || license.status === "EXPIRED" || license.status === "CANCELLED") return "none";
-
-  if (license.status === "ACTIVE" || license.status === "TRIAL") return "active";
+  if (isModuleLicenseEntitled(license)) return "active";
   if (license.status === "PENDING_PAYMENT" || license.status === "PENDING_APPROVAL") return "pending";
 
   return "none";

@@ -56,7 +56,13 @@ export function PremiumModuleCard({ product }: { product: CustomerProductCard })
 
         <div className="flex flex-wrap gap-2 pt-1">
           <Link
-            href={canOpen ? meta.gatewayPath : meta.pricingPath}
+            href={
+              canOpen
+                ? product.moduleKey === "LINKSLASH"
+                  ? meta.gatewayPath
+                  : meta.appPath
+                : meta.pricingPath
+            }
             className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-ena-primary text-ena-dark text-xs font-semibold hover:brightness-95 transition-all"
           >
             {canOpen ? <ArrowRight size={14} /> : <ExternalLink size={14} />}

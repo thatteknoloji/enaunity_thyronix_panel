@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getSession } from "@/lib/auth";
-import { resolveThyronixGatewayState } from "@/lib/thyronix/integration";
+import { provisionThyronixAccount, resolveThyronixGatewayState } from "@/lib/thyronix/integration";
 
 export async function GET() {
   const user = await getSession();
@@ -8,6 +8,21 @@ export async function GET() {
     return NextResponse.json({ success: false, error: "Oturum bulunamadı", code: "AUTH_REQUIRED" }, { status: 401 });
   }
 
-  const state = await resolveThyronixGatewayState(user);
+  let state = await resolveThyronixGatewayState(user);
+
+  if (state.step === "setup") {
+    try {
+      const result = await provisionThyronixAccount(user);
+      state = {
+        step: "ready",
+        linkId: result.link.id,
+        externalEmail: result.link.externalEmail,
+        redirectTo: result.redirectTo,
+      };
+    } catch {
+      /* setup ekranı — manuel oluşturma */
+    }
+  }
+
   return NextResponse.json({ success: true, data: state });
 }

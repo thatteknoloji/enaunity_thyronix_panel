@@ -82,6 +82,20 @@ export default function ThyronixLayout({ children }: { children: React.ReactNode
           return;
         }
 
+        if (d.data?.role === "dealer" && d.data?.dealerId) {
+          const cp = await fetch("/api/customer-products");
+          const cj = await cp.json();
+          const thy = cj.success
+            ? cj.data.products.find((p: { moduleKey: string; status: string }) => p.moduleKey === "THYRONIX")
+            : null;
+          if (thy && (thy.status === "ACTIVE" || thy.status === "TRIAL")) {
+            setAuthorized(true);
+            setIsAdmin(false);
+            setUserName(d.data.name || d.data.email || "Bayi");
+            return;
+          }
+        }
+
         router.push("/gateway/thyronix");
       } catch {
         setAuthError(true);
@@ -181,7 +195,7 @@ export default function ThyronixLayout({ children }: { children: React.ReactNode
   );
 
   return (
-    <div className="app-viewport flex h-screen max-w-[100dvw] bg-nexa-bg">
+    <div className="app-viewport flex h-screen max-w-[100dvw] bg-nexa-bg" data-module-shell="thyronix">
       <OnboardingWizard
         open={showOnboarding}
         initialStep={onboardingStep}
