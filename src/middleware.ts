@@ -46,11 +46,10 @@ function jsonError(status: number, message: string) {
   return NextResponse.json({ success: false, error: message }, { status });
 }
 
-/** LinkSlash bayi erişimi — gateway ↔ dealer döngüsünü önler */
+/** LinkSlash bayi erişimi — lisanssız veya kontrol hatasında gateway'e yönlendir */
 async function guardLinkSlashDealerAccess(
   request: NextRequest,
-  dealerId: string,
-  opts?: { allowOnCheckFailure?: boolean }
+  dealerId: string
 ): Promise<NextResponse | null> {
   try {
     const checkRes = await fetch(
@@ -58,15 +57,11 @@ async function guardLinkSlashDealerAccess(
     );
     const checkData = await checkRes.json();
     if (checkData.access) return null;
-    if (checkData.reason === "LISANS_YOK") {
-      return NextResponse.redirect(new URL("/gateway/linkslash", request.url));
-    }
     if (checkData.reason === "BAYI_ONAYI_YOK") {
       return NextResponse.redirect(new URL("/dealer/profile", request.url));
     }
     return NextResponse.redirect(new URL("/gateway/linkslash", request.url));
   } catch {
-    if (opts?.allowOnCheckFailure) return null;
     return NextResponse.redirect(new URL("/gateway/linkslash", request.url));
   }
 }
@@ -193,7 +188,7 @@ export async function middleware(request: NextRequest) {
     if (isAdminRole((payloadLs.role as string) || "")) return NextResponse.next();
     const dealerIdLs = (payloadLs as { dealerId?: string }).dealerId;
     if (dealerIdLs) {
-      const blocked = await guardLinkSlashDealerAccess(request, dealerIdLs, { allowOnCheckFailure: true });
+      const blocked = await guardLinkSlashDealerAccess(request, dealerIdLs);
       if (blocked) return blocked;
       return NextResponse.next();
     }
@@ -212,10 +207,11 @@ export async function middleware(request: NextRequest) {
     if (isAdminRole((payloadLs.role as string) || "")) return NextResponse.next();
     const dealerIdLs = (payloadLs as { dealerId?: string }).dealerId;
     if (dealerIdLs) {
-      const blocked = await guardLinkSlashDealerAccess(request, dealerIdLs, { allowOnCheckFailure: true });
+      const blocked = await guardLinkSlashDealerAccess(request, dealerIdLs);
       if (blocked) return blocked;
+      return NextResponse.next();
     }
-    return NextResponse.next();
+    return NextResponse.redirect(new URL("/gateway/linkslash", request.url));
   }
 
   // ── POD Creator dealer route ──

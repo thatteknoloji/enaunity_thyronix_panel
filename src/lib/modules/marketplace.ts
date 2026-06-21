@@ -110,7 +110,7 @@ export function resolveMarketplaceCta(
   const meta = MARKETPLACE_MODULES[key];
   const enterPath = resolveEnterPath(key, meta);
 
-  if (licenseState === "active" || unifiedStatus === "ACTIVE" || unifiedStatus === "TRIAL") {
+  if (licenseState === "active") {
     return {
       ctaLabel: "Modüle Git",
       ctaHref: key === "POD_CREATOR" ? meta.appPath : enterPath,
