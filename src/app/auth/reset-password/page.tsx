@@ -6,6 +6,7 @@ import Link from "next/link";
 import toast from "react-hot-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { Loader2 } from "lucide-react";
 
 function ResetPasswordForm() {
@@ -63,8 +64,8 @@ function ResetPasswordForm() {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      <Input label="Yeni şifre" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={8} disabled={loading} />
-      <Input label="Yeni şifre (tekrar)" type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required minLength={8} disabled={loading} />
+      <PasswordInput label="Yeni şifre" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={8} disabled={loading} autoComplete="new-password" />
+      <PasswordInput label="Yeni şifre (tekrar)" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required minLength={8} disabled={loading} autoComplete="new-password" />
       <Button type="submit" className="w-full" disabled={loading}>
         {loading ? <><Loader2 size={16} className="mr-2 animate-spin" /> Kaydediliyor...</> : "Şifreyi Güncelle"}
       </Button>

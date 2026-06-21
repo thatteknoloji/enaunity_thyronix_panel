@@ -24,6 +24,7 @@ const KEY_COLOR: Record<string, string> = {
   HIVE: "violet",
   THYRONIX: "blue",
   POD_CREATOR: "emerald",
+  AI_PAGE_FACTORY: "violet",
 };
 
 export function ModuleMarketplaceCard({ module: m }: { module: MarketplaceCard }) {

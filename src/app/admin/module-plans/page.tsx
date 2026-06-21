@@ -37,7 +37,7 @@ export default function AdminModulePlansPage() {
       {editing && (
         <div className="rounded-xl border border-ena-border bg-ena-card p-6 space-y-3">
           <div className="grid grid-cols-3 gap-3">
-            <select value={form.moduleKey} onChange={e=>setForm({...form,moduleKey:e.target.value})} className="rounded-lg border border-ena-border bg-ena-dark px-3 py-2 text-sm text-ena-text"><option value="THYRONIX">THYRONIX</option><option value="HIVE">HIVE</option><option value="HIVE_PRO">HIVE Pro</option><option value="LINKSLASH">LinkSlash</option><option value="POD_CREATOR">POD Creator</option></select>
+            <select value={form.moduleKey} onChange={e=>setForm({...form,moduleKey:e.target.value})} className="rounded-lg border border-ena-border bg-ena-dark px-3 py-2 text-sm text-ena-text"><option value="THYRONIX">THYRONIX</option><option value="HIVE">HIVE</option><option value="HIVE_PRO">HIVE Pro</option><option value="LINKSLASH">LinkSlash</option><option value="POD_CREATOR">POD Creator</option><option value="AI_PAGE_FACTORY">AI Page Factory</option></select>
             <input value={form.planKey} onChange={e=>setForm({...form,planKey:e.target.value})} placeholder="Plan key (starter)" className="rounded-lg border border-ena-border bg-ena-dark px-3 py-2 text-sm text-ena-text"/>
             <input value={form.name} onChange={e=>setForm({...form,name:e.target.value})} placeholder="Plan adı" className="rounded-lg border border-ena-border bg-ena-dark px-3 py-2 text-sm text-ena-text"/>
           </div>

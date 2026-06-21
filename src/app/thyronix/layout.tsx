@@ -16,6 +16,7 @@ const navItems = [
   { href: "/thyronix", label: "Kontrol Merkezi", icon: LayoutDashboard },
   { href: "/thyronix/getting-started", label: "Hızlı Başlangıç", icon: Rocket },
   { href: "/thyronix/sources", label: "Kaynaklar", icon: Link2 },
+  { href: "/thyronix/connectors/bezos-bayi", label: "Bezos XML", icon: Link2 },
   { href: "/thyronix/products", label: "Ürünler", icon: Package },
   { href: "/thyronix/processing", label: "İşleme", icon: GitBranch },
   { href: "/thyronix/feeds", label: "Feedler", icon: Radio },

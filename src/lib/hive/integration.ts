@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/db";
-import { isAdminRole } from "@/lib/auth/admin-access";
+import { isAdminRole, isSuperAdmin } from "@/lib/auth/admin-access";
 import { getModuleLicenseState } from "@/lib/modules/access";
 import {
   createProductAccountLink,
@@ -94,6 +94,11 @@ export async function getHiveWorkspaceForUser(enaUser: EnaUser) {
 export async function resolveHiveGatewayState(enaUser: EnaUser): Promise<HiveGatewayState> {
   if (!isHiveEnabled()) {
     return { step: "disabled", reason: "HIVE modülü yakında kullanıma açılacak", code: "HIVE_DISABLED" };
+  }
+
+  if (isSuperAdmin(enaUser.role)) {
+    await ensureHiveWorkspace(enaUser, enaUser.id);
+    return { step: "ready", redirectTo: "/hive" };
   }
 
   if (!isAdminRole(enaUser.role)) {

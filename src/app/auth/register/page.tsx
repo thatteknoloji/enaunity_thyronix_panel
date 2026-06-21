@@ -5,6 +5,7 @@ import Link from "next/link";
 import toast from "react-hot-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { Loader2, Upload } from "lucide-react";
 import { MEMBER_DOCUMENT_LABELS, MEMBER_REQUIRED_DOCUMENTS } from "@/lib/members/checklist";
 import { REGISTRATION_OPTIONAL_SLUGS, REGISTRATION_REQUIRED_SLUGS } from "@/lib/legal/constants";
@@ -117,7 +118,7 @@ export default function RegisterPage() {
         <form onSubmit={handleSubmit} className="space-y-4">
           <Input id="name" label="Ad Soyad *" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required disabled={loading} />
           <Input id="email" label="E-posta *" type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} required disabled={loading} />
-          <Input id="password" label="Şifre *" type="password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} required disabled={loading} />
+          <PasswordInput id="password" label="Şifre *" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} required disabled={loading} autoComplete="new-password" />
           <Input id="phone" label="Telefon *" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} required disabled={loading} />
           <Input id="company" label="Firma / Ünvan *" value={form.company} onChange={(e) => setForm({ ...form, company: e.target.value })} required disabled={loading} />
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

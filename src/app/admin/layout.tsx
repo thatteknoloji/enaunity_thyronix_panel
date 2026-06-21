@@ -108,6 +108,8 @@ function buildNavGroups(t: (key: string) => string) {
         { href: "/admin/partners/commissions", label: "Komisyonlar", icon: DollarSign },
         { href: "/admin/partners/payouts", label: "Ödemeler", icon: Banknote },
         { href: "/admin/pod", label: "POD Merkezi", icon: Shirt },
+        { href: "/admin/page-factory", label: "AI Page Factory", icon: Layers },
+        { href: "/admin/page-factory/data", label: "Veri Evreni", icon: Layers },
       ],
     },
     {

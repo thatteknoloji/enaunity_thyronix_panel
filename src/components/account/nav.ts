@@ -3,6 +3,7 @@ import {
   Home, User as UserIcon, Shield, ShoppingCart, FileText, Save, Heart,
   Wallet, ReceiptText, CreditCard, MapPin, Upload, RotateCcw, Sparkles, Store, Gift, FileSignature, Palette, Bell,
 } from "lucide-react";
+import { getAdminSecretPath, isAdminRole } from "@/lib/auth/admin-access";
 
 export type AccountTab =
   | "overview"
@@ -52,8 +53,6 @@ export const ACCOUNT_NAV: NavGroup[] = [
     label: "Finans",
     items: [
       { type: "tab", key: "billing", label: "Cari Hesap", icon: Wallet },
-      { type: "tab", key: "billing", label: "Faturalar", icon: ReceiptText },
-      { type: "tab", key: "billing", label: "Ödemeler", icon: CreditCard },
     ],
   },
   {
@@ -66,11 +65,7 @@ export const ACCOUNT_NAV: NavGroup[] = [
   },
   {
     label: "Premium Modüller",
-    items: [
-      { type: "link", href: "/dealer/modules", label: "Modül Pazarı", icon: Sparkles },
-      { type: "link", href: "/products", label: "Modül Merkezi", icon: Store },
-      { type: "link", href: "/product-library", label: "Hazır Ürünler", icon: Store },
-    ],
+    items: [],
   },
   {
     label: "Sistem",
@@ -97,3 +92,20 @@ export const DOC_TYPE_LABELS: Record<string, string> = {
   trade_registry: "Ticaret Sicil Gazetesi",
   other: "Diğer",
 };
+
+/** Rol bazlı premium modül linkleri — admin /dealer yönlendirme tuzağına düşmez */
+export function getPremiumModuleNavLinks(role?: string): NavItem[] {
+  const adminBase = getAdminSecretPath();
+  if (isAdminRole(role)) {
+    return [
+      { type: "link", href: `${adminBase}/module-licenses`, label: "Modül Lisansları", icon: Sparkles },
+      { type: "link", href: `${adminBase}/product-library`, label: "Hazır Ürün Deposu", icon: Store },
+      { type: "link", href: "/products", label: "Modül Merkezi", icon: Store },
+    ];
+  }
+  return [
+    { type: "link", href: "/dealer/modules", label: "Modül Pazarı", icon: Sparkles },
+    { type: "link", href: "/dealer/product-library", label: "Hazır Ürünler", icon: Store },
+    { type: "link", href: "/products", label: "Modül Merkezi", icon: Store },
+  ];
+}

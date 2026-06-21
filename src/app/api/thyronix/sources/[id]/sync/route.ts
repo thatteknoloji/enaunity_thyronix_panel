@@ -2,7 +2,12 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { assertCanAccessSource, requireThyronixDealerOrAdmin, thyronixErrorResponse } from "@/lib/thyronix/access";
 import { getTemplate } from "@/lib/thyronix/templates";
-import { parseXmlToProducts } from "@/lib/thyronix/xml-parser";
+import {
+  fetchAndParseXmlFeeds,
+  parseFixedValues,
+  productToThyronixRow,
+  resolveSourceFeedUrls,
+} from "@/lib/thyronix/feed-fetch";
 import { parseExcel, mapExcelToProducts, getIdentityKey } from "@/lib/thyronix/excel-parser";
 import { parseCsvToProducts } from "@/lib/thyronix/csv-parser";
 
@@ -36,41 +41,59 @@ export async function POST(_req: Request, { params }: { params: Promise<{ id: st
     let customFieldMap: Record<string, string> = {};
     let fixedValues: Record<string, string> = {};
     try { customFieldMap = JSON.parse((source as any).fieldMapping || "{}"); } catch {}
-    try { fixedValues = JSON.parse((source as any).fixedValues || "{}"); } catch {}
+    fixedValues = parseFixedValues((source as any).fixedValues);
 
     await preSnapshot(id, source.name);
 
     // ═══ XML ═══
     if (sourceType === "xml") {
-      const res = await fetch(url, { headers: { "User-Agent": "THYRONIX Feed Engine/1.0", Accept: "text/xml,application/xml,*/*" }, signal: AbortSignal.timeout(90000) });
-      if (!res.ok) { const em = `HTTP ${res.status}`; await prisma.thyronixSource.update({ where: { id }, data: { errorLog: em, status: "error" } as any }); return NextResponse.json({ success: false, error: em }, { status: 400 }); }
-      const xmlText = await res.text();
-      if (!xmlText || xmlText.length < 10) { await prisma.thyronixSource.update({ where: { id }, data: { errorLog: "Boş yanıt", status: "error" } as any }); return NextResponse.json({ success: false, error: "Boş yanıt" }, { status: 400 }); }
-
       const formatId = (source as any).inputFormat || "custom_xml";
       const template = getTemplate(formatId);
       if (!template) return NextResponse.json({ success: false, error: "Geçersiz format" }, { status: 400 });
 
-      const products = parseXmlToProducts(xmlText, template, customFieldMap);
-      const seen = new Set<string>();
-      const allData: any[] = [];
-      for (const p of products) {
-        const extId = String(p.barcode || p.stockCode || p.name || Math.random().toString(36));
-        if (seen.has(extId)) continue; seen.add(extId);
-        allData.push({ sourceId: id, externalId: extId, name: p.name || "", description: p.description || null, brand: fixedValues.brand || p.brand || null, category: fixedValues.category || p.category || null, barcode: p.barcode || null, stockCode: p.stockCode || null, modelCode: p.modelCode || null, price: p.price || 0, stock: p.stock || 0, currency: fixedValues.currency || p.currency || "TRY", images: p.images || null, variantData: (p as any).variantData || null, status: fixedValues.status || p.status || "active" });
+      try {
+        const feedUrls = resolveSourceFeedUrls(url, (source as any).fixedValues);
+        const { products, feedStats } = await fetchAndParseXmlFeeds(feedUrls, template, customFieldMap);
+
+        const seen = new Set<string>();
+        const allData: any[] = [];
+        for (const p of products) {
+          const row = productToThyronixRow(p, id, fixedValues);
+          if (seen.has(row.externalId)) continue;
+          seen.add(row.externalId);
+          allData.push(row);
+        }
+
+        await prisma.thyronixProduct.deleteMany({ where: { sourceId: id } });
+        const BATCH = 1000;
+        for (let i = 0; i < allData.length; i += BATCH) {
+          await prisma.thyronixProduct.createMany({ data: allData.slice(i, i + BATCH) });
+        }
+
+        await postSnapshot(id, source.name, allData.length);
+        const feedSummary = feedStats.map((f) => (f.error ? `${f.url}: HATA` : `${f.count} ürün`)).join(" | ");
+        await prisma.thyronixSource.update({
+          where: { id },
+          data: { productCount: allData.length, lastSync: new Date(), status: "active", errorLog: null } as any,
+        });
+        await prisma.thyronixSyncLog.create({
+          data: {
+            type: "sync",
+            referenceId: source.name,
+            status: "success",
+            message: `XML (${feedUrls.length} feed): ${allData.length} ürün — ${feedSummary}`,
+          },
+        });
+
+        return NextResponse.json({
+          success: true,
+          data: { total: allData.length, created: allData.length, feeds: feedStats, duration: Date.now() - startTime },
+        });
+      } catch (e) {
+        const em = e instanceof Error ? e.message : "XML sync hatası";
+        await prisma.thyronixSource.update({ where: { id }, data: { errorLog: em, status: "error" } as any });
+        return NextResponse.json({ success: false, error: em }, { status: 400 });
       }
-
-      await prisma.thyronixProduct.deleteMany({ where: { sourceId: id } });
-      const BATCH = 1000;
-      for (let i = 0; i < allData.length; i += BATCH) {
-        await prisma.thyronixProduct.createMany({ data: allData.slice(i, i + BATCH) });
-      }
-
-      await postSnapshot(id, source.name, allData.length);
-      await prisma.thyronixSource.update({ where: { id }, data: { productCount: allData.length, lastSync: new Date(), status: "active" } as any });
-      await prisma.thyronixSyncLog.create({ data: { type: "sync", referenceId: source.name, status: "success", message: `XML: ${allData.length} ürün` } });
-
-      return NextResponse.json({ success: true, data: { total: allData.length, created: allData.length, duration: Date.now() - startTime } });
     }
 
     // ═══ Excel ═══

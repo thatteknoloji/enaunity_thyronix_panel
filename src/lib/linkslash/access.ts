@@ -1,4 +1,4 @@
-import { isAdminRole } from "@/lib/auth/admin-access";
+import { isAdminRole, isSuperAdmin } from "@/lib/auth/admin-access";
 import { getDealerApprovalStatus, getModuleLicenseState } from "@/lib/modules/access";
 
 export const LINKSLASH_MODULE_KEY = "LINKSLASH";
@@ -19,7 +19,7 @@ export async function assertLinkSlashAccess(user: UserLike | null): Promise<Link
     return { allowed: false, reason: "Giriş yapmalısınız", code: "AUTH_REQUIRED" };
   }
 
-  if (isAdminRole(user.role)) {
+  if (isSuperAdmin(user.role) || isAdminRole(user.role)) {
     return { allowed: true };
   }
 

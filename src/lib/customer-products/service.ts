@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/db";
 import { getProductLibraryOverview } from "@/lib/product-library/package-access-service";
-import { isAdminRole } from "@/lib/auth/admin-access";
+import { isAdminRole, isSuperAdmin } from "@/lib/auth/admin-access";
 import { getDealerApprovalStatus, getDealerModuleLicense, getModuleLabel, getModuleLicenseState } from "@/lib/modules/access";
 import {
   CUSTOMER_PRODUCT_KEYS,
@@ -107,9 +107,29 @@ async function buildProductCard(
   dealerId: string | null,
   enaUserId: string,
   moduleKey: CustomerProductKey,
-  approvalStatus?: string | null
+  approvalStatus?: string | null,
+  userRole?: string
 ): Promise<CustomerProductCard> {
   const meta = PRODUCT_META[moduleKey];
+
+  if (isSuperAdmin(userRole)) {
+    return {
+      moduleKey,
+      label: meta.label,
+      description: meta.description,
+      status: "ACTIVE",
+      rawStatus: "ACTIVE",
+      planKey: "super-admin",
+      planName: "Süper Admin",
+      lastPaymentAt: null,
+      lastPaymentAmount: null,
+      lastPaymentStatus: null,
+      lastLoginAt: null,
+      linkStatus: null,
+      licenseId: null,
+      entitled: true,
+    };
+  }
 
   let license = null;
   let rawStatus: string | null = null;
@@ -220,7 +240,7 @@ export async function getCustomerProductsOverview(
 
   const products = await Promise.all(
     CUSTOMER_PRODUCT_KEYS.map((key) =>
-      buildProductCard(dealerId, user.id, key, approval?.status)
+      buildProductCard(dealerId, user.id, key, approval?.status, user.role)
     )
   );
 
@@ -243,7 +263,7 @@ export async function getCustomerLicenses(user: SessionUser, dealerIdOverride?: 
 
   const cards = await Promise.all(
     CUSTOMER_PRODUCT_KEYS.map((key) =>
-      buildProductCard(dealerId, user.id, key, approval?.status)
+      buildProductCard(dealerId, user.id, key, approval?.status, user.role)
     )
   );
 

@@ -1,4 +1,4 @@
-import { isAdminRole, getAdminSecretPath } from "@/lib/auth/admin-access";
+import { isAdminRole, getAdminSecretPath, isSuperAdmin } from "@/lib/auth/admin-access";
 import { assertLinkSlashAccess } from "./access";
 
 export type LinkSlashGatewayStep = "pricing" | "pending" | "ready" | "dealer_required" | "auth_required";
@@ -19,6 +19,10 @@ type EnaUser = {
 export async function resolveLinkSlashGatewayState(user: EnaUser | null): Promise<LinkSlashGatewayState> {
   if (!user) {
     return { step: "auth_required", reason: "Giriş gerekli", code: "AUTH_REQUIRED" };
+  }
+
+  if (isSuperAdmin(user.role)) {
+    return { step: "ready", redirectTo: "/dealer/linkslash" };
   }
 
   if (isAdminRole(user.role)) {

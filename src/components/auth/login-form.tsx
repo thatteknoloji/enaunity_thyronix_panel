@@ -6,6 +6,7 @@ import Link from "next/link";
 import toast from "react-hot-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { Loader2 } from "lucide-react";
 
 export default function LoginForm() {
@@ -134,14 +135,14 @@ export default function LoginForm() {
             required
             disabled={loading}
           />
-          <Input
+          <PasswordInput
             id="password"
             label="Şifre"
-            type="password"
             value={form.password}
             onChange={(e) => setForm({ ...form, password: e.target.value })}
             required
             disabled={loading}
+            autoComplete="current-password"
           />
 
           <div className="text-right">

@@ -1,11 +1,11 @@
 import type { LucideIcon } from "lucide-react";
-import { Package, Sparkles, Link2, Shirt } from "lucide-react";
+import { Package, Sparkles, Link2, Shirt, Layers } from "lucide-react";
 import type { UnifiedStatus } from "@/lib/customer-products/types";
 import { PRODUCT_META, type CustomerProductKey } from "@/lib/customer-products/types";
 import { getModuleLicenseState, getDealerModuleLicense } from "./access";
 
 /** Modül Pazarı'nda listelenen premium modüller */
-export const MARKETPLACE_MODULE_KEYS = ["LINKSLASH", "HIVE", "THYRONIX", "POD_CREATOR"] as const;
+export const MARKETPLACE_MODULE_KEYS = ["LINKSLASH", "HIVE", "THYRONIX", "POD_CREATOR", "AI_PAGE_FACTORY"] as const;
 export type MarketplaceModuleKey = (typeof MARKETPLACE_MODULE_KEYS)[number];
 
 export type MarketplaceModuleMeta = {
@@ -65,6 +65,17 @@ export const MARKETPLACE_MODULES: Record<MarketplaceModuleKey, MarketplaceModule
     marketingPath: "/dealer/modules",
     checkoutPath: "/payment/checkout?type=module&moduleKey=POD_CREATOR&planKey=starter",
     icon: Shirt,
+  },
+  AI_PAGE_FACTORY: {
+    moduleKey: "AI_PAGE_FACTORY",
+    label: "AI Page Factory",
+    description: "Sayfa evreni planlama — topology, cluster, blueprint (içerik üretmez)",
+    color: "violet",
+    appPath: "/dealer/page-factory",
+    gatewayPath: "/gateway/page-factory",
+    marketingPath: "/dealer/modules",
+    checkoutPath: "/payment/checkout?type=module&moduleKey=AI_PAGE_FACTORY&planKey=starter",
+    icon: Layers,
   },
 };
 

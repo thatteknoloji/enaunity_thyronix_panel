@@ -1,7 +1,12 @@
 import { NextResponse } from "next/server";
 import { getSession } from "@/lib/auth";
+import { isSuperAdmin } from "@/lib/auth/admin-access";
 import { getCustomerProductsOverview } from "@/lib/customer-products/service";
-import { getDealerMarketplaceOverview, buildHeaderNavItems } from "@/lib/modules/marketplace";
+import {
+  getDealerMarketplaceOverview,
+  buildHeaderNavItems,
+} from "@/lib/modules/marketplace";
+import { buildSuperAdminMarketplaceOverview } from "@/lib/modules/super-admin-access";
 
 export async function GET() {
   try {
@@ -9,6 +14,18 @@ export async function GET() {
     if (!user) {
       return NextResponse.json({ success: false, error: "Giriş gerekli", code: "AUTH_REQUIRED" }, { status: 401 });
     }
+
+    if (isSuperAdmin(user.role)) {
+      const marketplace = buildSuperAdminMarketplaceOverview();
+      return NextResponse.json({
+        success: true,
+        data: {
+          ...marketplace,
+          headerNav: buildHeaderNavItems(marketplace.modules),
+        },
+      });
+    }
+
     if (user.role !== "dealer" || !user.dealerId) {
       return NextResponse.json({ success: false, error: "Bayi hesabı gerekli" }, { status: 403 });
     }

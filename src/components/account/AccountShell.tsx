@@ -4,9 +4,10 @@ import type { ReactNode } from "react";
 import { useEffect, useState } from "react";
 import type { LucideIcon } from "lucide-react";
 import Link from "next/link";
-import { ChevronRight, LogOut } from "lucide-react";
-import { ACCOUNT_NAV, type AccountTab } from "./nav";
+import { ChevronRight, Download, LogOut } from "lucide-react";
+import { ACCOUNT_NAV, getPremiumModuleNavLinks, type AccountTab } from "./nav";
 import { MARKETPLACE_MODULES, type MarketplaceModuleKey } from "@/lib/modules/marketplace";
+import { getAdminSecretPath, isAdminRole, isSuperAdmin } from "@/lib/auth/admin-access";
 
 type Props = {
   tab: AccountTab | "appearance";
@@ -14,6 +15,7 @@ type Props = {
   activePath?: string;
   userName?: string;
   userEmail?: string;
+  userRole?: string;
   logo?: string;
   onLogout: () => void;
   children: ReactNode;
@@ -48,29 +50,48 @@ function NavLinkItem({
   );
 }
 
-export function AccountShell({ tab, onTab, activePath, userName, userEmail, logo, onLogout, children, headerActions }: Props) {
+export function AccountShell({ tab, onTab, activePath, userName, userEmail, userRole, logo, onLogout, children, headerActions }: Props) {
   const [licensedLinks, setLicensedLinks] = useState<LicensedLink[]>([]);
+  const premiumLinks = getPremiumModuleNavLinks(userRole);
 
   useEffect(() => {
     fetch("/api/auth/me")
       .then((r) => r.json())
       .then((d) => {
-        if (d.data?.role !== "dealer") {
+        const role = d.data?.role;
+        const loadModules = (mod: { success?: boolean; data?: { activeModules?: Array<{ moduleKey: string; label: string; ctaHref: string }> } }) => {
+          if (!mod.success) return;
+          const links: LicensedLink[] = (mod.data?.activeModules || [])
+            .map((m) => ({
+              href: m.ctaHref,
+              label: m.label,
+              icon: MARKETPLACE_MODULES[m.moduleKey as MarketplaceModuleKey]?.icon,
+            }))
+            .filter((l: LicensedLink) => l.icon);
+          const hasLinkSlash = (mod.data?.activeModules || []).some((m) => m.moduleKey === "LINKSLASH");
+          if (hasLinkSlash) {
+            links.unshift({ href: "/linkslash/downloads", label: "LinkSlash APK İndir", icon: Download });
+          }
+          setLicensedLinks(links);
+        };
+
+        if (isSuperAdmin(role)) {
+          return fetch("/api/dealer/modules").then((r) => r.json()).then(loadModules);
+        }
+        if (isAdminRole(role)) {
+          setLicensedLinks([
+            { href: "/linkslash/downloads", label: "LinkSlash APK İndir", icon: Download },
+            { href: `${getAdminSecretPath()}/linkslash`, label: "LinkSlash Yönetim", icon: MARKETPLACE_MODULES.LINKSLASH.icon },
+          ]);
+          return;
+        }
+        if (role !== "dealer") {
           setLicensedLinks([]);
           return;
         }
         return fetch("/api/dealer/modules")
           .then((r) => r.json())
-          .then((mod) => {
-            if (!mod.success) return;
-            setLicensedLinks(
-              (mod.data.activeModules || []).map((m: { moduleKey: string; label: string; ctaHref: string }) => ({
-                href: m.ctaHref,
-                label: m.label,
-                icon: MARKETPLACE_MODULES[m.moduleKey as MarketplaceModuleKey]?.icon,
-              })).filter((l: LicensedLink) => l.icon)
-            );
-          });
+          .then(loadModules);
       })
       .catch(() => setLicensedLinks([]));
   }, []);
@@ -134,6 +155,18 @@ export function AccountShell({ tab, onTab, activePath, userName, userEmail, logo
                 <div key={group.label}>
                   <p className="px-3 mb-2 text-[10px] font-semibold uppercase tracking-wider text-ena-light/50">{group.label}</p>
                   <div className="space-y-0.5">
+                    {group.label === "Premium Modüller" &&
+                      premiumLinks
+                        .filter((item): item is Extract<typeof item, { type: "link" }> => item.type === "link")
+                        .map((item) => (
+                        <NavLinkItem
+                          key={item.href + item.label}
+                          href={item.href}
+                          label={item.label}
+                          icon={item.icon}
+                          active={activePath === item.href}
+                        />
+                      ))}
                     {group.label === "Premium Modüller" &&
                       licensedLinks.map((link) => (
                         <NavLinkItem

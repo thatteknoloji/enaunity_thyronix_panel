@@ -244,6 +244,33 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
+  // ── AI Page Factory dealer route ──
+  if (pathname.startsWith("/dealer/page-factory")) {
+    if (!token) {
+      const loginUrl = new URL("/auth/login", request.url);
+      loginUrl.searchParams.set("redirect", pathname);
+      return NextResponse.redirect(loginUrl);
+    }
+    const payloadPf = await verifyJWT(token);
+    if (!payloadPf) return NextResponse.redirect(new URL("/auth/login", request.url));
+    if (isAdminRole((payloadPf.role as string) || "")) return NextResponse.next();
+    const dealerIdPf = (payloadPf as { dealerId?: string }).dealerId;
+    if (dealerIdPf) {
+      try {
+        const checkRes = await fetch(
+          `${request.nextUrl.origin}/api/internal/check-module-access?dealerId=${dealerIdPf}&moduleKey=AI_PAGE_FACTORY`
+        );
+        const checkData = await checkRes.json();
+        if (!checkData.access) {
+          return NextResponse.redirect(new URL("/gateway/page-factory", request.url));
+        }
+      } catch {
+        return NextResponse.redirect(new URL("/gateway/page-factory", request.url));
+      }
+    }
+    return NextResponse.next();
+  }
+
   // ── Product Gateway (ENA session required) ──
   if (pathname.startsWith("/gateway")) {
     if (!token) {

@@ -202,6 +202,18 @@ export default function AdminLinkSlashPage() {
                   >
                     <ExternalLink size={12} /> Uygulamayı Aç
                   </button>
+                  <Link
+                    href={toAdminUrl("/admin/linkslash/android")}
+                    className="inline-flex items-center gap-1 rounded-lg border border-violet-200 bg-violet-50 px-3 py-1.5 text-xs text-violet-800 hover:bg-violet-100"
+                  >
+                    <ExternalLink size={12} /> Android APK İndir / Yönet
+                  </Link>
+                  <Link
+                    href="/linkslash/downloads"
+                    className="inline-flex items-center gap-1 rounded-lg border border-gray-200 px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-50"
+                  >
+                    <ExternalLink size={12} /> İndirme Merkezi
+                  </Link>
                 </div>
               </div>
 

@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Loader2, Sparkles, Lock } from "lucide-react";
-import { isPlatformAdmin, establishAdminProductSession } from "@/lib/product-auth/admin-bypass";
+import { Loader2, Sparkles, Lock, Eye, EyeOff } from "lucide-react";
+import { isPlatformAdmin, establishAdminProductSession, bypassesProductLicense } from "@/lib/product-auth/admin-bypass";
 
 export default function HiveLoginForm() {
   const router = useRouter();
@@ -11,6 +11,7 @@ export default function HiveLoginForm() {
   const [form, setForm] = useState({ email: "", password: "" });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
     const email = searchParams.get("email");
@@ -46,6 +47,13 @@ export default function HiveLoginForm() {
         setLoading(false);
         return;
       }
+      if (bypassesProductLicense(authData.data?.role)) {
+        await establishAdminProductSession("HIVE");
+        const redirectTo = searchParams.get("redirect") || "/hive";
+        window.location.href = redirectTo;
+        return;
+      }
+
       if (!isPlatformAdmin(authData.data?.role)) {
         setError("HIVE hesabınız bulunamadı. Önce ENA gateway üzerinden bağlantı oluşturun.");
         setLoading(false);
@@ -83,8 +91,15 @@ export default function HiveLoginForm() {
           </div>
           <div>
             <label className="text-xs text-ena-light mb-1 block">Şifre</label>
-            <input type="password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} required
-              className="w-full rounded-lg border border-white/10 bg-black/20 px-3 py-2.5 text-sm text-white" />
+            <div className="relative">
+              <input type={showPassword ? "text" : "password"} value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} required autoComplete="current-password"
+                className="w-full rounded-lg border border-white/10 bg-black/20 px-3 py-2.5 pr-10 text-sm text-white" />
+              <button type="button" tabIndex={-1} onClick={() => setShowPassword(v => !v)} disabled={loading}
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-ena-light/70 hover:text-white"
+                aria-label={showPassword ? "Şifreyi gizle" : "Şifreyi göster"} aria-pressed={showPassword}>
+                {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
+              </button>
+            </div>
           </div>
           <button type="submit" disabled={loading}
             className="w-full py-2.5 rounded-lg bg-violet-600 hover:bg-violet-700 text-white text-sm font-medium flex items-center justify-center gap-2 disabled:opacity-50">

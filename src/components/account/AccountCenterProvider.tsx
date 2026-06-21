@@ -36,16 +36,30 @@ export function AccountCenterProvider({ children }: { children: ReactNode }) {
 
   const isAppearance = pathname === "/account/appearance";
 
+  const validTabs: AccountTab[] = [
+    "overview", "profile", "security", "orders", "quotes", "contracts",
+    "addresses", "documents", "wishlist", "returns", "billing",
+    "notifications", "saved-carts", "coupons", "integrations",
+  ];
+
+  const readHashTab = (): AccountTab | null => {
+    if (typeof window === "undefined") return null;
+    const hash = window.location.hash.replace("#", "") as AccountTab;
+    return validTabs.includes(hash) ? hash : null;
+  };
+
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      const hash = window.location.hash.replace("#", "") as AccountTab;
-      const valid: AccountTab[] = [
-        "overview", "profile", "security", "orders", "quotes", "contracts",
-        "addresses", "documents", "wishlist", "returns", "quotes", "billing",
-        "notifications", "saved-carts", "coupons", "integrations",
-      ];
-      if (valid.includes(hash)) setTab(hash);
-    }
+    const hashTab = readHashTab();
+    if (hashTab) setTab(hashTab);
+  }, [pathname]);
+
+  useEffect(() => {
+    const onHashChange = () => {
+      const hashTab = readHashTab();
+      if (hashTab) setTab(hashTab);
+    };
+    window.addEventListener("hashchange", onHashChange);
+    return () => window.removeEventListener("hashchange", onHashChange);
   }, []);
 
   useEffect(() => {
@@ -99,6 +113,7 @@ export function AccountCenterProvider({ children }: { children: ReactNode }) {
         activePath={pathname}
         userName={user?.name}
         userEmail={user?.email}
+        userRole={user?.role}
         logo={logo}
         onLogout={handleLogout}
         headerActions={

@@ -15,7 +15,7 @@ import { LinkSlashAndroidDownloadCardServer } from "@/components/linkslash/LinkS
 import { getSession } from "@/lib/auth";
 import { isAdminRole } from "@/lib/auth/admin-access";
 import { LINKSLASH_BRAND } from "@/lib/linkslash/brand";
-import { getLinkSlashDownloadStatus } from "@/lib/linkslash/download-status";
+import { getLinkSlashDownloadStatus, isApkDownloadable } from "@/lib/linkslash/download-status";
 import { formatDownloadSize } from "@/lib/linkslash/format";
 
 export const metadata: Metadata = {
@@ -43,7 +43,7 @@ export default async function LinkSlashDownloadsPage() {
   const { colors, routes } = LINKSLASH_BRAND;
 
   const extReady = status.extension.available;
-  const apkReady = status.android.available && status.android.buildStatus === "ready";
+  const apkReady = isApkDownloadable(status.android);
   const apkPending = status.android.buildStatus === "pending_verification";
 
   return (
@@ -135,8 +135,8 @@ export default async function LinkSlashDownloadsPage() {
               <AlertTriangle size={16} className="mt-0.5 shrink-0" />
               <span>
                 {apkPending
-                  ? "Build APK bulundu ancak public/downloads altına kopyalanmadı. npm run verify:linkslash-android çalıştırın."
-                  : "APK henüz üretilmedi. Aşağıdaki build komutlarını kullanın."}
+                  ? "Build APK bulundu. Admin: Android APK Yönetimi sayfasından «Build'den senkronize et» ile storage'a kopyalayın veya npm run verify:linkslash-android çalıştırın."
+                  : "APK henüz üretilmedi. Aşağıdaki build komutlarını kullanın veya admin panelden yükleyin."}
               </span>
             </div>
           )}

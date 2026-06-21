@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urunler>
+  <urun>
+    <urun_id><![CDATA[100001]]></urun_id>
+    <isim><![CDATA[Örnek Cam Tablo 60x90]]></isim>
+    <aciklama><![CDATA[Modern tasarım cam tablo, UV baskı.]]></aciklama>
+    <marka><![CDATA[BEZOS HOME]]></marka>
+    <kategori_ismi><![CDATA[Cam Tablo]]></kategori_ismi>
+    <kategori_tree><![CDATA[Dekorasyon > Cam Tablo > Modern]]></kategori_tree>
+    <barkod><![CDATA[8681234567890]]></barkod>
+    <stok_kodu><![CDATA[CT-6090-MOD]]></stok_kodu>
+    <model><![CDATA[CT6090]]></model>
+    <fiyat><![CDATA[1299.90]]></fiyat>
+    <alis_fiyat><![CDATA[899.00]]></alis_fiyat>
+    <stok><![CDATA[42]]></stok>
+    <pb><![CDATA[TRY]]></pb>
+    <resim><![CDATA[https://cdn.example.com/urun1-main.jpg]]></resim>
+    <resimler>
+      <resim><![CDATA[https://cdn.example.com/urun1-main.jpg]]></resim>
+      <resim><![CDATA[https://cdn.example.com/urun1-alt.jpg]]></resim>
+    </resimler>
+    <desi><![CDATA[3]]></desi>
+    <kdv><![CDATA[20]]></kdv>
+    <garanti><![CDATA[24 Ay]]></garanti>
+    <url><![CDATA[https://bezos.com.tr/urun/ornek-cam-tablo]]></url>
+    <durum><![CDATA[1]]></durum>
+  </urun>
+  <urun>
+    <urun_id><![CDATA[100002]]></urun_id>
+    <isim><![CDATA[Minimalist Duvar Saati]]></isim>
+    <aciklama><![CDATA[Sessiz mekanizma, ahşap çerçeve.]]></aciklama>
+    <marka><![CDATA[BEZOS HOME]]></marka>
+    <kategori_ismi><![CDATA[Saat]]></kategori_ismi>
+    <kategori_tree><![CDATA[Dekorasyon > Saat > Duvar Saati]]></kategori_tree>
+    <barkod><![CDATA[8689876543210]]></barkod>
+    <stok_kodu><![CDATA[DS-MIN-01]]></stok_kodu>
+    <model><![CDATA[DSMIN01]]></model>
+    <fiyat><![CDATA[549.00]]></fiyat>
+    <alis_fiyat><![CDATA[389.50]]></alis_fiyat>
+    <stok><![CDATA[0]]></stok>
+    <pb><![CDATA[TL]]></pb>
+    <resim><![CDATA[https://cdn.example.com/urun2-main.jpg]]></resim>
+    <resimler>
+      <resim><![CDATA[https://cdn.example.com/urun2-main.jpg]]></resim>
+    </resimler>
+    <desi><![CDATA[1.5]]></desi>
+    <kdv><![CDATA[20]]></kdv>
+    <garanti><![CDATA[12 Ay]]></garanti>
+    <url><![CDATA[https://bezos.com.tr/urun/minimalist-duvar-saati]]></url>
+    <durum><![CDATA[0]]></durum>
+  </urun>
+</urunler>

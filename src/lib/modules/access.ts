@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/db";
+import { isSuperAdmin } from "@/lib/auth/admin-access";
 
-export const MODULE_KEYS = ["ENA_COMMERCE", "THYRONIX", "HIVE", "HIVE_PRO", "LINKSLASH", "POD_CREATOR"] as const;
+export const MODULE_KEYS = ["ENA_COMMERCE", "THYRONIX", "HIVE", "HIVE_PRO", "LINKSLASH", "POD_CREATOR", "AI_PAGE_FACTORY"] as const;
 export type ModuleKey = typeof MODULE_KEYS[number];
 
 export async function getDealerModuleLicense(dealerId: string, moduleKey: string) {
@@ -27,14 +28,26 @@ export function isModuleLicenseEntitled(
   return license.status === "ACTIVE" || license.status === "TRIAL";
 }
 
-export async function hasModuleAccess(dealerId: string, moduleKey: string): Promise<boolean> {
-  const state = await getModuleLicenseState(dealerId, moduleKey);
+export type ModuleAccessContext = { userRole?: string | null };
+
+export async function hasModuleAccess(
+  dealerId: string,
+  moduleKey: string,
+  ctx?: ModuleAccessContext
+): Promise<boolean> {
+  if (isSuperAdmin(ctx?.userRole || undefined)) return true;
+  const state = await getModuleLicenseState(dealerId, moduleKey, ctx);
   return state === "active";
 }
 
 export type ModuleLicenseState = "active" | "pending" | "none";
 
-export async function getModuleLicenseState(dealerId: string, moduleKey: string): Promise<ModuleLicenseState> {
+export async function getModuleLicenseState(
+  dealerId: string,
+  moduleKey: string,
+  ctx?: ModuleAccessContext
+): Promise<ModuleLicenseState> {
+  if (isSuperAdmin(ctx?.userRole || undefined)) return "active";
   if (moduleKey === "ENA_COMMERCE") {
     const approval = await prisma.dealerApproval.findUnique({ where: { dealerId } });
     return approval?.status === "ACTIVE" ? "active" : approval ? "pending" : "none";
@@ -85,6 +98,7 @@ export function getModuleLabel(key: string): string {
     HIVE_PRO: "HIVE Pro",
     LINKSLASH: "LinkSlash",
     POD_CREATOR: "POD Creator",
+    AI_PAGE_FACTORY: "AI Page Factory",
     PRODUCT_LIBRARY: "Hazır Ürün Deposu",
   };
   return labels[key] || key;

@@ -1,4 +1,4 @@
-export const CUSTOMER_PRODUCT_KEYS = ["ENA_COMMERCE", "THYRONIX", "HIVE", "PRODUCT_LIBRARY", "LINKSLASH", "POD_CREATOR"] as const;
+export const CUSTOMER_PRODUCT_KEYS = ["ENA_COMMERCE", "THYRONIX", "HIVE", "PRODUCT_LIBRARY", "LINKSLASH", "POD_CREATOR", "AI_PAGE_FACTORY"] as const;
 export type CustomerProductKey = (typeof CUSTOMER_PRODUCT_KEYS)[number];
 
 export const UNIFIED_STATUSES = ["ACTIVE", "TRIAL", "PENDING", "INACTIVE", "EXPIRED"] as const;
@@ -55,6 +55,14 @@ export const PRODUCT_META: Record<
     gatewayPath: "/gateway/pod",
     pricingPath: "/payment/checkout?type=module&moduleKey=POD_CREATOR&planKey=starter",
     appPath: "/dealer/pod",
+  },
+  AI_PAGE_FACTORY: {
+    label: "AI Page Factory",
+    description: "Sayfa evreni planlama — topology, cluster, blueprint",
+    color: "violet",
+    gatewayPath: "/gateway/page-factory",
+    pricingPath: "/payment/checkout?type=module&moduleKey=AI_PAGE_FACTORY&planKey=starter",
+    appPath: "/dealer/page-factory",
   },
 };
 

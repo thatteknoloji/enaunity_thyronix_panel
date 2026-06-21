@@ -2887,3 +2887,208 @@ model PODCommission {
   @@index([podOrderId])
   @@index([partnerProfileId])
 }
+
+// ── AI Page Factory (topology / cluster / blueprint — içerik üretmez) ──
+
+model PageFactoryProject {
+  id             String   @id @default(cuid())
+  dealerId       String?
+  name           String
+  slug           String   @unique
+  sector         String
+  country        String   @default("TR")
+  language       String   @default("tr")
+  productionType String   // GEO | SEO | GEO_SEO | FAQ | BLOG | PRODUCT | SERVICE | MIXED
+  status         String   @default("draft")
+  metadataJson   String   @default("{}")
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  topologies PageFactoryTopology[]
+  blueprints PageFactoryBlueprint[]
+
+  @@index([dealerId])
+  @@index([status])
+}
+
+model PageFactoryTopology {
+  id           String   @id @default(cuid())
+  projectId    String
+  project      PageFactoryProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  topologyType String   // geo | location | product | question | intent
+  nodeCount    Int      @default(0)
+  metadataJson String   @default("{}")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([projectId])
+  @@index([topologyType])
+}
+
+model PageFactoryBlueprint {
+  id             String   @id @default(cuid())
+  projectId      String
+  project        PageFactoryProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  title          String
+  pageType       String
+  hierarchyLevel Int      @default(0)
+  clusterPath    String   @default("")
+  metadataJson   String   @default("{}")
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([projectId])
+  @@index([hierarchyLevel])
+}
+
+// ── Data Universe Engine (GEO / Industry / Intent / Question — içerik üretmez) ──
+
+model GeoCountry {
+  id        String   @id @default(cuid())
+  code      String   @unique
+  name      String
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  provinces GeoProvince[]
+
+  @@index([isActive])
+  @@index([code])
+}
+
+model GeoProvince {
+  id        String     @id @default(cuid())
+  countryId String
+  country   GeoCountry @relation(fields: [countryId], references: [id], onDelete: Cascade)
+  plateCode String
+  name      String
+  slug      String
+  latitude  Float?
+  longitude Float?
+  isActive  Boolean    @default(true)
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  districts GeoDistrict[]
+
+  @@unique([countryId, slug])
+  @@index([countryId])
+  @@index([plateCode])
+  @@index([isActive])
+  @@index([name])
+}
+
+model GeoDistrict {
+  id         String      @id @default(cuid())
+  provinceId String
+  province   GeoProvince @relation(fields: [provinceId], references: [id], onDelete: Cascade)
+  name       String
+  slug       String
+  latitude   Float?
+  longitude  Float?
+  isActive   Boolean     @default(true)
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+
+  neighborhoods GeoNeighborhood[]
+  villages      GeoVillage[]
+
+  @@unique([provinceId, slug])
+  @@index([provinceId])
+  @@index([isActive])
+  @@index([name])
+}
+
+model GeoNeighborhood {
+  id         String      @id @default(cuid())
+  districtId String
+  district   GeoDistrict @relation(fields: [districtId], references: [id], onDelete: Cascade)
+  name       String
+  slug       String
+  latitude   Float?
+  longitude  Float?
+  isActive   Boolean     @default(true)
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+
+  @@unique([districtId, slug])
+  @@index([districtId])
+  @@index([isActive])
+  @@index([name])
+}
+
+model GeoVillage {
+  id         String      @id @default(cuid())
+  districtId String
+  district   GeoDistrict @relation(fields: [districtId], references: [id], onDelete: Cascade)
+  name       String
+  slug       String
+  latitude   Float?
+  longitude  Float?
+  isActive   Boolean     @default(true)
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+
+  @@unique([districtId, slug])
+  @@index([districtId])
+  @@index([isActive])
+  @@index([name])
+}
+
+model Industry {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  description String   @default("")
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  categories IndustryCategory[]
+
+  @@index([isActive])
+  @@index([name])
+}
+
+model IndustryCategory {
+  id          String   @id @default(cuid())
+  industryId  String
+  industry    Industry @relation(fields: [industryId], references: [id], onDelete: Cascade)
+  name        String
+  slug        String
+  description String   @default("")
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([industryId, slug])
+  @@index([industryId])
+  @@index([isActive])
+}
+
+model SearchIntent {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  description String   @default("")
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([isActive])
+  @@index([name])
+}
+
+model QuestionPattern {
+  id        String   @id @default(cuid())
+  title     String
+  pattern   String
+  type      String   @default("general")
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([type])
+  @@index([isActive])
+}

@@ -104,19 +104,21 @@ export default function DealerLayout({ children }: { children: React.ReactNode }
   }, [t, licensedItems]);
 
   const isModuleShell =
-    pathname.startsWith("/dealer/linkslash") || pathname.startsWith("/dealer/pod");
+    pathname.startsWith("/dealer/linkslash") ||
+    pathname.startsWith("/dealer/pod") ||
+    pathname.startsWith("/dealer/page-factory");
 
   useEffect(() => {
     fetch("/api/auth/me")
       .then((r) => r.json())
       .then((d) => {
-        if (isModuleShell && isAdminRole(d.data?.role)) {
+        if (isAdminRole(d.data?.role)) {
           setAuthorized(true);
           setDealerName(d.data.name || "Admin");
           return;
         }
         if (d.data?.role !== "dealer") {
-          router.push("/");
+          router.push("/account");
         } else {
           setAuthorized(true);
           setDealerName(d.data.name || t("dealer.dealer_label"));
@@ -129,7 +131,7 @@ export default function DealerLayout({ children }: { children: React.ReactNode }
           setLicensedItems(buildLicensedNavItems(d.data.modules || []));
         }
       });
-  }, [router, t, isModuleShell]);
+  }, [router, t]);
 
   useEffect(() => {
     setMobileOpen(false);
@@ -151,7 +153,7 @@ export default function DealerLayout({ children }: { children: React.ReactNode }
     return null;
   }
 
-  if (pathname.startsWith("/dealer/linkslash") || pathname.startsWith("/dealer/pod")) {
+  if (pathname.startsWith("/dealer/linkslash") || pathname.startsWith("/dealer/pod") || pathname.startsWith("/dealer/page-factory")) {
     return <>{children}</>;
   }
 

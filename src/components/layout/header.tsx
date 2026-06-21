@@ -21,6 +21,7 @@ const MODULE_BTN_CLASS: Record<string, string> = {
   HIVE: "text-violet-400 hover:text-violet-300",
   LINKSLASH: "text-cyan-400 hover:text-cyan-300",
   POD_CREATOR: "text-emerald-400 hover:text-emerald-300",
+  AI_PAGE_FACTORY: "text-violet-400 hover:text-violet-300",
 };
 
 export default function Header() {
@@ -220,7 +221,7 @@ export default function Header() {
                     </Link>
                   );
                 })}
-                <Link href={user.role === "dealer" ? "/dealer/profile" : "/account"}>
+                <Link href="/account">
                   <Button variant="ghost" size="sm" className="text-ena-light">
                     <User size={16} className="mr-1" />
                     Profilim
@@ -349,7 +350,7 @@ export default function Header() {
           <div className="h-px bg-ena-border my-2" />
           {user ? (
             <div className="space-y-1">
-              <Link href={user.role === "dealer" ? "/dealer/profile" : "/account"} onClick={() => setMenuOpen(false)} className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-ena-light hover:text-ena-text hover:bg-ena-card transition-colors">
+              <Link href="/account" onClick={() => setMenuOpen(false)} className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-ena-light hover:text-ena-text hover:bg-ena-card transition-colors">
                 <User size={16} />
                 Profilim
               </Link>

@@ -261,11 +261,16 @@ export const ALL_TEMPLATES: FeedTemplate[] = [
   {
     id: "bezos", name: "Bezos XML", group: "Entegrasyon",
     rootElement: "urunler", itemElement: "urun",
-    variantElement: "resimler", variantItemElement: "resim",
     xmlHeader: ENCODING,
-    cdataFields: ["aciklama", "isim", "stok_kodu", "marka", "kategori_ismi", "kategori_tree", "barkod"],
-    fieldMap: { name: "isim", description: "aciklama", brand: "marka", category: "kategori_ismi", barcode: "barkod", stockCode: "stok_kodu", price: "fiyat", costPrice: "alis_fiyat", stock: "stok", currency: "pb", image: "resim", images: "resimler", weight: "desi", vatRate: "kdv", warranty: "garanti", productUrl: "url", status: "durum" },
-    notes: "Bezos XML formatı (Türkçe alan adları)"
+    cdataFields: ["aciklama", "isim", "stok_kodu", "marka", "kategori_ismi", "kategori_tree", "barkod", "model", "urun_id"],
+    fieldMap: {
+      name: "isim", description: "aciklama", brand: "marka", category: "kategori_ismi", subcategory: "kategori_tree",
+      externalId: "urun_id", barcode: "barkod", stockCode: "stok_kodu", modelCode: "model",
+      price: "fiyat", costPrice: "alis_fiyat", stock: "stok", currency: "pb",
+      image: "resim", images: "resimler", weight: "desi", vatRate: "kdv",
+      warranty: "garanti", productUrl: "url", status: "durum",
+    },
+    notes: "Bezos BAYİ XML (B2BXML=1) — urunler/urun, OFFSET sayfalama destekli"
   },
   {
     id: "leyna", name: "Leyna XML", group: "Entegrasyon",

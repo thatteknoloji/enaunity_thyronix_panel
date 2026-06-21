@@ -2,9 +2,9 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { isPlatformAdmin, establishAdminProductSession } from "@/lib/product-auth/admin-bypass";
+import { isPlatformAdmin, establishAdminProductSession, bypassesProductLicense } from "@/lib/product-auth/admin-bypass";
 import {
-  Loader2, Zap, Lock, ArrowRight, Activity, Server, Database, Radio,
+  Loader2, Zap, Lock, ArrowRight, Activity, Server, Database, Radio, Eye, EyeOff,
 } from "lucide-react";
 
 const easeOut = "cubic-bezier(0.23, 1, 0.32, 1)";
@@ -109,6 +109,7 @@ export default function ThyronixLoginPage() {
   const [form, setForm] = useState({ email: "", password: "" });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const [pageReady, setPageReady] = useState(false);
   const [stats, setStats] = useState({ products: 0, sources: 0, feeds: 0 });
 
@@ -154,6 +155,13 @@ export default function ThyronixLoginPage() {
         setLoading(false);
         return;
       }
+      if (bypassesProductLicense(data.data?.role)) {
+        await establishAdminProductSession("THYRONIX");
+        const params = new URLSearchParams(window.location.search);
+        window.location.href = params.get("redirect") || "/thyronix";
+        return;
+      }
+
       if (data.data.role !== "admin" && !isPlatformAdmin(data.data.role)) {
         if (data.data.role === "dealer" && data.data.dealerId) {
           const cp = await fetch("/api/customer-products");
@@ -174,11 +182,8 @@ export default function ThyronixLoginPage() {
         return;
       }
 
-      await establishAdminProductSession("THYRONIX");
-
-      const params = new URLSearchParams(window.location.search);
-      const redirectTo = params.get("redirect") || "/thyronix";
-      window.location.href = redirectTo;
+      setError("THYRONIX hesabınız bulunamadı.");
+      setLoading(false);
     } catch {
       setError("Sunucuya bağlanılamadı");
       setLoading(false);
@@ -264,8 +269,13 @@ export default function ThyronixLoginPage() {
             <div style={{ opacity: pageReady ? 1 : 0, transform: pageReady ? "translateY(0)" : "translateY(10px)", transition: `opacity 600ms ${easeOut} 520ms, transform 600ms ${easeOut} 520ms` }}>
               <label htmlFor="password" className="block text-xs font-medium text-nexa-text-secondary/80 mb-2">Şifre</label>
               <div className="relative group">
-                <input id="password" type="password" value={form.password} onChange={e => setForm({ ...form, password: e.target.value })} placeholder="••••••••" required disabled={loading} autoComplete="current-password"
-                  className="w-full px-4 py-3 bg-nexa-card border border-nexa-border rounded-xl text-sm text-nexa-text placeholder:text-nexa-text-secondary/30 focus:outline-none focus:border-nexa-primary/60 focus:ring-2 focus:ring-nexa-primary/15 transition-all duration-300" />
+                <input id="password" type={showPassword ? "text" : "password"} value={form.password} onChange={e => setForm({ ...form, password: e.target.value })} placeholder="••••••••" required disabled={loading} autoComplete="current-password"
+                  className="w-full px-4 py-3 pr-11 bg-nexa-card border border-nexa-border rounded-xl text-sm text-nexa-text placeholder:text-nexa-text-secondary/30 focus:outline-none focus:border-nexa-primary/60 focus:ring-2 focus:ring-nexa-primary/15 transition-all duration-300" />
+                <button type="button" tabIndex={-1} onClick={() => setShowPassword(v => !v)} disabled={loading}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-nexa-text-secondary/60 hover:text-nexa-text transition-colors"
+                  aria-label={showPassword ? "Şifreyi gizle" : "Şifreyi göster"} aria-pressed={showPassword}>
+                  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                </button>
               </div>
             </div>
 

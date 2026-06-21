@@ -88,7 +88,7 @@ export default function LinkSlashGatewayPage() {
           <p className="text-ena-light mb-4">{state.reason || "Lisans onayı bekleniyor"}</p>
           <p className="text-sm text-amber-400 mb-6">Ödeme veya admin onayı tamamlandığında erişim açılacak.</p>
           {state.code === "BAYI_ONAYI_YOK" && (
-            <Link href="/dealer/profile" className="text-sm text-cyan-400 hover:underline">
+            <Link href="/account#profile" className="text-sm text-cyan-400 hover:underline">
               Bayi profilime git
             </Link>
           )}

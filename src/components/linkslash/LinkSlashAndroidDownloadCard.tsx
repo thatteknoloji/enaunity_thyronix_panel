@@ -58,7 +58,15 @@ export function LinkSlashAndroidDownloadCard({
       >
         <img src="/linkslash/icon192.png" alt="LinkSlash" className="mx-auto mb-4 h-16 w-16 rounded-2xl" />
         <h3 className={`font-bold ${titleSize}`}>Android Uygulaması</h3>
-        <p className="mt-2 text-sm text-white/60">APK hazırlanıyor — kısa süre içinde indirilebilir olacak.</p>
+        <p className="mt-2 text-sm text-white/60">
+          APK sunucuda henüz hazır değil. Admin panelden «Build&apos;den Senkronize Et» ile aktifleştirin.
+        </p>
+        <Link
+          href="/linkslash/downloads"
+          className="mt-4 inline-block text-sm text-cyan-400 hover:underline"
+        >
+          İndirme Merkezi →
+        </Link>
       </div>
     );
   }

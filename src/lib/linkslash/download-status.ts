@@ -146,3 +146,8 @@ export function getLinkSlashDownloadStatus(includeAdmin = false): LinkSlashDownl
 }
 
 export { formatDownloadSize } from "./format";
+
+/** İndirilebilir APK: storage'da hazır veya Gradle build çıktısı mevcut */
+export function isApkDownloadable(android: LinkSlashDownloadStatus["android"]): boolean {
+  return android.available && android.buildStatus !== "missing";
+}
