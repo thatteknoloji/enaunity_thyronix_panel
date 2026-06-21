@@ -59,9 +59,7 @@ async function guardLinkSlashDealerAccess(
     const checkData = await checkRes.json();
     if (checkData.access) return null;
     if (checkData.reason === "LISANS_YOK") {
-      return NextResponse.redirect(
-        new URL("/payment/checkout?type=module&moduleKey=LINKSLASH&planKey=starter", request.url)
-      );
+      return NextResponse.redirect(new URL("/gateway/linkslash", request.url));
     }
     if (checkData.reason === "BAYI_ONAYI_YOK") {
       return NextResponse.redirect(new URL("/dealer/profile", request.url));
@@ -69,9 +67,7 @@ async function guardLinkSlashDealerAccess(
     return NextResponse.redirect(new URL("/gateway/linkslash", request.url));
   } catch {
     if (opts?.allowOnCheckFailure) return null;
-    return NextResponse.redirect(
-      new URL("/payment/checkout?type=module&moduleKey=LINKSLASH&planKey=starter", request.url)
-    );
+    return NextResponse.redirect(new URL("/gateway/linkslash", request.url));
   }
 }
 

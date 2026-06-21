@@ -103,13 +103,27 @@ export default function LinkSlashGatewayPage() {
         <div className="max-w-lg rounded-2xl border border-ena-border bg-ena-card p-8 text-center">
           <Link2 className="mx-auto mb-4 text-cyan-400" size={40} />
           <h1 className="text-2xl font-bold text-white mb-2">LinkSlash</h1>
-          <p className="text-ena-light mb-6">{state.reason || "LinkSlash lisansı gerekli"}</p>
-          <Link
-            href="/payment/checkout?type=module&moduleKey=LINKSLASH&planKey=starter"
-            className="inline-flex items-center gap-2 rounded-xl bg-cyan-500 px-5 py-2.5 text-sm font-semibold text-black"
-          >
-            Lisans Satın Al <ArrowRight size={16} />
-          </Link>
+          <p className="text-ena-light mb-2">
+            {state.reason || "LinkSlash lisansınız bulunmuyor."}
+          </p>
+          <p className="text-sm text-ena-light/70 mb-6">
+            Bu modül hesabınıza tanımlı değil; uygulama açılmaz. Lisans satın alarak veya admin ataması ile
+            aktifleştirebilirsiniz.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-2 justify-center">
+            <Link
+              href="/payment/checkout?type=module&moduleKey=LINKSLASH&planKey=starter"
+              className="inline-flex items-center justify-center gap-2 rounded-xl bg-cyan-500 px-5 py-2.5 text-sm font-semibold text-black"
+            >
+              Lisans Satın Al <ArrowRight size={16} />
+            </Link>
+            <Link
+              href="/dealer/modules"
+              className="inline-flex items-center justify-center gap-2 rounded-xl border border-ena-border px-5 py-2.5 text-sm text-white hover:bg-ena-card"
+            >
+              Modül Pazarı
+            </Link>
+          </div>
         </div>
       </div>
     );
@@ -134,14 +148,18 @@ export default function LinkSlashGatewayPage() {
 
   return (
     <div className="min-h-screen bg-ena-dark flex items-center justify-center p-6">
-      <div className="text-center space-y-3">
-        <Loader2 className="animate-spin text-cyan-400 mx-auto" size={32} />
-        <p className="text-sm text-ena-light">LinkSlash açılıyor…</p>
-        {"redirectTo" in state && state.redirectTo && (
-          <a href={state.redirectTo} className="text-sm text-cyan-400 hover:underline">
-            Otomatik yönlendirme çalışmazsa tıklayın
-          </a>
-        )}
+      <div className="max-w-md text-center space-y-3">
+        <p className="text-ena-light text-sm">LinkSlash durumu yüklenemedi.</p>
+        <button
+          type="button"
+          onClick={() => window.location.reload()}
+          className="text-sm text-cyan-400 hover:underline"
+        >
+          Tekrar dene
+        </button>
+        <Link href="/dealer/modules" className="block text-sm text-ena-light/70 hover:text-cyan-400">
+          Modül Pazarı&apos;na dön
+        </Link>
       </div>
     </div>
   );
