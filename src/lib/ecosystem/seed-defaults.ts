@@ -1,8 +1,8 @@
 import { prisma } from "@/lib/db";
-import { PLATFORM_CONTENT } from "./platform-content";
+import { PLATFORM_CONTENT, type PlatformSlug } from "./platform-content";
 import { serializeFeatures } from "./parse";
 
-function buildSeedFromPlatform(slug: "ena" | "thyronix" | "hive", sortOrder: number) {
+function buildSeedFromPlatform(slug: PlatformSlug, sortOrder: number) {
   const p = PLATFORM_CONTENT[slug];
   return {
     name: p.name,
@@ -35,6 +35,7 @@ const DEFAULTS = [
   buildSeedFromPlatform("ena", 0),
   buildSeedFromPlatform("thyronix", 1),
   buildSeedFromPlatform("hive", 2),
+  buildSeedFromPlatform("linkslash", 3),
 ];
 
 export async function ensureDefaultShowcaseProducts() {

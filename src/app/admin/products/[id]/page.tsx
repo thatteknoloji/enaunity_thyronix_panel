@@ -12,6 +12,13 @@ import {
   defaultMerchandisingState,
   type ProductMerchandisingState,
 } from "@/components/admin/ProductMerchandisingPanel";
+import {
+  ProductPresentationPanel,
+  defaultPresentationState,
+  presentationFromProduct,
+  presentationToPayload,
+  type ProductPresentationState,
+} from "@/components/admin/ProductPresentationPanel";
 import { ProductImagesField } from "@/components/admin/ProductImagesField";
 
 interface VariantGroup { id?: string; name: string; options: string[]; }
@@ -37,6 +44,7 @@ export default function EditProductPage() {
   const [loadError,setLoadError]=useState("");
   const [imagesJson, setImagesJson] = useState("[]");
   const [merchandising, setMerchandising] = useState<ProductMerchandisingState>(defaultMerchandisingState());
+  const [presentation, setPresentation] = useState<ProductPresentationState>(defaultPresentationState());
 
   useEffect(() => {
     if (!id) { setLoadError("ID bulunamadı"); setLoading(false); return; }
@@ -61,6 +69,7 @@ export default function EditProductPage() {
         discountLabel: d.discountLabel || "",
         campaignIds: assigned,
       });
+      setPresentation(presentationFromProduct(d));
       if(v.success){
         setVariantGroups((v.data.groups||[]).map((g:any)=>({id:g.id,name:g.name,options:g.options.map((o:any)=>o.value)})));
         setVariants((v.data.combinations||[]).map((c:any)=>({id:c.id,sku:c.sku,barcode:c.barcode,price:String(c.price),stock:String(c.stock),options:c.options})))
@@ -87,6 +96,7 @@ export default function EditProductPage() {
       discountLabel: merchandising.discountLabel,
       campaignIds: merchandising.campaignIds,
       images: imagesJson,
+      ...presentationToPayload(presentation),
     };
     const res=await fetch(`/api/admin/products/${id}`,{method:"PUT",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});
     if(res.ok){
@@ -202,8 +212,14 @@ export default function EditProductPage() {
               <div><label className="block text-xs font-semibold text-gray-600 uppercase mb-1">Tahmini Teslimat (örn: 15-20 gün)</label><input className={ic} value={form.eta} onChange={e=>update("eta",e.target.value)} placeholder="15-20 iş günü"/></div>
             )}
           </div>
-          <div className="mt-4"><label className="block text-xs font-semibold text-gray-600 uppercase mb-1">Açıklama</label><textarea className={ic} rows={4} value={form.description} onChange={e=>update("description",e.target.value)} required/></div>
+          <div className="mt-4"><label className="block text-xs font-semibold text-gray-600 uppercase mb-1">Açıklama (uzun)</label><textarea className={ic} rows={4} value={form.description} onChange={e=>update("description",e.target.value)}/></div>
         </div>
+
+        <ProductPresentationPanel
+          value={presentation}
+          onChange={setPresentation}
+          category={form.category}
+        />
 
         <ProductImagesField
           image={form.image}

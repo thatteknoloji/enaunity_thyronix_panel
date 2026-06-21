@@ -3,6 +3,7 @@ import { prisma } from "@/lib/db";
 import { getSession } from "@/lib/auth";
 import { getDealerPrice } from "@/lib/dealer-pricing";
 import { findProductByKey } from "@/lib/products/resolve-product";
+import { resolveProductPresentation } from "@/lib/products/presentation";
 
 export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -38,9 +39,11 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
       }
     }
 
+    const presentation = await resolveProductPresentation(product);
+
     return NextResponse.json({
       success: true,
-      data: { ...product, effectivePrice, dealerDiscount, isDealer, minOrderQuantity },
+      data: { ...product, effectivePrice, dealerDiscount, isDealer, minOrderQuantity, presentation },
     });
   } catch {
     return NextResponse.json({ success: false, error: "Sunucu hatası" }, { status: 500 });

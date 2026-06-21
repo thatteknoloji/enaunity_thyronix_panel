@@ -22,6 +22,7 @@
     "seed:bayi-cam-tablo": "tsx scripts/seed-bayi-cam-tablo-full.ts",
     "seed:product-slugs": "tsx scripts/backfill-product-slugs.ts",
     "seed:linkslash-plans": "tsx scripts/seed-linkslash-plans.ts",
+    "seed:ecosystem-showcase": "tsx scripts/sync-ecosystem-showcase.ts",
     "mobile:linkslash:setup": "cd mobile/linkslash && npm install && npm run android:build",
     "package:linkslash-extension": "node scripts/package-linkslash-extension.mjs",
     "verify:linkslash-android": "node scripts/verify-linkslash-android.mjs",

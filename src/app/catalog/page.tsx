@@ -39,13 +39,23 @@ const itemVariants = {
 
 function CatalogContent() {
   const searchParams = useSearchParams();
-  const [products, setProducts] = useState<Product[]>([]);
+  const [products, setProducts] = useState<(Product & { shortDescription?: string })[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showShortOnCatalog, setShowShortOnCatalog] = useState(true);
   const [campaign, setCampaign] = useState<CatalogCampaign | null>(null);
   const category = searchParams.get("category");
   const subcategory = searchParams.get("subcategory");
   const campaignId = searchParams.get("campaign");
   const addItem = useCartStore((s) => s.addItem);
+
+  useEffect(() => {
+    fetch("/api/product-page/settings")
+      .then((r) => r.json())
+      .then((d) => {
+        if (d.success) setShowShortOnCatalog(d.data.showShortOnCatalog !== false);
+      })
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     if (!campaignId) {
@@ -144,6 +154,11 @@ function CatalogContent() {
                   <Link href={`/products/${product.id}${campaignId ? `?campaign=${campaignId}` : ""}`}>
                     <h3 className="text-sm font-medium text-ena-text truncate hover:text-ena-primary transition-colors">{product.name}</h3>
                   </Link>
+                  {showShortOnCatalog && (product as { shortDescription?: string }).shortDescription?.trim() && (
+                    <p className="text-[11px] text-ena-light line-clamp-2 leading-snug">
+                      {(product as { shortDescription?: string }).shortDescription}
+                    </p>
+                  )}
                   {campaign?.badge && (
                     <span
                       className="inline-block text-[10px] font-bold px-1.5 py-0.5 rounded text-white mt-0.5"

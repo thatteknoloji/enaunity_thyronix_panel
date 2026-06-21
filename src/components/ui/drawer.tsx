@@ -47,16 +47,16 @@ export function Drawer({ open, onClose, title, children, size = "md", className 
             animate={{ x: 0 }}
             exit={{ x: "100%" }}
             transition={{ type: "spring", damping: 25, stiffness: 250 }}
-            className={`absolute right-0 top-0 h-full w-full ${sizeMap[size]} shadow-2xl border-l flex flex-col ${className}`}>
+            className={`absolute right-0 top-0 flex h-full max-h-[100dvh] w-full ${sizeMap[size]} flex-col shadow-2xl border-l ${className}`}>
             {title && (
-              <div className="flex items-center justify-between px-5 py-4 border-b shrink-0 text-ena-text">
-                <h2 className="text-lg font-semibold">{title}</h2>
-                <button onClick={onClose} className="rounded-full p-1.5 hover:bg-white/10 transition-colors">
+              <div className="flex shrink-0 items-center justify-between border-b px-5 py-4 text-ena-text">
+                <h2 className="truncate text-lg font-semibold">{title}</h2>
+                <button onClick={onClose} className="shrink-0 rounded-full p-1.5 hover:bg-white/10 transition-colors">
                   <X size={18} />
                 </button>
               </div>
             )}
-            <div className="flex-1 overflow-y-auto px-5 py-4">{children}</div>
+            <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 py-4 pb-[max(1rem,env(safe-area-inset-bottom))]">{children}</div>
           </motion.div>
         </div>
       )}

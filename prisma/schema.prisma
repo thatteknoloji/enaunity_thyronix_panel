@@ -125,6 +125,11 @@ model Product {
   variantDisplayMode String               @default("buttons") // buttons, select, modal, popup, drawer, grid
   salePrice         Float                 @default(0)
   discountLabel     String                @default("")
+  subtitle          String                @default("")
+  shortDescription  String                @default("")
+  badgeText         String                @default("")
+  highlightsJson    String                @default("[]")
+  trustBadgesJson   String                @default("[]")
   backorderable     Boolean               @default(false)
   eta               String                @default("")
   createdAt         DateTime              @default(now())
@@ -1812,6 +1817,22 @@ model EcosystemShowcaseSettings {
   paddingTop       String   @default("24")
   paddingBottom    String   @default("28")
   updatedAt        DateTime @updatedAt
+}
+
+model ProductPageSettings {
+  id                 String   @id @default("default")
+  defaultBadgeText   String   @default("B4B Ürün")
+  trustBadgesJson    String   @default("[]")
+  showShortOnCatalog Boolean  @default(true)
+  updatedAt          DateTime @updatedAt
+}
+
+model ProductCategoryPresentation {
+  category        String   @id
+  badgeText       String   @default("")
+  highlightsJson  String   @default("[]")
+  trustBadgesJson String   @default("[]")
+  updatedAt       DateTime @updatedAt
 }
 
 model HomePageSettings {

@@ -9,7 +9,7 @@ import {
   reorderShowcase,
   updateShowcase,
 } from "../src/lib/ecosystem/service";
-import { ensureDefaultShowcaseProducts } from "../src/lib/ecosystem/seed-defaults";
+import { ensureDefaultShowcaseProducts, syncBuiltInShowcaseProducts } from "../src/lib/ecosystem/seed-defaults";
 import { parseFeatures, serializeFeatures } from "../src/lib/ecosystem/parse";
 
 let passed = 0;
@@ -36,10 +36,12 @@ async function main() {
 
   console.log("\n2) Default seed products");
   await ensureDefaultShowcaseProducts();
+  await syncBuiltInShowcaseProducts();
   const all = await listShowcaseProducts({ admin: true });
-  assert(all.length >= 3, "At least 3 default products (ENA, THYRONIX, HIVE)");
+  assert(all.length >= 4, "At least 4 default products (ENA, THYRONIX, HIVE, LinkSlash)");
   assert(all.some((p) => p.slug === "thyronix"), "THYRONIX seeded");
   assert(all.some((p) => p.slug === "hive"), "HIVE seeded");
+  assert(all.some((p) => p.slug === "linkslash"), "LinkSlash seeded");
 
   console.log("\n3) Public list filter");
   const publicList = await listShowcaseProducts();

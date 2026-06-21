@@ -36,6 +36,9 @@ export interface Product {
   id: string
   name: string
   description: string
+  subtitle?: string
+  shortDescription?: string
+  badgeText?: string
   price: number
   costPrice: number
   image: string

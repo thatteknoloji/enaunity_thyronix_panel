@@ -9,14 +9,16 @@ import { Button } from "@/components/ui/button";
 import { formatPrice } from "@/lib/utils";
 import { useCartStore } from "@/lib/cart-store";
 import type { Product } from "@/types";
-import { Play, ChevronLeft, ChevronRight, Building2, Package, Truck, Minus, Plus, Star, ShieldCheck, RefreshCw, Headphones, Clock, Heart } from "lucide-react";
+import { Play, ChevronLeft, ChevronRight, Building2, Package, Truck, Minus, Plus, Star, Clock, Heart } from "lucide-react";
 import CountdownTimer from "@/components/CountdownTimer";
 import { VariantSelector } from "@/components/products/VariantSelector";
+import { ProductTrustBadges } from "@/components/products/ProductTrustBadges";
 import { normalizeVariantDisplayMode } from "@/lib/products/variant-display";
+import type { ResolvedProductPresentation } from "@/lib/products/presentation";
 
 export default function ProductDetailPage() {
   const { slug } = useParams<{ slug: string }>();
-  const [product, setProduct] = useState<Product & { effectivePrice?: number; dealerDiscount?: number; isDealer?: boolean; minOrderQuantity?: number; tieredPrices?: { id: string; minQuantity: number; price: number }[] } | null>(null);
+  const [product, setProduct] = useState<Product & { effectivePrice?: number; dealerDiscount?: number; isDealer?: boolean; minOrderQuantity?: number; tieredPrices?: { id: string; minQuantity: number; price: number }[]; presentation?: ResolvedProductPresentation } | null>(null);
   const [pageError, setPageError] = useState("");
   const [loading, setLoading] = useState(true);
   const [quantity, setQuantity] = useState(1);
@@ -282,12 +284,20 @@ export default function ProductDetailPage() {
           className="space-y-5"
         >
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
-            <div className="flex items-center gap-2 text-ena-primary mb-1">
-              <Building2 size={14} />
-              <span className="text-xs font-semibold uppercase tracking-widest">B4B Ürün</span>
-            </div>
+            {product.presentation?.badge && (
+              <div className="flex items-center gap-2 text-ena-primary mb-1">
+                <Building2 size={14} />
+                <span className="text-xs font-semibold uppercase tracking-widest">{product.presentation.badge}</span>
+              </div>
+            )}
             <p className="text-xs text-ena-light uppercase tracking-wide">{product.category}{product.subcategory ? ` / ${product.subcategory}` : ""}</p>
             <h1 className="mt-1 text-2xl font-black text-ena-text md:text-3xl">{product.name}</h1>
+            {product.presentation?.subtitle && (
+              <p className="mt-1.5 text-sm text-ena-light/90">{product.presentation.subtitle}</p>
+            )}
+            {product.presentation?.shortDescription && (
+              <p className="mt-2 text-sm text-ena-text/80 leading-relaxed max-w-xl">{product.presentation.shortDescription}</p>
+            )}
           </motion.div>
 
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }} className="flex items-center gap-2">
@@ -455,19 +465,19 @@ export default function ProductDetailPage() {
                 Tahmini Teslimat: {product.eta}
               </div>
             )}
-            <div className="grid grid-cols-2 gap-2 text-ena-light">
-              <div className="flex items-center gap-2">
+            {shippingInfo && (
+              <div className="flex items-center gap-2 text-ena-light text-sm">
                 <Truck size={14} />
-                {shippingInfo ? (
-                  shippingInfo.freeShipping
-                    ? <span className="text-emerald-400 font-medium">🆓 Ücretsiz Kargo ({shippingInfo.carrier})</span>
-                    : <span>{shippingInfo.carrier}</span>
-                ) : "Ücretsiz Kargo (1000TL+ B4B)"}
+                {shippingInfo.freeShipping ? (
+                  <span className="text-emerald-400 font-medium">
+                    Ücretsiz Kargo ({shippingInfo.carrier})
+                  </span>
+                ) : (
+                  <span>{shippingInfo.carrier}</span>
+                )}
               </div>
-              <div className="flex items-center gap-2"><RefreshCw size={14} /> 30 Gün İade</div>
-              <div className="flex items-center gap-2"><ShieldCheck size={14} /> Kurumsal Fatura</div>
-              <div className="flex items-center gap-2"><Headphones size={14} /> 7/24 Destek</div>
-            </div>
+            )}
+            <ProductTrustBadges badges={product.presentation?.trustBadges || []} />
           </motion.div>
 
           {/* Hızlı Bilgi Kartı */}
@@ -578,13 +588,21 @@ export default function ProductDetailPage() {
         <AnimatePresence mode="wait">
           {tab === "desc" && (
             <motion.div key="desc" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="bg-ena-card rounded-xl p-6">
-              <p className="text-ena-text leading-relaxed">{product.description}</p>
-              <div className="mt-4 grid grid-cols-2 gap-3 text-sm text-ena-light">
-                <div className="flex items-center gap-2"><div className="w-1.5 h-1.5 rounded-full bg-ena-primary shrink-0" /> Yüksek kaliteli malzeme</div>
-                <div className="flex items-center gap-2"><div className="w-1.5 h-1.5 rounded-full bg-ena-primary shrink-0" /> Özel tasarım</div>
-                <div className="flex items-center gap-2"><div className="w-1.5 h-1.5 rounded-full bg-ena-primary shrink-0" /> Kolay temizlenebilir</div>
-                <div className="flex items-center gap-2"><div className="w-1.5 h-1.5 rounded-full bg-ena-primary shrink-0" /> Dayanıklı yapı</div>
-              </div>
+              {product.description?.trim() ? (
+                <p className="text-ena-text leading-relaxed whitespace-pre-line">{product.description}</p>
+              ) : (
+                <p className="text-ena-light text-sm">Bu ürün için henüz detaylı açıklama girilmemiş.</p>
+              )}
+              {(product.presentation?.highlights?.length ?? 0) > 0 && (
+                <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm text-ena-light">
+                  {product.presentation!.highlights.map((item) => (
+                    <div key={item} className="flex items-center gap-2">
+                      <div className="w-1.5 h-1.5 rounded-full bg-ena-primary shrink-0" />
+                      {item}
+                    </div>
+                  ))}
+                </div>
+              )}
             </motion.div>
           )}
 

@@ -214,6 +214,7 @@ export default function AdminProductsPage() {
         <div className="flex gap-2 flex-wrap">
           <button onClick={() => setShowFilters(!showFilters)} className={`inline-flex items-center gap-1.5 px-3 py-2 text-sm border rounded-lg transition-colors ${hasFilters?"border-amber-300 bg-amber-50 text-amber-700":"border-gray-200 text-gray-600 hover:bg-gray-50"}`}><Filter size={15}/> Filtre {hasFilters&&"✓"}</button>
           <a href="/api/admin/export?type=products" className="inline-flex items-center gap-1.5 px-3 py-2 text-sm border border-gray-200 rounded-lg hover:bg-gray-50 text-gray-700"><FileDown size={15}/> Excel</a>
+          <Link href={toAdminUrl("/admin/products/presentation")}><Button variant="outline" className="gap-1.5">Sunum Ayarları</Button></Link>
           <Link href={toAdminUrl("/admin/products/import")}><Button variant="outline" className="gap-1.5"><Upload size={15}/> Toplu Ekle</Button></Link>
           <Link href={toAdminUrl("/admin/products/new")}><Button className="gap-1.5 shadow-sm"><Plus size={15}/> Yeni Ürün</Button></Link>
         </div>

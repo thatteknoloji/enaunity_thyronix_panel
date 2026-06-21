@@ -54,6 +54,42 @@ const hivePlans: ShowcasePlan[] = [
   { id: "hive-ent", name: "Enterprise", description: "Authority ağı", monthlyPrice: 1999, features: ["Sınırsız Site", "Publisher Network", "Authority Mesh"], sortOrder: 2, ctaText: "Teklif Al", ctaUrl: "/hive/pricing" },
 ];
 
+const linkSlashPlans: ShowcasePlan[] = [
+  {
+    id: "ls-starter",
+    name: "Starter",
+    description: "Bireysel link yönetimi",
+    monthlyPrice: 149,
+    yearlyPrice: 1490,
+    features: ["WhatsApp import", "AI kategorizasyon", "IndexedDB yedek", "PWA", "Chrome eklentisi"],
+    sortOrder: 0,
+    ctaText: "Başla",
+    ctaUrl: "/payment/checkout?type=module&moduleKey=LINKSLASH&planKey=starter",
+  },
+  {
+    id: "ls-pro",
+    name: "Pro",
+    description: "Yoğun kullanım ve AI agent",
+    monthlyPrice: 299,
+    yearlyPrice: 2990,
+    features: ["Starter +", "Bulk AI agent", "Dead link kontrolü", "Bookmark import", "Öncelikli sync"],
+    sortOrder: 1,
+    highlighted: true,
+    ctaText: "Başla",
+    ctaUrl: "/payment/checkout?type=module&moduleKey=LINKSLASH&planKey=pro",
+  },
+  {
+    id: "ls-team",
+    name: "Team",
+    description: "Ekip ve ajans kullanımı",
+    monthlyPrice: undefined,
+    features: ["Pro +", "Paylaşımlı kütüphane", "SSO", "Dedicated onboarding"],
+    sortOrder: 2,
+    ctaText: "İletişim",
+    ctaUrl: "/iletisim",
+  },
+];
+
 export const PLATFORM_CONTENT: Record<string, PlatformContent> = {
   ena: {
     slug: "ena",
@@ -314,9 +350,107 @@ export const PLATFORM_CONTENT: Record<string, PlatformContent> = {
       secondaryUrl: "#plans",
     },
   },
+  linkslash: {
+    slug: "linkslash",
+    name: "LinkSlash",
+    subtitle: "Akıllı Link Arşivi",
+    description:
+      "Web, sosyal medya ve mesajlaşma uygulamalarından linkleri tek tuşla kaydedin; yapay zekayla özetleyin ve tüm cihazlarınızda senkronize edin.",
+    icon: "Link2",
+    themeColor: "#22d3ee",
+    accentColor: "#a855f7",
+    badgeText: "NEW",
+    cardFeatures: [
+      "Tek Tıkla Kayıt",
+      "Chrome Extension",
+      "Android Paylaş",
+      "Cloud Sync",
+      "AI Özet",
+      "SEO Brief",
+    ],
+    hero: {
+      title: "Gördüğün Her Şeyi\nKaybetmeden Kaydet",
+      subtitle: "LinkSlash",
+      description:
+        "Instagram, X, YouTube, WhatsApp, Telegram ve daha fazlasından linkleri yakalayın. AI ile özetleyin, etiketleyin ve araştırma hafızanızı bulutta tutun.",
+    },
+    problems: [
+      { title: "Kaybolan Linkler", description: "DM, hikaye ve tarayıcı sekmelerinde biriken linkler kayboluyor." },
+      { title: "Dağınık Kaynaklar", description: "Her platform farklı yerde; arşiv ve arama imkânsız hale geliyor." },
+      { title: "Manuel Not Alma", description: "Kopyala-yapıştır ve ekran görüntüsü ile zaman kaybediliyor." },
+      { title: "Cihazlar Arası Kopukluk", description: "Telefonda kaydettiğiniz link masaüstünde yok." },
+    ],
+    solution: {
+      title: "Tek Kütüphane, Her Kaynak",
+      description:
+        "LinkSlash; tarayıcı eklentisi, Android paylaşım menüsü ve PWA ile linkleri tek merkeze toplar. AI özet, etiket ve içerik fikri üretimiyle araştırmanızı hızlandırır.",
+    },
+    features: [
+      { title: "Tek Tıkla Kayıt", description: "Herhangi bir sayfadan veya paylaşım menüsünden anında kayıt.", icon: "Zap" },
+      { title: "Chrome Extension", description: "Tarayıcıda tek tıkla yakalama ve ENAUNITY oturumu ile güvenli bağlantı.", icon: "Plug" },
+      { title: "Android Paylaş", description: "WhatsApp, Instagram, Chrome ve daha fazlasından paylaşım menüsü ile kayıt.", icon: "Share2" },
+      { title: "Cloud Sync", description: "Tüm cihazlarda aynı kütüphane — çakışma çözümü dahil.", icon: "Cloud" },
+      { title: "AI Özet", description: "Kaydedilen içeriği yapay zeka ile kısa özete dönüştürün.", icon: "Sparkles" },
+      { title: "SEO Brief", description: "Linklerden SEO brief ve içerik fikri üretin.", icon: "FileText" },
+    ],
+    sections: [
+      {
+        id: "sources",
+        title: "Desteklenen Kaynaklar",
+        description: "20+ platform ve genel web desteği.",
+        items: [
+          { title: "Sosyal Medya", description: "Instagram, X, Threads, LinkedIn, TikTok, Facebook." },
+          { title: "Video & Topluluk", description: "YouTube, YouTube Shorts, Reddit." },
+          { title: "Mesajlaşma", description: "WhatsApp, Telegram paylaşım menüsü entegrasyonu." },
+          { title: "Üretkenlik", description: "Notion, Google Docs, PDF, GitHub, Medium, Substack." },
+        ],
+      },
+      {
+        id: "use-cases",
+        title: "Kimler İçin?",
+        description: "Bireysel araştırmacıdan ajansa kadar.",
+        items: [
+          { title: "İçerik Üreticileri", description: "İlham kaynaklarını ve referansları arşivleyin." },
+          { title: "SEO Uzmanları", description: "Rakip ve kaynak linklerinden brief üretin." },
+          { title: "Ajanslar", description: "Müşteri araştırmalarını tek kütüphanede toplayın." },
+          { title: "Öğrenciler", description: "Ders ve makale linklerini AI ile özetleyin." },
+        ],
+      },
+    ],
+    flow: {
+      label: "LinkSlash Akışı",
+      steps: ["Paylaş / Kaydet", "LinkSlash", "AI Analiz", "Cloud Sync", "İçerik Fikri"],
+    },
+    stats: [
+      { value: 20, suffix: "+", label: "Kaynak Platform" },
+      { value: 1, suffix: "", label: "Tek Kütüphane" },
+      { value: 3, suffix: "", label: "Cihaz Tipi" },
+    ],
+    plans: linkSlashPlans,
+    faq: [
+      { id: "ls-1", question: "LinkSlash nedir?", answer: "Web ve sosyal medyadan linkleri kaydeden, AI ile özetleyen ve cihazlar arası senkronize eden ENAUNITY modülüdür.", sortOrder: 0, active: true },
+      { id: "ls-2", question: "Hangi platformlardan kayıt yapabilirim?", answer: "Instagram, X, YouTube, WhatsApp, Telegram, Chrome ve 20+ kaynak desteklenir.", sortOrder: 1, active: true },
+      { id: "ls-3", question: "Chrome eklentisi var mı?", answer: "Evet. ENAUNITY oturumu ile bağlanan Chrome eklentisi tek tıkla kayıt sağlar.", sortOrder: 2, active: true },
+      { id: "ls-4", question: "Android uygulaması nasıl çalışır?", answer: "Paylaşım menüsünden LinkSlash'ı seçerek herhangi bir uygulamadan link gönderebilirsiniz.", sortOrder: 3, active: true },
+      { id: "ls-5", question: "AI özellikleri neler?", answer: "Özet, otomatik etiketleme, SEO brief ve sosyal medya taslakları sunulur.", sortOrder: 4, active: true },
+      { id: "ls-6", question: "Offline çalışır mı?", answer: "Evet. Bağlantı yokken kayıt kuyruğa alınır; senkron olunca otomatik gönderilir.", sortOrder: 5, active: true },
+      { id: "ls-7", question: "Mevcut /linkslash sayfası etkilenir mi?", answer: "Hayır. Özel tanıtım sayfası ve indirme merkezi aynen çalışmaya devam eder.", sortOrder: 6, active: true },
+      { id: "ls-8", question: "Paket fiyatları nedir?", answer: "Starter 149₺/ay, Pro 299₺/ay. Yıllık ödemede indirim uygulanır.", sortOrder: 7, active: true },
+      { id: "ls-9", question: "ENAUNITY hesabım gerekli mi?", answer: "Evet. Tek oturum ile gateway, eklenti ve mobil uygulama bağlanır.", sortOrder: 8, active: true },
+      { id: "ls-10", question: "Verilerim güvende mi?", answer: "ENAUNITY kimlik doğrulama ve şifreli senkron ile kişisel kütüphaneniz korunur.", sortOrder: 9, active: true },
+    ],
+    cta: {
+      title: "Link arşivinizi birleştirin",
+      description: "Extension, Android ve PWA ile tek kütüphanede toplayın.",
+      primaryText: "LinkSlash'a Giriş",
+      primaryUrl: "/gateway/linkslash",
+      secondaryText: "İndirmeler",
+      secondaryUrl: "/linkslash/downloads",
+    },
+  },
 };
 
-export const PLATFORM_SLUGS = ["ena", "thyronix", "hive"] as const;
+export const PLATFORM_SLUGS = ["ena", "thyronix", "hive", "linkslash"] as const;
 export type PlatformSlug = (typeof PLATFORM_SLUGS)[number];
 
 export function getPlatformContent(slug: string): PlatformContent | null {

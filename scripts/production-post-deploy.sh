@@ -45,6 +45,9 @@ npx tsx scripts/seed-bayi-cam-tablo-full.ts || echo "  (cam tablo seed atlandı)
 echo "→ linkslash plan seed…"
 npm run seed:linkslash-plans || echo "  (linkslash seed atlandı)"
 
+echo "→ ecosystem showcase sync (LinkSlash vitrin)…"
+npm run seed:ecosystem-showcase || echo "  (ecosystem sync atlandı)"
+
 echo "→ production build…"
 rm -rf .next node_modules/.cache 2>/dev/null || true
 find .next -mindepth 1 -delete 2>/dev/null || rm -rf .next 2>/dev/null || true
