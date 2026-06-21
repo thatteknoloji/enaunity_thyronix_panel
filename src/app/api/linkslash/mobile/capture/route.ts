@@ -21,12 +21,35 @@ export async function POST(req: Request) {
       );
     }
 
-    const body = (await req.json()) as CaptureInput;
-    if (!body?.url && !body?.rawText) {
+    const body = (await req.json()) as CaptureInput & { items?: CaptureInput[] };
+
+    if (Array.isArray(body.items) && body.items.length > 0) {
+      const results = [];
+      const errors: Array<{ index: number; error: string }> = [];
+      for (let i = 0; i < body.items.length; i++) {
+        try {
+          const item = { ...body.items[i], client: "mobile" as const };
+          if (!item.url && !item.rawText) throw new Error("url veya rawText gerekli");
+          const capture = await createLinkSlashCapture(user.id, user.dealerId, item);
+          results.push({
+            id: capture.id,
+            url: capture.url,
+            title: capture.title,
+            sourceType: capture.sourceType,
+          });
+        } catch (e) {
+          errors.push({ index: i, error: e instanceof Error ? e.message : "Kayıt başarısız" });
+        }
+      }
+      return NextResponse.json({ success: true, data: { synced: results.length, results, errors } });
+    }
+
+    const payload: CaptureInput = { ...body, client: "mobile" };
+    if (!payload.url && !payload.rawText) {
       return NextResponse.json({ success: false, error: "url veya rawText gerekli" }, { status: 400 });
     }
 
-    const capture = await createLinkSlashCapture(user.id, user.dealerId, body);
+    const capture = await createLinkSlashCapture(user.id, user.dealerId, payload);
 
     return NextResponse.json({
       success: true,

@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+  <meta name="theme-color" content="#0f1117">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <title>LinkSlash Mobile</title>
+  <link rel="stylesheet" href="css/mobile.css">
+</head>
+<body>
+  <div class="mobile-app">
+    <header class="mobile-header">
+      <div class="brand">🔗 LinkSlash</div>
+      <div class="header-actions">
+        <span class="sync-pill" id="syncPill">—</span>
+        <button type="button" class="icon-btn" id="authBtn" title="Giriş">👤</button>
+      </div>
+    </header>
+
+    <main class="mobile-main">
+      <section class="hero-card" id="shareCard">
+        <p class="hero-label">Paylaşılan içerik</p>
+        <h1 class="hero-title" id="shareTitle">LinkSlash Mobile</h1>
+        <p class="hero-url" id="shareUrl">Herhangi bir uygulamadan Paylaş → LinkSlash</p>
+        <p class="hero-meta" id="shareMeta">Kaynak: —</p>
+        <button type="button" class="btn btn-primary btn-block" id="saveBtn">📥 LinkSlash'a Kaydet</button>
+        <p class="status-msg" id="statusMsg"></p>
+      </section>
+
+      <section class="stats-row">
+        <div class="stat"><span id="pendingCount">0</span><small>Bekleyen</small></div>
+        <div class="stat"><span id="recentCount">0</span><small>Son kayıt</small></div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-head">
+          <h2>Son Kaydedilenler</h2>
+          <button type="button" class="link-btn" id="syncQueueBtn">Sync</button>
+        </div>
+        <ul class="recent-list" id="recentList"></ul>
+      </section>
+
+      <section class="panel">
+        <h2>Hızlı Erişim</h2>
+        <div class="action-grid">
+          <button type="button" class="action-card" id="openAppBtn">📚 LinkSlash Uygulaması</button>
+          <button type="button" class="action-card" id="openGatewayBtn">🔐 Lisans / Gateway</button>
+          <button type="button" class="action-card" id="retryShareBtn">🔄 Paylaşımı Yeniden Al</button>
+        </div>
+      </section>
+
+      <section class="panel offline-panel hidden" id="offlinePanel">
+        <h2>📴 Offline Kuyruk</h2>
+        <ul class="queue-list" id="queueList"></ul>
+      </section>
+    </main>
+  </div>
+
+  <script src="js/share-parser.js"></script>
+  <script src="js/offline-queue.js"></script>
+  <script src="js/mobile-app.js"></script>
+</body>
+</html>

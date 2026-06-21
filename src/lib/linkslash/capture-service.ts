@@ -1,17 +1,18 @@
 import { prisma } from "@/lib/db";
 import { fetchSingleMeta } from "@/lib/linkslash/meta-fetch";
 import {
-  buildDefaultTags,
-  detectSourceType,
-  extractDomain,
-  sourceTypeToCategory,
-  type LinkSlashSourceType,
-} from "@/lib/linkslash/source-type";
+  buildMobileTags,
+  detectMobileSourceType,
+  extractPrimaryUrl,
+  mobileSourceToCategory,
+  type MobileSourceType,
+} from "@/lib/linkslash/mobile-source-type";
+import { extractDomain } from "@/lib/linkslash/source-type";
 import { getSyncContext } from "@/lib/linkslash/sync/context";
 import { cloudLinkFromCapture } from "@/lib/linkslash/sync/service";
 
 export type CaptureInput = {
-  url: string;
+  url?: string;
   title?: string;
   description?: string;
   image?: string;
@@ -19,6 +20,9 @@ export type CaptureInput = {
   domain?: string;
   sourceType?: string;
   tags?: string[];
+  rawText?: string;
+  sharedFrom?: string;
+  client?: "mobile" | "extension" | "web";
 };
 
 export type CaptureRecord = {
@@ -55,13 +59,19 @@ export async function createLinkSlashCapture(
   dealerId: string | null | undefined,
   input: CaptureInput
 ): Promise<CaptureRecord> {
-  const url = normalizeUrl(input.url);
+  const rawText = input.rawText?.trim() || "";
+  const sharedFrom = input.sharedFrom?.trim() || "";
+  const urlInput = input.url?.trim() || extractPrimaryUrl(rawText);
+  const url = normalizeUrl(urlInput);
   const domain = input.domain?.trim() || extractDomain(url);
-  const sourceType = (input.sourceType?.trim() || detectSourceType(url)) as LinkSlashSourceType;
-  const tags = buildDefaultTags(sourceType, domain, input.tags || []);
+  const mobileSource = (input.sourceType?.trim() ||
+    detectMobileSourceType(url, sharedFrom)) as MobileSourceType;
+  const tags = input.tags?.length
+    ? input.tags
+    : buildMobileTags(mobileSource, domain, sharedFrom);
 
   let title = input.title?.trim() || "";
-  let description = input.description?.trim() || "";
+  let description = input.description?.trim() || rawText.slice(0, 500);
   let image = input.image?.trim() || "";
   let favicon = input.favicon?.trim() || "";
 
@@ -79,7 +89,7 @@ export async function createLinkSlashCapture(
 
   if (!title) title = domain || url;
 
-  const aiCategory = sourceTypeToCategory(sourceType);
+  const aiCategory = mobileSourceToCategory(mobileSource);
 
   const record = await prisma.linkSlashCapture.create({
     data: {
@@ -91,7 +101,7 @@ export async function createLinkSlashCapture(
       image: image.slice(0, 500),
       favicon: favicon.slice(0, 500),
       domain,
-      sourceType,
+      sourceType: mobileSource,
       tagsJson: JSON.stringify(tags),
       aiCategory,
       status: "pending",
@@ -107,7 +117,7 @@ export async function createLinkSlashCapture(
       image: record.image,
       favicon: record.favicon,
       domain,
-      sourceType,
+      sourceType: mobileSource,
       tagsJson: record.tagsJson,
       aiSummary: "",
       aiCategory,

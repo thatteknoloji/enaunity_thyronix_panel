@@ -20,6 +20,7 @@
     "db:seed": "tsx src/lib/seed.ts",
     "seed:site-content": "tsx scripts/seed-site-content.ts",
     "seed:linkslash-plans": "tsx scripts/seed-linkslash-plans.ts",
+    "mobile:linkslash:setup": "cd mobile/linkslash && npm install && npm run android:build",
     "test:product-links": "tsx scripts/test-product-links.ts",
     "test:thyronix-integration": "tsx scripts/test-thyronix-integration.ts",
     "test:hive-integration": "tsx scripts/test-hive-integration.ts",

@@ -92,7 +92,8 @@ export async function middleware(request: NextRequest) {
   if (
     pathname.startsWith("/linkslash/") &&
     pathname !== "/linkslash" &&
-    !pathname.startsWith("/linkslash/page")
+    !pathname.startsWith("/linkslash/page") &&
+    !pathname.startsWith("/linkslash/mobile")
   ) {
     if (!token) {
       const loginUrl = new URL("/auth/login", request.url);
