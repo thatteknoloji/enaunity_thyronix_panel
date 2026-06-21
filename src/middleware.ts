@@ -93,7 +93,8 @@ export async function middleware(request: NextRequest) {
     pathname.startsWith("/linkslash/") &&
     pathname !== "/linkslash" &&
     !pathname.startsWith("/linkslash/page") &&
-    !pathname.startsWith("/linkslash/mobile")
+    !pathname.startsWith("/linkslash/mobile") &&
+    !pathname.startsWith("/linkslash/downloads")
   ) {
     if (!token) {
       const loginUrl = new URL("/auth/login", request.url);
@@ -202,6 +203,10 @@ export async function middleware(request: NextRequest) {
 
   // LinkSlash session probe — oturumsuz erişim (extension auth kontrolü)
   if (pathname === "/api/linkslash/session" && request.method === "GET") {
+    return NextResponse.next();
+  }
+  // LinkSlash download status — public
+  if (pathname === "/api/linkslash/downloads/status" && request.method === "GET") {
     return NextResponse.next();
   }
 
@@ -354,6 +359,9 @@ export async function middleware(request: NextRequest) {
   const isLinkSlashApi = pathname.startsWith("/api/linkslash/");
   if (isLinkSlashApi) {
     if (pathname === "/api/linkslash/session" && request.method === "GET") {
+      return NextResponse.next();
+    }
+    if (pathname === "/api/linkslash/downloads/status" && request.method === "GET") {
       return NextResponse.next();
     }
     if (!token) return jsonError(401, "Oturum bulunamadı");

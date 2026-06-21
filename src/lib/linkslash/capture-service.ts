@@ -108,9 +108,10 @@ export async function createLinkSlashCapture(
     },
   });
 
+  let cloudLinkId: string | undefined;
   try {
     const ctx = getSyncContext({ id: userId, role: "dealer", dealerId: dealerId || "" });
-    await cloudLinkFromCapture(ctx, {
+    const cloud = await cloudLinkFromCapture(ctx, {
       url,
       title: record.title,
       description: record.description,
@@ -122,32 +123,68 @@ export async function createLinkSlashCapture(
       aiSummary: "",
       aiCategory,
     });
+    cloudLinkId = cloud?.id;
   } catch {
     // Cloud upsert best-effort during capture
   }
 
-  void enrichCaptureWithAi(record.id, url, title, description);
+  void enrichCaptureWithAi({
+    captureId: record.id,
+    cloudLinkId,
+    userId,
+    url,
+    title: record.title,
+    description: record.description,
+    sourceType: mobileSource,
+  });
 
   return record;
 }
 
-async function enrichCaptureWithAi(id: string, url: string, title: string, description: string) {
+async function enrichCaptureWithAi(input: {
+  captureId: string;
+  cloudLinkId?: string;
+  userId: string;
+  url: string;
+  title: string;
+  description: string;
+  sourceType: string;
+}) {
   try {
-    const meta = await fetchSingleMeta(url, 5000);
-    const summaryText = meta.text_content || meta.description || description;
-    const aiSummary = summaryText ? summaryText.slice(0, 600) : "";
+    const { analyzeLinkContent } = await import("@/lib/linkslash/ai-analyze");
+    const result = await analyzeLinkContent({
+      linkId: input.cloudLinkId,
+      url: input.url,
+      title: input.title,
+      description: input.description,
+      sourceType: input.sourceType,
+      userId: input.userId,
+      save: !!input.cloudLinkId,
+    });
 
     await prisma.linkSlashCapture.update({
-      where: { id },
+      where: { id: input.captureId },
       data: {
-        aiSummary,
-        description: description || meta.description || "",
-        image: meta.image || undefined,
-        favicon: meta.favicon || undefined,
+        aiSummary: result.aiSummary?.slice(0, 2000) || "",
+        aiCategory: result.aiCategorySuggestion || undefined,
       },
     });
   } catch {
-    // AI enrichment is best-effort
+    try {
+      const meta = await fetchSingleMeta(input.url, 5000);
+      const summaryText = meta.text_content || meta.description || input.description;
+      await prisma.linkSlashCapture.update({
+        where: { id: input.captureId },
+        data: {
+          aiSummary: summaryText ? summaryText.slice(0, 600) : "",
+          description: input.description || meta.description || "",
+          image: meta.image || undefined,
+          favicon: meta.favicon || undefined,
+        },
+      });
+    } catch {
+      // Meta enrichment best-effort
+    }
   }
 }
 

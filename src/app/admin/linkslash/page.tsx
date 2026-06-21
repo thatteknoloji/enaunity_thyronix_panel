@@ -130,6 +130,21 @@ export default function AdminLinkSlashPage() {
               </div>
 
               <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
+                <h2 className="text-sm font-semibold text-gray-800 mb-3">🤖 Yapay Zeka Yapılandırması</h2>
+                <div className="grid gap-3 sm:grid-cols-2 text-sm text-gray-600">
+                  <div className="rounded-lg bg-cyan-50 border border-cyan-100 p-3">
+                    <p className="font-semibold text-cyan-900">Kullanıcı BYOK</p>
+                    <p className="mt-1 text-xs">LinkSlash uygulaması → Ayarlar → Groq / DeepSeek / Ollama API key. Mobil shell aynı anahtarları paylaşır.</p>
+                  </div>
+                  <div className="rounded-lg bg-violet-50 border border-violet-100 p-3">
+                    <p className="font-semibold text-violet-900">Sunucu AI Analyze</p>
+                    <p className="mt-1 text-xs">THYRONIX AI sağlayıcı veya OPENAI_API_KEY — SEO brief, sosyal taslak, gelişmiş analiz.</p>
+                    <a href="/thyronix/ai" className="mt-2 inline-block text-xs text-violet-700 underline">THYRONIX AI Sağlayıcılar →</a>
+                  </div>
+                </div>
+              </div>
+
+              <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
                 <div className="flex items-center justify-between mb-4">
                   <h2 className="text-sm font-semibold text-gray-800 flex items-center gap-2">
                     <Link2 size={16} className="text-cyan-600" />

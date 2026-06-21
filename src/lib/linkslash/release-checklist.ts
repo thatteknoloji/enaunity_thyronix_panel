@@ -126,8 +126,8 @@ export async function buildLinkSlashReleaseChecklist(): Promise<{
       description: aiProviderCount > 0
         ? `${aiProviderCount} aktif Thyronix AI provider + /api/linkslash/ai/analyze`
         : "Endpoint var; Thyronix AI provider veya OPENAI_API_KEY yok — kural tabanlı fallback",
-      suggestion: "Admin → THYRONIX AI provider ekleyin veya OPENAI_API_KEY tanımlayın.",
-      href: "/admin/thyronix",
+      suggestion: "Admin → THYRONIX AI → Sağlayıcılar veya OPENAI_API_KEY tanımlayın.",
+      href: "/thyronix/ai",
     },
     {
       id: "site-meta",

@@ -12,7 +12,9 @@
   var CONFIG = {
     apiBase: window.LINKSLASH_API_BASE || '',
     appUrl: '/dealer/linkslash',
+    settingsUrl: '/dealer/linkslash',
     gatewayUrl: '/gateway/linkslash',
+    downloadsUrl: '/linkslash/downloads',
     loginUrl: '/auth/login?redirect=/linkslash/mobile/'
   };
 
@@ -58,7 +60,7 @@
     }
     list.innerHTML = recent.map(function(r) {
       return '<li><div class="title">' + escapeHtml(r.title || r.url) + '</div>' +
-        '<div class="meta">' + escapeHtml(r.sourceType) + ' · ' + formatDate(r.createdAt) + '</div></li>';
+        '<div class="meta">' + escapeHtml(r.sourceType || 'web') + ' · ' + formatDate(r.createdAt) + '</div></li>';
     }).join('');
   }
 
@@ -86,6 +88,55 @@
 
   function formatDate(iso) {
     try { return new Date(iso).toLocaleString('tr-TR'); } catch (_) { return iso; }
+  }
+
+  function hasAiKey() {
+    var provider = localStorage.getItem('ai_provider') || 'groq';
+    if (provider === 'deepseek') return !!localStorage.getItem('deepseek_api_key');
+    return !!localStorage.getItem('groq_api_key');
+  }
+
+  function updateAiBadge() {
+    var badge = $('aiBadge');
+    if (!badge) return;
+    if (hasAiKey()) {
+      badge.textContent = 'Anahtar kayıtlı';
+      badge.className = 'ai-badge';
+    } else {
+      badge.textContent = 'Anahtar yok';
+      badge.className = 'ai-badge missing';
+    }
+  }
+
+  function loadAiSettings() {
+    var provider = localStorage.getItem('ai_provider') || 'groq';
+    var select = $('aiProviderSelect');
+    var input = $('mobileApiKey');
+    if (select) select.value = provider;
+    if (input) {
+      input.value = provider === 'deepseek'
+        ? (localStorage.getItem('deepseek_api_key') || '')
+        : (localStorage.getItem('groq_api_key') || '');
+    }
+    updateAiBadge();
+  }
+
+  function saveAiSettings() {
+    var provider = ($('aiProviderSelect') && $('aiProviderSelect').value) || 'groq';
+    var key = ($('mobileApiKey') && $('mobileApiKey').value.trim()) || '';
+    var status = $('aiKeyStatus');
+    if (!key) {
+      if (status) { status.textContent = 'API anahtarı gerekli'; status.className = 'ai-status err'; }
+      return;
+    }
+    localStorage.setItem('ai_provider', provider);
+    if (provider === 'deepseek') {
+      localStorage.setItem('deepseek_api_key', key);
+    } else {
+      localStorage.setItem('groq_api_key', key);
+    }
+    if (status) { status.textContent = '✓ Anahtar kaydedildi — web uygulaması ile paylaşılır'; status.className = 'ai-status ok'; }
+    updateAiBadge();
   }
 
   async function checkSession() {
@@ -158,7 +209,7 @@
         sourceType: result.sourceType,
         sharedFrom: state.share.sharedFrom
       });
-      setStatus('✓ LinkSlash\'a kaydedildi · AI özet arka planda hazırlanıyor', 'ok');
+      setStatus('✓ LinkSlash\'a kaydedildi · sunucu AI analizi arka planda çalışıyor', 'ok');
       renderRecent();
     } catch (err) {
       if (err.code === 'AUTH_REQUIRED') {
@@ -223,7 +274,12 @@
 
     (json.data.results || []).forEach(function(r) {
       if (r.queueId) LinkSlashOfflineQueue.markSynced(r.queueId);
-      LinkSlashOfflineQueue.addRecent({ id: r.id, url: r.url, title: r.url, sourceType: 'web' });
+      LinkSlashOfflineQueue.addRecent({
+        id: r.id,
+        url: r.url,
+        title: r.title || r.url,
+        sourceType: r.sourceType || 'web'
+      });
     });
     (json.data.errors || []).forEach(function(e) {
       if (e.queueId) LinkSlashOfflineQueue.markError(e.queueId, e.error);
@@ -238,12 +294,12 @@
     state.share = LinkSlashShareParser.parseSharePayload(payload);
     renderSharePreview(state.share);
     try { localStorage.setItem('linkslash_last_share', JSON.stringify(payload)); } catch (_) {}
+    setStatus('Önizleme hazır — kaydetmek için butona basın', 'info');
   }
 
   window.LinkSlashMobile = {
     onNativeShare: function(payload) {
       applySharePayload(typeof payload === 'string' ? { text: payload } : payload);
-      saveShare();
     },
     applySharePayload: applySharePayload
   };
@@ -259,6 +315,7 @@
       setSyncPill();
     });
 
+    loadAiSettings();
     await checkSession();
     renderRecent();
     renderQueue();
@@ -280,11 +337,18 @@
 
     $('saveBtn').addEventListener('click', saveShare);
     $('syncQueueBtn').addEventListener('click', syncQueue);
+    $('saveAiKeyBtn').addEventListener('click', saveAiSettings);
     $('openAppBtn').addEventListener('click', function() {
       window.location.href = CONFIG.apiBase + CONFIG.appUrl;
     });
+    $('openSettingsBtn').addEventListener('click', function() {
+      window.location.href = CONFIG.apiBase + CONFIG.settingsUrl;
+    });
     $('openGatewayBtn').addEventListener('click', function() {
       window.location.href = CONFIG.apiBase + CONFIG.gatewayUrl;
+    });
+    $('openDownloadsBtn').addEventListener('click', function() {
+      window.location.href = CONFIG.apiBase + CONFIG.downloadsUrl;
     });
     $('authBtn').addEventListener('click', function() {
       if (state.session && state.session.authenticated) {
@@ -295,7 +359,7 @@
     });
     $('retryShareBtn').addEventListener('click', function() {
       if (state.share) saveShare();
-      else setStatus('Paylaşım verisi yok — Android share sheet kullanın', 'err');
+      else setStatus('Paylaşım verisi yok — Android paylaşım menüsünü kullanın', 'err');
     });
 
     if (navigator.onLine && LinkSlashOfflineQueue.pendingCount() > 0) {

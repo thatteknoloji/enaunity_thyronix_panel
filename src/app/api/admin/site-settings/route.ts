@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/auth";
-import { getSiteSettings, updateSiteSettings } from "@/lib/site-settings/service";
+import { getSiteSettings, updateSiteSettings, type SiteSettingsDTO } from "@/lib/site-settings/service";
 
 export async function GET() {
   try {
@@ -16,12 +16,25 @@ export async function POST(req: Request) {
   try {
     await requireAdmin();
     const body = await req.json();
-    const data = await updateSiteSettings({
+    const payload: Partial<SiteSettingsDTO> = {
       faviconUrl: body.faviconUrl,
       siteTitle: body.siteTitle,
       defaultMetaDescription: body.defaultMetaDescription,
       ogImageUrl: body.ogImageUrl,
-    });
+      ogSiteName: body.ogSiteName,
+      titleTemplate: body.titleTemplate,
+      themeColor: body.themeColor,
+      brandPrimaryColor: body.brandPrimaryColor,
+      defaultKeywords: body.defaultKeywords,
+      appleTouchIconUrl: body.appleTouchIconUrl,
+      organizationName: body.organizationName,
+      supportEmail: body.supportEmail,
+      robotsNoIndex: body.robotsNoIndex,
+      twitterHandle: body.twitterHandle,
+      locale: body.locale,
+      copyrightText: body.copyrightText,
+    };
+    const data = await updateSiteSettings(payload);
     return NextResponse.json({ success: true, data });
   } catch (e) {
     console.error("[Site Settings]", e);

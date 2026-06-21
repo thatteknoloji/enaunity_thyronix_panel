@@ -5,8 +5,8 @@ ANDROID="$ROOT/android"
 NATIVE="$ROOT/native/android"
 
 if [ ! -d "$ANDROID" ]; then
-  echo "android/ yok — önce: npx cap add android"
-  exit 0
+  echo "android/ yok — önce: npm run android:build"
+  exit 1
 fi
 
 APP_JAVA=$(find "$ANDROID/app/src/main/java" -name "MainActivity.java" 2>/dev/null | head -1)

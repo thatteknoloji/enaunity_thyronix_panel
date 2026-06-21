@@ -1,0 +1,30 @@
+{
+  "status": "missing",
+  "buildStatus": "missing",
+  "productName": "LinkSlash",
+  "updatedAt": "2026-06-21T11:35:39.924Z",
+  "publicPath": "/downloads/linkslash/linkslash-debug.apk",
+  "sourcePath": null,
+  "copied": false,
+  "size": 0,
+  "apkUpdatedAt": null,
+  "checks": {
+    "mobileDir": true,
+    "capacitorConfig": true,
+    "mainActivity": true,
+    "sharePlugin": true,
+    "shareIntentSnippet": true,
+    "androidGenerated": true,
+    "buildApk": false,
+    "publicApk": false,
+    "shareIntentInSnippet": true,
+    "productNameLinkSlash": true
+  },
+  "commands": [
+    "cd mobile/linkslash",
+    "npm install",
+    "npm run android:build",
+    "cd android && ./gradlew assembleDebug",
+    "npm run verify:linkslash-android"
+  ]
+}

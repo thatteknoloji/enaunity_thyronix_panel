@@ -3,18 +3,23 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
-  <meta name="theme-color" content="#0f1117">
+  <meta name="theme-color" content="#0b0d14">
   <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="LinkSlash">
+  <meta name="description" content="LinkSlash — paylaşım menüsünden link kaydet, senkronize et.">
   <title>LinkSlash Mobile</title>
+  <link rel="icon" href="../icon192.png" type="image/png">
+  <link rel="apple-touch-icon" href="../icon192.png">
+  <link rel="manifest" href="manifest.json">
   <link rel="stylesheet" href="css/mobile.css">
 </head>
 <body>
   <div class="mobile-app">
     <header class="mobile-header">
-      <div class="brand">🔗 LinkSlash</div>
+      <div class="brand"><span>Link</span>Slash</div>
       <div class="header-actions">
         <span class="sync-pill" id="syncPill">—</span>
-        <button type="button" class="icon-btn" id="authBtn" title="Giriş">👤</button>
+        <button type="button" class="icon-btn" id="authBtn" title="Giriş">G</button>
       </div>
     </header>
 
@@ -24,7 +29,7 @@
         <h1 class="hero-title" id="shareTitle">LinkSlash Mobile</h1>
         <p class="hero-url" id="shareUrl">Herhangi bir uygulamadan Paylaş → LinkSlash</p>
         <p class="hero-meta" id="shareMeta">Kaynak: —</p>
-        <button type="button" class="btn btn-primary btn-block" id="saveBtn">📥 LinkSlash'a Kaydet</button>
+        <button type="button" class="btn btn-primary btn-block" id="saveBtn">LinkSlash'a Kaydet</button>
         <p class="status-msg" id="statusMsg"></p>
       </section>
 
@@ -41,17 +46,41 @@
         <ul class="recent-list" id="recentList"></ul>
       </section>
 
+      <section class="panel ai-panel" id="aiPanel">
+        <div class="panel-head">
+          <h2>Yapay Zeka Bağlantısı</h2>
+          <span class="ai-badge missing" id="aiBadge">Anahtar yok</span>
+        </div>
+        <p class="hint">Kategorize ve özet için kendi Groq/DeepSeek anahtarınızı girin. Sunucu AI analizi (SEO brief) platform sağlayıcısı ile çalışır.</p>
+        <div class="form-row">
+          <label for="aiProviderSelect">Sağlayıcı</label>
+          <select id="aiProviderSelect">
+            <option value="groq">Groq (ücretsiz tier)</option>
+            <option value="deepseek">DeepSeek</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <label for="mobileApiKey">API Key</label>
+          <input type="password" id="mobileApiKey" placeholder="gsk_... veya sk-..." autocomplete="off">
+        </div>
+        <button type="button" class="btn btn-secondary btn-block" id="saveAiKeyBtn">Anahtarı Kaydet</button>
+        <p class="ai-status" id="aiKeyStatus"></p>
+        <p class="hint">Tam AI ayarları için LinkSlash uygulaması → Ayarlar → AI Sağlayıcı</p>
+      </section>
+
       <section class="panel">
         <h2>Hızlı Erişim</h2>
         <div class="action-grid">
-          <button type="button" class="action-card" id="openAppBtn">📚 LinkSlash Uygulaması</button>
-          <button type="button" class="action-card" id="openGatewayBtn">🔐 Lisans / Gateway</button>
-          <button type="button" class="action-card" id="retryShareBtn">🔄 Paylaşımı Yeniden Al</button>
+          <button type="button" class="action-card" id="openAppBtn">LinkSlash Uygulaması</button>
+          <button type="button" class="action-card" id="openSettingsBtn">AI Ayarları (Web)</button>
+          <button type="button" class="action-card" id="openGatewayBtn">Lisans / Gateway</button>
+          <button type="button" class="action-card" id="openDownloadsBtn">İndirme Merkezi</button>
+          <button type="button" class="action-card" id="retryShareBtn">Paylaşımı Yeniden Kaydet</button>
         </div>
       </section>
 
       <section class="panel offline-panel hidden" id="offlinePanel">
-        <h2>📴 Offline Kuyruk</h2>
+        <h2>Offline Kuyruk</h2>
         <ul class="queue-list" id="queueList"></ul>
       </section>
     </main>

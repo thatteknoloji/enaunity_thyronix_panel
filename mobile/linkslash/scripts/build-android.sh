@@ -13,9 +13,19 @@ fi
 
 npm install
 
-if [ ! -d android ]; then
-  echo "→ Capacitor Android platform ekleniyor..."
-  npx cap add android
+ANDROID_VALID=false
+if [ -d android ] && find android/app/src/main/java -name "MainActivity.java" 2>/dev/null | grep -q .; then
+  ANDROID_VALID=true
+fi
+
+if [ "$ANDROID_VALID" = false ]; then
+  if [ -d android ] && [ -z "$(ls -A android 2>/dev/null)" ]; then
+    rmdir android 2>/dev/null || rm -rf android
+  fi
+  if [ ! -d android ]; then
+    echo "→ Capacitor Android platform ekleniyor..."
+    npx cap add android
+  fi
 fi
 
 echo "→ Native share plugin dosyaları kopyalanıyor..."
@@ -33,3 +43,7 @@ echo "  LINKSLASH_SERVER_URL=http://10.0.2.2:3333/linkslash/mobile/ npm run andr
 echo ""
 echo "Release APK:"
 echo "  cd android && ./gradlew assembleDebug"
+echo ""
+echo "Play Store AAB (keystore gerekli):"
+echo "  npm run prepare:linkslash-play-store"
+echo "  cd android && ./gradlew bundleRelease"

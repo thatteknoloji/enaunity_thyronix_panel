@@ -1,11 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 
-export const viewport: Viewport = {
-  width: "device-width",
-  initialScale: 1,
-  themeColor: "#0a0a0a",
-};
 import "./globals.css";
 import { ThemeProvider } from "@/lib/theme-provider";
 import { APPEARANCE_BLOCKING_SCRIPT } from "@/lib/theme/appearance-script";
@@ -23,6 +18,15 @@ const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"]
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://enaunity.com";
 const gaId = process.env.NEXT_PUBLIC_GA_ID || "";
 
+export async function generateViewport(): Promise<Viewport> {
+  const settings = await getSiteSettings();
+  return {
+    width: "device-width",
+    initialScale: 1,
+    themeColor: settings.resolvedThemeColor,
+  };
+}
+
 export async function generateMetadata(): Promise<Metadata> {
   const settings = await getSiteSettings();
 
@@ -32,12 +36,18 @@ export async function generateMetadata(): Promise<Metadata> {
     title: settings.resolvedSiteTitle,
     description: settings.resolvedMetaDescription,
     siteName: settings.resolvedOgSiteName,
-    locale: "tr_TR",
+    locale: settings.resolvedLocale.replace("-", "_"),
   };
 
   if (settings.resolvedOgImageUrl) {
     openGraph.images = [{ url: settings.resolvedOgImageUrl }];
   }
+
+  const icons: Metadata["icons"] = {
+    icon: settings.resolvedFaviconUrl,
+    shortcut: settings.resolvedFaviconUrl,
+    apple: settings.resolvedAppleTouchIconUrl,
+  };
 
   return {
     metadataBase: new URL(siteUrl),
@@ -47,20 +57,18 @@ export async function generateMetadata(): Promise<Metadata> {
       template: settings.resolvedTitleTemplate,
     },
     description: settings.resolvedMetaDescription,
-    keywords: ["toptan", "B2B", "B4B", "kurumsal", "alışveriş", "cam tablo", "halı", "perde", "nevresim", "toptan satış"],
-    authors: [{ name: "Enaunity" }],
-    creator: "Enaunity",
-    publisher: "Enaunity",
-    robots: { index: true, follow: true },
-    icons: {
-      icon: settings.resolvedFaviconUrl,
-      shortcut: settings.resolvedFaviconUrl,
-    },
+    keywords: settings.resolvedKeywords,
+    authors: [{ name: settings.resolvedOrganizationName }],
+    creator: settings.resolvedOrganizationName,
+    publisher: settings.resolvedOrganizationName,
+    robots: settings.robotsNoIndex ? { index: false, follow: false } : { index: true, follow: true },
+    icons,
     openGraph,
     twitter: {
       card: settings.resolvedOgImageUrl ? "summary_large_image" : "summary",
       title: settings.resolvedSiteTitle,
       description: settings.resolvedMetaDescription,
+      ...(settings.twitterHandle ? { site: `@${settings.twitterHandle}`, creator: `@${settings.twitterHandle}` } : {}),
       ...(settings.resolvedOgImageUrl ? { images: [settings.resolvedOgImageUrl] } : {}),
     },
     verification: {
@@ -71,9 +79,12 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const settings = await getSiteSettings();
+  const brandStyle = settings.resolvedBrandPrimaryColor
+    ? { ["--color-ena-primary" as string]: settings.resolvedBrandPrimaryColor, ["--color-ena-btn" as string]: settings.resolvedBrandPrimaryColor }
+    : undefined;
 
   return (
-    <html lang="tr" data-theme="dark" data-accent="orange" suppressHydrationWarning>
+    <html lang={settings.resolvedLang} data-theme="dark" data-accent="orange" suppressHydrationWarning style={brandStyle}>
       <head>
         <script dangerouslySetInnerHTML={{ __html: APPEARANCE_BLOCKING_SCRIPT }} />
         {gaId && (
@@ -92,10 +103,12 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             __html: JSON.stringify({
               "@context": "https://schema.org",
               "@type": "Organization",
-              name: settings.resolvedOgSiteName,
+              name: settings.resolvedOrganizationName,
               url: siteUrl,
-              description: "B4B Toptan Alışveriş Platformu",
-              contactPoint: { "@type": "ContactPoint", contactType: "customer service" },
+              description: settings.resolvedMetaDescription,
+              ...(settings.supportEmail
+                ? { contactPoint: { "@type": "ContactPoint", contactType: "customer service", email: settings.supportEmail } }
+                : { contactPoint: { "@type": "ContactPoint", contactType: "customer service" } }),
               sameAs: ["https://instagram.com/enaunity", "https://linkedin.com/company/enaunity"],
             }),
           }}

@@ -51,7 +51,7 @@ export async function POST(req: Request) {
     const uploadDir = path.join(process.cwd(), "public", "uploads", "site");
     await mkdir(uploadDir, { recursive: true });
 
-    const prefix = kind === "og" ? "og" : "favicon";
+    const prefix = kind === "og" || kind === "apple" ? "og" : "favicon";
     const safeName = `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
     const bytes = Buffer.from(await file.arrayBuffer());
     await writeFile(path.join(uploadDir, safeName), bytes);
