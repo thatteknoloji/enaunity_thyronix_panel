@@ -1,10 +1,12 @@
 "use client";
 
 import type { ReactNode } from "react";
+import { useEffect, useState } from "react";
 import type { LucideIcon } from "lucide-react";
 import Link from "next/link";
 import { ChevronRight, LogOut } from "lucide-react";
 import { ACCOUNT_NAV, type AccountTab } from "./nav";
+import { MARKETPLACE_MODULES, type MarketplaceModuleKey } from "@/lib/modules/marketplace";
 
 type Props = {
   tab: AccountTab | "appearance";
@@ -18,7 +20,61 @@ type Props = {
   headerActions?: ReactNode;
 };
 
+type LicensedLink = { href: string; label: string; icon: LucideIcon };
+
+function NavLinkItem({
+  href,
+  label,
+  icon: Ic,
+  active,
+}: {
+  href: string;
+  label: string;
+  icon: LucideIcon;
+  active: boolean;
+}) {
+  return (
+    <Link
+      href={href}
+      className={`flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-sm transition-all duration-200 ${
+        active
+          ? "bg-ena-primary/10 text-ena-primary font-semibold border border-ena-primary/20"
+          : "text-ena-light hover:text-ena-text hover:bg-ena-primary/5 border border-transparent"
+      }`}
+    >
+      <Ic size={16} className="shrink-0 opacity-70" />
+      <span>{label}</span>
+    </Link>
+  );
+}
+
 export function AccountShell({ tab, onTab, activePath, userName, userEmail, logo, onLogout, children, headerActions }: Props) {
+  const [licensedLinks, setLicensedLinks] = useState<LicensedLink[]>([]);
+
+  useEffect(() => {
+    fetch("/api/auth/me")
+      .then((r) => r.json())
+      .then((d) => {
+        if (d.data?.role !== "dealer") {
+          setLicensedLinks([]);
+          return;
+        }
+        return fetch("/api/dealer/modules")
+          .then((r) => r.json())
+          .then((mod) => {
+            if (!mod.success) return;
+            setLicensedLinks(
+              (mod.data.activeModules || []).map((m: { moduleKey: string; label: string; ctaHref: string }) => ({
+                href: m.ctaHref,
+                label: m.label,
+                icon: MARKETPLACE_MODULES[m.moduleKey as MarketplaceModuleKey]?.icon,
+              })).filter((l: LicensedLink) => l.icon)
+            );
+          });
+      })
+      .catch(() => setLicensedLinks([]));
+  }, []);
+
   return (
     <div className="app-viewport min-h-screen w-full animate-fade-in bg-ena-dark">
       <div className="mx-auto max-w-7xl min-w-0 px-4 py-6 lg:py-8">
@@ -78,23 +134,28 @@ export function AccountShell({ tab, onTab, activePath, userName, userEmail, logo
                 <div key={group.label}>
                   <p className="px-3 mb-2 text-[10px] font-semibold uppercase tracking-wider text-ena-light/50">{group.label}</p>
                   <div className="space-y-0.5">
+                    {group.label === "Premium Modüller" &&
+                      licensedLinks.map((link) => (
+                        <NavLinkItem
+                          key={link.href + link.label}
+                          href={link.href}
+                          label={link.label}
+                          icon={link.icon}
+                          active={activePath === link.href}
+                        />
+                      ))}
                     {group.items.map((item, idx) => {
                       const Ic = item.icon;
                       if (item.type === "link") {
                         const linkActive = activePath === item.href;
                         return (
-                          <Link
+                          <NavLinkItem
                             key={`${item.href}-${idx}`}
                             href={item.href}
-                            className={`flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-sm transition-all duration-200 ${
-                              linkActive
-                                ? "bg-ena-primary/10 text-ena-primary font-semibold border border-ena-primary/20"
-                                : "text-ena-light hover:text-ena-text hover:bg-ena-primary/5 border border-transparent"
-                            }`}
-                          >
-                            <Ic size={16} className="shrink-0 opacity-70" />
-                            <span>{item.label}</span>
-                          </Link>
+                            label={item.label}
+                            icon={Ic}
+                            active={linkActive}
+                          />
                         );
                       }
                       const active = tab === item.key;

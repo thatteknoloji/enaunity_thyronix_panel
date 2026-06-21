@@ -22,7 +22,7 @@ export async function GET(req: Request) {
     }
 
     if (!isAdminModuleKey(moduleKey)) {
-      return NextResponse.json({ success: false, error: "Geçerli moduleKey gerekli (THYRONIX, HIVE, LINKSLASH)" }, { status: 400 });
+      return NextResponse.json({ success: false, error: "Geçerli moduleKey gerekli (THYRONIX, HIVE, LINKSLASH, POD_CREATOR)" }, { status: 400 });
     }
 
     const data = await getModuleAccessOverview(moduleKey);

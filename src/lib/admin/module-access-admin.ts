@@ -1,11 +1,12 @@
 import { prisma } from "@/lib/db";
 import { getAvailablePlans } from "@/lib/modules/access";
+import { syncLicenseMetadataFromPlan } from "@/lib/modules/license-metadata";
 import { createProductAccountLink } from "@/lib/product-links/service";
 import { ensureHiveWorkspace, recordHiveSession } from "@/lib/hive/integration";
 import { recordThyronixSession } from "@/lib/thyronix/integration";
 import type { ProductType } from "@/lib/product-links/types";
 
-export type AdminModuleKey = "THYRONIX" | "HIVE" | "LINKSLASH";
+export type AdminModuleKey = "THYRONIX" | "HIVE" | "LINKSLASH" | "POD_CREATOR";
 
 const LICENSE_STATUSES = [
   "ACTIVE",
@@ -21,7 +22,7 @@ const LICENSE_STATUSES = [
 export type AdminLicenseStatus = (typeof LICENSE_STATUSES)[number];
 
 export function isAdminModuleKey(v: string): v is AdminModuleKey {
-  return v === "THYRONIX" || v === "HIVE" || v === "LINKSLASH";
+  return v === "THYRONIX" || v === "HIVE" || v === "LINKSLASH" || v === "POD_CREATOR";
 }
 
 function computeEndsAt(status: string, months?: number, trialDays?: number): Date | null {
@@ -33,6 +34,11 @@ function computeEndsAt(status: string, months?: number, trialDays?: number): Dat
   if (status === "ACTIVE" && months && months > 0) {
     const d = new Date();
     d.setMonth(d.getMonth() + months);
+    return d;
+  }
+  if (status === "ACTIVE") {
+    const d = new Date();
+    d.setMonth(d.getMonth() + 12);
     return d;
   }
   return null;
@@ -150,16 +156,24 @@ export async function upsertModuleLicense(input: {
   };
 
   if (existing) {
-    return prisma.moduleLicense.update({ where: { id: existing.id }, data });
+    const updated = await prisma.moduleLicense.update({ where: { id: existing.id }, data });
+    if (input.status === "ACTIVE" || input.status === "TRIAL") {
+      await syncLicenseMetadataFromPlan(updated.id, input.moduleKey, input.planKey);
+    }
+    return updated;
   }
 
-  return prisma.moduleLicense.create({
+  const created = await prisma.moduleLicense.create({
     data: {
       dealerId: input.dealerId,
       moduleKey: input.moduleKey,
       ...data,
     },
   });
+  if (input.status === "ACTIVE" || input.status === "TRIAL") {
+    await syncLicenseMetadataFromPlan(created.id, input.moduleKey, input.planKey);
+  }
+  return created;
 }
 
 export async function provisionModuleAccess(input: {
@@ -186,7 +200,7 @@ export async function provisionModuleAccess(input: {
   let linkResult: Awaited<ReturnType<typeof createProductAccountLink>> | null = null;
   let workspace: { id: string; name: string } | null = null;
 
-  if (input.createProductUser && input.moduleKey !== "LINKSLASH") {
+  if (input.createProductUser && input.moduleKey !== "LINKSLASH" && input.moduleKey !== "POD_CREATOR") {
     let user = input.userId
       ? await prisma.user.findUnique({ where: { id: input.userId } })
       : await prisma.user.findFirst({ where: { dealerId: input.dealerId }, orderBy: { createdAt: "asc" } });

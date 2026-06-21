@@ -1,18 +1,26 @@
 import { prisma } from "@/lib/db";
 
-export const MODULE_KEYS = ["ENA_COMMERCE", "THYRONIX", "HIVE", "HIVE_PRO", "LINKSLASH"] as const;
+export const MODULE_KEYS = ["ENA_COMMERCE", "THYRONIX", "HIVE", "HIVE_PRO", "LINKSLASH", "POD_CREATOR"] as const;
 export type ModuleKey = typeof MODULE_KEYS[number];
 
 export async function getDealerModuleLicense(dealerId: string, moduleKey: string) {
-  return prisma.moduleLicense.findFirst({ where: { dealerId, moduleKey }, orderBy: { createdAt: "desc" } });
+  const licenses = await prisma.moduleLicense.findMany({
+    where: { dealerId, moduleKey },
+    orderBy: { createdAt: "desc" },
+  });
+  if (!licenses.length) return null;
+  // Önce geçerli (entitled) lisansı bul — yeni PENDING kayıt eski ACTIVE lisansı gölgelemesin
+  const entitled = licenses.find((l) => isModuleLicenseEntitled(l));
+  return entitled || licenses[0];
 }
 
 /** Geçerli modül lisansı — admin grant dahil; ENA_COMMERCE hariç bayi onayına bağlı değil */
 export function isModuleLicenseEntitled(
-  license: { status: string; lifecycleStage: string; endsAt: Date | null },
+  license: { status: string; lifecycleStage: string; endsAt: Date | null; trialEndsAt?: Date | null },
   now = new Date()
 ): boolean {
   if (["blocked", "purged"].includes(license.lifecycleStage)) return false;
+  if (license.status === "TRIAL" && license.trialEndsAt && license.trialEndsAt < now) return false;
   if (license.endsAt && license.endsAt < now) return false;
   if (["expired", "passive"].includes(license.lifecycleStage)) return false;
   if (["SUSPENDED", "EXPIRED", "CANCELLED"].includes(license.status)) return false;
@@ -34,6 +42,21 @@ export async function getModuleLicenseState(dealerId: string, moduleKey: string)
 
   const license = await getDealerModuleLicense(dealerId, moduleKey);
   if (!license) return "none";
+
+  if (moduleKey === "POD_CREATOR") {
+    const { validatePodDealerContext, isPodPlanEntitled } = await import("@/lib/pod/access");
+    const ctx = await validatePodDealerContext(dealerId);
+    if (!ctx.ok) {
+      if (license.status === "PENDING_PAYMENT" || license.status === "PENDING_APPROVAL") return "pending";
+      if (isModuleLicenseEntitled(license) && ctx.code === "BAYI_ONAYI_YOK") return "pending";
+      return "none";
+    }
+    if (license.planKey) {
+      const planOk = await isPodPlanEntitled(license.planKey);
+      if (!planOk && !isModuleLicenseEntitled(license)) return "none";
+      if (!planOk && isModuleLicenseEntitled(license)) return "none";
+    }
+  }
 
   if (isModuleLicenseEntitled(license)) return "active";
   if (license.status === "PENDING_PAYMENT" || license.status === "PENDING_APPROVAL") return "pending";
@@ -61,6 +84,7 @@ export function getModuleLabel(key: string): string {
     HIVE: "HIVE",
     HIVE_PRO: "HIVE Pro",
     LINKSLASH: "LinkSlash",
+    POD_CREATOR: "POD Creator",
     PRODUCT_LIBRARY: "Hazır Ürün Deposu",
   };
   return labels[key] || key;

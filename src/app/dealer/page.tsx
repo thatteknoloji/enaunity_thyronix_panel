@@ -5,8 +5,9 @@ import Link from "next/link";
 import { formatPrice, formatDate } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Package, ShoppingCart, TrendingUp, TrendingDown, Clock, AlertTriangle, Wallet, RotateCcw, Bell, ChevronUp, ChevronDown, ArrowUpRight, CreditCard, Truck, BarChart3, Star, Heart, FileText, Zap } from "lucide-react";
+import { Package, ShoppingCart, TrendingUp, TrendingDown, Clock, AlertTriangle, Wallet, RotateCcw, Bell, ChevronUp, ChevronDown, ArrowUpRight, CreditCard, Truck, BarChart3, Star, Heart, FileText, Zap, Sparkles, ArrowRight } from "lucide-react";
 import { BarChart, DonutChart } from "@/components/Charts";
+import type { MarketplaceCard } from "@/lib/modules/marketplace";
 
 const statusVariant: Record<string, "default"|"success"|"warning"|"danger"> = {
   pending_approval:"warning", approved:"default", pending:"warning", shipped:"default", delivered:"success", cancelled:"danger",
@@ -17,13 +18,17 @@ const statusText: Record<string, string> = {
 
 export default function DealerDashboard() {
   const [data, setData] = useState<any>(null);
+  const [activeModules, setActiveModules] = useState<MarketplaceCard[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("/api/dealer/dashboard")
-      .then(r => r.json())
-      .then(d => { if (d.success) setData(d.data); })
-      .finally(() => setLoading(false));
+    Promise.all([
+      fetch("/api/dealer/dashboard").then((r) => r.json()),
+      fetch("/api/dealer/modules").then((r) => r.json()),
+    ]).then(([dash, mods]) => {
+      if (dash.success) setData(dash.data);
+      if (mods.success) setActiveModules(mods.data.activeModules || []);
+    }).finally(() => setLoading(false));
   }, []);
 
   if (loading) return <div className="animate-pulse space-y-6"><div className="h-8 w-48 rounded bg-ena-card/50"/><div className="grid grid-cols-2 md:grid-cols-4 gap-4">{Array.from({length:4}).map((_,i)=><div key={i} className="h-28 rounded-xl bg-ena-card/30"/>)}</div></div>;
@@ -76,6 +81,43 @@ export default function DealerDashboard() {
           )}
         </div>
       )}
+
+      {/* Active Modules */}
+      <div className="rounded-2xl border border-ena-border bg-ena-card/30 p-6">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-sm font-semibold text-ena-text flex items-center gap-2">
+            <Sparkles size={16} className="text-ena-primary" /> Aktif Modüllerim
+          </h3>
+          <Link href="/dealer/modules" className="text-xs text-ena-primary hover:underline">
+            Ek modülleri keşfet
+          </Link>
+        </div>
+        {activeModules.length === 0 ? (
+          <p className="text-sm text-ena-light/60">
+            Henüz aktif modülünüz yok.{" "}
+            <Link href="/dealer/modules" className="text-ena-primary hover:underline">
+              Modül Pazarı
+            </Link>
+            &apos;ndan keşfedin.
+          </p>
+        ) : (
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            {activeModules.map((m) => (
+              <Link
+                key={m.moduleKey}
+                href={m.ctaHref}
+                className="group flex items-center justify-between rounded-xl border border-ena-border bg-ena-card/40 px-4 py-3 hover:border-ena-primary/30 hover:bg-ena-card/60 transition-colors"
+              >
+                <div>
+                  <p className="text-sm font-semibold text-ena-text">{m.label}</p>
+                  <p className="text-xs text-ena-light/50">{m.planName || m.planKey || "Aktif"}</p>
+                </div>
+                <ArrowRight size={14} className="text-ena-light/30 group-hover:text-ena-primary" />
+              </Link>
+            ))}
+          </div>
+        )}
+      </div>
 
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">

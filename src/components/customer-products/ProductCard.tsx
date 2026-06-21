@@ -2,6 +2,7 @@ import type { UnifiedStatus } from "@/lib/customer-products/types";
 import { PRODUCT_META, type CustomerProductCard, type CustomerProductKey } from "@/lib/customer-products/types";
 import Link from "next/link";
 import { ArrowRight, ArrowUpRight, FileText, Shield, CreditCard } from "lucide-react";
+import { resolvePremiumEnterHref } from "@/lib/modules/marketplace";
 
 const STATUS_STYLES: Record<UnifiedStatus, string> = {
   ACTIVE: "bg-green-500/10 text-green-400 border-green-500/20",
@@ -48,13 +49,14 @@ export function CustomerProductCardView({ product }: { product: CustomerProductC
       ? (product.libraryStats?.activePackageCount ?? 0) > 0 ||
         product.status === "ACTIVE" ||
         product.status === "TRIAL"
-      : product.status === "ACTIVE" || product.status === "TRIAL";
+      : product.entitled === true || product.status === "ACTIVE" || product.status === "TRIAL";
 
-  const enterHref = canEnter
-    ? product.moduleKey === "LINKSLASH" || product.moduleKey === "PRODUCT_LIBRARY"
-      ? meta.gatewayPath
-      : meta.appPath
-    : meta.pricingPath;
+  const enterHref =
+    product.moduleKey === "PRODUCT_LIBRARY"
+      ? canEnter
+        ? meta.gatewayPath
+        : meta.pricingPath
+      : resolvePremiumEnterHref(product.moduleKey, canEnter);
 
   return (
     <div className={`rounded-2xl border bg-gradient-to-br p-6 space-y-5 ${accent}`}>

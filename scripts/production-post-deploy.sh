@@ -45,6 +45,9 @@ npx tsx scripts/seed-bayi-cam-tablo-full.ts || echo "  (cam tablo seed atlandı)
 echo "→ linkslash plan seed…"
 npm run seed:linkslash-plans || echo "  (linkslash seed atlandı)"
 
+echo "→ pod creator plan seed…"
+npm run seed:pod-plans || echo "  (pod plans seed atlandı)"
+
 echo "→ ecosystem showcase sync (LinkSlash vitrin)…"
 npm run seed:ecosystem-showcase || echo "  (ecosystem sync atlandı)"
 

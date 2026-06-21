@@ -217,6 +217,36 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
+  // ── POD Creator dealer route ──
+  if (pathname.startsWith("/dealer/pod")) {
+    if (!token) {
+      const loginUrl = new URL("/auth/login", request.url);
+      loginUrl.searchParams.set("redirect", pathname);
+      return NextResponse.redirect(loginUrl);
+    }
+    const payloadPod = await verifyJWT(token);
+    if (!payloadPod) return NextResponse.redirect(new URL("/auth/login", request.url));
+    if (isAdminRole((payloadPod.role as string) || "")) return NextResponse.next();
+    const dealerIdPod = (payloadPod as { dealerId?: string }).dealerId;
+    if (dealerIdPod) {
+      try {
+        const checkRes = await fetch(
+          `${request.nextUrl.origin}/api/internal/check-module-access?dealerId=${dealerIdPod}&moduleKey=POD_CREATOR`
+        );
+        const checkData = await checkRes.json();
+        if (!checkData.access) {
+          if (checkData.reason === "LISANS_YOK") {
+            return NextResponse.redirect(new URL("/gateway/pod", request.url));
+          }
+          return NextResponse.redirect(new URL("/gateway/pod", request.url));
+        }
+      } catch {
+        return NextResponse.redirect(new URL("/gateway/pod", request.url));
+      }
+    }
+    return NextResponse.next();
+  }
+
   // ── Product Gateway (ENA session required) ──
   if (pathname.startsWith("/gateway")) {
     if (!token) {

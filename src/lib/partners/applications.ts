@@ -2,6 +2,7 @@ import { prisma } from "@/lib/db";
 import { readReferralCodeFromCookie, getPartnerByReferralCode } from "./referral";
 import { inferPartnerTypeFromApplication, normalizePartnerType } from "./types";
 import type { PartnerTypeV2 } from "./types";
+import { createPartnerFromApplication } from "./profile";
 
 export async function submitPartnerApplication(input: {
   userId?: string;
@@ -20,6 +21,10 @@ export async function submitPartnerApplication(input: {
     hasTaxPlate: input.hasTaxPlate,
   });
 
+  if (inferred === "POD_CREATOR") {
+    throw new Error("POD Creator modül lisansı için Modül Pazarı veya ödeme ekranını kullanın");
+  }
+
   let sponsorPartnerId: string | null = null;
   const code = await readReferralCodeFromCookie();
   if (code) {
@@ -27,41 +32,90 @@ export async function submitPartnerApplication(input: {
     sponsorPartnerId = sponsor?.id || null;
   }
 
+  const email = input.email.toLowerCase();
+  let fastTrackApproved = false;
+
+  if (input.dealerId && input.userId && (inferred === "SOCIAL_DEALER" || inferred === "PROFESSIONAL_DEALER" || inferred === "AI_PARTNER")) {
+    const [dealer, approval] = await Promise.all([
+      prisma.dealer.findUnique({ where: { id: input.dealerId }, select: { status: true } }),
+      prisma.dealerApproval.findUnique({ where: { dealerId: input.dealerId } }),
+    ]);
+    fastTrackApproved =
+      dealer?.status === "ACTIVE" &&
+      approval?.status === "ACTIVE" &&
+      approval.documentStatus === "APPROVED";
+  }
+
   const pending = await prisma.partnerNetworkApplication.findFirst({
     where: {
-      email: input.email.toLowerCase(),
+      email,
       status: "PENDING",
     },
   });
+
+  const applicationData = {
+    fullName: input.fullName,
+    companyName: input.companyName || "",
+    phone: input.phone || "",
+    requestedType: inferred as never,
+    hasTaxPlate: Boolean(input.hasTaxPlate),
+    socialMedia: input.socialMedia || "",
+    applicationNote: input.applicationNote || "",
+    sponsorPartnerId,
+    userId: input.userId || null,
+    dealerId: input.dealerId || null,
+  };
+
+  if (fastTrackApproved && input.userId) {
+    await createPartnerFromApplication({
+      userId: input.userId,
+      dealerId: input.dealerId,
+      partnerType: inferred,
+      sponsorPartnerId,
+      metadata: {
+        socialMedia: input.socialMedia,
+        hasTaxPlate: input.hasTaxPlate,
+        applicationNote: input.applicationNote,
+        fastTrack: true,
+      },
+    });
+
+    if (pending) {
+      return prisma.partnerNetworkApplication.update({
+        where: { id: pending.id },
+        data: {
+          ...applicationData,
+          status: "APPROVED",
+          reviewedBy: "SYSTEM",
+          reviewedAt: new Date(),
+          adminNote: "Onaylı bayi — otomatik partner aktivasyonu",
+        },
+      });
+    }
+
+    return prisma.partnerNetworkApplication.create({
+      data: {
+        ...applicationData,
+        email,
+        status: "APPROVED",
+        reviewedBy: "SYSTEM",
+        reviewedAt: new Date(),
+        adminNote: "Onaylı bayi — otomatik partner aktivasyonu",
+      },
+    });
+  }
+
   if (pending) {
     return prisma.partnerNetworkApplication.update({
       where: { id: pending.id },
-      data: {
-        fullName: input.fullName,
-        companyName: input.companyName || "",
-        phone: input.phone || "",
-        requestedType: inferred as never,
-        hasTaxPlate: Boolean(input.hasTaxPlate),
-        socialMedia: input.socialMedia || "",
-        applicationNote: input.applicationNote || "",
-        sponsorPartnerId,
-      },
+      data: applicationData,
     });
   }
 
   return prisma.partnerNetworkApplication.create({
     data: {
-      userId: input.userId || null,
-      dealerId: input.dealerId || null,
-      fullName: input.fullName,
-      companyName: input.companyName || "",
-      email: input.email.toLowerCase(),
-      phone: input.phone || "",
-      requestedType: inferred as never,
-      hasTaxPlate: Boolean(input.hasTaxPlate),
-      socialMedia: input.socialMedia || "",
-      applicationNote: input.applicationNote || "",
-      sponsorPartnerId,
+      ...applicationData,
+      email,
       status: "PENDING",
     },
   });

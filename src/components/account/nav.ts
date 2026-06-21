@@ -1,8 +1,7 @@
 import type { LucideIcon } from "lucide-react";
 import {
   Home, User as UserIcon, Shield, ShoppingCart, FileText, Save, Heart,
-  Wallet, ReceiptText, CreditCard, MapPin, Upload, RotateCcw, Zap, Sparkles, Link2,
-  Bell, Store, Gift, FileSignature, Palette,
+  Wallet, ReceiptText, CreditCard, MapPin, Upload, RotateCcw, Sparkles, Store, Gift, FileSignature, Palette, Bell,
 } from "lucide-react";
 
 export type AccountTab =
@@ -66,12 +65,10 @@ export const ACCOUNT_NAV: NavGroup[] = [
     ],
   },
   {
-    label: "Premium Ürünler",
+    label: "Premium Modüller",
     items: [
-      { type: "link", href: "/gateway/thyronix", label: "THYRONIX", icon: Zap },
-      { type: "link", href: "/gateway/hive", label: "HIVE", icon: Sparkles },
-      { type: "link", href: "/gateway/linkslash", label: "LinkSlash", icon: Link2 },
-      { type: "link", href: "/products", label: "Ürünlerim", icon: Store },
+      { type: "link", href: "/dealer/modules", label: "Modül Pazarı", icon: Sparkles },
+      { type: "link", href: "/products", label: "Modül Merkezi", icon: Store },
       { type: "link", href: "/product-library", label: "Hazır Ürünler", icon: Store },
     ],
   },

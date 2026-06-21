@@ -37,10 +37,17 @@ export default function DealerPartnerPage() {
   if (data?.canApply && !data.profile) {
     return (
       <PartnerDealerShell title="Partner Merkezi" description="EnaUnity Bayi Ağı — referans ve komisyon">
-        <p className="text-ena-light text-sm mb-4">Henüz partner profiliniz yok. Başvuru yaparak referans kodunuzu alabilirsiniz.</p>
-        <Link href="/dealer/partner/apply" className="inline-flex rounded-lg bg-cyan-600 px-4 py-2 text-sm font-semibold text-white">
-          Partner Başvurusu Yap
-        </Link>
+        <p className="text-ena-light text-sm mb-4">
+          Henüz partner profiliniz yok. Onaylı bayi iseniz bilgileriniz kayıtlıdır — sadece program tipini seçmeniz yeterli.
+        </p>
+        <div className="flex flex-wrap gap-2">
+          <Link href="/dealer/partner/apply" className="inline-flex rounded-lg bg-cyan-600 px-4 py-2 text-sm font-semibold text-white">
+            Partner / Modül Talebi
+          </Link>
+          <Link href="/dealer/modules" className="inline-flex rounded-lg border border-ena-border px-4 py-2 text-sm text-white hover:bg-ena-card">
+            Modül Pazarı
+          </Link>
+        </div>
       </PartnerDealerShell>
     );
   }

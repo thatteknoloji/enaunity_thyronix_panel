@@ -184,8 +184,17 @@ export async function approvePayment(paymentId: string): Promise<PaymentResult> 
     await resetLicenseLifecycleFlags(existingLicense.id, endsAt, billingPeriod);
     const license = await prisma.moduleLicense.update({
       where: { id: existingLicense.id },
-      data: { planKey: payment.planKey },
+      data: {
+        planKey: payment.planKey,
+        status: "ACTIVE",
+        startsAt: new Date(),
+        endsAt,
+        lifecycleStage: "active",
+        billingPeriod,
+      },
     });
+    const { syncLicenseMetadataFromPlan } = await import("@/lib/modules/license-metadata");
+    await syncLicenseMetadataFromPlan(license.id, payment.moduleKey, payment.planKey);
     const { processModuleLicenseCommission } = await import("@/lib/partners/commission-service");
     await processModuleLicenseCommission({
       dealerId: payment.dealerId,
@@ -206,6 +215,8 @@ export async function approvePayment(paymentId: string): Promise<PaymentResult> 
         lifecycleStage: "active",
       },
     });
+    const { syncLicenseMetadataFromPlan } = await import("@/lib/modules/license-metadata");
+    await syncLicenseMetadataFromPlan(license.id, payment.moduleKey, payment.planKey);
     const { processModuleLicenseCommission } = await import("@/lib/partners/commission-service");
     await processModuleLicenseCommission({
       dealerId: payment.dealerId,

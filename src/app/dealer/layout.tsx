@@ -5,24 +5,17 @@ import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import {
   LayoutDashboard, ShoppingCart, User, LogOut, ChevronLeft, ChevronRight, Home, Store, Wallet,
-  FileText, Users, RotateCcw, Bell, ReceiptText, Menu, X, Heart, Zap, MapPin, Upload,
-  FileSignature, Library, Truck, Plug, Package, Link2, Handshake, ChevronDown, Sparkles,
+  FileText, Users, RotateCcw, Bell, ReceiptText, Menu, Upload, Heart, Zap, MapPin,
+  FileSignature, Truck, Plug, Package, Handshake, Sparkles,
   type LucideIcon,
 } from "lucide-react";
 import NotificationBell from "@/components/NotificationBell";
 import { LegalReacceptanceGate } from "@/components/legal/LegalReacceptanceGate";
 import { useT } from "@/lib/i18n/provider";
-import { PRODUCT_META, type CustomerProductKey } from "@/lib/customer-products/types";
+import { buildLicensedNavItems } from "@/lib/modules/marketplace";
 
-type NavItem = { href: string; label: string; icon: LucideIcon; offer?: boolean };
-type NavGroup = { label: string; items: NavItem[]; collapsible?: boolean; defaultOpen?: boolean };
-
-const MODULE_ICONS: Partial<Record<CustomerProductKey, LucideIcon>> = {
-  THYRONIX: Package,
-  HIVE: Sparkles,
-  LINKSLASH: Link2,
-  PRODUCT_LIBRARY: Library,
-};
+type NavItem = { href: string; label: string; icon: LucideIcon };
+type NavGroup = { label: string; items: NavItem[] };
 
 function buildStaticGroups(t: (key: string) => string): NavGroup[] {
   return [
@@ -31,6 +24,7 @@ function buildStaticGroups(t: (key: string) => string): NavGroup[] {
       items: [
         { href: "/dealer", label: t("dealer.overview"), icon: LayoutDashboard },
         { href: "/dealer/notifications", label: t("dealer.notifications"), icon: Bell },
+        { href: "/dealer/modules", label: "Modül Pazarı", icon: Sparkles },
       ],
     },
     {
@@ -85,51 +79,6 @@ function buildStaticGroups(t: (key: string) => string): NavGroup[] {
   ];
 }
 
-function buildModuleGroups(
-  products: Array<{ moduleKey: string; status: string }>
-): { owned: NavGroup | null; offers: NavGroup | null } {
-  const ownedItems: NavItem[] = [];
-  const offerItems: NavItem[] = [];
-
-  for (const p of products) {
-    if (p.moduleKey === "ENA_COMMERCE") continue;
-    const key = p.moduleKey as CustomerProductKey;
-    const meta = PRODUCT_META[key];
-    if (!meta) continue;
-
-    const active = p.status === "ACTIVE" || p.status === "TRIAL";
-    const href = active
-      ? key === "LINKSLASH"
-        ? meta.gatewayPath
-        : meta.appPath
-      : meta.pricingPath;
-
-    const item: NavItem = {
-      href,
-      label: meta.label,
-      icon: MODULE_ICONS[key] || Package,
-      offer: !active,
-    };
-
-    if (active) ownedItems.push(item);
-    else if (p.status === "INACTIVE" || p.status === "EXPIRED" || p.status === "PENDING") {
-      offerItems.push({ ...item, label: `${meta.label} — Teklif` });
-    }
-  }
-
-  return {
-    owned: ownedItems.length
-      ? {
-          label: "Modüllerim",
-          items: [{ href: "/products", label: "Modül Merkezi", icon: Store }, ...ownedItems],
-        }
-      : null,
-    offers: offerItems.length
-      ? { label: "Modül Teklifleri", items: offerItems, collapsible: true, defaultOpen: false }
-      : null,
-  };
-}
-
 export default function DealerLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
@@ -138,18 +87,20 @@ export default function DealerLayout({ children }: { children: React.ReactNode }
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [dealerName, setDealerName] = useState("");
-  const [moduleProducts, setModuleProducts] = useState<Array<{ moduleKey: string; status: string }>>([]);
-  const [offersOpen, setOffersOpen] = useState(false);
+  const [licensedItems, setLicensedItems] = useState<NavItem[]>([]);
 
   const navGroups = useMemo(() => {
     const staticGroups = buildStaticGroups(t);
-    const { owned, offers } = buildModuleGroups(moduleProducts);
     const groups: NavGroup[] = [...staticGroups.slice(0, 2)];
-    if (owned) groups.push(owned);
+    if (licensedItems.length) {
+      groups.push({
+        label: "Modüllerim",
+        items: [{ href: "/products", label: "Modül Merkezi", icon: Store }, ...licensedItems],
+      });
+    }
     groups.push(...staticGroups.slice(2));
-    if (offers) groups.push(offers);
     return groups;
-  }, [t, moduleProducts]);
+  }, [t, licensedItems]);
 
   useEffect(() => {
     fetch("/api/auth/me")
@@ -162,10 +113,12 @@ export default function DealerLayout({ children }: { children: React.ReactNode }
           setDealerName(d.data.name || t("dealer.dealer_label"));
         }
       });
-    fetch("/api/customer-products")
+    fetch("/api/dealer/modules")
       .then((r) => r.json())
       .then((d) => {
-        if (d.success) setModuleProducts(d.data.products || []);
+        if (d.success) {
+          setLicensedItems(buildLicensedNavItems(d.data.modules || []));
+        }
       });
   }, [router, t]);
 
@@ -180,7 +133,7 @@ export default function DealerLayout({ children }: { children: React.ReactNode }
 
   if (!authorized) return null;
 
-  if (pathname.startsWith("/dealer/linkslash")) {
+  if (pathname.startsWith("/dealer/linkslash") || pathname.startsWith("/dealer/pod")) {
     return <>{children}</>;
   }
 
@@ -193,9 +146,7 @@ export default function DealerLayout({ children }: { children: React.ReactNode }
         className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200 ${
           isActive
             ? "bg-ena-primary/10 text-ena-primary border border-ena-primary/20"
-            : item.offer
-              ? "text-ena-light/70 hover:text-ena-light hover:bg-white/5 border border-transparent border-dashed border-ena-border/30"
-              : "text-ena-light hover:text-white hover:bg-white/5"
+            : "text-ena-light hover:text-white hover:bg-white/5"
         }`}
         title={collapsed ? item.label : undefined}
       >
@@ -223,29 +174,16 @@ export default function DealerLayout({ children }: { children: React.ReactNode }
       </div>
 
       <nav className="flex-1 overflow-y-auto p-2 space-y-3 scrollbar-none">
-        {navGroups.map((group) => {
-          const isOffers = group.collapsible;
-          const open = isOffers ? offersOpen : true;
-          return (
-            <div key={group.label}>
-              {!collapsed && (
-                <button
-                  type="button"
-                  onClick={() => isOffers && setOffersOpen(!offersOpen)}
-                  className={`w-full flex items-center justify-between px-3 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-ena-light/50 ${
-                    isOffers ? "hover:text-ena-light cursor-pointer" : "cursor-default"
-                  }`}
-                >
-                  {group.label}
-                  {isOffers && <ChevronDown size={12} className={`transition-transform ${open ? "rotate-180" : ""}`} />}
-                </button>
-              )}
-              {(open || collapsed) && (
-                <div className="space-y-0.5">{group.items.map(renderNavItem)}</div>
-              )}
-            </div>
-          );
-        })}
+        {navGroups.map((group) => (
+          <div key={group.label}>
+            {!collapsed && (
+              <div className="px-3 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-ena-light/50">
+                {group.label}
+              </div>
+            )}
+            <div className="space-y-0.5">{group.items.map(renderNavItem)}</div>
+          </div>
+        ))}
       </nav>
 
       <div className="space-y-1 px-2 pb-2">

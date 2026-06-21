@@ -4,6 +4,7 @@ import Link from "next/link";
 import { ShoppingCart, User, LogOut, LayoutDashboard, Zap, Sparkles, Link2, Globe, Search, Menu, X, FileText } from "lucide-react";
 import { canSeeAdminEntry, getAdminSecretPath } from "@/lib/auth/admin-access";
 import { PRODUCT_GATEWAY_PATHS } from "@/lib/product-links/types";
+import { MARKETPLACE_MODULES, type MarketplaceModuleKey } from "@/lib/modules/marketplace";
 import { useCartStore } from "@/lib/cart-store";
 import { useT, LOCALE_LABELS, type Locale } from "@/lib/i18n/provider";
 import { useEffect, useState } from "react";
@@ -15,10 +16,18 @@ import { usePathname, useRouter } from "next/navigation";
 
 const locales = Object.entries(LOCALE_LABELS) as [Locale, string][];
 
+const MODULE_BTN_CLASS: Record<string, string> = {
+  THYRONIX: "text-blue-400 hover:text-blue-300",
+  HIVE: "text-violet-400 hover:text-violet-300",
+  LINKSLASH: "text-cyan-400 hover:text-cyan-300",
+  POD_CREATOR: "text-emerald-400 hover:text-emerald-300",
+};
+
 export default function Header() {
   const { t, locale, setLocale } = useT();
   const { items, isOpen, setIsOpen, fetchCart } = useCartStore();
   const [user, setUser] = useState<{ name: string; role: string } | null>(null);
+  const [dealerModules, setDealerModules] = useState<Array<{ moduleKey: string; label: string; href: string }>>([]);
   const [loading, setLoading] = useState(true);
   const [menuOpen, setMenuOpen] = useState(false);
   const [expandedCat, setExpandedCat] = useState<string | null>(null);
@@ -35,6 +44,27 @@ export default function Header() {
       .catch(() => setUser(null))
       .finally(() => setLoading(false));
   }, [pathname]);
+
+  useEffect(() => {
+    if (user?.role !== "dealer") {
+      setDealerModules([]);
+      return;
+    }
+    fetch("/api/dealer/modules")
+      .then((r) => r.json())
+      .then((d) => {
+        if (d.success) {
+          setDealerModules(
+            (d.data.activeModules || []).map((m: { moduleKey: string; label: string; ctaHref: string }) => ({
+              moduleKey: m.moduleKey,
+              label: m.label,
+              href: m.ctaHref,
+            }))
+          );
+        }
+      })
+      .catch(() => setDealerModules([]));
+  }, [user?.role]);
 
   useEffect(() => {
     fetchCart();
@@ -168,14 +198,6 @@ export default function Header() {
                     </Button>
                   </Link>
                 )}
-                {user.role === "dealer" && (
-                  <Link href="/thyronix/pricing">
-                    <Button variant="ghost" size="sm" className="text-blue-400 hover:text-blue-300">
-                      <Zap size={14} className="mr-1" />
-                      THYRONIX
-                    </Button>
-                  </Link>
-                )}
                 {canSeeAdminEntry(user.role) && (
                   <Link href={PRODUCT_GATEWAY_PATHS.HIVE}>
                     <Button variant="ghost" size="sm" className="text-violet-400 hover:text-violet-300">
@@ -185,29 +207,25 @@ export default function Header() {
                   </Link>
                 )}
                 {canSeeAdminEntry(user.role) && (
-                  <Link href="/platform/linkslash">
+                  <Link href="/gateway/linkslash">
                     <Button variant="ghost" size="sm" className="text-cyan-400 hover:text-cyan-300">
                       <Link2 size={14} className="mr-1" />
                       LinkSlash
                     </Button>
                   </Link>
                 )}
-                {user.role === "dealer" && (
-                  <Link href="/hive/pricing">
-                    <Button variant="ghost" size="sm" className="text-violet-400 hover:text-violet-300">
-                      <Sparkles size={14} className="mr-1" />
-                      HIVE
-                    </Button>
-                  </Link>
-                )}
-                {user.role === "dealer" && (
-                  <Link href="/platform/linkslash">
-                    <Button variant="ghost" size="sm" className="text-cyan-400 hover:text-cyan-300">
-                      <Link2 size={14} className="mr-1" />
-                      LinkSlash
-                    </Button>
-                  </Link>
-                )}
+                {user.role === "dealer" && dealerModules.map((m) => {
+                  const meta = MARKETPLACE_MODULES[m.moduleKey as MarketplaceModuleKey];
+                  const Icon = meta?.icon || Zap;
+                  return (
+                    <Link key={m.moduleKey} href={m.href}>
+                      <Button variant="ghost" size="sm" className={MODULE_BTN_CLASS[m.moduleKey] || "text-ena-light"}>
+                        <Icon size={14} className="mr-1" />
+                        {m.label}
+                      </Button>
+                    </Link>
+                  );
+                })}
                 <Link href={user.role === "dealer" ? "/dealer/profile" : "/account"}>
                   <Button variant="ghost" size="sm" className="text-ena-light">
                     <User size={16} className="mr-1" />
@@ -360,27 +378,26 @@ export default function Header() {
                 </Link>
               )}
               {canSeeAdminEntry(user.role) && (
-                <Link href="/platform/linkslash" onClick={() => setMenuOpen(false)} className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-cyan-400 hover:text-cyan-300 hover:bg-ena-card transition-colors">
+                <Link href="/gateway/linkslash" onClick={() => setMenuOpen(false)} className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-cyan-400 hover:text-cyan-300 hover:bg-ena-card transition-colors">
                   <Link2 size={16} />
                   LinkSlash
                 </Link>
               )}
-              {user.role === "dealer" && (
-                <>
-                  <Link href="/thyronix/pricing" onClick={() => setMenuOpen(false)} className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-blue-400 hover:text-blue-300 hover:bg-ena-card transition-colors">
-                    <Zap size={16} />
-                    THYRONIX
+              {user.role === "dealer" && dealerModules.map((m) => {
+                const meta = MARKETPLACE_MODULES[m.moduleKey as MarketplaceModuleKey];
+                const Icon = meta?.icon || Zap;
+                return (
+                  <Link
+                    key={m.moduleKey}
+                    href={m.href}
+                    onClick={() => setMenuOpen(false)}
+                    className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm hover:bg-ena-card transition-colors ${MODULE_BTN_CLASS[m.moduleKey] || "text-ena-light hover:text-ena-text"}`}
+                  >
+                    <Icon size={16} />
+                    {m.label}
                   </Link>
-                  <Link href="/hive/pricing" onClick={() => setMenuOpen(false)} className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-violet-400 hover:text-violet-300 hover:bg-ena-card transition-colors">
-                    <Sparkles size={16} />
-                    HIVE
-                  </Link>
-                  <Link href="/platform/linkslash" onClick={() => setMenuOpen(false)} className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-cyan-400 hover:text-cyan-300 hover:bg-ena-card transition-colors">
-                    <Link2 size={16} />
-                    LinkSlash
-                  </Link>
-                </>
-              )}
+                );
+              })}
               {user.role === "dealer" && (
                 <Link href="/dealer" onClick={() => setMenuOpen(false)} className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-ena-light hover:text-ena-text hover:bg-ena-card transition-colors">
                   <LayoutDashboard size={16} />

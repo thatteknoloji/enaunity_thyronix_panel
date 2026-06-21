@@ -1,4 +1,4 @@
-export const CUSTOMER_PRODUCT_KEYS = ["ENA_COMMERCE", "THYRONIX", "HIVE", "PRODUCT_LIBRARY", "LINKSLASH"] as const;
+export const CUSTOMER_PRODUCT_KEYS = ["ENA_COMMERCE", "THYRONIX", "HIVE", "PRODUCT_LIBRARY", "LINKSLASH", "POD_CREATOR"] as const;
 export type CustomerProductKey = (typeof CUSTOMER_PRODUCT_KEYS)[number];
 
 export const UNIFIED_STATUSES = ["ACTIVE", "TRIAL", "PENDING", "INACTIVE", "EXPIRED"] as const;
@@ -21,7 +21,7 @@ export const PRODUCT_META: Record<
     description: "Ürün feed yönetimi ve AI optimizasyonu",
     color: "blue",
     gatewayPath: "/gateway/thyronix",
-    pricingPath: "/thyronix/pricing",
+    pricingPath: "/payment/checkout?type=module&moduleKey=THYRONIX&planKey=starter",
     appPath: "/thyronix",
   },
   HIVE: {
@@ -29,7 +29,7 @@ export const PRODUCT_META: Record<
     description: "SEO, GEO ve büyüme motoru",
     color: "violet",
     gatewayPath: "/gateway/hive",
-    pricingPath: "/hive/pricing",
+    pricingPath: "/payment/checkout?type=module&moduleKey=HIVE&planKey=starter",
     appPath: "/hive",
   },
   PRODUCT_LIBRARY: {
@@ -48,6 +48,14 @@ export const PRODUCT_META: Record<
     pricingPath: "/payment/checkout?type=module&moduleKey=LINKSLASH&planKey=starter",
     appPath: "/dealer/linkslash",
   },
+  POD_CREATOR: {
+    label: "POD Creator",
+    description: "Tasarımdan ürüne POD altyapısı — tasarım ve mockup özellikleri yakında",
+    color: "emerald",
+    gatewayPath: "/gateway/pod",
+    pricingPath: "/payment/checkout?type=module&moduleKey=POD_CREATOR&planKey=starter",
+    appPath: "/dealer/pod",
+  },
 };
 
 export interface CustomerProductCard {
@@ -64,6 +72,8 @@ export interface CustomerProductCard {
   lastLoginAt: string | null;
   linkStatus: string | null;
   licenseId: string | null;
+  /** getModuleLicenseState() === "active" — kart/menü giriş kararı için */
+  entitled?: boolean;
   libraryStats?: {
     packageCount: number;
     activePackageCount: number;

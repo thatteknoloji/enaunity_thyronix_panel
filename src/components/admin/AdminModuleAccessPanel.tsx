@@ -5,7 +5,7 @@ import { Plus, Shield, Loader2, UserPlus, Trash2, KeyRound, Copy } from "lucide-
 import toast from "react-hot-toast";
 import { getStatusLabel } from "@/lib/modules/access";
 
-type ModuleKey = "THYRONIX" | "HIVE" | "LINKSLASH";
+type ModuleKey = "THYRONIX" | "HIVE" | "LINKSLASH" | "POD_CREATOR";
 
 type Dealer = { id: string; company: string; name: string; email: string };
 type Plan = { planKey: string; name: string; monthlyPrice: number };
@@ -46,7 +46,7 @@ export function AdminModuleAccessPanel({ moduleKey }: { moduleKey: ModuleKey }) 
   const [status, setStatus] = useState("ACTIVE");
   const [createProductUser, setCreateProductUser] = useState(true);
   const [trialDays, setTrialDays] = useState(14);
-  const [months, setMonths] = useState(1);
+  const [months, setMonths] = useState(moduleKey === "POD_CREATOR" ? 12 : 1);
   const [lastTempPassword, setLastTempPassword] = useState<string | null>(null);
 
   const load = useCallback(() => {
@@ -68,6 +68,10 @@ export function AdminModuleAccessPanel({ moduleKey }: { moduleKey: ModuleKey }) 
   useEffect(() => {
     load();
   }, [load]);
+
+  useEffect(() => {
+    setMonths(moduleKey === "POD_CREATOR" ? 12 : 1);
+  }, [moduleKey]);
 
   useEffect(() => {
     if (!dealerId) {

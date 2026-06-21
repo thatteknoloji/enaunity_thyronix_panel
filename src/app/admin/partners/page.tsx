@@ -28,6 +28,7 @@ const TYPES = ["PROFESSIONAL_DEALER", "SOCIAL_DEALER", "POD_CREATOR", "AI_PARTNE
 
 export default function AdminPartnersPage() {
   const [rows, setRows] = useState<Row[]>([]);
+  const [grantPodLicense, setGrantPodLicense] = useState<Record<string, boolean>>({});
 
   const load = () => {
     fetch("/api/admin/partners").then((r) => r.json()).then((d) => { if (d.success) setRows(d.data); });
@@ -42,6 +43,14 @@ export default function AdminPartnersPage() {
       body: JSON.stringify({ id, ...body }),
     });
     load();
+  }
+
+  async function changeType(id: string, partnerType: string) {
+    await patch(id, {
+      action: "change_type",
+      partnerType,
+      grantPodLicense: partnerType === "POD_CREATOR" && grantPodLicense[id],
+    });
   }
 
   return (
@@ -62,13 +71,25 @@ export default function AdminPartnersPage() {
             {rows.map((r) => (
               <tr key={r.id}>
                 <td className="px-4 py-2">
-                  <select
-                    className="text-xs border rounded px-1 py-0.5"
-                    value={r.normalizedType || r.partnerType}
-                    onChange={(e) => patch(r.id, { action: "change_type", partnerType: e.target.value })}
-                  >
-                    {TYPES.map((t) => <option key={t} value={t}>{TYPE_LABELS[t]}</option>)}
-                  </select>
+                  <div className="space-y-1">
+                    <select
+                      className="text-xs border rounded px-1 py-0.5"
+                      value={r.normalizedType || r.partnerType}
+                      onChange={(e) => changeType(r.id, e.target.value)}
+                    >
+                      {TYPES.map((t) => <option key={t} value={t}>{TYPE_LABELS[t]}</option>)}
+                    </select>
+                    {(r.normalizedType || r.partnerType) === "POD_CREATOR" && (
+                      <label className="flex items-center gap-1 text-[10px] text-gray-600">
+                        <input
+                          type="checkbox"
+                          checked={grantPodLicense[r.id] || false}
+                          onChange={(e) => setGrantPodLicense({ ...grantPodLicense, [r.id]: e.target.checked })}
+                        />
+                        POD Creator lisansı da tanımla
+                      </label>
+                    )}
+                  </div>
                 </td>
                 <td className="px-4 py-2 font-mono text-xs">{r.referralCode}</td>
                 <td className="px-4 py-2">{r.status}</td>

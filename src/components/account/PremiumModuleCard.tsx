@@ -4,6 +4,7 @@ import Link from "next/link";
 import { ArrowRight, ExternalLink } from "lucide-react";
 import type { CustomerProductCard } from "@/lib/customer-products/types";
 import { PRODUCT_META } from "@/lib/customer-products/types";
+import { resolvePremiumEnterHref } from "@/lib/modules/marketplace";
 import { AccCard } from "./AccountShell";
 
 const STATUS_LABEL: Record<string, string> = {
@@ -24,7 +25,7 @@ const STATUS_CLASS: Record<string, string> = {
 
 export function PremiumModuleCard({ product }: { product: CustomerProductCard }) {
   const meta = PRODUCT_META[product.moduleKey];
-  const canOpen = product.status === "ACTIVE" || product.status === "TRIAL";
+  const canOpen = product.entitled === true || product.status === "ACTIVE" || product.status === "TRIAL";
 
   return (
     <AccCard interactive className="relative overflow-hidden">
@@ -56,13 +57,7 @@ export function PremiumModuleCard({ product }: { product: CustomerProductCard })
 
         <div className="flex flex-wrap gap-2 pt-1">
           <Link
-            href={
-              canOpen
-                ? product.moduleKey === "LINKSLASH"
-                  ? meta.gatewayPath
-                  : meta.appPath
-                : meta.pricingPath
-            }
+            href={resolvePremiumEnterHref(product.moduleKey, canOpen)}
             className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-ena-primary text-ena-dark text-xs font-semibold hover:brightness-95 transition-all"
           >
             {canOpen ? <ArrowRight size={14} /> : <ExternalLink size={14} />}

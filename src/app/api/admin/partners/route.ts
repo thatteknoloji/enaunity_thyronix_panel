@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { requireAdmin, logAdminAction } from "@/lib/auth";
+import { prisma } from "@/lib/db";
 import {
   approvePartner,
   assignSponsor,
@@ -43,6 +44,7 @@ export async function PATCH(req: Request) {
       action?: string;
       status?: "PENDING" | "ACTIVE" | "SUSPENDED" | "REJECTED";
       partnerType?: string;
+      grantPodLicense?: boolean;
       sponsorPartnerId?: string | null;
       defaultCommissionRate?: number;
       moduleCommissionRate?: number;
@@ -70,6 +72,22 @@ export async function PATCH(req: Request) {
       case "change_type":
         if (!body.partnerType) return NextResponse.json({ success: false, error: "partnerType gerekli" }, { status: 400 });
         row = await updatePartnerProfile(body.id, { partnerType: normalizePartnerType(body.partnerType) });
+        if (body.grantPodLicense && normalizePartnerType(body.partnerType) === "POD_CREATOR") {
+          const profile = await prisma.partnerProfile.findUnique({
+            where: { id: body.id },
+            select: { dealerId: true },
+          });
+          if (profile?.dealerId) {
+            const { upsertModuleLicense } = await import("@/lib/admin/module-access-admin");
+            await upsertModuleLicense({
+              dealerId: profile.dealerId,
+              moduleKey: "POD_CREATOR",
+              planKey: "starter",
+              status: "ACTIVE",
+              months: 12,
+            });
+          }
+        }
         break;
       case "assign_sponsor":
         row = await assignSponsor(body.id, body.sponsorPartnerId ?? null);

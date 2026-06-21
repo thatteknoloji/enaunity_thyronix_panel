@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/db";
 import { getProductLibraryOverview } from "@/lib/product-library/package-access-service";
 import { isAdminRole } from "@/lib/auth/admin-access";
-import { getDealerApprovalStatus, getModuleLabel, getModuleLicenseState } from "@/lib/modules/access";
+import { getDealerApprovalStatus, getDealerModuleLicense, getModuleLabel, getModuleLicenseState } from "@/lib/modules/access";
 import {
   CUSTOMER_PRODUCT_KEYS,
   PRODUCT_META,
@@ -156,10 +156,7 @@ async function buildProductCard(
       },
     };
   } else if (dealerId) {
-    license = await prisma.moduleLicense.findFirst({
-      where: { dealerId, moduleKey },
-      orderBy: { createdAt: "desc" },
-    });
+    license = await getDealerModuleLicense(dealerId, moduleKey);
     rawStatus = license?.status || null;
     planKey = license?.planKey || null;
     licenseId = license?.id || null;
@@ -188,6 +185,7 @@ async function buildProductCard(
   const lastPayment = dealerId ? await getLastPayment(dealerId, moduleKey) : null;
   const planName = await getPlanName(moduleKey, planKey);
   const lastLoginAt = await getLastLogin(enaUserId, moduleKey);
+  const entitled = dealerId ? (await getModuleLicenseState(dealerId, moduleKey)) === "active" : false;
 
   return {
     moduleKey,
@@ -203,6 +201,7 @@ async function buildProductCard(
     lastLoginAt: lastLoginAt?.toISOString() || null,
     linkStatus,
     licenseId,
+    entitled,
   };
 }
 
