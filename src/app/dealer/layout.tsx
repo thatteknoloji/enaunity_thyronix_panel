@@ -13,6 +13,7 @@ import NotificationBell from "@/components/NotificationBell";
 import { LegalReacceptanceGate } from "@/components/legal/LegalReacceptanceGate";
 import { useT } from "@/lib/i18n/provider";
 import { buildLicensedNavItems } from "@/lib/modules/marketplace";
+import { isAdminRole } from "@/lib/auth/admin-access";
 
 type NavItem = { href: string; label: string; icon: LucideIcon };
 type NavGroup = { label: string; items: NavItem[] };
@@ -102,10 +103,18 @@ export default function DealerLayout({ children }: { children: React.ReactNode }
     return groups;
   }, [t, licensedItems]);
 
+  const isModuleShell =
+    pathname.startsWith("/dealer/linkslash") || pathname.startsWith("/dealer/pod");
+
   useEffect(() => {
     fetch("/api/auth/me")
       .then((r) => r.json())
       .then((d) => {
+        if (isModuleShell && isAdminRole(d.data?.role)) {
+          setAuthorized(true);
+          setDealerName(d.data.name || "Admin");
+          return;
+        }
         if (d.data?.role !== "dealer") {
           router.push("/");
         } else {
@@ -120,7 +129,7 @@ export default function DealerLayout({ children }: { children: React.ReactNode }
           setLicensedItems(buildLicensedNavItems(d.data.modules || []));
         }
       });
-  }, [router, t]);
+  }, [router, t, isModuleShell]);
 
   useEffect(() => {
     setMobileOpen(false);
@@ -131,7 +140,16 @@ export default function DealerLayout({ children }: { children: React.ReactNode }
     window.location.href = "/";
   };
 
-  if (!authorized) return null;
+  if (!authorized) {
+    if (isModuleShell) {
+      return (
+        <div className="flex min-h-screen items-center justify-center bg-[#0f1117]">
+          <div className="animate-pulse text-sm text-ena-light">Yükleniyor…</div>
+        </div>
+      );
+    }
+    return null;
+  }
 
   if (pathname.startsWith("/dealer/linkslash") || pathname.startsWith("/dealer/pod")) {
     return <>{children}</>;

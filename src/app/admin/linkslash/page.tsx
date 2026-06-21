@@ -195,14 +195,13 @@ export default function AdminLinkSlashPage() {
                   >
                     <ExternalLink size={12} /> Proxy Health
                   </a>
-                  <a
-                    href="/dealer/linkslash"
-                    target="_blank"
-                    rel="noreferrer"
+                  <button
+                    type="button"
+                    onClick={() => setTab("app")}
                     className="inline-flex items-center gap-1 rounded-lg bg-cyan-600 px-3 py-1.5 text-xs text-white hover:bg-cyan-500"
                   >
                     <ExternalLink size={12} /> Uygulamayı Aç
-                  </a>
+                  </button>
                 </div>
               </div>
 
