@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getSession } from "@/lib/auth";
 import { getCustomerProductsOverview } from "@/lib/customer-products/service";
-import { getDealerMarketplaceOverview } from "@/lib/modules/marketplace";
+import { getDealerMarketplaceOverview, buildHeaderNavItems } from "@/lib/modules/marketplace";
 
 export async function GET() {
   try {
@@ -18,7 +18,10 @@ export async function GET() {
 
     return NextResponse.json({
       success: true,
-      data: marketplace,
+      data: {
+        ...marketplace,
+        headerNav: buildHeaderNavItems(marketplace.modules),
+      },
     });
   } catch (e) {
     const msg = e instanceof Error ? e.message : "Modül verisi alınamadı";

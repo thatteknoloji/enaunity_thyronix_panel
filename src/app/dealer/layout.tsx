@@ -95,7 +95,7 @@ export default function DealerLayout({ children }: { children: React.ReactNode }
     if (licensedItems.length) {
       groups.push({
         label: "Modüllerim",
-        items: [{ href: "/products", label: "Modül Merkezi", icon: Store }, ...licensedItems],
+        items: [{ href: "/dealer/modules", label: "Modül Pazarı", icon: Sparkles }, ...licensedItems],
       });
     }
     groups.push(...staticGroups.slice(2));

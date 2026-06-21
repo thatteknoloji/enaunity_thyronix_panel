@@ -159,14 +159,14 @@ export default function ThyronixLoginPage() {
           const cp = await fetch("/api/customer-products");
           const cj = await cp.json();
           const thy = cj.success
-            ? cj.data.products.find((p: { moduleKey: string; status: string }) => p.moduleKey === "THYRONIX")
+            ? cj.data.products.find((p: { moduleKey: string; entitled?: boolean }) => p.moduleKey === "THYRONIX")
             : null;
-          if (thy && (thy.status === "ACTIVE" || thy.status === "TRIAL")) {
+          if (thy?.entitled) {
             const params = new URLSearchParams(window.location.search);
             window.location.href = params.get("redirect") || "/thyronix";
             return;
           }
-          window.location.href = "/gateway/thyronix";
+          window.location.href = "/platform/thyronix";
           return;
         }
         setError("THYRONIX hesabınız bulunamadı. Önce ENA üzerinden hesap bağlantısı oluşturun.");

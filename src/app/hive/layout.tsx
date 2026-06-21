@@ -34,15 +34,17 @@ export default function HiveLayout({ children }: { children: React.ReactNode }) 
         const cp = await fetch("/api/customer-products");
         const cj = await cp.json();
         const hive = cj.success
-          ? cj.data.products.find((p: { moduleKey: string; status: string }) => p.moduleKey === "HIVE")
+          ? cj.data.products.find((p: { moduleKey: string; entitled?: boolean }) => p.moduleKey === "HIVE")
           : null;
-        if (hive && (hive.status === "ACTIVE" || hive.status === "TRIAL")) {
+        if (hive?.entitled) {
           setAuthorized(true);
           return;
         }
+        router.push("/platform/hive");
+        return;
       }
 
-      router.push("/gateway/hive");
+      router.push("/platform/hive");
     };
 
     checkAuth();

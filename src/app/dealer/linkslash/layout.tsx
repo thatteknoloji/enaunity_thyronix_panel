@@ -15,9 +15,9 @@ export default function DealerLinkSlashLayout({ children }: { children: React.Re
           setOk(true);
           return;
         }
-        router.replace("/gateway/linkslash");
+        router.replace("/platform/linkslash");
       })
-      .catch(() => router.replace("/gateway/linkslash"));
+      .catch(() => router.replace("/platform/linkslash"));
   }, [router]);
 
   if (ok !== true) {

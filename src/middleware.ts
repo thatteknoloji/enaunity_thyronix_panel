@@ -46,7 +46,7 @@ function jsonError(status: number, message: string) {
   return NextResponse.json({ success: false, error: message }, { status });
 }
 
-/** LinkSlash bayi erişimi — lisanssız veya kontrol hatasında gateway'e yönlendir */
+/** LinkSlash bayi erişimi — lisanssız → tanıtım sayfası */
 async function guardLinkSlashDealerAccess(
   request: NextRequest,
   dealerId: string
@@ -60,9 +60,9 @@ async function guardLinkSlashDealerAccess(
     if (checkData.reason === "BAYI_ONAYI_YOK") {
       return NextResponse.redirect(new URL("/dealer/profile", request.url));
     }
-    return NextResponse.redirect(new URL("/gateway/linkslash", request.url));
+    return NextResponse.redirect(new URL("/platform/linkslash", request.url));
   } catch {
-    return NextResponse.redirect(new URL("/gateway/linkslash", request.url));
+    return NextResponse.redirect(new URL("/platform/linkslash", request.url));
   }
 }
 
@@ -335,11 +335,11 @@ export async function middleware(request: NextRequest) {
         const checkData = await checkRes.json();
         if (checkData.access) return NextResponse.next();
         if (checkData.reason === "LISANS_YOK") {
-          return NextResponse.redirect(new URL("/gateway/thyronix", request.url));
+          return NextResponse.redirect(new URL("/platform/thyronix", request.url));
         }
         return NextResponse.redirect(new URL("/thyronix/pending", request.url));
       } catch {
-        return NextResponse.redirect(new URL("/gateway/thyronix", request.url));
+        return NextResponse.next();
       }
     }
 
@@ -362,13 +362,13 @@ export async function middleware(request: NextRequest) {
         const checkRes = await fetch(`${request.nextUrl.origin}/api/internal/check-module-access?dealerId=${dealerId}&moduleKey=HIVE`);
         const checkData = await checkRes.json();
         if (!checkData.access) {
-          if (checkData.reason === "LISANS_YOK") return NextResponse.redirect(new URL("/hive/pricing", request.url));
+          if (checkData.reason === "LISANS_YOK") return NextResponse.redirect(new URL("/platform/hive", request.url));
           return NextResponse.redirect(new URL("/hive/pending", request.url));
         }
         return NextResponse.next();
-      } catch { return NextResponse.redirect(new URL("/hive/pricing", request.url)); }
+      } catch { return NextResponse.next(); }
     }
-    return NextResponse.redirect(new URL("/hive/pricing", request.url));
+    return NextResponse.redirect(new URL("/platform/hive", request.url));
   }
 
   // ── Admin route protection ──

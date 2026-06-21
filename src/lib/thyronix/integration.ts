@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/db";
 import { isAdminRole } from "@/lib/auth/admin-access";
-import { getModuleLicenseState } from "@/lib/modules/access";
+import { getDealerApprovalStatus, getModuleLicenseState } from "@/lib/modules/access";
 import {
   createProductAccountLink,
   getActiveLink,
@@ -42,6 +42,15 @@ export async function resolveThyronixGatewayState(enaUser: EnaUser): Promise<Thy
 
   if (!enaUser.dealerId) {
     return { step: "dealer_required", reason: "THYRONIX için bayi hesabı gerekli", code: "DEALER_REQUIRED" };
+  }
+
+  const approval = await getDealerApprovalStatus(enaUser.dealerId);
+  if (!approval || approval.status !== "ACTIVE") {
+    return {
+      step: "pending",
+      reason: "Bayi onayınız tamamlanmadan THYRONIX erişilemez",
+      code: "BAYI_ONAYI_YOK",
+    };
   }
 
   const licenseState = await getModuleLicenseState(enaUser.dealerId, "THYRONIX");

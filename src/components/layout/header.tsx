@@ -54,13 +54,7 @@ export default function Header() {
       .then((r) => r.json())
       .then((d) => {
         if (d.success) {
-          setDealerModules(
-            (d.data.activeModules || []).map((m: { moduleKey: string; label: string; ctaHref: string }) => ({
-              moduleKey: m.moduleKey,
-              label: m.label,
-              href: m.ctaHref,
-            }))
-          );
+          setDealerModules(d.data.headerNav || []);
         }
       })
       .catch(() => setDealerModules([]));

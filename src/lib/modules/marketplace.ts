@@ -15,6 +15,7 @@ export type MarketplaceModuleMeta = {
   color: string;
   appPath: string;
   gatewayPath: string;
+  marketingPath: string;
   checkoutPath: string;
   icon: LucideIcon;
 };
@@ -27,6 +28,7 @@ export const MARKETPLACE_MODULES: Record<MarketplaceModuleKey, MarketplaceModule
     color: "cyan",
     appPath: "/dealer/linkslash",
     gatewayPath: "/gateway/linkslash",
+    marketingPath: "/platform/linkslash",
     checkoutPath: "/payment/checkout?type=module&moduleKey=LINKSLASH&planKey=starter",
     icon: Link2,
   },
@@ -37,6 +39,7 @@ export const MARKETPLACE_MODULES: Record<MarketplaceModuleKey, MarketplaceModule
     color: "violet",
     appPath: "/hive",
     gatewayPath: "/gateway/hive",
+    marketingPath: "/platform/hive",
     checkoutPath: "/payment/checkout?type=module&moduleKey=HIVE&planKey=starter",
     icon: Sparkles,
   },
@@ -47,6 +50,7 @@ export const MARKETPLACE_MODULES: Record<MarketplaceModuleKey, MarketplaceModule
     color: "blue",
     appPath: "/thyronix",
     gatewayPath: "/gateway/thyronix",
+    marketingPath: "/platform/thyronix",
     checkoutPath: "/payment/checkout?type=module&moduleKey=THYRONIX&planKey=starter",
     icon: Package,
   },
@@ -58,6 +62,7 @@ export const MARKETPLACE_MODULES: Record<MarketplaceModuleKey, MarketplaceModule
     color: "emerald",
     appPath: "/dealer/pod",
     gatewayPath: "/gateway/pod",
+    marketingPath: "/dealer/modules",
     checkoutPath: "/payment/checkout?type=module&moduleKey=POD_CREATOR&planKey=starter",
     icon: Shirt,
   },
@@ -229,20 +234,51 @@ export async function getDealerMarketplaceOverview(dealerId: string, products?: 
   };
 }
 
-export function buildLicensedNavItems(
-  modules: Array<{ moduleKey: MarketplaceModuleKey; canEnter: boolean }>
-) {
-  return modules
-    .filter((m) => m.canEnter)
-    .map((m) => {
-      const meta = MARKETPLACE_MODULES[m.moduleKey];
-      return {
-        href: m.moduleKey === "POD_CREATOR" ? meta.appPath : meta.gatewayPath,
-        label: meta.label,
-        icon: meta.icon,
-        moduleKey: m.moduleKey,
-      };
-    });
+/** Header / menü: lisanslı → gateway, lisanssız → tanıtım sayfası */
+export function resolveModuleNavHref(card: Pick<MarketplaceCard, "moduleKey" | "licensed" | "displayStatus">): string {
+  const meta = MARKETPLACE_MODULES[card.moduleKey];
+  if (card.licensed) return meta.gatewayPath;
+  if (card.displayStatus === "PENDING") {
+    if (card.moduleKey === "THYRONIX") return "/thyronix/pending";
+    if (card.moduleKey === "HIVE") return "/hive/pending";
+    return meta.gatewayPath;
+  }
+  return meta.marketingPath;
+}
+
+export function buildHeaderNavItems(modules: MarketplaceCard[]) {
+  return MARKETPLACE_MODULE_KEYS.map((key) => {
+    const card = modules.find((m) => m.moduleKey === key);
+    const meta = MARKETPLACE_MODULES[key];
+    const stub: Pick<MarketplaceCard, "moduleKey" | "licensed" | "displayStatus"> = card || {
+      moduleKey: key,
+      licensed: false,
+      displayStatus: "PURCHASABLE",
+    };
+    return {
+      moduleKey: key,
+      label: meta.label,
+      href: resolveModuleNavHref(stub),
+    };
+  });
+}
+
+export function buildLicensedNavItems(modules: MarketplaceCard[]) {
+  return MARKETPLACE_MODULE_KEYS.map((key) => {
+    const card = modules.find((m) => m.moduleKey === key);
+    const meta = MARKETPLACE_MODULES[key];
+    const stub: Pick<MarketplaceCard, "moduleKey" | "licensed" | "displayStatus"> = card || {
+      moduleKey: key,
+      licensed: false,
+      displayStatus: "PURCHASABLE",
+    };
+    return {
+      href: resolveModuleNavHref(stub),
+      label: meta.label,
+      icon: meta.icon,
+      moduleKey: key,
+    };
+  });
 }
 
 /** Lisanslı premium modül giriş yolu — gateway üzerinden SSO / provisioning */
@@ -253,5 +289,5 @@ export function resolvePremiumEnterHref(moduleKey: string, licensed: boolean): s
     if (!productMeta) return "/products";
     return licensed ? productMeta.gatewayPath : productMeta.pricingPath;
   }
-  return licensed ? meta.gatewayPath : meta.checkoutPath;
+  return licensed ? meta.gatewayPath : meta.marketingPath;
 }
