@@ -1,7 +1,7 @@
-import { existsSync, readFileSync, statSync } from "fs";
+import { existsSync, readFileSync, readdirSync, statSync } from "fs";
 import path from "path";
 import { LINKSLASH_BRAND } from "./brand";
-import { LINKSLASH_APK_DOWNLOAD_API, resolveLinkSlashApkPath } from "./apk-download";
+import { LINKSLASH_APK_DOWNLOAD_API } from "./apk-download";
 
 export type DownloadFileInfo = {
   available: boolean;
@@ -57,18 +57,19 @@ function readAndroidBuildMeta(): { buildStatus?: string; updatedAt?: string } | 
   }
 }
 
-function resolveApkInfo(): DownloadFileInfo & { buildStatus: "ready" | "missing" | "pending_verification" } {
+function resolveApkInfoSync(): DownloadFileInfo & { buildStatus: "ready" | "missing" | "pending_verification" } {
   const apiPath = LINKSLASH_APK_DOWNLOAD_API;
-  const fsPath = resolveLinkSlashApkPath();
-  if (fsPath && existsSync(fsPath)) {
+  if (existsSync(APK_PRIVATE_FS)) {
+    const stat = statSync(APK_PRIVATE_FS);
+    return { available: true, path: apiPath, size: stat.size, updatedAt: stat.mtime.toISOString(), buildStatus: "ready" };
+  }
+  const versioned = existsSync(PRIVATE_APK_DIR)
+    ? readdirSync(PRIVATE_APK_DIR).filter((f) => /^linkslash-v[\d.]+\.apk$/i.test(f))
+    : [];
+  if (versioned.length) {
+    const fsPath = path.join(PRIVATE_APK_DIR, versioned[0]);
     const stat = statSync(fsPath);
-    return {
-      available: true,
-      path: apiPath,
-      size: stat.size,
-      updatedAt: stat.mtime.toISOString(),
-      buildStatus: "ready",
-    };
+    return { available: true, path: apiPath, size: stat.size, updatedAt: stat.mtime.toISOString(), buildStatus: "ready" };
   }
   if (existsSync(APK_BUILD_FS)) {
     const stat = statSync(APK_BUILD_FS);
@@ -112,7 +113,7 @@ export function getLinkSlashDownloadStatus(includeAdmin = false): LinkSlashDownl
       ...extensionZip,
       buildStatus: extStatus,
     },
-    android: resolveApkInfo(),
+    android: resolveApkInfoSync(),
     mobileWeb: {
       available: existsSync(path.join(ROOT, "public/linkslash/mobile/index.html")),
       path: LINKSLASH_BRAND.routes.mobileWeb,
@@ -123,7 +124,7 @@ export function getLinkSlashDownloadStatus(includeAdmin = false): LinkSlashDownl
   if (includeAdmin) {
     const missingFiles: string[] = [];
     if (!existsSync(EXTENSION_ZIP_FS)) missingFiles.push("public/downloads/linkslash/linkslash-extension.zip");
-    if (!resolveLinkSlashApkPath()) missingFiles.push("storage/downloads/linkslash/linkslash-debug.apk");
+    if (!existsSync(APK_PRIVATE_FS) && !existsSync(APK_BUILD_FS)) missingFiles.push("storage/downloads/linkslash/*.apk");
     if (!existsSync(path.join(ROOT, "public/linkslash/extension/manifest.json"))) {
       missingFiles.push("public/linkslash/extension/manifest.json");
     }

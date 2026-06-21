@@ -27,7 +27,7 @@ export function LinkSlashAndroidDownloadCard({
   const { colors, routes } = LINKSLASH_BRAND;
   const checkoutUrl = routes.checkout;
   const gatewayUrl = routes.gateway;
-  const downloadUrl = routes.androidApk;
+  const tokenApi = "/api/linkslash/download/token";
 
   const canDownload = hasLicense && apkReady;
   const showLicenseCta = !hasLicense;
@@ -35,7 +35,16 @@ export function LinkSlashAndroidDownloadCard({
 
   function handleDownload() {
     if (!canDownload) return;
-    window.location.href = downloadUrl;
+    fetch(tokenApi, { method: "POST", credentials: "include" })
+      .then((r) => r.json())
+      .then((json) => {
+        if (json.success && json.data?.downloadUrl) {
+          window.location.href = json.data.downloadUrl;
+        } else {
+          alert(json.error || "İndirme başlatılamadı");
+        }
+      })
+      .catch(() => alert("İndirme başlatılamadı"));
   }
 
   const padding = variant === "hero" ? "p-8 md:p-10" : "p-6";

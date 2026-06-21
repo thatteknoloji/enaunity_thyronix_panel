@@ -84,6 +84,19 @@ export default function AdminLinkSlashPage() {
         </Link>
       </div>
 
+      <div className="mb-6 flex flex-wrap gap-2">
+        {[
+          { href: "/admin/linkslash/android", label: "Android APK" },
+          { href: "/admin/linkslash/activation", label: "Aktivasyon Kodları" },
+          { href: "/admin/linkslash/analytics", label: "Analytics" },
+          { href: "/admin/linkslash/devices", label: "Cihazlar" },
+        ].map((l) => (
+          <Link key={l.href} href={toAdminUrl(l.href)} className="rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50">
+            {l.label}
+          </Link>
+        ))}
+      </div>
+
       <div className="flex gap-1 mb-6 bg-gray-100 p-1 rounded-xl w-fit flex-wrap">
         {tabs.map(({ id, label, icon: Icon }) => (
           <button

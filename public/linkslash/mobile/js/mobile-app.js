@@ -11,12 +11,36 @@
     screen: 'login'
   };
 
+  var APP_VERSION = '1.0.0';
+
   var CONFIG = {
     apiBase: window.LINKSLASH_API_BASE || '',
     checkoutPath: '/payment/checkout?type=module&moduleKey=LINKSLASH&planKey=starter'
   };
 
-  var SCREENS = ['screenLogin', 'screenLicense', 'screenApp'];
+  var SCREEN_MAP = {
+    login: 'screenLogin',
+    license: 'screenLicense',
+    device: 'screenDevice',
+    update: 'screenUpdate',
+    app: 'screenApp'
+  };
+
+  function getDeviceId() {
+    var id = localStorage.getItem('linkslash_device_id');
+    if (!id) {
+      id = 'ls-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 12);
+      localStorage.setItem('linkslash_device_id', id);
+    }
+    return id;
+  }
+
+  function getDeviceName() {
+    var ua = navigator.userAgent || '';
+    if (/Android/i.test(ua)) return 'Android';
+    if (/iPhone|iPad/i.test(ua)) return 'iOS';
+    return 'Mobile Web';
+  }
 
   function $(id) { return document.getElementById(id); }
 
@@ -29,12 +53,12 @@
 
   function showScreen(name) {
     state.screen = name;
-    SCREENS.forEach(function(id) {
-      var el = $(id);
-      if (el) el.classList.toggle('hidden', id !== 'screen' + name.charAt(0).toUpperCase() + name.slice(1));
+    Object.keys(SCREEN_MAP).forEach(function(key) {
+      var el = $(SCREEN_MAP[key]);
+      if (el) el.classList.toggle('hidden', key !== name);
     });
     var logoutBtn = $('logoutBtn');
-    if (logoutBtn) logoutBtn.classList.toggle('hidden', name === 'login');
+    if (logoutBtn) logoutBtn.classList.toggle('hidden', name === 'login' || name === 'update');
   }
 
   function setSyncPill() {
@@ -175,12 +199,95 @@
   }
 
   async function checkSession() {
-    var resp = await fetch(CONFIG.apiBase + '/api/linkslash/session', { credentials: 'include' });
+    var qs = '?deviceId=' + encodeURIComponent(getDeviceId()) + '&appVersion=' + encodeURIComponent(APP_VERSION);
+    var resp = await fetch(CONFIG.apiBase + '/api/linkslash/session' + qs, { credentials: 'include' });
     var json = await resp.json();
     state.session = json;
     setSyncPill();
     renderUserStrip();
     return json;
+  }
+
+  async function checkVersionGate() {
+    try {
+      var resp = await fetch(CONFIG.apiBase + '/api/linkslash/version?current=' + encodeURIComponent(APP_VERSION));
+      var json = await resp.json();
+      if (!json.success) return true;
+      state.versionInfo = json;
+      if (json.updateRequired) {
+        $('updateTitle').textContent = 'Güncelleme zorunlu';
+        $('updateMessage').textContent = 'Mevcut sürüm (' + APP_VERSION + ') artık desteklenmiyor. v' + json.required + ' veya üzeri gerekli.';
+        $('updateVersionInfo').textContent = 'En son sürüm: v' + json.latest;
+        showScreen('update');
+        return false;
+      }
+      if (json.updateAvailable && state.session && state.session.authenticated) {
+        setStatus('Güncelleme mevcut: v' + json.latest, 'info');
+      }
+      return true;
+    } catch (_) {
+      return true;
+    }
+  }
+
+  async function registerDevice() {
+    var resp = await fetch(CONFIG.apiBase + '/api/linkslash/mobile/device', {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        deviceId: getDeviceId(),
+        deviceName: getDeviceName(),
+        androidId: localStorage.getItem('linkslash_android_id') || ''
+      })
+    });
+    var json = await resp.json();
+    if (json.success) return { ok: true };
+    if (json.code === 'DEVICE_LIMIT') {
+      var msg = $('deviceMessage');
+      if (msg) {
+        msg.textContent = json.error + (json.activeDevice ? ' (' + json.activeDevice.deviceName + ')' : '');
+      }
+      return { ok: false };
+    }
+    return { ok: false, error: json.error };
+  }
+
+  async function activateCode() {
+    var code = ($('activationCode') && $('activationCode').value.trim()) || '';
+    if (!code) {
+      setStatus('Aktivasyon kodu girin', 'err', 'activateStatus');
+      return;
+    }
+    setStatus('Aktive ediliyor...', 'info', 'activateStatus');
+    var resp = await fetch(CONFIG.apiBase + '/api/linkslash/mobile/activate', {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ code: code })
+    });
+    var json = await resp.json();
+    if (!json.success) {
+      setStatus(json.error || 'Aktivasyon başarısız', 'err', 'activateStatus');
+      return;
+    }
+    setStatus('✓ Lisans aktif edildi', 'ok', 'activateStatus');
+    await checkSession();
+    routeAfterSession();
+  }
+
+  async function downloadUpdateApk() {
+    try {
+      var resp = await fetch(CONFIG.apiBase + '/api/linkslash/download/token', { method: 'POST', credentials: 'include' });
+      var json = await resp.json();
+      if (json.success && json.data && json.data.downloadUrl) {
+        window.location.href = CONFIG.apiBase + json.data.downloadUrl;
+      } else {
+        setStatus(json.error || 'İndirme başlatılamadı', 'err', 'updateMessage');
+      }
+    } catch (e) {
+      setStatus('İndirme hatası', 'err', 'updateMessage');
+    }
   }
 
   function licenseMessage(session) {
@@ -193,7 +300,7 @@
     return 'LinkSlash lisansı hesabınıza tanımlı değil. Tarayıcıdan lisans satın alabilirsiniz.';
   }
 
-  function routeAfterSession() {
+  async function routeAfterSession() {
     var session = state.session;
     if (!session || !session.authenticated) {
       showScreen('login');
@@ -203,6 +310,11 @@
       var msg = $('licenseMessage');
       if (msg) msg.textContent = licenseMessage(session);
       showScreen('license');
+      return;
+    }
+    var device = await registerDevice();
+    if (!device.ok) {
+      showScreen('device');
       return;
     }
     showScreen('app');
@@ -240,7 +352,7 @@
       }
       setStatus('✓ Giriş başarılı', 'ok', 'loginStatus');
       await checkSession();
-      routeAfterSession();
+      await routeAfterSession();
       if (state.hasShare && state.session && state.session.linkslashAccess) {
         setStatus('Paylaşılan içerik hazır — kaydetmek için butona basın', 'info');
       }
@@ -461,15 +573,24 @@
       } catch (_) {}
     }
 
+    if (!(await checkVersionGate())) return;
+
     await checkSession();
-    routeAfterSession();
+    await routeAfterSession();
 
     $('loginBtn').addEventListener('click', login);
     $('logoutBtn').addEventListener('click', logout);
     $('logoutLicenseBtn').addEventListener('click', logout);
+    $('logoutDeviceBtn').addEventListener('click', logout);
+    $('activateBtn').addEventListener('click', activateCode);
+    $('downloadUpdateBtn').addEventListener('click', downloadUpdateApk);
     $('retrySessionBtn').addEventListener('click', async function() {
       await checkSession();
-      routeAfterSession();
+      await routeAfterSession();
+    });
+    $('retryDeviceBtn').addEventListener('click', async function() {
+      await checkSession();
+      await routeAfterSession();
     });
     $('saveBtn').addEventListener('click', saveShare);
     $('syncQueueBtn').addEventListener('click', syncQueue);

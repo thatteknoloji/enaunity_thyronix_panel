@@ -10,6 +10,7 @@ import {
 import { extractDomain } from "@/lib/linkslash/source-type";
 import { getSyncContext } from "@/lib/linkslash/sync/context";
 import { cloudLinkFromCapture } from "@/lib/linkslash/sync/service";
+import { logLinkSlashImport } from "@/lib/linkslash/analytics";
 
 export type CaptureInput = {
   url?: string;
@@ -137,6 +138,16 @@ export async function createLinkSlashCapture(
     description: record.description,
     sourceType: mobileSource,
   });
+
+  void logLinkSlashImport({
+    userId,
+    dealerId,
+    url,
+    sourceType: mobileSource,
+    sharedFrom,
+    client: input.client || "mobile",
+    status: "saved",
+  }).catch(() => {});
 
   return record;
 }

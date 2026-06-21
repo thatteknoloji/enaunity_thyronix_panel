@@ -221,6 +221,14 @@ export async function middleware(request: NextRequest) {
   if (pathname === "/api/linkslash/session" && request.method === "GET") {
     return NextResponse.next();
   }
+  // LinkSlash version — public
+  if (pathname === "/api/linkslash/version" && request.method === "GET") {
+    return NextResponse.next();
+  }
+  // LinkSlash token-based APK download — token doğrulaması route içinde
+  if (/^\/api\/linkslash\/download\/[a-f0-9]{20,}$/i.test(pathname) && request.method === "GET") {
+    return NextResponse.next();
+  }
   // LinkSlash download status — public
   if (pathname === "/api/linkslash/downloads/status" && request.method === "GET") {
     return NextResponse.next();
@@ -377,7 +385,17 @@ export async function middleware(request: NextRequest) {
     if (pathname === "/api/linkslash/session" && request.method === "GET") {
       return NextResponse.next();
     }
+    if (pathname === "/api/linkslash/version" && request.method === "GET") {
+      return NextResponse.next();
+    }
+    if (/^\/api\/linkslash\/download\/[a-f0-9]{20,}$/i.test(pathname) && request.method === "GET") {
+      return NextResponse.next();
+    }
     if (pathname === "/api/linkslash/downloads/status" && request.method === "GET") {
+      return NextResponse.next();
+    }
+    if (pathname === "/api/linkslash/mobile/activate" && request.method === "POST") {
+      if (!token) return jsonError(401, "Oturum bulunamadı");
       return NextResponse.next();
     }
     if (!token) return jsonError(401, "Oturum bulunamadı");

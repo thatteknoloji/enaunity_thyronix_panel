@@ -2531,3 +2531,84 @@ model LinkSlashSyncLog {
   @@index([tenantId, userId, createdAt])
   @@index([entityType, entityId])
 }
+
+// ── LinkSlash Phase 2: Device binding, APK releases, activation, import logs ──
+
+model LinkSlashDevice {
+  id           String   @id @default(cuid())
+  userId       String
+  dealerId     String   @default("")
+  deviceId     String
+  androidId    String   @default("")
+  deviceName   String   @default("")
+  firstLoginAt DateTime @default(now())
+  lastSeenAt   DateTime @default(now())
+  status       String   @default("active") // active | revoked
+  licenseId    String   @default("")
+
+  @@unique([userId, deviceId])
+  @@index([userId, status])
+  @@index([dealerId])
+}
+
+model LinkSlashActivationCode {
+  id             String    @id @default(cuid())
+  code           String    @unique
+  product        String    @default("LINKSLASH")
+  durationDays   Int       @default(365)
+  status         String    @default("active") // active | used | revoked
+  usedByUserId   String    @default("")
+  usedByDealerId String    @default("")
+  usedAt         DateTime?
+  createdByAdminId String  @default("")
+  createdAt      DateTime  @default(now())
+
+  @@index([status])
+  @@index([product])
+}
+
+model LinkSlashImportLog {
+  id             String   @id @default(cuid())
+  userId         String
+  dealerId       String   @default("")
+  url            String
+  sourcePlatform String   @default("other")
+  client         String   @default("mobile")
+  status         String   @default("saved")
+  createdAt      DateTime @default(now())
+
+  @@index([userId, createdAt])
+  @@index([dealerId])
+  @@index([sourcePlatform])
+  @@index([createdAt])
+}
+
+model LinkSlashApkRelease {
+  id              String   @id @default(cuid())
+  version         String
+  buildNumber     Int      @default(1)
+  requiredVersion String   @default("")
+  fileName        String
+  fileSize        Int      @default(0)
+  active          Boolean  @default(false)
+  uploadedBy      String   @default("")
+  uploadedAt      DateTime @default(now())
+
+  @@unique([version])
+  @@index([active])
+}
+
+model LinkSlashDownloadToken {
+  id           String    @id @default(cuid())
+  token        String    @unique
+  userId       String
+  dealerId     String    @default("")
+  apkReleaseId String    @default("")
+  usedAt       DateTime?
+  expiresAt    DateTime
+  createdAt    DateTime  @default(now())
+
+  @@index([token])
+  @@index([userId])
+  @@index([expiresAt])
+}

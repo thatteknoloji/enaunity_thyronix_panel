@@ -5,7 +5,7 @@ import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import {
   LayoutDashboard, Package, ShoppingCart, Users, LogOut, ChevronLeft, ChevronRight, ChevronDown,
-  ClipboardList, Store, DollarSign, Eye, Banknote, RotateCcw, Warehouse, FileText, Tag, Layers, Building2, Percent, Key, MessageSquare, ScrollText, Layout, PackagePlus, Truck, Shield, BarChart3, ClipboardCheck, Barcode, Bell, Megaphone, Webhook, Clock, CalendarClock, Upload, Link2, Plug, Zap, Sparkles, CreditCard, Globe
+  ClipboardList, Store, DollarSign, Eye, Banknote, RotateCcw, Warehouse, FileText, Tag, Layers, Building2, Percent, Key, MessageSquare, ScrollText, Layout, PackagePlus, Truck, Shield, BarChart3, ClipboardCheck, Barcode, Bell, Megaphone, Webhook, Clock, CalendarClock, Upload, Link2, Plug, Zap, Sparkles, CreditCard, Globe, Smartphone
 } from "lucide-react";
 import { getNavPermissionMap, hasAnyPermission } from "@/lib/permissions";
 import { getAdminLoginPath, isAdminLoginPath, isAdminRole, toAdminUrl } from "@/lib/auth/admin-access";
@@ -106,6 +106,10 @@ function buildNavGroups(t: (key: string) => string) {
         { href: "/admin/thyronix", label: "THYRONIX", icon: Zap },
         { href: "/admin/hive", label: "HIVE", icon: Sparkles },
         { href: "/admin/linkslash", label: "LinkSlash", icon: Link2 },
+        { href: "/admin/linkslash/android", label: "LinkSlash Android", icon: Smartphone },
+        { href: "/admin/linkslash/activation", label: "LinkSlash Aktivasyon", icon: Key },
+        { href: "/admin/linkslash/analytics", label: "LinkSlash Analytics", icon: BarChart3 },
+        { href: "/admin/linkslash/devices", label: "LinkSlash Cihazlar", icon: Smartphone },
         { href: "/admin/linkslash/release", label: "LinkSlash Release", icon: Link2 },
         { href: "/admin/product-links", label: "Ürün Bağlantıları", icon: Link2 },
         { href: "/admin/module-licenses", label: "Modül Lisansları", icon: Key },

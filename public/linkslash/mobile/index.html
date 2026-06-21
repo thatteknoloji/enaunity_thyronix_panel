@@ -49,8 +49,36 @@
         <h1 class="login-title">Bu modül hesabınıza tanımlı değil</h1>
         <p class="login-sub" id="licenseMessage">LinkSlash lisansı gerekli. Ana siteye yönlendirilmezsiniz — lisans almak için tarayıcıdan ENAUNITY hesabınıza giriş yapın.</p>
         <p class="hint" id="licenseHint">enaunity.com.tr → LinkSlash → Lisans satın al</p>
+        <div class="form-row">
+          <label for="activationCode">Aktivasyon Kodu</label>
+          <input type="text" id="activationCode" placeholder="LS-XXXX-XXXX-XXXX" autocomplete="off">
+        </div>
+        <button type="button" class="btn btn-primary btn-block" id="activateBtn">Kodu Aktive Et</button>
+        <p class="status-msg" id="activateStatus"></p>
         <button type="button" class="btn btn-secondary btn-block" id="retrySessionBtn">Durumu Yenile</button>
         <button type="button" class="btn btn-ghost btn-block" id="logoutLicenseBtn">Farklı hesapla giriş</button>
+      </section>
+    </main>
+
+    <!-- Device blocked -->
+    <main class="mobile-main screen hidden" id="screenDevice">
+      <section class="hero-card license-card">
+        <div class="license-icon">📱</div>
+        <h1 class="login-title">Bu lisans başka bir cihazda aktif</h1>
+        <p class="login-sub" id="deviceMessage">Bu lisans yalnızca kayıtlı cihazda kullanılabilir. Admin cihaz sıfırlaması gerekebilir.</p>
+        <button type="button" class="btn btn-secondary btn-block" id="retryDeviceBtn">Tekrar Dene</button>
+        <button type="button" class="btn btn-ghost btn-block" id="logoutDeviceBtn">Çıkış</button>
+      </section>
+    </main>
+
+    <!-- Update required -->
+    <main class="mobile-main screen hidden" id="screenUpdate">
+      <section class="hero-card license-card">
+        <div class="license-icon">⬆️</div>
+        <h1 class="login-title" id="updateTitle">Güncelleme gerekli</h1>
+        <p class="login-sub" id="updateMessage">LinkSlash'ın yeni sürümünü indirmeniz gerekiyor.</p>
+        <button type="button" class="btn btn-primary btn-block" id="downloadUpdateBtn">Yeni APK İndir</button>
+        <p class="hint" id="updateVersionInfo"></p>
       </section>
     </main>
 

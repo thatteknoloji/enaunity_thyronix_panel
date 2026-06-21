@@ -4,19 +4,13 @@ import { assertLinkSlashAccess } from "@/lib/linkslash/access";
 import { createDownloadToken } from "@/lib/linkslash/download-token";
 import { getActiveApkRelease } from "@/lib/linkslash/apk-versions";
 
-/** Doğrudan indirme kapalı — önce token alınmalı */
-export async function GET() {
+export async function POST() {
   try {
     const user = await getSession();
     const access = await assertLinkSlashAccess(user);
     if (!access.allowed) {
       return NextResponse.json(
-        {
-          success: false,
-          error: access.reason || "LinkSlash lisansı gerekli",
-          code: access.code || "LISANS_YOK",
-          redirect: access.code === "AUTH_REQUIRED" ? "/gateway/linkslash" : "/payment/checkout?type=module&moduleKey=LINKSLASH&planKey=starter",
-        },
+        { success: false, error: access.reason, code: access.code },
         { status: access.code === "AUTH_REQUIRED" ? 401 : 403 }
       );
     }
@@ -28,13 +22,9 @@ export async function GET() {
       apkReleaseId: active?.id,
     });
 
-    return NextResponse.redirect(new URL(token.downloadUrl, process.env.NEXT_PUBLIC_APP_URL || "https://enaunity.com.tr"));
+    return NextResponse.json({ success: true, data: token });
   } catch (e) {
-    const msg = e instanceof Error ? e.message : "İndirme başarısız";
+    const msg = e instanceof Error ? e.message : "Token oluşturulamadı";
     return NextResponse.json({ success: false, error: msg }, { status: 500 });
   }
-}
-
-export async function POST() {
-  return GET();
 }
