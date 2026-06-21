@@ -7,7 +7,10 @@ import path from "path";
 import { fileURLToPath } from "url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const FULL_JSON = path.join(__dirname, "turkiye-geo-full.json");
+const FULL_JSON_CANDIDATES = [
+  path.join(__dirname, "turkiye-full-geo.json"),
+  path.join(__dirname, "turkiye-geo-full.json"),
+];
 
 export type TurkiyeProvinceSeed = {
   plateCode: string;
@@ -18,12 +21,16 @@ export type TurkiyeProvinceSeed = {
 };
 
 function loadFullData(): TurkiyeProvinceSeed[] | null {
-  if (!existsSync(FULL_JSON)) return null;
-  try {
-    const raw = JSON.parse(readFileSync(FULL_JSON, "utf8"));
-    if (Array.isArray(raw?.provinces) && raw.provinces.length > 0) return raw.provinces;
-  } catch {
-    return null;
+  for (const filePath of FULL_JSON_CANDIDATES) {
+    if (!existsSync(filePath)) continue;
+    try {
+      const raw = JSON.parse(readFileSync(filePath, "utf8"));
+      if (Array.isArray(raw?.provinces) && raw.provinces.length > 0) {
+        return raw.provinces;
+      }
+    } catch {
+      continue;
+    }
   }
   return null;
 }

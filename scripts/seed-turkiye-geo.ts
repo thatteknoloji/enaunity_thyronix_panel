@@ -68,7 +68,12 @@ async function seedTurkiyeGeo() {
   }
 
   console.log(`  ✓ ${provinceCount} il, ${districtCount} ilçe yüklendi`);
-  console.log("  ℹ Mahalle/köy katmanları admin CRUD veya bulk import ile genişletilebilir");
+  const [neighborhoodCount, villageCount] = await Promise.all([
+    prisma.geoNeighborhood.count(),
+    prisma.geoVillage.count(),
+  ]);
+  console.log(`  ℹ Veritabanı: ${neighborhoodCount} mahalle, ${villageCount} köy`);
+  console.log(`  ℹ Dataset: ${GEO_DATA_SOURCE === "full" ? "tam veri dosyası" : "starter fallback (81 il + Merkez ilçe)"}`);
 }
 
 async function seedReferenceData() {
@@ -155,6 +160,7 @@ async function seedReferenceData() {
 }
 
 async function main() {
+  console.log(`\n→ Data Universe seed başlıyor (kaynak: ${GEO_DATA_SOURCE})…`);
   await seedTurkiyeGeo();
   await seedReferenceData();
   console.log("\n✓ Data Universe seed tamam");

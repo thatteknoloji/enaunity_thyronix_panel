@@ -24,7 +24,8 @@ export async function GET(req: Request) {
     const entity = searchParams.get("entity") || "provinces";
 
     if (entity === "stats") {
-      const stats = await getGeoStats();
+      const { getDataUniverseAdminStats } = await import("@/lib/data-universe/stats-service");
+      const stats = await getDataUniverseAdminStats();
       return NextResponse.json({ success: true, data: stats });
     }
 

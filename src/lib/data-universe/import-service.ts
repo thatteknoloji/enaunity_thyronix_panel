@@ -2,9 +2,13 @@ import Papa from "papaparse";
 import * as XLSX from "xlsx";
 import { prisma } from "@/lib/db";
 import { toSlug } from "./pagination";
+import { normalizeImportRows } from "./import-normalize";
 
 export const IMPORT_TYPES = ["province", "district", "neighborhood", "village", "street"] as const;
 export type ImportType = (typeof IMPORT_TYPES)[number];
+
+export const IMPORT_JOB_STATUS = ["PENDING", "RUNNING", "COMPLETED", "FAILED"] as const;
+export type ImportJobStatus = (typeof IMPORT_JOB_STATUS)[number];
 
 export type ImportRow = Record<string, string | number | null | undefined>;
 
@@ -69,30 +73,39 @@ async function getTrCountryId(): Promise<string> {
 }
 
 async function resolveProvince(countryId: string, row: ImportRow) {
-  const plateCode = pick(row, ["plateCode", "plate_code", "plaka", "il_kodu", "provinceCode"]);
+  const plateCode = pick(row, ["provinceCode", "plateCode", "plate_code", "plaka", "il_kodu"]);
   const name = pick(row, ["province", "provinceName", "il", "il_adi", "name"]);
   if (plateCode) {
     const p = await prisma.geoProvince.findFirst({ where: { countryId, plateCode: plateCode.padStart(2, "0") } });
     if (p) return p;
   }
   if (name) {
-    return prisma.geoProvince.findFirst({
-      where: { countryId, name: { equals: name } },
-    });
+    const byName = await prisma.geoProvince.findFirst({ where: { countryId, name } });
+    if (byName) return byName;
+    return prisma.geoProvince.findFirst({ where: { countryId, slug: toSlug(name) } });
   }
   return null;
 }
 
 async function resolveDistrict(provinceId: string, row: ImportRow) {
+  const code = pick(row, ["districtCode", "ilce_kodu"]);
   const name = pick(row, ["district", "districtName", "ilce", "ilce_adi", "name"]);
+  if (code) {
+    const bySlug = await prisma.geoDistrict.findFirst({ where: { provinceId, slug: toSlug(code) } });
+    if (bySlug) return bySlug;
+  }
   if (!name) return null;
-  return prisma.geoDistrict.findFirst({ where: { provinceId, name: { equals: name } } });
+  const byName = await prisma.geoDistrict.findFirst({ where: { provinceId, name } });
+  if (byName) return byName;
+  return prisma.geoDistrict.findFirst({ where: { provinceId, slug: toSlug(name) } });
 }
 
 async function resolveNeighborhood(districtId: string, row: ImportRow) {
   const name = pick(row, ["neighborhood", "neighborhoodName", "mahalle", "mahalle_adi", "name"]);
   if (!name) return null;
-  return prisma.geoNeighborhood.findFirst({ where: { districtId, name: { equals: name } } });
+  const byName = await prisma.geoNeighborhood.findFirst({ where: { districtId, name } });
+  if (byName) return byName;
+  return prisma.geoNeighborhood.findFirst({ where: { districtId, slug: toSlug(name) } });
 }
 
 export async function runDataUniverseImport(opts: {
@@ -102,20 +115,22 @@ export async function runDataUniverseImport(opts: {
   fileName: string;
   createdById?: string;
 }): Promise<{ jobId: string; result: ImportResult }> {
+  const normalizedRows = normalizeImportRows(opts.type, opts.rows);
+
   const job = await prisma.dataUniverseImportJob.create({
     data: {
       type: opts.type,
       status: "RUNNING",
       fileName: opts.fileName,
       dryRun: opts.dryRun,
-      totalRows: opts.rows.length,
+      totalRows: normalizedRows.length,
       createdById: opts.createdById || "",
       metadataJson: JSON.stringify({ startedAt: new Date().toISOString() }),
     },
   });
 
   const result: ImportResult = {
-    totalRows: opts.rows.length,
+    totalRows: normalizedRows.length,
     insertedRows: 0,
     updatedRows: 0,
     skippedRows: 0,
@@ -127,19 +142,26 @@ export async function runDataUniverseImport(opts: {
   try {
     const countryId = await getTrCountryId();
 
-    for (let i = 0; i < opts.rows.length; i++) {
-      const row = opts.rows[i];
+    for (let i = 0; i < normalizedRows.length; i++) {
+      const row = normalizedRows[i];
       try {
         const action = await processImportRow(opts.type, row, countryId, opts.dryRun);
         if (action === "insert") result.insertedRows += 1;
         else if (action === "update") result.updatedRows += 1;
+        else if (action === "skip") result.skippedRows += 1;
         else result.skippedRows += 1;
         if (opts.dryRun && result.preview && result.preview.length < 10) {
           result.preview.push(row);
         }
       } catch (e) {
-        result.errorRows += 1;
-        result.errors.push({ row: i + 1, message: e instanceof Error ? e.message : "Satır hatası" });
+        const msg = e instanceof Error ? e.message : "Satır hatası";
+        if (!opts.dryRun && msg.includes("bulunamadı")) {
+          result.skippedRows += 1;
+          result.errors.push({ row: i + 1, message: msg });
+        } else {
+          result.errorRows += 1;
+          result.errors.push({ row: i + 1, message: msg });
+        }
       }
     }
 
@@ -195,9 +217,9 @@ async function processImportRow(type: ImportType, row: ImportRow, countryId: str
 }
 
 async function importProvince(row: ImportRow, countryId: string, dryRun: boolean): Promise<RowAction> {
-  const name = pick(row, ["name", "il", "il_adi", "province", "provinceName"]);
+  const name = pick(row, ["province", "provinceName", "name", "il", "il_adi"]);
   if (!name) throw new Error("İl adı gerekli");
-  const plateCode = pick(row, ["plateCode", "plate_code", "plaka", "il_kodu"]).padStart(2, "0") || "00";
+  const plateCode = (pick(row, ["provinceCode", "plateCode", "plate_code", "plaka", "il_kodu"]) || "00").padStart(2, "0");
   const slug = toSlug(name);
   const existing = await prisma.geoProvince.findFirst({ where: { countryId, name } });
   const payload = {
@@ -219,7 +241,7 @@ async function importProvince(row: ImportRow, countryId: string, dryRun: boolean
 }
 
 async function importDistrict(row: ImportRow, countryId: string, dryRun: boolean): Promise<RowAction> {
-  const name = pick(row, ["name", "ilce", "ilce_adi", "district", "districtName"]);
+  const name = pick(row, ["district", "districtName", "name", "ilce", "ilce_adi"]);
   if (!name) throw new Error("İlçe adı gerekli");
   const province = await resolveProvince(countryId, row);
   if (!province) throw new Error("İl bulunamadı — province/plateCode gerekli");
@@ -247,7 +269,10 @@ async function importNeighborhood(
   dryRun: boolean,
   kind: "neighborhood" | "village"
 ): Promise<RowAction> {
-  const name = pick(row, ["name", "mahalle", "mahalle_adi", "koy", "koy_adi", "neighborhood", "village"]);
+  const name =
+    kind === "village"
+      ? pick(row, ["village", "koy", "koy_adi", "name"])
+      : pick(row, ["neighborhood", "neighborhoodName", "mahalle", "mahalle_adi", "name"]);
   if (!name) throw new Error(`${kind === "village" ? "Köy" : "Mahalle"} adı gerekli`);
   const province = await resolveProvince(countryId, row);
   if (!province) throw new Error("İl bulunamadı");
@@ -287,7 +312,7 @@ async function importNeighborhood(
 }
 
 async function importStreet(row: ImportRow, countryId: string, dryRun: boolean): Promise<RowAction> {
-  const name = pick(row, ["name", "street", "sokak", "cadde", "streetName"]);
+  const name = pick(row, ["street", "sokak", "cadde", "streetName", "name"]);
   if (!name) throw new Error("Sokak/cadde adı gerekli");
   const neighborhoodId = pick(row, ["neighborhoodId"]);
   let neighborhood = neighborhoodId

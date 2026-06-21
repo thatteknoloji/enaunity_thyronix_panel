@@ -46,6 +46,7 @@ export function DataUniverseImportAdmin() {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<ImportResult | null>(null);
   const [jobs, setJobs] = useState<Job[]>([]);
+  const [selectedJob, setSelectedJob] = useState<(Job & { metadata?: { errors?: Array<{ row: number; message: string }> } }) | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const loadJobs = useCallback(async () => {
@@ -57,6 +58,12 @@ export function DataUniverseImportAdmin() {
   useEffect(() => {
     loadJobs();
   }, [loadJobs]);
+
+  const loadJobDetail = async (id: string) => {
+    const r = await fetch(`/api/admin/page-factory/data/import/jobs/${id}`);
+    const d = await r.json();
+    if (d.success) setSelectedJob(d.data);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -190,12 +197,12 @@ export function DataUniverseImportAdmin() {
                 <th className="py-2 pr-3">Durum</th>
                 <th className="py-2 pr-3">Satır</th>
                 <th className="py-2 pr-3">+/~/-</th>
-                <th className="py-2">Tarih</th>
+                <th className="py-2">Detay</th>
               </tr>
             </thead>
             <tbody>
               {jobs.map((j) => (
-                <tr key={j.id} className="border-b border-gray-50">
+                <tr key={j.id} className="border-b border-gray-50 hover:bg-gray-50/50">
                   <td className="py-2 pr-3 font-medium text-gray-800">{j.fileName}</td>
                   <td className="py-2 pr-3">{j.type}{j.dryRun ? " (dry)" : ""}</td>
                   <td className="py-2 pr-3">
@@ -205,12 +212,21 @@ export function DataUniverseImportAdmin() {
                   <td className="py-2 pr-3 text-gray-600">
                     {j.insertedRows}/{j.updatedRows}/{j.errorRows}
                   </td>
-                  <td className="py-2 text-gray-500">{new Date(j.createdAt).toLocaleString("tr-TR")}</td>
+                  <td className="py-2 pr-3 text-gray-500">{new Date(j.createdAt).toLocaleString("tr-TR")}</td>
+                  <td className="py-2">
+                    <button
+                      type="button"
+                      onClick={() => loadJobDetail(j.id)}
+                      className="text-violet-600 hover:underline"
+                    >
+                      Görüntüle
+                    </button>
+                  </td>
                 </tr>
               ))}
               {jobs.length === 0 && (
                 <tr>
-                  <td colSpan={6} className="py-6 text-center text-gray-400">
+                  <td colSpan={7} className="py-6 text-center text-gray-400">
                     Henüz import job yok
                   </td>
                 </tr>
@@ -219,6 +235,40 @@ export function DataUniverseImportAdmin() {
           </table>
         </div>
       </div>
+
+      {selectedJob && (
+        <div className="rounded-xl border border-violet-200 bg-violet-50/30 p-5 space-y-3">
+          <div className="flex items-center justify-between">
+            <h3 className="font-semibold text-gray-900">Job Detayı — {selectedJob.fileName}</h3>
+            <button type="button" onClick={() => setSelectedJob(null)} className="text-xs text-gray-500 hover:text-gray-800">
+              Kapat
+            </button>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+            <p><span className="text-gray-500">Tip:</span> {selectedJob.type}</p>
+            <p><span className="text-gray-500">Durum:</span> {selectedJob.status}</p>
+            <p><span className="text-gray-500">Dry-run:</span> {selectedJob.dryRun ? "Evet" : "Hayır"}</p>
+            <p><span className="text-gray-500">Tamamlanma:</span> {selectedJob.completedAt ? new Date(selectedJob.completedAt).toLocaleString("tr-TR") : "—"}</p>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
+            <Stat label="Toplam" value={selectedJob.totalRows} />
+            <Stat label="Eklenen" value={selectedJob.insertedRows} />
+            <Stat label="Güncellenen" value={selectedJob.updatedRows} />
+            <Stat label="Atlanan" value={selectedJob.skippedRows} />
+            <Stat label="Hata" value={selectedJob.errorRows} />
+          </div>
+          {selectedJob.metadata?.errors && selectedJob.metadata.errors.length > 0 && (
+            <div className="rounded-lg bg-white border border-red-100 p-3 max-h-48 overflow-y-auto">
+              <p className="text-xs font-semibold text-red-700 mb-2">Hata örnekleri</p>
+              {selectedJob.metadata.errors.slice(0, 30).map((err) => (
+                <p key={`${err.row}-${err.message}`} className="text-xs text-red-600">
+                  Satır {err.row}: {err.message}
+                </p>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

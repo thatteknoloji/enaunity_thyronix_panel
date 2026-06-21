@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { PRODUCTION_TYPES, type ProductionType } from "@/lib/page-factory/types";
 import { AdminModuleAccessPanel } from "@/components/admin/AdminModuleAccessPanel";
+import { BlueprintUniverseTab } from "@/components/page-factory/BlueprintUniverseTab";
 
 type Dashboard = {
   totalProjects: number;
@@ -69,6 +70,7 @@ export function PageFactoryShell({ showLicensePanel = false }: Props) {
   const [editing, setEditing] = useState(false);
   const [editForm, setEditForm] = useState({ name: "", sector: "", country: "TR", language: "tr", productionType: "GEO_SEO" as ProductionType });
   const [deleting, setDeleting] = useState(false);
+  const [projectTab, setProjectTab] = useState<"overview" | "universe">("overview");
   const [error, setError] = useState<string | null>(null);
   const [form, setForm] = useState({
     name: "",
@@ -103,6 +105,7 @@ export function PageFactoryShell({ showLicensePanel = false }: Props) {
     if (d.success) {
       setSelected(d.data);
       setEditing(false);
+      setProjectTab("overview");
       setEditForm({
         name: d.data.name,
         sector: d.data.sector,
@@ -390,6 +393,34 @@ export function PageFactoryShell({ showLicensePanel = false }: Props) {
                 </div>
               )}
 
+              <div className="flex gap-1 bg-white/80 p-1 rounded-lg w-fit border border-violet-100">
+                <button
+                  type="button"
+                  onClick={() => setProjectTab("overview")}
+                  className={`px-4 py-1.5 text-xs font-medium rounded-md ${projectTab === "overview" ? "bg-violet-600 text-white" : "text-gray-600 hover:bg-gray-100"}`}
+                >
+                  Genel Bakış
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setProjectTab("universe")}
+                  className={`px-4 py-1.5 text-xs font-medium rounded-md ${projectTab === "universe" ? "bg-violet-600 text-white" : "text-gray-600 hover:bg-gray-100"}`}
+                >
+                  Blueprint Evreni
+                </button>
+              </div>
+
+              {projectTab === "universe" ? (
+                <BlueprintUniverseTab
+                  projectId={selected.id}
+                  sector={selected.sector}
+                  onGenerated={() => {
+                    loadProject(selected.id);
+                    loadDashboard();
+                  }}
+                />
+              ) : (
+              <>
               {selected.metadata?.estimate && (
                 <div className="rounded-lg bg-white border border-gray-200 p-4">
                   <p className="text-xs uppercase tracking-wide text-gray-500 mb-1">Page Estimator</p>
@@ -437,6 +468,8 @@ export function PageFactoryShell({ showLicensePanel = false }: Props) {
                     ))}
                   </div>
                 </div>
+              )}
+              </>
               )}
             </div>
           )}

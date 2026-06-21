@@ -167,7 +167,7 @@ export function DataUniverseAdmin() {
           href={toAdminUrl("/admin/page-factory/data/import")}
           className="ml-auto rounded-lg border border-violet-200 bg-violet-50 px-3 py-1.5 text-xs font-medium text-violet-800 hover:bg-violet-100"
         >
-          Bulk Import →
+          Veri Import
         </Link>
         <button type="button" onClick={() => { load(); loadGeoStats(); }} className="p-2 text-gray-500 hover:text-gray-700">
           <RefreshCw size={16} />
@@ -175,15 +175,20 @@ export function DataUniverseAdmin() {
       </div>
 
       {stats && (
-        <div className="grid gap-3 sm:grid-cols-5 text-center">
+        <div className="grid gap-3 sm:grid-cols-5 lg:grid-cols-10 text-center">
           {[
             { k: "countries", l: "Ülke" },
             { k: "provinces", l: "İl" },
             { k: "districts", l: "İlçe" },
             { k: "neighborhoods", l: "Mahalle" },
             { k: "villages", l: "Köy" },
+            { k: "industries", l: "Sektör" },
+            { k: "categories", l: "Kategori" },
+            { k: "intents", l: "Niyet" },
+            { k: "patterns", l: "Soru Kalıbı" },
+            { k: "importJobs", l: "Import Job" },
           ].map(({ k, l }) => (
-            <div key={k} className="rounded-lg border border-gray-200 bg-white px-3 py-2">
+            <div key={k} className="rounded-lg border border-gray-200 bg-white px-2 py-2">
               <p className="text-lg font-bold text-violet-700">{stats[k] ?? 0}</p>
               <p className="text-[10px] uppercase text-gray-500">{l}</p>
             </div>

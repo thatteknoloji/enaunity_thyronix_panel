@@ -77,3 +77,93 @@ export type CreateProjectInput = {
   productionType: ProductionType;
   dealerId?: string | null;
 };
+
+export type UniverseGeoLevel = "province" | "district" | "neighborhood" | "village";
+
+export type UniverseConfig = {
+  selectedIndustryId?: string;
+  selectedCategoryIds: string[];
+  selectedIntentIds: string[];
+  selectedGeoLevels: UniverseGeoLevel[];
+  selectedProvinceIds: string[];
+  selectedDistrictIds: string[];
+  selectedNeighborhoodIds: string[];
+  selectedVillageIds: string[];
+  includeFaq: boolean;
+  includeLocalModifiers: boolean;
+  generationLimit: number;
+  batchSize: number;
+  maxPreview: number;
+  maxGenerate: number;
+};
+
+export const DEFAULT_UNIVERSE_CONFIG: UniverseConfig = {
+  selectedCategoryIds: [],
+  selectedIntentIds: [],
+  selectedGeoLevels: ["province", "district"],
+  selectedProvinceIds: [],
+  selectedDistrictIds: [],
+  selectedNeighborhoodIds: [],
+  selectedVillageIds: [],
+  includeFaq: false,
+  includeLocalModifiers: false,
+  generationLimit: 10000,
+  batchSize: 500,
+  maxPreview: 50,
+  maxGenerate: 5000,
+};
+
+export type UniverseProjectMetadata = ProjectMetadata & {
+  universe?: UniverseConfig;
+  universeEstimate?: UniverseEstimateResult;
+  lastUniverseGenerate?: { at: string; count: number };
+};
+
+export type RiskLevel = "safe" | "medium" | "high" | "critical" | "blocked";
+
+export type UniverseEstimateResult = {
+  estimatedTotal: number;
+  riskLevel: RiskLevel;
+  riskLabel: string;
+  canGenerate: boolean;
+  counts: {
+    provinces: number;
+    districts: number;
+    neighborhoods: number;
+    villages: number;
+    categories: number;
+    intents: number;
+    faqPatterns: number;
+    geoNodes: number;
+    pageTypeVariants: number;
+  };
+  formula: string;
+  warnings: string[];
+  limits: { maxPreview: number; maxGenerate: number; generationLimit: number; batchSize: number };
+  generationPlan: { batches: number; batchSize: number; cappedTotal: number };
+};
+
+export type BlueprintUniverseDraft = {
+  title: string;
+  slug: string;
+  pageType: string;
+  hierarchyLevel: number;
+  geoPath: string;
+  industryPath: string;
+  intent: string;
+  targetKeyword: string;
+  secondaryKeywords: string[];
+  faqPatternIds: string[];
+  internalLinkHints: string[];
+  clusterPath: string;
+  metadata: Record<string, unknown>;
+};
+
+export type UniverseEngineResult = {
+  estimatedTotal: number;
+  previewBlueprints: BlueprintUniverseDraft[];
+  warnings: string[];
+  limits: UniverseEstimateResult["limits"];
+  generationPlan: UniverseEstimateResult["generationPlan"];
+  estimate: UniverseEstimateResult;
+};
