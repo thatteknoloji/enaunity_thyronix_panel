@@ -74,6 +74,17 @@ export default function FooterSettingsPage() {
       </div>
 
       <div className="mb-4 rounded-xl border border-blue-100 bg-blue-50 px-4 py-3 text-sm text-blue-900">
+        <p className="font-medium">Footer altı hukuki şerit</p>
+        <p className="mt-1 text-blue-800/90 text-xs leading-relaxed">
+          Ödeme ve güvenlik rozetleri (Visa, SSL vb.) için{" "}
+          <Link href={toAdminUrl("/admin/footer-legal-strip")} className="underline font-medium">
+            Footer Hukuki Şerit
+          </Link>
+          {" "}bölümünü kullanın.
+        </p>
+      </div>
+
+      <div className="mb-4 rounded-xl border border-blue-100 bg-blue-50 px-4 py-3 text-sm text-blue-900">
         <p className="font-medium">İletişim sayfası</p>
         <p className="mt-1 text-blue-800/90 text-xs leading-relaxed">
           E-posta, telefon ve adres kartları buradan gelir. Üst metin için{" "}

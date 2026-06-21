@@ -1,7 +1,7 @@
 import type { LucideIcon } from "lucide-react";
 import {
   Home, User as UserIcon, Shield, ShoppingCart, FileText, Save, Heart,
-  Wallet, ReceiptText, CreditCard, MapPin, Upload, RotateCcw, Zap, Sparkles,
+  Wallet, ReceiptText, CreditCard, MapPin, Upload, RotateCcw, Zap, Sparkles, Link2,
   Bell, Store, Gift, FileSignature, Palette,
 } from "lucide-react";
 
@@ -70,6 +70,7 @@ export const ACCOUNT_NAV: NavGroup[] = [
     items: [
       { type: "link", href: "/gateway/thyronix", label: "THYRONIX", icon: Zap },
       { type: "link", href: "/gateway/hive", label: "HIVE", icon: Sparkles },
+      { type: "link", href: "/gateway/linkslash", label: "LinkSlash", icon: Link2 },
       { type: "link", href: "/products", label: "Ürünlerim", icon: Store },
       { type: "link", href: "/product-library", label: "Hazır Ürünler", icon: Store },
     ],

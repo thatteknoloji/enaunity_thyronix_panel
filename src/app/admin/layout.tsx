@@ -32,6 +32,7 @@ function buildNavGroups(t: (key: string) => string) {
         { href: "/admin/pages", label: t("admin.pages"), icon: FileText },
         { href: "/admin/site-settings", label: "Site Ayarları", icon: Globe },
         { href: "/admin/footer-settings", label: "Footer Ayarları", icon: Layout },
+        { href: "/admin/footer-legal-strip", label: "Footer Hukuki Şerit", icon: Shield },
         { href: "/admin/homepage", label: "Ana Sayfa", icon: LayoutDashboard },
         { href: "/admin/ecosystem", label: "Ekosistem Vitrini", icon: Sparkles },
         { href: "/admin/contracts", label: t("admin.contracts"), icon: ScrollText },

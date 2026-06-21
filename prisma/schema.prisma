@@ -995,6 +995,19 @@ model FooterSettings {
   updatedAt DateTime @updatedAt
 }
 
+model FooterLegalStripItem {
+  id        String   @id @default(cuid())
+  label     String   @default("")
+  imageUrl  String   @default("")
+  linkUrl   String   @default("")
+  sortOrder Int      @default(0)
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([active, sortOrder])
+}
+
 model Page {
   id        String   @id @default(cuid())
   title     String

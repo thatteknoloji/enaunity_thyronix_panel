@@ -2,6 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import Footer from "./footer";
+import { FooterLegalStrip } from "./FooterLegalStrip";
 
 export default function FooterWrapper() {
   const pathname = usePathname();
@@ -19,5 +20,10 @@ export default function FooterWrapper() {
     );
   }
 
-  return <Footer />;
+  return (
+    <>
+      <Footer />
+      <FooterLegalStrip />
+    </>
+  );
 }
