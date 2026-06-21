@@ -46,8 +46,9 @@ echo "→ linkslash plan seed…"
 npm run seed:linkslash-plans || echo "  (linkslash seed atlandı)"
 
 echo "→ production build…"
-rm -rf .next node_modules/.cache
-sync 2>/dev/null || true
+rm -rf .next node_modules/.cache 2>/dev/null || true
+find .next -mindepth 1 -delete 2>/dev/null || rm -rf .next 2>/dev/null || true
+rm -rf node_modules/.cache 2>/dev/null || true
 npm run build
 
 echo "→ pm2 restart…"
