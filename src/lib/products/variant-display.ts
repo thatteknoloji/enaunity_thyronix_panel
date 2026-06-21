@@ -1,4 +1,4 @@
-export const VARIANT_DISPLAY_MODES = ["buttons", "select", "modal", "popup", "grid"] as const;
+export const VARIANT_DISPLAY_MODES = ["buttons", "select", "modal", "popup", "drawer", "grid"] as const;
 export type VariantDisplayMode = (typeof VARIANT_DISPLAY_MODES)[number];
 
 export const VARIANT_DISPLAY_LABELS: Record<VariantDisplayMode, string> = {
@@ -6,6 +6,7 @@ export const VARIANT_DISPLAY_LABELS: Record<VariantDisplayMode, string> = {
   select: "Açılır liste (select)",
   modal: "Modal pencere",
   popup: "Açılır panel (popup)",
+  drawer: "Yan çekmece (drawer)",
   grid: "Izgara kartları",
 };
 
