@@ -15,6 +15,7 @@ import {
   Zap,
 } from "lucide-react";
 import { LinkSlashMarketingShell } from "@/components/linkslash/LinkSlashMarketingShell";
+import { LinkSlashAndroidDownloadCardServer } from "@/components/linkslash/LinkSlashAndroidDownloadCardServer";
 import {
   LINKSLASH_BRAND,
   LINKSLASH_FEATURES,
@@ -226,28 +227,31 @@ export default function LinkSlashProductPage() {
 
       {/* Download CTA */}
       <section className="py-16">
-        <div
-          className="mx-auto max-w-4xl rounded-3xl border px-6 py-12 text-center md:px-12"
-          style={{
-            borderColor: `${colors.primary}33`,
-            background: `linear-gradient(135deg, ${colors.primary}11, ${colors.accent}11)`,
-          }}
-        >
-          <h2 className="text-2xl font-bold md:text-3xl">Chrome Extension ve Android APK</h2>
-          <p className="mx-auto mt-3 max-w-lg text-white/65">
-            Extension paketi, Android APK doğrulama durumu ve kurulum adımları indirme merkezinde.
-          </p>
-          <div className="mt-8 flex flex-wrap justify-center gap-3">
-            <Link
-              href={routes.downloads}
-              className="inline-flex items-center gap-2 rounded-xl px-6 py-3 text-sm font-semibold text-black"
-              style={{ backgroundColor: colors.primary }}
-            >
-              <Download size={16} /> İndirme Merkezi
-            </Link>
-            <Link href={routes.gateway} className="rounded-xl border border-white/20 px-6 py-3 text-sm font-semibold hover:bg-white/5">
-              Web uygulamasını aç
-            </Link>
+        <div className="mx-auto max-w-4xl px-6">
+          <LinkSlashAndroidDownloadCardServer variant="hero" className="mb-8" />
+          <div
+            className="rounded-3xl border px-6 py-12 text-center md:px-12"
+            style={{
+              borderColor: `${colors.primary}33`,
+              background: `linear-gradient(135deg, ${colors.primary}11, ${colors.accent}11)`,
+            }}
+          >
+            <h2 className="text-2xl font-bold md:text-3xl">Chrome Extension</h2>
+            <p className="mx-auto mt-3 max-w-lg text-white/65">
+              Extension paketi ve kurulum adımları indirme merkezinde.
+            </p>
+            <div className="mt-8 flex flex-wrap justify-center gap-3">
+              <Link
+                href={routes.downloads}
+                className="inline-flex items-center gap-2 rounded-xl px-6 py-3 text-sm font-semibold text-black"
+                style={{ backgroundColor: colors.primary }}
+              >
+                <Download size={16} /> İndirme Merkezi
+              </Link>
+              <Link href={routes.gateway} className="rounded-xl border border-white/20 px-6 py-3 text-sm font-semibold hover:bg-white/5">
+                Web uygulamasını aç
+              </Link>
+            </div>
           </div>
         </div>
       </section>

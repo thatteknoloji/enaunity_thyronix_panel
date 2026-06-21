@@ -1,6 +1,7 @@
 import { existsSync, readFileSync, statSync } from "fs";
 import path from "path";
 import { LINKSLASH_BRAND } from "./brand";
+import { LINKSLASH_APK_DOWNLOAD_API, resolveLinkSlashApkPath } from "./apk-download";
 
 export type DownloadFileInfo = {
   available: boolean;
@@ -24,9 +25,11 @@ export type LinkSlashDownloadStatus = {
 
 const ROOT = process.cwd();
 const DOWNLOADS_DIR = path.join(ROOT, "public/downloads/linkslash");
+const PRIVATE_APK_DIR = path.join(ROOT, "storage/downloads/linkslash");
 const EXTENSION_ZIP_FS = path.join(DOWNLOADS_DIR, "linkslash-extension.zip");
-const APK_PUBLIC_FS = path.join(DOWNLOADS_DIR, "linkslash-debug.apk");
+const APK_PRIVATE_FS = path.join(PRIVATE_APK_DIR, "linkslash-debug.apk");
 const APK_BUILD_FS = path.join(ROOT, "mobile/linkslash/android/app/build/outputs/apk/debug/app-debug.apk");
+const APK_LEGACY_PUBLIC_FS = path.join(DOWNLOADS_DIR, "linkslash-debug.apk");
 const ANDROID_BUILD_JSON = path.join(DOWNLOADS_DIR, "android-build.json");
 const EXTENSION_RELEASE_FS = path.join(ROOT, "public/linkslash/extension/RELEASE.md");
 const ANDROID_RELEASE_FS = path.join(ROOT, "mobile/linkslash/RELEASE.md");
@@ -55,20 +58,33 @@ function readAndroidBuildMeta(): { buildStatus?: string; updatedAt?: string } | 
 }
 
 function resolveApkInfo(): DownloadFileInfo & { buildStatus: "ready" | "missing" | "pending_verification" } {
-  const publicPath = LINKSLASH_BRAND.routes.androidApk;
-  const publicInfo = fileInfo(publicPath, APK_PUBLIC_FS);
-  if (publicInfo.available) {
-    return { ...publicInfo, buildStatus: "ready" };
+  const apiPath = LINKSLASH_APK_DOWNLOAD_API;
+  const fsPath = resolveLinkSlashApkPath();
+  if (fsPath && existsSync(fsPath)) {
+    const stat = statSync(fsPath);
+    return {
+      available: true,
+      path: apiPath,
+      size: stat.size,
+      updatedAt: stat.mtime.toISOString(),
+      buildStatus: "ready",
+    };
   }
-  const buildInfo = fileInfo(publicPath, APK_BUILD_FS);
-  if (buildInfo.available) {
-    return { ...buildInfo, path: publicPath, buildStatus: "pending_verification" };
+  if (existsSync(APK_BUILD_FS)) {
+    const stat = statSync(APK_BUILD_FS);
+    return {
+      available: true,
+      path: apiPath,
+      size: stat.size,
+      updatedAt: stat.mtime.toISOString(),
+      buildStatus: "pending_verification",
+    };
   }
   const meta = readAndroidBuildMeta();
   if (meta?.buildStatus === "missing") {
-    return { available: false, path: publicPath, size: 0, updatedAt: meta.updatedAt || null, buildStatus: "missing" };
+    return { available: false, path: apiPath, size: 0, updatedAt: meta.updatedAt || null, buildStatus: "missing" };
   }
-  return { available: false, path: publicPath, size: 0, updatedAt: null, buildStatus: "missing" };
+  return { available: false, path: apiPath, size: 0, updatedAt: null, buildStatus: "missing" };
 }
 
 function extensionBuildStatus(): "ready" | "missing" | "preparing" {
@@ -107,7 +123,7 @@ export function getLinkSlashDownloadStatus(includeAdmin = false): LinkSlashDownl
   if (includeAdmin) {
     const missingFiles: string[] = [];
     if (!existsSync(EXTENSION_ZIP_FS)) missingFiles.push("public/downloads/linkslash/linkslash-extension.zip");
-    if (!existsSync(APK_PUBLIC_FS)) missingFiles.push("public/downloads/linkslash/linkslash-debug.apk");
+    if (!resolveLinkSlashApkPath()) missingFiles.push("storage/downloads/linkslash/linkslash-debug.apk");
     if (!existsSync(path.join(ROOT, "public/linkslash/extension/manifest.json"))) {
       missingFiles.push("public/linkslash/extension/manifest.json");
     }
@@ -128,9 +144,4 @@ export function getLinkSlashDownloadStatus(includeAdmin = false): LinkSlashDownl
   return status;
 }
 
-export function formatDownloadSize(bytes: number): string {
-  if (bytes <= 0) return "—";
-  const units = ["B", "KB", "MB", "GB"];
-  const i = Math.min(Math.floor(Math.log(bytes) / Math.log(1024)), units.length - 1);
-  return `${(bytes / 1024 ** i).toFixed(i === 0 ? 0 : 1)} ${units[i]}`;
-}
+export { formatDownloadSize } from "./format";

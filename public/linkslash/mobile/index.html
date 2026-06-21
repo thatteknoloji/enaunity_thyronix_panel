@@ -19,18 +19,54 @@
       <div class="brand"><span>Link</span>Slash</div>
       <div class="header-actions">
         <span class="sync-pill" id="syncPill">—</span>
-        <button type="button" class="icon-btn" id="authBtn" title="Giriş">G</button>
+        <button type="button" class="icon-btn hidden" id="logoutBtn" title="Çıkış">↩</button>
       </div>
     </header>
 
-    <main class="mobile-main">
+    <!-- Login -->
+    <main class="mobile-main screen" id="screenLogin">
+      <section class="hero-card login-card">
+        <img src="../icon192.png" alt="LinkSlash" class="login-logo">
+        <h1 class="login-title">LinkSlash Mobile</h1>
+        <p class="login-sub">Paylaşım menüsünden link kaydetmek için giriş yapın.</p>
+        <div class="form-row">
+          <label for="loginEmail">E-posta</label>
+          <input type="email" id="loginEmail" autocomplete="username" placeholder="ornek@firma.com">
+        </div>
+        <div class="form-row">
+          <label for="loginPassword">Şifre</label>
+          <input type="password" id="loginPassword" autocomplete="current-password" placeholder="••••••••">
+        </div>
+        <button type="button" class="btn btn-primary btn-block" id="loginBtn">Giriş Yap</button>
+        <p class="status-msg" id="loginStatus"></p>
+      </section>
+    </main>
+
+    <!-- License blocked -->
+    <main class="mobile-main screen hidden" id="screenLicense">
+      <section class="hero-card license-card">
+        <div class="license-icon">🔒</div>
+        <h1 class="login-title">Bu modül hesabınıza tanımlı değil</h1>
+        <p class="login-sub" id="licenseMessage">LinkSlash lisansı gerekli. Ana siteye yönlendirilmezsiniz — lisans almak için tarayıcıdan ENAUNITY hesabınıza giriş yapın.</p>
+        <p class="hint" id="licenseHint">enaunity.com.tr → LinkSlash → Lisans satın al</p>
+        <button type="button" class="btn btn-secondary btn-block" id="retrySessionBtn">Durumu Yenile</button>
+        <button type="button" class="btn btn-ghost btn-block" id="logoutLicenseBtn">Farklı hesapla giriş</button>
+      </section>
+    </main>
+
+    <!-- Dashboard / Import -->
+    <main class="mobile-main screen hidden" id="screenApp">
       <section class="hero-card" id="shareCard">
-        <p class="hero-label">Paylaşılan içerik</p>
-        <h1 class="hero-title" id="shareTitle">LinkSlash Mobile</h1>
-        <p class="hero-url" id="shareUrl">Herhangi bir uygulamadan Paylaş → LinkSlash</p>
+        <p class="hero-label" id="shareLabel">LinkSlash</p>
+        <h1 class="hero-title" id="shareTitle">Hoş geldiniz</h1>
+        <p class="hero-url" id="shareUrl">Paylaşım menüsünden bir link gönderin veya aşağıdan kaydedin.</p>
         <p class="hero-meta" id="shareMeta">Kaynak: —</p>
-        <button type="button" class="btn btn-primary btn-block" id="saveBtn">LinkSlash'a Kaydet</button>
+        <button type="button" class="btn btn-primary btn-block hidden" id="saveBtn">LinkSlash'a Kaydet</button>
         <p class="status-msg" id="statusMsg"></p>
+      </section>
+
+      <section class="user-strip hidden" id="userStrip">
+        <span id="userName">—</span>
       </section>
 
       <section class="stats-row">
@@ -51,7 +87,7 @@
           <h2>Yapay Zeka Bağlantısı</h2>
           <span class="ai-badge missing" id="aiBadge">Anahtar yok</span>
         </div>
-        <p class="hint">Kategorize ve özet için kendi Groq/DeepSeek anahtarınızı girin. Sunucu AI analizi (SEO brief) platform sağlayıcısı ile çalışır.</p>
+        <p class="hint">Kategorize ve özet için Groq/DeepSeek anahtarınızı girin.</p>
         <div class="form-row">
           <label for="aiProviderSelect">Sağlayıcı</label>
           <select id="aiProviderSelect">
@@ -65,18 +101,6 @@
         </div>
         <button type="button" class="btn btn-secondary btn-block" id="saveAiKeyBtn">Anahtarı Kaydet</button>
         <p class="ai-status" id="aiKeyStatus"></p>
-        <p class="hint">Tam AI ayarları için LinkSlash uygulaması → Ayarlar → AI Sağlayıcı</p>
-      </section>
-
-      <section class="panel">
-        <h2>Hızlı Erişim</h2>
-        <div class="action-grid">
-          <button type="button" class="action-card" id="openAppBtn">LinkSlash Uygulaması</button>
-          <button type="button" class="action-card" id="openSettingsBtn">AI Ayarları (Web)</button>
-          <button type="button" class="action-card" id="openGatewayBtn">Lisans / Gateway</button>
-          <button type="button" class="action-card" id="openDownloadsBtn">İndirme Merkezi</button>
-          <button type="button" class="action-card" id="retryShareBtn">Paylaşımı Yeniden Kaydet</button>
-        </div>
       </section>
 
       <section class="panel offline-panel hidden" id="offlinePanel">

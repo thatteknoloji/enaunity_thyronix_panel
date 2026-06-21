@@ -1,4 +1,4 @@
-import { isAdminRole } from "@/lib/auth/admin-access";
+import { isAdminRole, getAdminSecretPath } from "@/lib/auth/admin-access";
 import { assertLinkSlashAccess } from "./access";
 
 export type LinkSlashGatewayStep = "pricing" | "pending" | "ready" | "dealer_required" | "auth_required";
@@ -22,7 +22,7 @@ export async function resolveLinkSlashGatewayState(user: EnaUser | null): Promis
   }
 
   if (isAdminRole(user.role)) {
-    return { step: "ready", redirectTo: "/admin/linkslash" };
+    return { step: "ready", redirectTo: `${getAdminSecretPath()}/linkslash` };
   }
 
   const access = await assertLinkSlashAccess(user);

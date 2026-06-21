@@ -111,6 +111,29 @@ body {
 
 .hidden { display: none !important; }
 
+.login-card, .license-card { text-align: center; }
+.login-logo { width: 72px; height: 72px; border-radius: 18px; margin-bottom: 12px; }
+.login-title { font-size: 22px; font-weight: 800; margin-bottom: 8px; }
+.login-sub { font-size: 14px; color: var(--muted); margin-bottom: 18px; line-height: 1.45; }
+.license-icon { font-size: 40px; margin-bottom: 12px; }
+.form-row { margin-bottom: 12px; text-align: left; }
+.form-row label {
+  display: block; font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em;
+  color: var(--muted); margin-bottom: 4px;
+}
+.form-row input {
+  width: 100%; padding: 12px 14px; border-radius: 12px; border: 1px solid var(--border);
+  background: rgba(0,0,0,0.25); color: var(--text); font-size: 15px;
+}
+.btn-ghost {
+  background: transparent; border: 1px dashed var(--border); color: var(--muted);
+  margin-top: 8px;
+}
+.user-strip {
+  font-size: 12px; color: var(--muted); padding: 0 4px;
+}
+.user-strip span { color: var(--accent); font-weight: 600; }
+
 @media (min-width: 768px) {
   .mobile-main { padding: 24px; gap: 18px; }
   .hero-title { font-size: 22px; }

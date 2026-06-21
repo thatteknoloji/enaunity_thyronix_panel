@@ -88,6 +88,17 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL("/auth/login", request.url));
   }
 
+  // ── Block direct public APK downloads (license-gated API only) ──
+  if (/^\/downloads\/linkslash\/.*\.apk$/i.test(pathname)) {
+    if (isApi) {
+      return jsonError(403, "APK indirme lisanslı kullanıcılar içindir. /api/linkslash/download/android kullanın.");
+    }
+    const blocked = request.nextUrl.clone();
+    blocked.pathname = "/linkslash/downloads";
+    blocked.searchParams.set("blocked", "apk");
+    return NextResponse.redirect(blocked);
+  }
+
   // ── Public LinkSlash marketing (no auth) ──
   if (pathname === "/linkslash" || pathname.startsWith("/linkslash/downloads")) {
     return NextResponse.next();

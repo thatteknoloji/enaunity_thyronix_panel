@@ -11,10 +11,12 @@ import {
   Terminal,
 } from "lucide-react";
 import { LinkSlashMarketingShell } from "@/components/linkslash/LinkSlashMarketingShell";
+import { LinkSlashAndroidDownloadCardServer } from "@/components/linkslash/LinkSlashAndroidDownloadCardServer";
 import { getSession } from "@/lib/auth";
 import { isAdminRole } from "@/lib/auth/admin-access";
 import { LINKSLASH_BRAND } from "@/lib/linkslash/brand";
-import { formatDownloadSize, getLinkSlashDownloadStatus } from "@/lib/linkslash/download-status";
+import { getLinkSlashDownloadStatus } from "@/lib/linkslash/download-status";
+import { formatDownloadSize } from "@/lib/linkslash/format";
 
 export const metadata: Metadata = {
   title: "LinkSlash İndirme Merkezi | ENAUNITY",
@@ -127,14 +129,7 @@ export default async function LinkSlashDownloadsPage() {
           </div>
 
           {apkReady ? (
-            <a
-              href={status.android.path}
-              download
-              className="mb-4 inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold text-black"
-              style={{ backgroundColor: colors.primary }}
-            >
-              <Download size={16} /> linkslash-debug.apk indir ({formatDownloadSize(status.android.size)})
-            </a>
+            <LinkSlashAndroidDownloadCardServer variant="compact" className="mb-4" />
           ) : (
             <div className="mb-4 flex items-start gap-2 rounded-lg border border-amber-500/30 bg-amber-500/10 p-3 text-sm text-amber-200">
               <AlertTriangle size={16} className="mt-0.5 shrink-0" />

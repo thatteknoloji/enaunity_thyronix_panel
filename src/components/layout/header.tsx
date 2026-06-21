@@ -4,7 +4,6 @@ import Link from "next/link";
 import { ShoppingCart, User, LogOut, LayoutDashboard, Zap, Sparkles, Link2, Globe, Search, Menu, X, FileText } from "lucide-react";
 import { canSeeAdminEntry, getAdminSecretPath } from "@/lib/auth/admin-access";
 import { PRODUCT_GATEWAY_PATHS } from "@/lib/product-links/types";
-import { PRODUCT_META } from "@/lib/customer-products/types";
 import { useCartStore } from "@/lib/cart-store";
 import { useT, LOCALE_LABELS, type Locale } from "@/lib/i18n/provider";
 import { useEffect, useState } from "react";
@@ -186,7 +185,7 @@ export default function Header() {
                   </Link>
                 )}
                 {canSeeAdminEntry(user.role) && (
-                  <Link href={PRODUCT_META.LINKSLASH.gatewayPath}>
+                  <Link href="/platform/linkslash">
                     <Button variant="ghost" size="sm" className="text-cyan-400 hover:text-cyan-300">
                       <Link2 size={14} className="mr-1" />
                       LinkSlash
@@ -361,7 +360,7 @@ export default function Header() {
                 </Link>
               )}
               {canSeeAdminEntry(user.role) && (
-                <Link href={PRODUCT_META.LINKSLASH.gatewayPath} onClick={() => setMenuOpen(false)} className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-cyan-400 hover:text-cyan-300 hover:bg-ena-card transition-colors">
+                <Link href="/platform/linkslash" onClick={() => setMenuOpen(false)} className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-cyan-400 hover:text-cyan-300 hover:bg-ena-card transition-colors">
                   <Link2 size={16} />
                   LinkSlash
                 </Link>

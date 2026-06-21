@@ -1,30 +1,40 @@
 /**
- * LinkSlash Mobile App — Android share target shell
+ * LinkSlash Mobile App — isolated shell (never navigates to main ENAUNITY site)
  */
 (function() {
   var state = {
     session: null,
     share: null,
+    hasShare: false,
     online: navigator.onLine,
-    saving: false
+    saving: false,
+    screen: 'login'
   };
 
   var CONFIG = {
     apiBase: window.LINKSLASH_API_BASE || '',
-    appUrl: '/dealer/linkslash',
-    settingsUrl: '/dealer/linkslash',
-    gatewayUrl: '/gateway/linkslash',
-    downloadsUrl: '/linkslash/downloads',
-    loginUrl: '/auth/login?redirect=/linkslash/mobile/'
+    checkoutPath: '/payment/checkout?type=module&moduleKey=LINKSLASH&planKey=starter'
   };
+
+  var SCREENS = ['screenLogin', 'screenLicense', 'screenApp'];
 
   function $(id) { return document.getElementById(id); }
 
-  function setStatus(text, type) {
-    var el = $('statusMsg');
+  function setStatus(text, type, elId) {
+    var el = $(elId || 'statusMsg');
     if (!el) return;
     el.textContent = text || '';
     el.className = 'status-msg' + (type ? ' ' + type : '');
+  }
+
+  function showScreen(name) {
+    state.screen = name;
+    SCREENS.forEach(function(id) {
+      var el = $(id);
+      if (el) el.classList.toggle('hidden', id !== 'screen' + name.charAt(0).toUpperCase() + name.slice(1));
+    });
+    var logoutBtn = $('logoutBtn');
+    if (logoutBtn) logoutBtn.classList.toggle('hidden', name === 'login');
   }
 
   function setSyncPill() {
@@ -33,20 +43,45 @@
     if (!state.online) {
       pill.textContent = 'Offline';
       pill.className = 'sync-pill offline';
-    } else if (state.session && state.session.linkslashAccess) {
+    } else if (state.session && state.session.authenticated && state.session.linkslashAccess) {
       pill.textContent = 'Online';
       pill.className = 'sync-pill online';
+    } else if (state.session && state.session.authenticated) {
+      pill.textContent = 'Lisans yok';
+      pill.className = 'sync-pill';
     } else {
       pill.textContent = 'Giriş gerekli';
       pill.className = 'sync-pill';
     }
   }
 
+  function renderUserStrip() {
+    var strip = $('userStrip');
+    var nameEl = $('userName');
+    if (!strip || !nameEl || !state.session || !state.session.user) {
+      if (strip) strip.classList.add('hidden');
+      return;
+    }
+    strip.classList.remove('hidden');
+    nameEl.textContent = state.session.user.name || state.session.user.email;
+  }
+
   function renderSharePreview(share) {
-    $('shareTitle').textContent = share.title || 'Paylaşılan içerik';
-    $('shareUrl').textContent = share.url || share.rawText || 'URL bulunamadı';
-    $('shareMeta').textContent = 'Kaynak: ' + (share.sourceLabel || share.sourceType) +
-      (share.sharedFrom ? ' · ' + share.sharedFrom : '');
+    state.hasShare = !!(share && (share.url || share.rawText));
+    $('shareLabel').textContent = state.hasShare ? 'Paylaşılan içerik' : 'LinkSlash';
+    $('shareTitle').textContent = share && share.title ? share.title : (state.hasShare ? 'Paylaşılan link' : 'Hoş geldiniz');
+    $('shareUrl').textContent = share && (share.url || share.rawText)
+      ? (share.url || share.rawText)
+      : 'Herhangi bir uygulamadan Paylaş → LinkSlash';
+    $('shareMeta').textContent = share && (share.sourceLabel || share.sourceType)
+      ? 'Kaynak: ' + (share.sourceLabel || share.sourceType) + (share.sharedFrom ? ' · ' + share.sharedFrom : '')
+      : 'Kaynak: —';
+    $('saveBtn').classList.toggle('hidden', !state.hasShare);
+  }
+
+  function renderDefaultDashboard() {
+    state.hasShare = false;
+    renderSharePreview(null);
   }
 
   function renderRecent() {
@@ -135,7 +170,7 @@
     } else {
       localStorage.setItem('groq_api_key', key);
     }
-    if (status) { status.textContent = '✓ Anahtar kaydedildi — web uygulaması ile paylaşılır'; status.className = 'ai-status ok'; }
+    if (status) { status.textContent = '✓ Anahtar kaydedildi'; status.className = 'ai-status ok'; }
     updateAiBadge();
   }
 
@@ -144,7 +179,86 @@
     var json = await resp.json();
     state.session = json;
     setSyncPill();
+    renderUserStrip();
     return json;
+  }
+
+  function licenseMessage(session) {
+    if (session.accessCode === 'LISANS_BEKLIYOR') {
+      return 'LinkSlash lisansınız onay veya ödeme bekliyor. Aktif olunca uygulamayı yeniden açın.';
+    }
+    if (session.accessCode === 'DEALER_REQUIRED') {
+      return 'LinkSlash için bayi hesabı gerekli. Yönetici ile iletişime geçin.';
+    }
+    return 'LinkSlash lisansı hesabınıza tanımlı değil. Tarayıcıdan lisans satın alabilirsiniz.';
+  }
+
+  function routeAfterSession() {
+    var session = state.session;
+    if (!session || !session.authenticated) {
+      showScreen('login');
+      return;
+    }
+    if (!session.linkslashAccess) {
+      var msg = $('licenseMessage');
+      if (msg) msg.textContent = licenseMessage(session);
+      showScreen('license');
+      return;
+    }
+    showScreen('app');
+    if (state.hasShare) {
+      renderSharePreview(state.share);
+    } else {
+      renderDefaultDashboard();
+    }
+  }
+
+  async function login() {
+    var email = ($('loginEmail') && $('loginEmail').value.trim()) || '';
+    var password = ($('loginPassword') && $('loginPassword').value) || '';
+    if (!email || !password) {
+      setStatus('E-posta ve şifre gerekli', 'err', 'loginStatus');
+      return;
+    }
+    $('loginBtn').disabled = true;
+    setStatus('Giriş yapılıyor...', 'info', 'loginStatus');
+    try {
+      var resp = await fetch(CONFIG.apiBase + '/api/auth/login', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: email, password: password })
+      });
+      var json = await resp.json();
+      if (!resp.ok || !json.success) {
+        setStatus(json.error || 'Giriş başarısız', 'err', 'loginStatus');
+        return;
+      }
+      if (json.requires2FA) {
+        setStatus('2FA bu mobil uygulamada desteklenmiyor — tarayıcıdan giriş yapın', 'err', 'loginStatus');
+        return;
+      }
+      setStatus('✓ Giriş başarılı', 'ok', 'loginStatus');
+      await checkSession();
+      routeAfterSession();
+      if (state.hasShare && state.session && state.session.linkslashAccess) {
+        setStatus('Paylaşılan içerik hazır — kaydetmek için butona basın', 'info');
+      }
+    } catch (err) {
+      setStatus('Bağlantı hatası: ' + err.message, 'err', 'loginStatus');
+    } finally {
+      $('loginBtn').disabled = false;
+    }
+  }
+
+  async function logout() {
+    try {
+      await fetch(CONFIG.apiBase + '/api/auth/login', { method: 'DELETE', credentials: 'include' });
+    } catch (_) {}
+    state.session = null;
+    showScreen('login');
+    setSyncPill();
+    setStatus('', '', 'loginStatus');
   }
 
   async function captureOnline(share) {
@@ -184,13 +298,12 @@
     try {
       var session = state.session || await checkSession();
       if (!session.authenticated) {
-        window.location.href = CONFIG.apiBase + CONFIG.loginUrl;
+        showScreen('login');
+        setStatus('Kaydetmek için giriş yapın', 'info', 'loginStatus');
         return;
       }
       if (!session.linkslashAccess) {
-        window.location.href = CONFIG.apiBase + (session.accessCode === 'LISANS_YOK'
-          ? '/payment/checkout?type=module&moduleKey=LINKSLASH&planKey=starter'
-          : CONFIG.gatewayUrl);
+        routeAfterSession();
         return;
       }
 
@@ -209,11 +322,19 @@
         sourceType: result.sourceType,
         sharedFrom: state.share.sharedFrom
       });
-      setStatus('✓ LinkSlash\'a kaydedildi · sunucu AI analizi arka planda çalışıyor', 'ok');
+      setStatus('✓ LinkSlash\'a kaydedildi', 'ok');
       renderRecent();
+      try { localStorage.removeItem('linkslash_last_share'); } catch (_) {}
+      renderDefaultDashboard();
     } catch (err) {
       if (err.code === 'AUTH_REQUIRED') {
-        window.location.href = CONFIG.apiBase + CONFIG.loginUrl;
+        showScreen('login');
+        setStatus('Oturum süresi doldu — tekrar giriş yapın', 'err', 'loginStatus');
+        return;
+      }
+      if (err.code === 'LISANS_YOK' || err.code === 'LISANS_BEKLIYOR') {
+        await checkSession();
+        routeAfterSession();
         return;
       }
       if (!navigator.onLine || err.message.indexOf('fetch') !== -1) {
@@ -236,7 +357,7 @@
     }
     var session = await checkSession();
     if (!session.authenticated || !session.linkslashAccess) {
-      setStatus('Sync için giriş ve lisans gerekli', 'err');
+      routeAfterSession();
       return;
     }
 
@@ -292,14 +413,20 @@
 
   function applySharePayload(payload) {
     state.share = LinkSlashShareParser.parseSharePayload(payload);
+    state.hasShare = !!(state.share.url || state.share.rawText);
     renderSharePreview(state.share);
     try { localStorage.setItem('linkslash_last_share', JSON.stringify(payload)); } catch (_) {}
-    setStatus('Önizleme hazır — kaydetmek için butona basın', 'info');
+    if (state.screen === 'app') {
+      setStatus('Önizleme hazır — kaydetmek için butona basın', 'info');
+    }
   }
 
   window.LinkSlashMobile = {
     onNativeShare: function(payload) {
       applySharePayload(typeof payload === 'string' ? { text: payload } : payload);
+      if (state.session && state.session.authenticated && state.session.linkslashAccess) {
+        showScreen('app');
+      }
     },
     applySharePayload: applySharePayload
   };
@@ -308,7 +435,7 @@
     window.addEventListener('online', function() {
       state.online = true;
       setSyncPill();
-      syncQueue();
+      if (state.screen === 'app') syncQueue();
     });
     window.addEventListener('offline', function() {
       state.online = false;
@@ -316,7 +443,6 @@
     });
 
     loadAiSettings();
-    await checkSession();
     renderRecent();
     renderQueue();
 
@@ -335,34 +461,21 @@
       } catch (_) {}
     }
 
+    await checkSession();
+    routeAfterSession();
+
+    $('loginBtn').addEventListener('click', login);
+    $('logoutBtn').addEventListener('click', logout);
+    $('logoutLicenseBtn').addEventListener('click', logout);
+    $('retrySessionBtn').addEventListener('click', async function() {
+      await checkSession();
+      routeAfterSession();
+    });
     $('saveBtn').addEventListener('click', saveShare);
     $('syncQueueBtn').addEventListener('click', syncQueue);
     $('saveAiKeyBtn').addEventListener('click', saveAiSettings);
-    $('openAppBtn').addEventListener('click', function() {
-      window.location.href = CONFIG.apiBase + CONFIG.appUrl;
-    });
-    $('openSettingsBtn').addEventListener('click', function() {
-      window.location.href = CONFIG.apiBase + CONFIG.settingsUrl;
-    });
-    $('openGatewayBtn').addEventListener('click', function() {
-      window.location.href = CONFIG.apiBase + CONFIG.gatewayUrl;
-    });
-    $('openDownloadsBtn').addEventListener('click', function() {
-      window.location.href = CONFIG.apiBase + CONFIG.downloadsUrl;
-    });
-    $('authBtn').addEventListener('click', function() {
-      if (state.session && state.session.authenticated) {
-        window.location.href = CONFIG.apiBase + CONFIG.appUrl;
-      } else {
-        window.location.href = CONFIG.apiBase + CONFIG.loginUrl;
-      }
-    });
-    $('retryShareBtn').addEventListener('click', function() {
-      if (state.share) saveShare();
-      else setStatus('Paylaşım verisi yok — Android paylaşım menüsünü kullanın', 'err');
-    });
 
-    if (navigator.onLine && LinkSlashOfflineQueue.pendingCount() > 0) {
+    if (navigator.onLine && LinkSlashOfflineQueue.pendingCount() > 0 && state.screen === 'app') {
       syncQueue();
     }
   }

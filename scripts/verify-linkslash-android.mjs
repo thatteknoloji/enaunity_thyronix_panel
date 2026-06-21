@@ -3,7 +3,7 @@
  * LinkSlash Android APK doğrulama ve kopyalama
  * Build kırmaz — status: missing ile çıkar
  */
-import { copyFileSync, existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from "fs";
+import { copyFileSync, existsSync, mkdirSync, readFileSync, statSync, unlinkSync, writeFileSync } from "fs";
 import { dirname, join } from "path";
 import { fileURLToPath } from "url";
 
@@ -16,11 +16,13 @@ const SHARE_SNIPPET = join(MOBILE, "native/android/AndroidManifest.share.xml");
 const MAIN_ACTIVITY = join(MOBILE, "native/android/MainActivity.java");
 const SHARE_PLUGIN = join(MOBILE, "native/android/ShareReceiverPlugin.java");
 const BUILD_APK = join(ANDROID_DIR, "app/build/outputs/apk/debug/app-debug.apk");
-const PUBLIC_DIR = join(ROOT, "public/downloads/linkslash");
-const PUBLIC_APK = join(PUBLIC_DIR, "linkslash-debug.apk");
+const PRIVATE_DIR = join(ROOT, "storage/downloads/linkslash");
+const PRIVATE_APK = join(PRIVATE_DIR, "linkslash-debug.apk");
+const LEGACY_PUBLIC_APK = join(ROOT, "public/downloads/linkslash/linkslash-debug.apk");
+const PUBLIC_META_DIR = join(ROOT, "public/downloads/linkslash");
 const ANDROID_RELEASE_SRC = join(MOBILE, "RELEASE.md");
-const ANDROID_RELEASE_PUBLIC = join(PUBLIC_DIR, "android/RELEASE.md");
-const META_JSON = join(PUBLIC_DIR, "android-build.json");
+const ANDROID_RELEASE_PUBLIC = join(PUBLIC_META_DIR, "android/RELEASE.md");
+const META_JSON = join(PUBLIC_META_DIR, "android-build.json");
 
 function ok(msg) {
   console.log(`✓ ${msg}`);
@@ -34,7 +36,7 @@ const checks = {
   shareIntentSnippet: existsSync(SHARE_SNIPPET),
   androidGenerated: existsSync(ANDROID_DIR),
   buildApk: existsSync(BUILD_APK),
-  publicApk: existsSync(PUBLIC_APK),
+  privateApk: existsSync(PRIVATE_APK),
 };
 
 let shareIntentOk = false;
@@ -51,8 +53,9 @@ if (checks.capacitorConfig) {
 }
 checks.productNameLinkSlash = appNameOk;
 
-mkdirSync(PUBLIC_DIR, { recursive: true });
-mkdirSync(join(PUBLIC_DIR, "android"), { recursive: true });
+mkdirSync(PRIVATE_DIR, { recursive: true });
+mkdirSync(PUBLIC_META_DIR, { recursive: true });
+mkdirSync(join(PUBLIC_META_DIR, "android"), { recursive: true });
 
 if (existsSync(ANDROID_RELEASE_SRC)) {
   try {
@@ -65,28 +68,37 @@ if (existsSync(ANDROID_RELEASE_SRC)) {
 
 let apkSource = null;
 if (checks.buildApk) apkSource = BUILD_APK;
-else if (checks.publicApk) apkSource = PUBLIC_APK;
+else if (checks.privateApk) apkSource = PRIVATE_APK;
+else if (existsSync(LEGACY_PUBLIC_APK)) apkSource = LEGACY_PUBLIC_APK;
 
 let copied = false;
-if (apkSource && apkSource !== PUBLIC_APK) {
+if (apkSource && apkSource !== PRIVATE_APK) {
   try {
-    copyFileSync(apkSource, PUBLIC_APK);
+    copyFileSync(apkSource, PRIVATE_APK);
     copied = true;
-    checks.publicApk = true;
+    checks.privateApk = true;
   } catch (e) {
     console.warn("⚠ APK kopyalanamadı:", e.message);
   }
 }
 
-const available = existsSync(PUBLIC_APK);
-const stat = available ? statSync(PUBLIC_APK) : null;
+if (existsSync(LEGACY_PUBLIC_APK)) {
+  try {
+    unlinkSync(LEGACY_PUBLIC_APK);
+    ok("Eski public APK kaldırıldı (lisanslı API indirme zorunlu)");
+  } catch (_) {}
+}
+
+const available = existsSync(PRIVATE_APK);
+const stat = available ? statSync(PRIVATE_APK) : null;
 
 const meta = {
   status: available ? "ready" : "missing",
   buildStatus: available ? "ready" : "missing",
   productName: "LinkSlash",
   updatedAt: new Date().toISOString(),
-  publicPath: "/downloads/linkslash/linkslash-debug.apk",
+  downloadApi: "/api/linkslash/download/android",
+  privatePath: "storage/downloads/linkslash/linkslash-debug.apk",
   sourcePath: apkSource ? apkSource.replace(ROOT + "/", "") : null,
   copied,
   size: stat?.size ?? 0,
@@ -107,7 +119,7 @@ console.log("=== LinkSlash Android Verification ===");
 Object.entries(checks).forEach(([k, v]) => console.log(`${v ? "✓" : "✗"} ${k}`));
 
 if (available) {
-  console.log(`✓ APK hazır: public/downloads/linkslash/linkslash-debug.apk (${meta.size} bytes)`);
+  console.log(`✓ APK hazır: storage/downloads/linkslash/linkslash-debug.apk (${meta.size} bytes)`);
   process.exit(0);
 }
 

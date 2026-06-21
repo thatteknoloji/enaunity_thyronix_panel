@@ -22,7 +22,7 @@ export const LINKSLASH_BRAND = {
     checkout: "/payment/checkout?type=module&moduleKey=LINKSLASH&planKey=starter",
     extensionManifest: "/linkslash/extension/manifest.json",
     extensionZip: "/downloads/linkslash/linkslash-extension.zip",
-    androidApk: "/downloads/linkslash/linkslash-debug.apk",
+    androidApk: "/api/linkslash/download/android",
     extensionRelease: "/linkslash/extension/RELEASE.md",
     androidRelease: "/mobile/linkslash/RELEASE.md",
   },
