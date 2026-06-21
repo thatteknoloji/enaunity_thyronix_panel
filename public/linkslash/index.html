@@ -89,6 +89,10 @@
           </div>
         </div>
         <div class="header-right">
+          <div class="cloud-sync-badge" id="cloudSyncBadge" title="Cloud Sync durumu">
+            <span id="cloudSyncIcon">☁️</span>
+            <span id="cloudSyncText">Cloud Sync</span>
+          </div>
           <button class="btn btn-ghost btn-icon" id="addLinkBtn" title="Yeni Link (Ctrl+N)">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M12 5v14M5 12h14"/>
@@ -644,6 +648,31 @@
               </div>
             </div>
 
+            <!-- Cloud Sync -->
+            <div class="settings-section" id="cloudSyncSection">
+              <h3 class="settings-section-title">☁️ Cloud Sync</h3>
+              <p class="settings-section-desc">Linkleriniz ENAUNITY bulutunda yedeklenir. Cihaz değiştirseniz bile geri yüklenir.</p>
+              <div class="settings-row">
+                <span class="label">Durum</span>
+                <span class="control" id="cloudSyncStatus">—</span>
+              </div>
+              <div class="settings-row">
+                <span class="label">Son senkronizasyon</span>
+                <span class="control" id="cloudSyncLast">—</span>
+              </div>
+              <div class="settings-row">
+                <span class="label">Bekleyen değişiklik</span>
+                <span class="control" id="cloudSyncPending">0</span>
+              </div>
+              <div class="settings-row">
+                <span class="label">Hata</span>
+                <span class="control text-muted" id="cloudSyncError">—</span>
+              </div>
+              <div class="settings-row mt-lg">
+                <button class="btn btn-primary" id="cloudSyncNowBtn" type="button">🔄 Şimdi Senkronize Et</button>
+              </div>
+            </div>
+
             <!-- Veri Yönetimi -->
             <div class="settings-section">
               <h3 class="settings-section-title">💾 Veri Yönetimi</h3>
@@ -1063,6 +1092,7 @@
   <script src="js/utils.js?v=1.2.0"></script>
   <script src="js/db.js?v=1.2.0"></script>
   <script src="js/sync-extension.js?v=1.2.0"></script>
+  <script src="js/cloud-sync.js?v=1.3.0"></script>
   <script src="js/parser.js?v=1.2.0"></script>
   <script src="js/ai.js?v=1.2.0"></script>
   <script src="js/ui.js?v=1.2.0"></script>

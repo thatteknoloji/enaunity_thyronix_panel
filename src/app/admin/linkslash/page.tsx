@@ -19,6 +19,7 @@ type Overview = {
     capturesPending: number;
     capturesSynced: number;
     capturesTotal: number;
+    cloudLinks: number;
     plans: number;
     licenses: number;
     licensesActive: number;
@@ -111,9 +112,9 @@ export default function AdminLinkSlashPage() {
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                 {[
                   { label: "Bekleyen Capture", value: overview.stats.capturesPending, color: "text-amber-600" },
+                  { label: "Cloud Link", value: overview.stats.cloudLinks, color: "text-cyan-600" },
                   { label: "Senkronize", value: overview.stats.capturesSynced, color: "text-emerald-600" },
-                  { label: "Aktif Lisans", value: overview.stats.licensesActive, color: "text-cyan-600" },
-                  { label: "Modül Planı", value: overview.stats.plans, color: "text-gray-700" },
+                  { label: "Aktif Lisans", value: overview.stats.licensesActive, color: "text-blue-600" },
                 ].map((item) => (
                   <div key={item.label} className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
                     <p className="text-xs text-gray-500 uppercase tracking-wide">{item.label}</p>

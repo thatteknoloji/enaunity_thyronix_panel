@@ -207,6 +207,43 @@ class LinkSlashDB {
   }
 
   /**
+   * Tek link upsert (cloud sync merge).
+   */
+  async putLink(link) {
+    this._ensureDb();
+    var record = Object.assign({
+      dateAdded: new Date().toISOString(),
+      isFavorite: false,
+      isArchived: false,
+      tags: [],
+      notes: ''
+    }, link);
+    if (!record.id) record.id = generateId();
+
+    return new Promise((resolve, reject) => {
+      var tx = this.db.transaction('links', 'readwrite');
+      var store = tx.objectStore('links');
+      var req = store.put(record);
+      req.onsuccess = () => { this._allLinksCacheDirty = true; resolve(record); };
+      req.onerror = () => reject(new Error('Link kaydedilemedi: ' + (req.error?.message || '')));
+    });
+  }
+
+  /**
+   * Birden fazla link upsert.
+   */
+  async putLinks(links) {
+    this._ensureDb();
+    if (!Array.isArray(links) || links.length === 0) return [];
+    var self = this;
+    var results = [];
+    for (var i = 0; i < links.length; i++) {
+      results.push(await self.putLink(links[i]));
+    }
+    return results;
+  }
+
+  /**
    * Mevcut bir linki kısmi olarak günceller.
    * @param {string} id - Güncellenecek linkin ID'si
    * @param {Object} changes - Değiştirilecek alanlar

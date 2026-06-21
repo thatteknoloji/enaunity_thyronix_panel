@@ -7,6 +7,8 @@ import {
   sourceTypeToCategory,
   type LinkSlashSourceType,
 } from "@/lib/linkslash/source-type";
+import { getSyncContext } from "@/lib/linkslash/sync/context";
+import { cloudLinkFromCapture } from "@/lib/linkslash/sync/service";
 
 export type CaptureInput = {
   url: string;
@@ -95,6 +97,24 @@ export async function createLinkSlashCapture(
       status: "pending",
     },
   });
+
+  try {
+    const ctx = getSyncContext({ id: userId, role: "dealer", dealerId: dealerId || "" });
+    await cloudLinkFromCapture(ctx, {
+      url,
+      title: record.title,
+      description: record.description,
+      image: record.image,
+      favicon: record.favicon,
+      domain,
+      sourceType,
+      tagsJson: record.tagsJson,
+      aiSummary: "",
+      aiCategory,
+    });
+  } catch {
+    // Cloud upsert best-effort during capture
+  }
 
   void enrichCaptureWithAi(record.id, url, title, description);
 

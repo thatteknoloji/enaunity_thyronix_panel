@@ -38,6 +38,13 @@ class App {
         await syncExtensionCaptures(this.db, ui);
       }
 
+      // Cloud sync — bootstrap + push/pull
+      if (typeof LinkSlashCloudSync !== 'undefined') {
+        var lastSync = await this.db.getSetting('linkslash_last_cloud_sync');
+        if (lastSync) LinkSlashCloudSync.state.lastSync = lastSync;
+        await LinkSlashCloudSync.runFullSync(this.db, ui);
+      }
+
       // Oto oda yukleme: hic oda yoksa varsayilanlari ekle
       var categories = await this.db.getCategories();
       if (!categories || categories.length === 0) {
@@ -682,6 +689,9 @@ class App {
     const categories = await this.db.getCategories();
     ui.renderCategoryManager(categories);
     await this._loadTagManager();
+    if (typeof LinkSlashCloudSync !== 'undefined') {
+      LinkSlashCloudSync.updateUI();
+    }
   }
 
   async _loadTagManager() {
@@ -2025,6 +2035,18 @@ class App {
       ui.showToast(added + ' varsayilan oda yuklendi', 'success');
     });
 
+    // Cloud Sync manual trigger
+    var cloudSyncBtn = document.getElementById('cloudSyncNowBtn');
+    if (cloudSyncBtn) {
+      cloudSyncBtn.addEventListener('click', async () => {
+        if (typeof LinkSlashCloudSync !== 'undefined') {
+          await LinkSlashCloudSync.runFullSync(this.db, ui);
+          ui.showToast('☁️ Cloud sync tamamlandı', 'success');
+          this._handleRoute();
+        }
+      });
+    }
+
     // Export
     document.getElementById('exportJsonBtn').addEventListener('click', async () => {
       await this.exportJson();
@@ -2137,7 +2159,11 @@ class App {
         return;
       }
 
-      await this.db.addLink(linkData);
+      const added = await this.db.addLink(linkData);
+      if (typeof LinkSlashCloudSync !== 'undefined') {
+        await this.db.putLink(Object.assign({}, added, { _syncPending: true, _localUpdatedAt: new Date().toISOString() }));
+        LinkSlashCloudSync.schedulePush(this.db, ui);
+      }
       ui.closeModal('addLinkModal');
       ui.clearAddLinkForm();
       ui.showToast('Link eklendi!', 'success');
@@ -2187,14 +2213,19 @@ class App {
     if (!data || !data.id) return;
 
     try {
-      await this.db.updateLink(data.id, {
+      const updated = await this.db.updateLink(data.id, {
         url: data.url,
         title: data.title || extractDomain(data.url),
         category: data.category,
         description: data.description,
         tags: data.tags,
-        platform: detectPlatform(data.url)
+        platform: detectPlatform(data.url),
+        _syncPending: true,
+        _localUpdatedAt: new Date().toISOString()
       });
+      if (typeof LinkSlashCloudSync !== 'undefined') {
+        LinkSlashCloudSync.schedulePush(this.db, ui);
+      }
       ui.closeModal('editLinkModal');
       ui.showToast('Link güncellendi!', 'success');
       this._handleRoute();
@@ -2208,7 +2239,18 @@ class App {
     if (!confirmed) return;
 
     try {
+      const link = await this.db.getLink(linkId);
       await this.db.deleteLink(linkId);
+      if (link && link.cloudId && typeof LinkSlashCloudSync !== 'undefined') {
+        fetch('/api/linkslash/sync/push', {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ changes: [{ op: 'delete', entityType: 'link', cloudId: link.cloudId, localId: link.id }] })
+        }).catch(function() {});
+      } else if (typeof LinkSlashCloudSync !== 'undefined') {
+        LinkSlashCloudSync.schedulePush(this.db, ui);
+      }
       ui.showToast('🗑️ Link çöp kutusuna taşındı', 'info');
       this._handleRoute();
     } catch (error) {

@@ -2330,3 +2330,99 @@ model LinkSlashCapture {
   @@index([dealerId])
   @@index([url])
 }
+
+// LinkSlash Cloud Sync — persistent link library per user/tenant
+model LinkSlashLink {
+  id            String    @id @default(cuid())
+  tenantId      String    @default("")
+  userId        String
+  url           String
+  normalizedUrl String
+  title         String    @default("")
+  description   String    @default("")
+  rawText       String    @default("")
+  aiSummary     String    @default("")
+  sourceType    String    @default("other")
+  platform      String    @default("website")
+  domain        String    @default("")
+  imageUrl      String    @default("")
+  faviconUrl    String    @default("")
+  notes         String    @default("")
+  categorySlug  String    @default("")
+  status        String    @default("active")
+  importance    Int       @default(0)
+  language      String    @default("")
+  isFavorite    Boolean   @default(false)
+  isArchived    Boolean   @default(false)
+  deletedAt     DateTime?
+  localId       String    @default("")
+  lastSyncedAt  DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  linkTags      LinkSlashLinkTag[]
+
+  @@unique([tenantId, userId, normalizedUrl])
+  @@index([tenantId, userId])
+  @@index([userId, updatedAt])
+  @@index([localId])
+}
+
+model LinkSlashCategory {
+  id        String   @id @default(cuid())
+  tenantId  String   @default("")
+  userId    String
+  name      String
+  slug      String
+  emoji     String   @default("")
+  color     String   @default("#6366f1")
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([tenantId, userId, slug])
+  @@index([tenantId, userId])
+}
+
+model LinkSlashTag {
+  id        String   @id @default(cuid())
+  tenantId  String   @default("")
+  userId    String
+  name      String
+  slug      String
+  color     String   @default("")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  linkTags  LinkSlashLinkTag[]
+
+  @@unique([tenantId, userId, slug])
+  @@index([tenantId, userId])
+}
+
+model LinkSlashLinkTag {
+  id        String   @id @default(cuid())
+  linkId    String
+  tagId     String
+  createdAt DateTime @default(now())
+  link      LinkSlashLink @relation(fields: [linkId], references: [id], onDelete: Cascade)
+  tag       LinkSlashTag  @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@unique([linkId, tagId])
+  @@index([linkId])
+  @@index([tagId])
+}
+
+model LinkSlashSyncLog {
+  id         String   @id @default(cuid())
+  tenantId   String   @default("")
+  userId     String
+  direction  String
+  entityType String
+  entityId   String   @default("")
+  status     String   @default("ok")
+  payloadJson String  @default("{}")
+  error      String   @default("")
+  createdAt  DateTime @default(now())
+
+  @@index([tenantId, userId, createdAt])
+  @@index([entityType, entityId])
+}

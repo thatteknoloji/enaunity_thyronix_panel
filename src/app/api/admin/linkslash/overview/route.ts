@@ -7,7 +7,7 @@ export async function GET() {
   try {
     await requireAdmin();
 
-    const [pendingCount, syncedCount, totalCount, planCount, licenseCount, activeLicenseCount, recentCaptures] =
+    const [pendingCount, syncedCount, totalCount, planCount, licenseCount, activeLicenseCount, cloudLinkCount, recentCaptures] =
       await Promise.all([
         prisma.linkSlashCapture.count({ where: { status: "pending" } }),
         prisma.linkSlashCapture.count({ where: { status: "synced" } }),
@@ -17,6 +17,7 @@ export async function GET() {
         prisma.moduleLicense.count({
           where: { moduleKey: LINKSLASH_MODULE_KEY, status: { in: ["ACTIVE", "TRIAL"] } },
         }),
+        prisma.linkSlashLink.count({ where: { deletedAt: null } }),
         prisma.linkSlashCapture.findMany({
           orderBy: { createdAt: "desc" },
           take: 20,
@@ -52,6 +53,7 @@ export async function GET() {
           capturesPending: pendingCount,
           capturesSynced: syncedCount,
           capturesTotal: totalCount,
+          cloudLinks: cloudLinkCount,
           plans: planCount,
           licenses: licenseCount,
           licensesActive: activeLicenseCount,

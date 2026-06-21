@@ -1604,6 +1604,37 @@ a:hover {
   font-weight: 500;
 }
 
+/* Cloud Sync badge */
+.cloud-sync-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+  background: var(--bg-surface);
+  border: 1px solid var(--glass-border);
+  max-width: 180px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.cloud-sync-badge.sync-active {
+  color: #22d3ee;
+  border-color: rgba(34, 211, 238, 0.35);
+  background: rgba(34, 211, 238, 0.08);
+}
+.cloud-sync-badge.sync-error {
+  color: #f87171;
+  border-color: rgba(248, 113, 113, 0.35);
+}
+.cloud-sync-badge.syncing {
+  opacity: 0.7;
+  animation: pulse 1.2s ease-in-out infinite;
+}
+
 /* ============================================================
    14. SETTINGS
    ============================================================ */
