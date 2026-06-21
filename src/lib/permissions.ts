@@ -115,6 +115,7 @@ export function getNavPermissionMap(): Record<string, PermissionKey[]> {
     "/admin/contracts": ["settings_view"],
     "/admin/legal-audit": ["settings_view"],
     "/admin/pages": ["pages_manage", "settings_manage"],
+    "/admin/site-settings": ["settings_manage"],
     "/admin/footer-settings": ["settings_manage"],
     "/admin/homepage": ["settings_manage"],
     "/admin/dealers": ["dealers_view"],

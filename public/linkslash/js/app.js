@@ -1034,6 +1034,11 @@ class App {
 
     // Kategori dropdown (veri olsa da olmasa da göster)
     this._renderPreviewCategory(link, categories);
+    this._bindPreviewAiButtons();
+    if (link && link.aiAnalysis) {
+      var resultEl = document.getElementById('previewAiResult');
+      if (resultEl) resultEl.innerHTML = LinkSlashServerAI.renderAnalysisHtml(link.aiAnalysis, 'ok');
+    }
   }
 
   _renderPreviewCategory(link, categories) {
@@ -1439,6 +1444,10 @@ class App {
         case 'summarizeLink':
           ui.showToast('🔍 Link özetleniyor...', 'info');
           await this.summarizeSingleLink(linkId);
+          break;
+        case 'aiAnalyze':
+          ui.showToast('🤖 AI analiz başlatılıyor...', 'info');
+          await this.runServerAiAnalyze(linkId, 'full');
           break;
         case 'shareLink':
           await this.shareLink(linkId);
@@ -2312,6 +2321,76 @@ class App {
       console.error('Özetleme hatası:', err);
       ui.showToast('Özetleme hatası: ' + err.message, 'error');
     }
+  }
+
+  async runServerAiAnalyze(linkId, mode) {
+    mode = mode || 'full';
+    try {
+      var link = await this.db.getLink(linkId);
+      if (!link) { ui.showToast('Link bulunamadı', 'error'); return null; }
+
+      var payload = {
+        linkId: link.cloudId || undefined,
+        url: link.url,
+        title: link.title || '',
+        description: link.description || link.summary || '',
+        rawText: link.notes || '',
+        sourceType: link.sourceType || link.platform || 'other',
+        save: !!link.cloudId
+      };
+
+      var data = await LinkSlashServerAI.analyzeLink(payload);
+      link = LinkSlashServerAI.mergeToLocalLink(link, data);
+      await this.db.updateLink(linkId, {
+        summary: link.summary,
+        aiAnalysis: link.aiAnalysis,
+        aiAnalyzedAt: link.aiAnalyzedAt,
+        tags: link.tags || []
+      });
+
+      if (typeof LinkSlashCloudSync !== 'undefined' && LinkSlashCloudSync.schedulePush) {
+        LinkSlashCloudSync.schedulePush(this.db, ui);
+      }
+
+      var resultEl = document.getElementById('previewAiResult');
+      var loadingEl = document.getElementById('previewAiLoading');
+      if (loadingEl) loadingEl.classList.add('hidden');
+      if (resultEl) {
+        resultEl.innerHTML = LinkSlashServerAI.renderAnalysisHtml(data.analysis, data.status);
+      }
+
+      ui.showToast(data.status === 'provider_missing' ? 'Fallback AI sonucu' : '✅ AI analiz tamam', 'success');
+      this._handleRoute();
+      return data;
+    } catch (err) {
+      console.error('Server AI hatası:', err);
+      ui.showToast('AI hatası: ' + err.message, 'error');
+      var loadingEl2 = document.getElementById('previewAiLoading');
+      if (loadingEl2) loadingEl2.classList.add('hidden');
+      return null;
+    }
+  }
+
+  _bindPreviewAiButtons() {
+    var self = this;
+    var analyzeBtn = document.getElementById('previewAiAnalyzeBtn');
+    var ideasBtn = document.getElementById('previewAiIdeasBtn');
+    var seoBtn = document.getElementById('previewAiSeoBtn');
+    if (!analyzeBtn || analyzeBtn._bound) return;
+    analyzeBtn._bound = true;
+
+    var run = function(mode) {
+      if (!self._previewLinkId) return;
+      var loadingEl = document.getElementById('previewAiLoading');
+      var resultEl = document.getElementById('previewAiResult');
+      if (loadingEl) loadingEl.classList.remove('hidden');
+      if (resultEl) resultEl.innerHTML = '';
+      self.runServerAiAnalyze(self._previewLinkId, mode);
+    };
+
+    analyzeBtn.addEventListener('click', function() { run('full'); });
+    if (ideasBtn) ideasBtn.addEventListener('click', function() { run('ideas'); });
+    if (seoBtn) seoBtn.addEventListener('click', function() { run('seo'); });
   }
 
   async batchSummarize() {

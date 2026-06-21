@@ -45,7 +45,7 @@ export const PRODUCT_META: Record<
     description: "AI destekli kişisel link kütüphanesi ve WhatsApp import",
     color: "cyan",
     gatewayPath: "/gateway/linkslash",
-    pricingPath: "/payment/checkout?moduleKey=LINKSLASH&planKey=starter",
+    pricingPath: "/payment/checkout?type=module&moduleKey=LINKSLASH&planKey=starter",
     appPath: "/dealer/linkslash",
   },
 };

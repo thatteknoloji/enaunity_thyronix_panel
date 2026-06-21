@@ -2874,3 +2874,12 @@ a:hover {
   .main { margin: 0; padding: 0; }
   body { background: #fff; color: #000; }
 }
+
+/* Server AI preview */
+.preview-ai-section { margin-top: var(--sp-4); padding-top: var(--sp-4); border-top: 1px solid var(--border); }
+.preview-ai-heading { font-size: 0.95rem; margin-bottom: var(--sp-2); }
+.preview-ai-actions { display: flex; flex-wrap: wrap; gap: var(--sp-2); margin-bottom: var(--sp-3); }
+.preview-ai-result .ai-block { margin-bottom: var(--sp-3); font-size: 0.875rem; }
+.preview-ai-result .ai-block h4 { font-size: 0.75rem; text-transform: uppercase; opacity: 0.7; margin-bottom: 4px; }
+.preview-ai-result .ai-status-warn { color: var(--warning, #f59e0b); font-size: 0.8rem; margin-bottom: var(--sp-2); }
+.link-card-tags-ai { margin-top: 4px; }

@@ -15,6 +15,7 @@ import { Suspense } from "react";
 import AppShell from "@/components/AppShell";
 import Analytics from "@/components/Analytics";
 import PwaRegister from "@/components/PwaRegister";
+import { getSiteSettings } from "@/lib/site-settings/service";
 
 const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
 const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
@@ -22,38 +23,55 @@ const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"]
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://enaunity.com";
 const gaId = process.env.NEXT_PUBLIC_GA_ID || "";
 
-export const metadata: Metadata = {
-  metadataBase: new URL(siteUrl),
-  manifest: "/manifest.json",
-  title: {
-    default: "Enaunity® - B4B Alışveriş Platformu",
-    template: "%s | Enaunity®",
-  },
-  description: "İşletmeniz için toptan çözümler. Binlerce ürün, kurumsal fiyatlar, tek tıkla tedarik. Enaunity® B4B ile kurumsal alışverişin yeni adresi.",
-  keywords: ["toptan", "B2B", "B4B", "kurumsal", "alışveriş", "cam tablo", "halı", "perde", "nevresim", "toptan satış"],
-  authors: [{ name: "Enaunity" }],
-  creator: "Enaunity",
-  publisher: "Enaunity",
-  robots: { index: true, follow: true },
-  openGraph: {
+export async function generateMetadata(): Promise<Metadata> {
+  const settings = await getSiteSettings();
+
+  const openGraph: Metadata["openGraph"] = {
     type: "website",
     url: siteUrl,
-    title: "Enaunity® - B4B Alışveriş Platformu",
-    description: "İşletmeniz için toptan çözümler. Binlerce ürün, kurumsal fiyatlar.",
-    siteName: "Enaunity",
+    title: settings.resolvedSiteTitle,
+    description: settings.resolvedMetaDescription,
+    siteName: settings.resolvedOgSiteName,
     locale: "tr_TR",
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "Enaunity® - B4B Alışveriş Platformu",
-    description: "İşletmeniz için toptan çözümler.",
-  },
-  verification: {
-    google: process.env.GOOGLE_VERIFICATION || "",
-  },
-};
+  };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+  if (settings.resolvedOgImageUrl) {
+    openGraph.images = [{ url: settings.resolvedOgImageUrl }];
+  }
+
+  return {
+    metadataBase: new URL(siteUrl),
+    manifest: "/manifest.json",
+    title: {
+      default: settings.resolvedSiteTitle,
+      template: settings.resolvedTitleTemplate,
+    },
+    description: settings.resolvedMetaDescription,
+    keywords: ["toptan", "B2B", "B4B", "kurumsal", "alışveriş", "cam tablo", "halı", "perde", "nevresim", "toptan satış"],
+    authors: [{ name: "Enaunity" }],
+    creator: "Enaunity",
+    publisher: "Enaunity",
+    robots: { index: true, follow: true },
+    icons: {
+      icon: settings.resolvedFaviconUrl,
+      shortcut: settings.resolvedFaviconUrl,
+    },
+    openGraph,
+    twitter: {
+      card: settings.resolvedOgImageUrl ? "summary_large_image" : "summary",
+      title: settings.resolvedSiteTitle,
+      description: settings.resolvedMetaDescription,
+      ...(settings.resolvedOgImageUrl ? { images: [settings.resolvedOgImageUrl] } : {}),
+    },
+    verification: {
+      google: process.env.GOOGLE_VERIFICATION || "",
+    },
+  };
+}
+
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const settings = await getSiteSettings();
+
   return (
     <html lang="tr" data-theme="dark" data-accent="orange" suppressHydrationWarning>
       <head>
@@ -74,7 +92,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             __html: JSON.stringify({
               "@context": "https://schema.org",
               "@type": "Organization",
-              name: "Enaunity",
+              name: settings.resolvedOgSiteName,
               url: siteUrl,
               description: "B4B Toptan Alışveriş Platformu",
               contactPoint: { "@type": "ContactPoint", contactType: "customer service" },

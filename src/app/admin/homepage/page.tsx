@@ -13,6 +13,7 @@ import { MediaSpecGuide } from "@/components/admin/homepage/MediaSpecGuide";
 import { MediaUploadField } from "@/components/admin/homepage/MediaUploadField";
 import { BANNER_DISPLAY_MODES, MEDIA_SPECS, PAGE_PLACEMENTS } from "@/lib/homepage/media-specs";
 import { DEFAULT_HERO } from "@/lib/homepage/defaults";
+import { HeroBuilderPanel } from "@/components/admin/homepage/HeroBuilderPanel";
 
 type CategoryRow = {
   id: string;
@@ -64,7 +65,7 @@ function isScheduledLive(b: HomeBannerDTO) {
 }
 
 export default function AdminHomepagePage() {
-  const [tab, setTab] = useState<"categories" | "banners" | "hero">("categories");
+  const [tab, setTab] = useState<"categories" | "banners" | "hero" | "heroBuilder">("categories");
   const [data, setData] = useState<AdminData | null>(null);
   const [loading, setLoading] = useState(true);
   const [dragCatId, setDragCatId] = useState<string | null>(null);
@@ -347,6 +348,7 @@ export default function AdminHomepagePage() {
         {([
           ["categories", "Kategori Satırları"],
           ["banners", "Bannerlar"],
+          ["heroBuilder", "Hero Yönetimi"],
           ["hero", "Hero Video"],
         ] as const).map(([t, label]) => (
           <button
@@ -774,6 +776,8 @@ export default function AdminHomepagePage() {
           </div>
         </div>
       )}
+
+      {tab === "heroBuilder" && <HeroBuilderPanel />}
 
       {tab === "hero" && (
         <div className="max-w-2xl space-y-4">

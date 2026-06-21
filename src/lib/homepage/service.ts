@@ -1,5 +1,8 @@
 import { prisma } from "@/lib/db";
 import { DEFAULT_BANNER_SLOTS, DEFAULT_HOME_CATEGORIES, DEFAULT_HERO } from "./defaults";
+import { getAdminHomepageHeroes, getPublicBuilderHero, type HomepageHeroDTO } from "./heroes";
+
+export type { HomepageHeroDTO, HomepageHeroButtonDTO } from "./heroes";
 
 export type HomeCategoryDTO = {
   id: string;
@@ -191,7 +194,7 @@ export async function getPublicHomepageConfig() {
   await ensureHomepageDefaults();
   const now = new Date();
 
-  const [categories, slots, hero] = await Promise.all([
+  const [categories, slots, hero, builderHero] = await Promise.all([
     prisma.homeCategorySection.findMany({
       where: { active: true },
       orderBy: { sortOrder: "asc" },
@@ -204,6 +207,7 @@ export async function getPublicHomepageConfig() {
       },
     }),
     getHeroSettings(),
+    getPublicBuilderHero(),
   ]);
 
   const mappedSlots = slots
@@ -212,6 +216,7 @@ export async function getPublicHomepageConfig() {
 
   return {
     hero,
+    builderHero,
     categories: categories.map((c) => ({
       id: c.id,
       categoryName: c.categoryName,
@@ -227,7 +232,7 @@ export async function getPublicHomepageConfig() {
 export async function getAdminHomepageConfig() {
   await ensureHomepageDefaults();
 
-  const [categories, slots, productCategories, hero] = await Promise.all([
+  const [categories, slots, productCategories, hero, heroes] = await Promise.all([
     prisma.homeCategorySection.findMany({ orderBy: { sortOrder: "asc" } }),
     prisma.homeBannerSlot.findMany({
       orderBy: [{ placement: "asc" }, { sortOrder: "asc" }],
@@ -239,10 +244,12 @@ export async function getAdminHomepageConfig() {
       orderBy: { category: "asc" },
     }),
     getHeroSettings(),
+    getAdminHomepageHeroes(),
   ]);
 
   return {
     hero,
+    heroes,
     categories,
     slots: slots.map((s) => ({
       ...s,

@@ -13,7 +13,7 @@ import { MarketplacePartnersSection } from "@/components/home/MarketplacePartner
 import { HomeBannersAtPlacement } from "@/components/home/HomeBannerSection";
 import { HomeHeroSection } from "@/components/home/HomeHeroSection";
 import { useT } from "@/lib/i18n/provider";
-import type { HomeBannerSlotDTO, HomeHeroDTO } from "@/lib/homepage/service";
+import type { HomeBannerSlotDTO, HomeHeroDTO, HomepageHeroDTO } from "@/lib/homepage/service";
 import { DEFAULT_HERO } from "@/lib/homepage/defaults";
 
 const containerVariants = {
@@ -104,6 +104,7 @@ export default function HomePage() {
   const [homeCategories, setHomeCategories] = useState<HomeCategoryConfig[]>([]);
   const [bannerSlots, setBannerSlots] = useState<HomeBannerSlotDTO[]>([]);
   const [hero, setHero] = useState<HomeHeroDTO>(DEFAULT_HERO);
+  const [builderHero, setBuilderHero] = useState<HomepageHeroDTO | null>(null);
 
   useEffect(() => {
     Promise.all([
@@ -115,6 +116,7 @@ export default function HomePage() {
         setHomeCategories(homeRes.data.categories || []);
         setBannerSlots(homeRes.data.slots || []);
         if (homeRes.data.hero) setHero(homeRes.data.hero);
+        if (homeRes.data.builderHero) setBuilderHero(homeRes.data.builderHero);
       }
     });
   }, []);
@@ -123,7 +125,7 @@ export default function HomePage() {
 
   return (
     <div className="bg-ena-dark overflow-x-clip">
-      <HomeHeroSection hero={hero} t={t} />
+      <HomeHeroSection hero={hero} builderHero={builderHero} t={t} />
 
       <HomeBannersAtPlacement slots={bannerSlots} placement="after_hero" priorityFirst />
 

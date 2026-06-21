@@ -11,6 +11,8 @@ type LinkInput = {
   description?: string;
   rawText?: string;
   aiSummary?: string;
+  aiAnalysisJson?: string;
+  aiAnalyzedAt?: string;
   sourceType?: string;
   platform?: string;
   domain?: string;
@@ -71,6 +73,8 @@ function serializeLink(
     description: link.description,
     rawText: link.rawText,
     aiSummary: link.aiSummary,
+    aiAnalysisJson: link.aiAnalysisJson || "{}",
+    aiAnalyzedAt: link.aiAnalyzedAt,
     sourceType: link.sourceType,
     platform: link.platform,
     domain: link.domain,
@@ -211,6 +215,8 @@ export async function upsertCloudLink(ctx: SyncContext, input: LinkInput) {
     description: (input.description || "").slice(0, 2000),
     rawText: (input.rawText || "").slice(0, 8000),
     aiSummary: (input.aiSummary || "").slice(0, 2000),
+    aiAnalysisJson: (input.aiAnalysisJson || existing?.aiAnalysisJson || "{}").slice(0, 12000),
+    aiAnalyzedAt: input.aiAnalyzedAt ? new Date(input.aiAnalyzedAt) : existing?.aiAnalyzedAt,
     sourceType,
     platform,
     domain,

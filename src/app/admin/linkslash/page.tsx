@@ -76,6 +76,12 @@ export default function AdminLinkSlashPage() {
           <h1 className="text-3xl font-bold text-gray-900">LinkSlash Yönetimi</h1>
           <p className="mt-1 text-sm text-gray-500">Extension capture kuyruğu, lisanslar ve uygulama erişimi</p>
         </div>
+        <Link
+          href={toAdminUrl("/admin/linkslash/release")}
+          className="ml-auto text-sm text-purple-700 hover:underline flex items-center gap-1"
+        >
+          V1.0 Release Checklist →
+        </Link>
       </div>
 
       <div className="flex gap-1 mb-6 bg-gray-100 p-1 rounded-xl w-fit flex-wrap">

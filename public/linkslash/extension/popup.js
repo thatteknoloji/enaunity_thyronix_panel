@@ -88,7 +88,7 @@ async function onSaveClick() {
   if (!sessionInfo.linkslashAccess) {
     var origin2 = await LinkSlashApi.resolveOrigin();
     var dest = sessionInfo.accessCode === 'LISANS_YOK'
-      ? origin2 + '/payment/checkout?moduleKey=LINKSLASH&planKey=starter'
+      ? origin2 + '/payment/checkout?type=module&moduleKey=LINKSLASH&planKey=starter'
       : origin2 + LINKSLASH_CONFIG.gatewayPath;
     chrome.tabs.create({ url: dest });
     return;

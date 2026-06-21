@@ -38,6 +38,11 @@ var LinkSlashCloudSync = (function() {
       platform: cl.platform || (typeof detectPlatform === 'function' ? detectPlatform(cl.url) : 'website'),
       thumbnail: cl.imageUrl || '',
       aiSummary: cl.aiSummary || '',
+      aiAnalysis: (function() {
+        try { return cl.aiAnalysisJson ? JSON.parse(cl.aiAnalysisJson) : (cl.aiAnalysis || null); }
+        catch (_) { return null; }
+      })(),
+      aiAnalyzedAt: cl.aiAnalyzedAt || null,
       sourceType: cl.sourceType || 'other',
       isFavorite: !!cl.isFavorite,
       isArchived: !!cl.isArchived,
@@ -57,7 +62,8 @@ var LinkSlashCloudSync = (function() {
       categorySlug: link.category || '',
       platform: link.platform || 'website',
       imageUrl: link.thumbnail || '',
-      aiSummary: link.aiSummary || '',
+      aiSummary: link.summary || link.aiSummary || '',
+      aiAnalysisJson: link.aiAnalysis ? JSON.stringify(link.aiAnalysis) : '',
       isFavorite: !!link.isFavorite,
       isArchived: !!link.isArchived,
       tags: link.tags || []

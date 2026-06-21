@@ -74,7 +74,7 @@ export default function LinkSlashGatewayPage() {
             <p className="text-sm text-amber-400">Ödeme veya onay tamamlandığında erişim açılacak.</p>
           ) : (
             <Link
-              href="/payment/checkout?moduleKey=LINKSLASH&planKey=starter"
+              href="/payment/checkout?type=module&moduleKey=LINKSLASH&planKey=starter"
               className="inline-flex items-center gap-2 rounded-xl bg-cyan-500 px-5 py-2.5 text-sm font-semibold text-black"
             >
               Lisans Satın Al <ArrowRight size={16} />

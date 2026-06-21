@@ -603,6 +603,7 @@ class UI {
         </a>
         ${link.description ? `<p class="link-card-description">${escapeHtml(link.description)}</p>` : ''}
         ${link.summary ? `<div class="link-card-summary"><span class="summary-badge">AI</span> ${escapeHtml(link.summary)}</div>` : ''}
+        ${link.aiAnalysis && link.aiAnalysis.tags && link.aiAnalysis.tags.length ? `<div class="link-card-tags-ai">${link.aiAnalysis.tags.slice(0,4).map(t => '<span class="tag">' + escapeHtml(t) + '</span>').join('')}</div>` : ''}
         <div class="link-card-meta">
           <div class="link-card-meta-left">
             ${categoryBadge}
@@ -619,6 +620,7 @@ class UI {
           <button class="btn btn-ghost btn-sm" data-action="shareLink" data-link-id="${link.id}" title="Paylaş">📤</button>
           <button class="btn btn-ghost btn-sm" data-action="previewLink" data-link-id="${link.id}" title="Önizle">👁️</button>
           <button class="btn btn-ghost btn-sm" data-action="summarizeLink" data-link-id="${link.id}" title="Özetle">📝</button>
+          <button class="btn btn-ghost btn-sm" data-action="aiAnalyze" data-link-id="${link.id}" title="AI Analiz">🤖</button>
           <button class="btn btn-ghost btn-sm" data-action="toggleArchive" data-link-id="${link.id}" title="${link.isArchived ? 'Arşivden Çıkar' : 'Arşivle'}">${link.isArchived ? '📤' : '📦'}</button>
           <button class="btn btn-ghost btn-sm" data-action="editLink" data-link-id="${link.id}" title="Düzenle">✏️</button>
           <button class="btn btn-ghost btn-sm" data-action="deleteLink" data-link-id="${link.id}" title="Sil">🗑️</button>

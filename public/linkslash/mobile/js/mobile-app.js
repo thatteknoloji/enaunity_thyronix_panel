@@ -138,7 +138,7 @@
       }
       if (!session.linkslashAccess) {
         window.location.href = CONFIG.apiBase + (session.accessCode === 'LISANS_YOK'
-          ? '/payment/checkout?moduleKey=LINKSLASH&planKey=starter'
+          ? '/payment/checkout?type=module&moduleKey=LINKSLASH&planKey=starter'
           : CONFIG.gatewayUrl);
         return;
       }
