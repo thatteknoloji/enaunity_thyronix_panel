@@ -5,13 +5,13 @@ import {
   CheckCircle2,
   Chrome,
   Clock,
-  Download,
   FileText,
   Smartphone,
   Terminal,
 } from "lucide-react";
 import { LinkSlashMarketingShell } from "@/components/linkslash/LinkSlashMarketingShell";
 import { LinkSlashAndroidDownloadCardServer } from "@/components/linkslash/LinkSlashAndroidDownloadCardServer";
+import { LinkSlashExtensionDownloadCardServer } from "@/components/linkslash/LinkSlashExtensionDownloadCardServer";
 import { getSession } from "@/lib/auth";
 import { isAdminRole } from "@/lib/auth/admin-access";
 import { LINKSLASH_BRAND } from "@/lib/linkslash/brand";
@@ -36,7 +36,12 @@ function StatusBadge({ ok, label }: { ok: boolean; label: string }) {
   );
 }
 
-export default async function LinkSlashDownloadsPage() {
+export default async function LinkSlashDownloadsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ blocked?: string }>;
+}) {
+  const params = await searchParams;
   const session = await getSession();
   const isAdmin = session ? isAdminRole(session.role) || session.role === "admin" : false;
   const status = getLinkSlashDownloadStatus(isAdmin);
@@ -53,6 +58,17 @@ export default async function LinkSlashDownloadsPage() {
           <h1 className="text-3xl font-black md:text-4xl">İndirme Merkezi</h1>
           <p className="mt-3 text-white/65">LinkSlash Chrome Extension, Android APK ve mobil web shell</p>
         </div>
+
+        {(params.blocked === "extension" || params.blocked === "apk") && (
+          <div className="mb-6 flex items-start gap-2 rounded-xl border border-amber-500/30 bg-amber-500/10 p-4 text-sm text-amber-100">
+            <AlertTriangle size={18} className="mt-0.5 shrink-0" />
+            <p>
+              {params.blocked === "extension"
+                ? "Chrome Extension indirmesi için LinkSlash lisansı gerekir. Lisans aldıktan sonra bu sayfadan indirebilirsiniz."
+                : "APK indirmesi için LinkSlash lisansı gerekir. Lisans aldıktan sonra bu sayfadan indirebilirsiniz."}
+            </p>
+          </div>
+        )}
 
         {/* Chrome Extension */}
         <section
@@ -73,14 +89,7 @@ export default async function LinkSlashDownloadsPage() {
           </div>
 
           {extReady ? (
-            <a
-              href={status.extension.path}
-              download
-              className="mb-4 inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold text-black"
-              style={{ backgroundColor: colors.primary }}
-            >
-              <Download size={16} /> linkslash-extension.zip indir ({formatDownloadSize(status.extension.size)})
-            </a>
+            <LinkSlashExtensionDownloadCardServer className="mb-4" />
           ) : (
             <div className="mb-4 flex items-start gap-2 rounded-lg border border-amber-500/30 bg-amber-500/10 p-3 text-sm text-amber-200">
               <AlertTriangle size={16} className="mt-0.5 shrink-0" />

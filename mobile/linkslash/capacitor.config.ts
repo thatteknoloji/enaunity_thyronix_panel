@@ -15,6 +15,7 @@ const config: CapacitorConfig = {
       "enaunity.com.tr",
       "localhost",
       "10.0.2.2",
+      "*.enaunity.com.tr",
     ],
   },
   android: {

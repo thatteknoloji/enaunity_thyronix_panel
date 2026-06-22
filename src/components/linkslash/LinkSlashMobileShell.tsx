@@ -255,7 +255,7 @@ export function LinkSlashMobileShell() {
             <input
               type="file"
               id="whatsappFileInput"
-              accept=".txt,.zip,text/plain,application/zip"
+              accept=".txt,.zip,text/plain,application/zip,application/octet-stream,*/*"
               className="hidden"
             />
             <button type="button" className="btn btn-primary btn-block" id="whatsappFileBtn">
@@ -299,10 +299,7 @@ export function LinkSlashMobileShell() {
       </div>
 
       <Script src="/linkslash/js/parser.js" strategy="beforeInteractive" />
-      <Script
-        src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"
-        strategy="beforeInteractive"
-      />
+      <Script src="/linkslash/mobile/js/jszip.min.js" strategy="beforeInteractive" />
       <Script src="/linkslash/mobile/js/share-parser.js" strategy="beforeInteractive" />
       <Script src="/linkslash/mobile/js/offline-queue.js" strategy="beforeInteractive" />
       <Script src="/linkslash/mobile/js/whatsapp-import.js" strategy="beforeInteractive" />

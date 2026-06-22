@@ -176,7 +176,17 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // ── Block direct public APK downloads (license-gated API only) ──
+  // ── Block direct public LinkSlash downloads (license-gated API only) ──
+  if (/^\/downloads\/linkslash\/linkslash-extension\.zip$/i.test(pathname)) {
+    if (isApi) {
+      return jsonError(403, "Extension indirme lisanslı kullanıcılar içindir. /api/linkslash/download/extension kullanın.");
+    }
+    const blocked = request.nextUrl.clone();
+    blocked.pathname = "/linkslash/downloads";
+    blocked.searchParams.set("blocked", "extension");
+    return NextResponse.redirect(blocked);
+  }
+
   if (/^\/downloads\/linkslash\/.*\.apk$/i.test(pathname)) {
     if (isApi) {
       return jsonError(403, "APK indirme lisanslı kullanıcılar içindir. /api/linkslash/download/android kullanın.");

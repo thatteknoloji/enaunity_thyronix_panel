@@ -13,11 +13,12 @@
     pendingWhatsApp: null
   };
 
-  var APP_VERSION = '1.1.0';
+  var APP_VERSION = '1.2.0';
 
   var CONFIG = {
     apiBase: window.LINKSLASH_API_BASE || '',
-    checkoutPath: '/payment/checkout?type=module&moduleKey=LINKSLASH&planKey=starter'
+    checkoutPath: '/payment/checkout?type=module&moduleKey=LINKSLASH&planKey=starter',
+    fullAppPath: '/dealer/linkslash'
   };
 
   var MOBILE_BASE = '/linkslash/mobile';
@@ -59,8 +60,16 @@
   function isAllowedExternalUrl(url) {
     if (!url) return false;
     if (url.indexOf('/api/') !== -1) return true;
-    if (url.indexOf('/api/linkslash/download/') !== -1) return true;
+    if (url.indexOf('/dealer/linkslash') !== -1) return true;
+    if (url.indexOf('/linkslash/index.html') !== -1) return true;
+    if (url.indexOf('/gateway/linkslash') !== -1) return true;
+    if (url.indexOf('/payment/checkout') !== -1) return true;
     return false;
+  }
+
+  function openFullWebApp() {
+    var target = (CONFIG.apiBase || '') + CONFIG.fullAppPath;
+    window.location.replace(target);
   }
 
   function navigateShell(routePath, replace) {
@@ -585,7 +594,7 @@
       openImport();
       return;
     }
-    openDashboard(true);
+    openFullWebApp();
     pullFromServer(false).catch(function(err) {
       console.warn('[LinkSlash Mobile] initial pull failed:', err);
     });
@@ -962,9 +971,9 @@
       state.hasShare = false;
       state.share = null;
       await clearNativeShare();
-      openDashboard(true);
       await pullFromServer(false);
       setStatus('✓ Kaydedildi: ' + (result.title || result.url), 'ok', 'dashboardStatus');
+      setTimeout(openFullWebApp, 500);
       return true;
     } catch (err) {
       console.error('[LinkSlash Mobile] auto capture failed:', err);
@@ -1025,10 +1034,10 @@
       state.hasShare = false;
       state.share = null;
       await clearNativeShare();
-      openDashboard(true);
       await pullFromServer(false);
       setStatus('✓ ' + result.synced + ' link WhatsApp sohbetinden kaydedildi', 'ok', 'dashboardStatus');
       if (progress) progress.textContent = result.synced + ' kayıt tamamlandı';
+      setTimeout(openFullWebApp, 600);
     } catch (err) {
       console.error('[LinkSlash Mobile] whatsapp import failed:', err);
       setStatus('İçe aktarma hatası: ' + (err.message || 'bilinmeyen'), 'err', 'whatsappStatus');
@@ -1063,6 +1072,7 @@
       await pullFromServer(false);
       setStatus('✓ ' + result.synced + ' yer imi kaydedildi', 'ok', 'dashboardStatus');
       if (progress) progress.textContent = result.synced + ' kayıt tamamlandı';
+      setTimeout(openFullWebApp, 600);
     } catch (err) {
       setStatus('Yer imi hatası: ' + (err.message || 'bilinmeyen'), 'err', 'whatsappStatus');
     }
