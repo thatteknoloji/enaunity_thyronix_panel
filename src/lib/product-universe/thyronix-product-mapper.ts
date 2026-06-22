@@ -69,6 +69,8 @@ export function mapThyronixProductToUniverse(
   const imageUrls = parseThyronixImageUrls(product.images);
   const sourceFileName = `THYRONIX:${source.name}`;
 
+  const variants = product.variantData ? tryParseJson(product.variantData) : null;
+
   return {
     thyronixProductId: product.id,
     thyronixSourceId: source.id,
@@ -96,7 +98,8 @@ export function mapThyronixProductToUniverse(
       stock: product.stock ?? 0,
       rawStock: product.stock ?? 0,
       images: imageUrls,
-      variantData: product.variantData ? tryParseJson(product.variantData) : null,
+      variants,
+      variantData: variants,
       importSource: THYRONIX_BRIDGE_IMPORT_SOURCE,
       thyronixStatus: product.status,
     },

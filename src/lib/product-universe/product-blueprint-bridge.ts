@@ -302,14 +302,25 @@ function buildClusterPath(parts: (string | undefined)[]): string {
   return ["Product", ...parts.filter(Boolean) as string[]].join(" > ");
 }
 
+function parseProductImportSource(product: ProductBundle): string | undefined {
+  try {
+    const meta = JSON.parse(product.metadataJson || "{}") as { importSource?: string };
+    return meta.importSource || undefined;
+  } catch {
+    return undefined;
+  }
+}
+
 function baseMetadata(
   product: ProductBundle,
   internalLinks: InternalLinkHint[],
   geoPath?: string
 ): Record<string, unknown> {
   const dna = product.contentDNA;
+  const importSource = parseProductImportSource(product);
   return {
     generationSource: GENERATION_SOURCE,
+    ...(importSource ? { importSource } : {}),
     productId: product.id,
     productSlug: product.slug,
     productName: product.normalizedName,

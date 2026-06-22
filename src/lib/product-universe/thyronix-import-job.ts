@@ -17,6 +17,7 @@ export type ThyronixBridgeJobMetadata = {
 
 export async function createThyronixBridgeJob(opts: {
   sourceIds: string[];
+  sourceNames?: string[];
   dryRun: boolean;
   minStock: number;
   onlyActiveSources: boolean;
@@ -26,9 +27,13 @@ export async function createThyronixBridgeJob(opts: {
   dealerId?: string | null;
 }) {
   const sourceLabel =
-    opts.sourceIds.length === 1
-      ? `THYRONIX:${opts.sourceIds[0]}`
-      : `THYRONIX:${opts.sourceIds.length}_sources`;
+    opts.sourceNames?.length === 1
+      ? `THYRONIX:${opts.sourceNames[0]}`
+      : opts.sourceNames?.length
+        ? `THYRONIX:${opts.sourceNames.length}_sources`
+        : opts.sourceIds.length === 1
+          ? `THYRONIX:${opts.sourceIds[0]}`
+          : `THYRONIX:${opts.sourceIds.length}_sources`;
 
   const metadata: ThyronixBridgeJobMetadata = {
     bridgeType: "THYRONIX_BRIDGE_V1",

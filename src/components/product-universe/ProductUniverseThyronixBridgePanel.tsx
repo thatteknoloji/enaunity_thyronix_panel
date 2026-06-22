@@ -15,6 +15,7 @@ type BridgeStatus = {
   totalThyronixProducts: number;
   bridgedProductCount: number;
   blueprintReadyCount: number;
+  analyzedCount: number;
   rejectedCount: number;
   sources: Array<{
     id: string;
@@ -146,7 +147,7 @@ export function ProductUniverseThyronixBridgePanel() {
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <p className="text-[10px] font-semibold uppercase tracking-wider text-cyan-700">Thyronix → Product Universe</p>
-          <h2 className="text-lg font-bold text-gray-900">Thyronix Köprüsü V1</h2>
+          <h2 className="text-lg font-bold text-gray-900">Thyronix Köprüsü V3</h2>
           <p className="text-sm text-gray-500 mt-1">
             Thyronix XML ürünlerini Product Universe&apos;e aktarır; entity, Content DNA ve kalite skoru otomatik çalışır.
           </p>
@@ -165,11 +166,12 @@ export function ProductUniverseThyronixBridgePanel() {
       )}
 
       {status && (
-        <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
           <Kpi label="Aktif Kaynak" value={status.activeSourceCount} />
           <Kpi label="Thyronix Ürün" value={status.totalThyronixProducts} />
           <Kpi label="PU Aktarılan" value={status.bridgedProductCount} accent="violet" />
           <Kpi label="Blueprint Ready" value={status.blueprintReadyCount} accent="emerald" />
+          <Kpi label="Analyzed" value={status.analyzedCount} accent="blue" />
           <Kpi label="Rejected" value={status.rejectedCount} accent="red" />
         </div>
       )}
@@ -320,10 +322,10 @@ function Kpi({
 }: {
   label: string;
   value: number;
-  accent?: "violet" | "emerald" | "red";
+  accent?: "violet" | "emerald" | "red" | "blue";
 }) {
   const color =
-    accent === "emerald" ? "text-emerald-600" : accent === "red" ? "text-red-600" : accent === "violet" ? "text-violet-600" : "text-gray-900";
+    accent === "emerald" ? "text-emerald-600" : accent === "red" ? "text-red-600" : accent === "violet" ? "text-violet-600" : accent === "blue" ? "text-blue-600" : "text-gray-900";
   return (
     <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
       <p className="text-[10px] uppercase tracking-wide text-gray-500">{label}</p>

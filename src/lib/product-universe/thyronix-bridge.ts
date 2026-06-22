@@ -54,6 +54,7 @@ export type ThyronixBridgeStatus = {
   totalThyronixProducts: number;
   bridgedProductCount: number;
   blueprintReadyCount: number;
+  analyzedCount: number;
   rejectedCount: number;
   sources: Array<{
     id: string;
@@ -246,10 +247,21 @@ export async function runThyronixBridgeImport(
     hasMore,
   };
 
+  const sourceNames =
+    products.length > 0
+      ? [...new Set(products.map((p) => p.source.name))]
+      : (
+          await prisma.thyronixSource.findMany({
+            where: { id: { in: sourceIds } },
+            select: { name: true },
+          })
+        ).map((s) => s.name);
+
   const job = dryRun
     ? null
     : await createThyronixBridgeJob({
         sourceIds,
+        sourceNames,
         dryRun,
         minStock,
         onlyActiveSources: opts.onlyActiveSources !== false,
@@ -402,29 +414,26 @@ export async function getThyronixBridgeStatus(): Promise<ThyronixBridgeStatus> {
 
   const activeSourceIds = activeSources.map((s) => s.id);
 
-  const [totalThyronixProducts, bridgedProductCount, blueprintReadyCount, rejectedCount, lastJob] =
+  const bridgeWhere = {
+    metadataJson: { contains: `"importSource":"${THYRONIX_BRIDGE_IMPORT_SOURCE}"` },
+  };
+
+  const [totalThyronixProducts, bridgedProductCount, blueprintReadyCount, analyzedCount, rejectedCount, lastJob] =
     await Promise.all([
       activeSourceIds.length
         ? prisma.thyronixProduct.count({
             where: { sourceId: { in: activeSourceIds }, status: "active" },
           })
         : 0,
+      prisma.productUniverse.count({ where: bridgeWhere }),
       prisma.productUniverse.count({
-        where: {
-          metadataJson: { contains: `"importSource":"${THYRONIX_BRIDGE_IMPORT_SOURCE}"` },
-        },
+        where: { ...bridgeWhere, status: "BLUEPRINT_READY" },
       }),
       prisma.productUniverse.count({
-        where: {
-          metadataJson: { contains: `"importSource":"${THYRONIX_BRIDGE_IMPORT_SOURCE}"` },
-          status: "BLUEPRINT_READY",
-        },
+        where: { ...bridgeWhere, status: "ANALYZED" },
       }),
       prisma.productUniverse.count({
-        where: {
-          metadataJson: { contains: `"importSource":"${THYRONIX_BRIDGE_IMPORT_SOURCE}"` },
-          status: "REJECTED",
-        },
+        where: { ...bridgeWhere, status: "REJECTED" },
       }),
       getLatestThyronixBridgeJob(),
     ]);
@@ -457,6 +466,7 @@ export async function getThyronixBridgeStatus(): Promise<ThyronixBridgeStatus> {
     totalThyronixProducts,
     bridgedProductCount,
     blueprintReadyCount,
+    analyzedCount,
     rejectedCount,
     sources: activeSources.map((s) => ({
       id: s.id,

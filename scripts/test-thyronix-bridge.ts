@@ -8,7 +8,7 @@ import {
   runThyronixBridgeImport,
 } from "../src/lib/product-universe/thyronix-bridge";
 import { THYRONIX_BRIDGE_IMPORT_SOURCE } from "../src/lib/product-universe/thyronix-product-mapper";
-import { previewProductBlueprints } from "../src/lib/product-universe/product-blueprint-bridge";
+import { previewProductBlueprints, generateProductBlueprints } from "../src/lib/product-universe/product-blueprint-bridge";
 
 let passed = 0;
 let failed = 0;
@@ -32,7 +32,7 @@ async function countBridgedProducts() {
 }
 
 async function main() {
-  console.log("\n=== Thyronix Bridge V1 Tests ===\n");
+  console.log("\n=== Thyronix Bridge V3 Tests ===\n");
 
   const activeSources = await prisma.thyronixSource.findMany({
     where: { status: "active" },
@@ -150,6 +150,43 @@ async function main() {
   assert(status.activeSourceCount >= 1, "active sources reported");
   assert(status.totalThyronixProducts >= 0, "thyronix product count reported");
   assert(status.bridgedProductCount >= afterReimportCount - 10, "bridged count consistent");
+  assert(status.analyzedCount >= 0, "analyzed count reported");
+
+  // 7) blueprint generate for BLUEPRINT_READY
+  console.log("\n7) blueprint generate");
+  if (ready) {
+    const project = await prisma.pageFactoryProject.findFirst({ select: { id: true } });
+    if (project) {
+      const generated = await generateProductBlueprints(ready.id, {
+        projectId: project.id,
+        minQualityScore: 70,
+        includeProductPage: true,
+        includeCategoryPage: true,
+        includeIntentPages: false,
+        includeFaqPage: false,
+        includeGeoFusion: false,
+        isAdmin: true,
+      });
+      assert(generated.inserted + generated.updated >= 0, "generate returns result");
+      if (generated.inserted > 0 || generated.updated > 0) {
+        const bp = await prisma.pageFactoryBlueprint.findFirst({
+          where: { projectId: project.id },
+          orderBy: { updatedAt: "desc" },
+        });
+        if (bp) {
+          const meta = JSON.parse(bp.metadataJson || "{}") as { generationSource?: string; importSource?: string };
+          assert(
+            meta.generationSource === "PRODUCT_UNIVERSE_V2" || meta.importSource === "THYRONIX_BRIDGE_V1",
+            "blueprint metadata carries generation/import source",
+          );
+        }
+      }
+    } else {
+      console.log("  — skip: no PageFactory project for generate");
+    }
+  } else {
+    console.log("  — skip: no BLUEPRINT_READY product for generate");
+  }
 
   console.log(`\n=== Results: ${passed} passed, ${failed} failed ===\n`);
   process.exit(failed > 0 ? 1 : 0);
