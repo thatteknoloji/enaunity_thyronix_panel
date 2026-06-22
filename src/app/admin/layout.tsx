@@ -111,6 +111,7 @@ function buildNavGroups(t: (key: string) => string) {
         { href: "/admin/page-factory", label: "AI Page Factory", icon: Layers },
         { href: "/admin/page-factory/data", label: "Veri Evreni", icon: Layers },
         { href: "/admin/page-factory/data/import", label: "GEO Import", icon: Layers },
+        { href: "/admin/product-universe", label: "Product Universe", icon: Package },
       ],
     },
     {

@@ -3133,3 +3133,228 @@ model DataUniverseImportJob {
   @@index([type])
   @@index([createdAt])
 }
+
+// ── Product Universe Engine (AI Page Factory — ürün evreni, import, entity, DNA) ──
+
+enum ProductUniverseSourceType {
+  TRENDYOL
+  HEPSIBURADA
+  N11
+  CSV
+  XLSX
+  XML
+  SHOPIFY
+  WOOCOMMERCE
+  MANUAL
+}
+
+enum ProductUniverseStatus {
+  IMPORTED
+  NORMALIZED
+  ANALYZED
+  BLUEPRINT_READY
+  REJECTED
+}
+
+enum ProductEntityType {
+  CATEGORY
+  THEME
+  MATERIAL
+  SIZE
+  COLOR
+  STYLE
+  USAGE_AREA
+  PERSON
+  BRAND
+  MODEL
+  CUSTOM
+}
+
+enum ProductImageStatus {
+  PENDING
+  DOWNLOADED
+  FAILED
+  SKIPPED
+}
+
+enum ProductClusterType {
+  CATEGORY
+  THEME
+  MATERIAL
+  GEO
+  INTENT
+  CUSTOM
+}
+
+enum ProductUniverseImportJobStatus {
+  PENDING
+  RUNNING
+  COMPLETED
+  FAILED
+}
+
+model ProductUniverse {
+  id               String                    @id @default(cuid())
+  dealerId         String?
+  projectId        String?
+  sourceType       ProductUniverseSourceType
+  sourceFileName   String                    @default("")
+  rawName          String
+  normalizedName   String                    @default("")
+  slug             String
+  brand            String                    @default("")
+  barcode          String                    @default("")
+  stockCode        String                    @default("")
+  categoryPath     String                    @default("")
+  descriptionRaw   String                    @default("")
+  descriptionClean String                    @default("")
+  price            Float?
+  currency         String                    @default("TRY")
+  status           ProductUniverseStatus     @default(IMPORTED)
+  qualityScore     Int                       @default(0)
+  duplicateGroupId String?
+  metadataJson     String                    @default("{}")
+  createdAt        DateTime                  @default(now())
+  updatedAt        DateTime                  @updatedAt
+
+  entities    ProductEntity[]
+  attributes  ProductAttribute[]
+  images      ProductImage[]
+  contentDNA  ProductContentDNA?
+  clusterItems ProductClusterItem[]
+
+  @@index([dealerId])
+  @@index([projectId])
+  @@index([status])
+  @@index([sourceType])
+  @@index([slug])
+  @@index([barcode])
+  @@index([brand])
+  @@index([categoryPath])
+  @@index([duplicateGroupId])
+}
+
+model ProductEntity {
+  id           String            @id @default(cuid())
+  productId    String
+  product      ProductUniverse   @relation(fields: [productId], references: [id], onDelete: Cascade)
+  type         ProductEntityType
+  value        String
+  confidence   Float             @default(0.8)
+  metadataJson String            @default("{}")
+  createdAt    DateTime          @default(now())
+
+  @@index([productId])
+  @@index([type])
+  @@index([value])
+}
+
+model ProductAttribute {
+  id           String          @id @default(cuid())
+  productId    String
+  product      ProductUniverse @relation(fields: [productId], references: [id], onDelete: Cascade)
+  key          String
+  value        String
+  unit         String?
+  confidence   Float           @default(0.8)
+  metadataJson String          @default("{}")
+  createdAt    DateTime        @default(now())
+
+  @@index([productId])
+  @@index([key])
+}
+
+model ProductImage {
+  id           String             @id @default(cuid())
+  productId    String
+  product      ProductUniverse    @relation(fields: [productId], references: [id], onDelete: Cascade)
+  sourceUrl    String
+  localPath    String?
+  publicUrl    String?
+  altText      String?
+  sortOrder    Int                @default(0)
+  status       ProductImageStatus @default(PENDING)
+  width        Int?
+  height       Int?
+  metadataJson String             @default("{}")
+  createdAt    DateTime           @default(now())
+
+  @@index([productId])
+  @@index([status])
+}
+
+model ProductCluster {
+  id           String             @id @default(cuid())
+  dealerId     String?
+  projectId    String?
+  name         String
+  slug         String
+  clusterType  ProductClusterType
+  productCount Int                @default(0)
+  metadataJson String             @default("{}")
+  createdAt    DateTime           @default(now())
+  updatedAt    DateTime           @updatedAt
+
+  items ProductClusterItem[]
+
+  @@index([dealerId])
+  @@index([projectId])
+  @@index([clusterType])
+  @@index([slug])
+}
+
+model ProductClusterItem {
+  id           String          @id @default(cuid())
+  clusterId    String
+  cluster      ProductCluster  @relation(fields: [clusterId], references: [id], onDelete: Cascade)
+  productId    String
+  product      ProductUniverse @relation(fields: [productId], references: [id], onDelete: Cascade)
+  score        Float           @default(1)
+  metadataJson String          @default("{}")
+  createdAt    DateTime        @default(now())
+
+  @@unique([clusterId, productId])
+  @@index([clusterId])
+  @@index([productId])
+}
+
+model ProductContentDNA {
+  id                   String          @id @default(cuid())
+  productId            String          @unique
+  product              ProductUniverse @relation(fields: [productId], references: [id], onDelete: Cascade)
+  primaryEntity        String          @default("")
+  targetKeyword        String          @default("")
+  intent               String          @default("")
+  audience             String          @default("")
+  pageAngle            String          @default("")
+  faqSeedsJson         String          @default("[]")
+  internalLinkHintsJson String         @default("[]")
+  schemaHintsJson      String          @default("[]")
+  metadataJson         String          @default("{}")
+  createdAt            DateTime        @default(now())
+  updatedAt            DateTime        @updatedAt
+
+  @@index([productId])
+}
+
+model ProductUniverseImportJob {
+  id           String                         @id @default(cuid())
+  dealerId     String?
+  projectId    String?
+  sourceType   ProductUniverseSourceType
+  status       ProductUniverseImportJobStatus @default(PENDING)
+  fileName     String                         @default("")
+  totalRows    Int                            @default(0)
+  insertedRows Int                            @default(0)
+  updatedRows  Int                            @default(0)
+  skippedRows  Int                            @default(0)
+  errorRows    Int                            @default(0)
+  metadataJson String                         @default("{}")
+  createdAt    DateTime                       @default(now())
+  completedAt  DateTime?
+
+  @@index([dealerId])
+  @@index([projectId])
+  @@index([status])
+  @@index([createdAt])
+}

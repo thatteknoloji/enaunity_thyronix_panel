@@ -106,7 +106,8 @@ export default function DealerLayout({ children }: { children: React.ReactNode }
   const isModuleShell =
     pathname.startsWith("/dealer/linkslash") ||
     pathname.startsWith("/dealer/pod") ||
-    pathname.startsWith("/dealer/page-factory");
+    pathname.startsWith("/dealer/page-factory") ||
+    pathname.startsWith("/dealer/product-universe");
 
   useEffect(() => {
     fetch("/api/auth/me")
@@ -128,7 +129,20 @@ export default function DealerLayout({ children }: { children: React.ReactNode }
       .then((r) => r.json())
       .then((d) => {
         if (d.success) {
-          setLicensedItems(buildLicensedNavItems(d.data.modules || []));
+          const items = buildLicensedNavItems(d.data.modules || []);
+          const pageFactoryLicensed = (d.data.modules || []).some(
+            (m: { moduleKey: string; licensed?: boolean }) =>
+              m.moduleKey === "AI_PAGE_FACTORY" && m.licensed
+          );
+          if (pageFactoryLicensed) {
+            items.push({
+              href: "/dealer/product-universe",
+              label: "Ürün Evreni",
+              icon: Package,
+              moduleKey: "AI_PAGE_FACTORY",
+            });
+          }
+          setLicensedItems(items);
         }
       });
   }, [router, t]);
@@ -153,7 +167,12 @@ export default function DealerLayout({ children }: { children: React.ReactNode }
     return null;
   }
 
-  if (pathname.startsWith("/dealer/linkslash") || pathname.startsWith("/dealer/pod") || pathname.startsWith("/dealer/page-factory")) {
+  if (
+    pathname.startsWith("/dealer/linkslash") ||
+    pathname.startsWith("/dealer/pod") ||
+    pathname.startsWith("/dealer/page-factory") ||
+    pathname.startsWith("/dealer/product-universe")
+  ) {
     return <>{children}</>;
   }
 
