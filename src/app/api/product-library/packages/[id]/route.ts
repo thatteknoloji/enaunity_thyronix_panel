@@ -23,7 +23,7 @@ export async function GET(_req: Request, { params }: Params) {
       catalogIds = [];
     }
 
-    const [catalogs, items, accessCount, downloadCount, recipeCount, versions] = await Promise.all([
+    const [catalogs, items, accessCount, downloadCount, recipeCount, uploadJobCount, versions, recentMarketplaceJobs] = await Promise.all([
       catalogIds.length
         ? prisma.productCatalog.findMany({ where: { id: { in: catalogIds } } })
         : [],
@@ -31,10 +31,20 @@ export async function GET(_req: Request, { params }: Params) {
       prisma.productPackageAccess.count({ where: { packageId: id, status: "ACTIVE" } }),
       prisma.productDistributionLog.count({ where: { packageId: id } }),
       prisma.productPackageRecipe.count({ where: { packageId: id, status: "ACTIVE" } }),
+      prisma.productMarketplaceJob.count({ where: { packageId: id } }),
       prisma.productPackageVersion.findMany({
         where: { packageId: id },
         orderBy: [{ versionNo: "desc" }, { createdAt: "desc" }],
         take: 10,
+      }),
+      prisma.productMarketplaceJob.findMany({
+        where: { packageId: id },
+        orderBy: { createdAt: "desc" },
+        take: 10,
+        include: {
+          connection: { select: { platform: true, storeId: true, sellerId: true } },
+          recipe: { select: { name: true } },
+        },
       }),
     ]);
     const template = resolvePackageTemplate(pkg, items);
@@ -49,8 +59,10 @@ export async function GET(_req: Request, { params }: Params) {
         accessCount,
         downloadCount,
         recipeCount,
+        uploadJobCount,
         template,
         versions,
+        recentMarketplaceJobs,
       },
     });
   } catch {

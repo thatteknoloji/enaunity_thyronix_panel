@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Package, Download, Layers, ShoppingCart, Clock, CheckCircle2, Ban, History,
-  Search, Eye, Filter, Wand2, Store, Save, Trash2,
+  Search, Eye, Filter, Wand2, Store, Save, Trash2, RefreshCw,
 } from "lucide-react";
 import { plApi } from "./api";
 import {
@@ -14,7 +14,7 @@ import { UI } from "@/lib/ui/turkish-labels";
 import { PaymentCheckoutPanel } from "@/components/payments/PaymentCheckoutPanel";
 
 type DealerState = "ACCESSIBLE" | "PURCHASE" | "PENDING" | "INACTIVE";
-type Tab = "packages" | "catalogs" | "history";
+type Tab = "packages" | "catalogs" | "history" | "uploads";
 
 type RecipeForm = {
   id?: string;
@@ -80,11 +80,32 @@ function PriceBadge({ pkg }: { pkg: any }) {
   return <span className="text-sm font-bold text-slate-900">{fmtMoney(price)}{suffix}</span>;
 }
 
+function UploadJobBadge({ status }: { status: string }) {
+  const tone =
+    status === "COMPLETED"
+      ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+      : status === "FAILED"
+        ? "bg-rose-50 text-rose-700 border-rose-200"
+        : status === "PROCESSING"
+          ? "bg-blue-50 text-blue-700 border-blue-200"
+          : "bg-amber-50 text-amber-700 border-amber-200";
+  const label =
+    status === "COMPLETED"
+      ? "Tamamlandı"
+      : status === "FAILED"
+        ? "Hata"
+        : status === "PROCESSING"
+          ? "İşleniyor"
+          : "Bekliyor";
+  return <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-medium ${tone}`}>{label}</span>;
+}
+
 export default function DealerProductLibraryPanel() {
   const [tab, setTab] = useState<Tab>("packages");
   const [catalogs, setCatalogs] = useState<any[]>([]);
   const [packages, setPackages] = useState<any[]>([]);
   const [downloads, setDownloads] = useState<any[]>([]);
+  const [uploadJobs, setUploadJobs] = useState<any[]>([]);
   const [tier, setTier] = useState("FREE");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -101,19 +122,23 @@ export default function DealerProductLibraryPanel() {
   const [recipePreview, setRecipePreview] = useState<any>(null);
   const [recipeSaving, setRecipeSaving] = useState(false);
   const [recipeLoading, setRecipeLoading] = useState(false);
+  const [queueingRecipe, setQueueingRecipe] = useState(false);
+  const [jobDownloading, setJobDownloading] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const [cats, pkgData] = await Promise.all([
+      const [cats, pkgData, jobs] = await Promise.all([
         plApi<any[]>("/api/product-library/catalogs"),
         plApi<{ packages: any[]; tier: string; downloads: any[] }>("/api/product-library/my-packages"),
+        plApi<any[]>("/api/product-library/marketplace-jobs?limit=50"),
       ]);
       setCatalogs(cats);
       setPackages(pkgData.packages);
       setTier(pkgData.tier);
       setDownloads(pkgData.downloads || []);
+      setUploadJobs(jobs || []);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Yüklenemedi");
     } finally {
@@ -128,7 +153,8 @@ export default function DealerProductLibraryPanel() {
     pending: packages.filter((p) => p.dealerState === "PENDING").length,
     totalProducts: packages.reduce((s, p) => s + (p.productCount || 0), 0),
     catalogCount: catalogs.length,
-  }), [packages, catalogs]);
+    pendingUploads: uploadJobs.filter((job) => job.status === "PENDING" || job.status === "PROCESSING").length,
+  }), [packages, catalogs, uploadJobs]);
 
   const filteredPackages = useMemo(() => {
     return packages.filter((p) => {
@@ -292,9 +318,80 @@ export default function DealerProductLibraryPanel() {
     { id: "packages", label: "Paketler", icon: Package },
     { id: "catalogs", label: "Kataloglar", icon: Layers },
     { id: "history", label: "İndirme Geçmişi", icon: History },
+    { id: "uploads", label: "Mağaza Kuyruğu", icon: Store },
   ];
 
   const editableRules = recipeData?.template?.fieldRules?.filter((rule: any) => !["LOCKED", "HIDDEN"].includes(rule.behavior)) || [];
+
+  const queueRecipeToMarketplace = async () => {
+    if (!recipeModal || !recipeForm.id) {
+      setError("Önce reçeteyi kaydetmelisin");
+      return;
+    }
+    setQueueingRecipe(true);
+    try {
+      const job = await plApi<any>("/api/product-library/marketplace-jobs", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          packageId: recipeModal.packageId,
+          recipeId: recipeForm.id,
+          connectionId: recipeForm.connectionId,
+          format: recipeForm.format,
+        }),
+      });
+      setSuccess(`${job.connection?.platform || "Mağaza"} kuyruğuna gönderildi`);
+      await load();
+      setTab("uploads");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Yükleme işi oluşturulamadı");
+    } finally {
+      setQueueingRecipe(false);
+    }
+  };
+
+  const downloadJobFile = async (jobId: string) => {
+    setJobDownloading(jobId);
+    try {
+      const response = await fetch(`/api/product-library/marketplace-jobs/${jobId}/file`);
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        throw new Error(data.error || "Dosya indirilemedi");
+      }
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      const contentDisposition = response.headers.get("Content-Disposition");
+      const match = contentDisposition?.match(/filename=\"?([^"]+)\"?/);
+      a.download = match?.[1] || `${jobId}.dat`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Dosya indirilemedi");
+    } finally {
+      setJobDownloading(null);
+    }
+  };
+
+  const retryUploadJob = async (job: any) => {
+    try {
+      await plApi<any>("/api/product-library/marketplace-jobs", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          packageId: job.packageId,
+          recipeId: job.recipeId || undefined,
+          connectionId: job.connectionId,
+          format: job.format,
+        }),
+      });
+      setSuccess("Yükleme işi yeniden kuyruğa alındı");
+      await load();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Yeniden kuyruğa alınamadı");
+    }
+  };
 
   return (
     <div className={`${PL_PANEL}`}>
@@ -308,11 +405,12 @@ export default function DealerProductLibraryPanel() {
       {error && <div className="mb-4"><PlAlert type="error">{error}</PlAlert></div>}
       {success && <div className="mb-4"><PlAlert type="success">{success}</PlAlert></div>}
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
         <PlStat label="Erişilebilir Paket" value={metrics.accessible} icon={CheckCircle2} />
         <PlStat label="Bekleyen Talep" value={metrics.pending} icon={Clock} />
         <PlStat label="Toplam Ürün" value={metrics.totalProducts} icon={Package} />
         <PlStat label="Katalog" value={metrics.catalogCount} icon={Layers} />
+        <PlStat label="Bekleyen Yükleme" value={metrics.pendingUploads} icon={Store} />
       </div>
 
       <PlTabs tabs={tabs} active={tab} onChange={setTab} />
@@ -428,6 +526,49 @@ export default function DealerProductLibraryPanel() {
                       {(d.recipeName || d.storeName) && <span className="ml-2 text-xs text-slate-500">{d.recipeName || d.storeName}</span>}
                     </span>
                     <span className="text-slate-500 text-xs">{fmtDate(d.createdAt)}</span>
+                  </div>
+                ))}
+              </PlCard>
+            )
+          )}
+
+          {tab === "uploads" && (
+            uploadJobs.length === 0 ? (
+              <PlCard className="p-8"><PlEmpty message="Henüz mağazaya gönderilmiş iş yok" /></PlCard>
+            ) : (
+              <PlCard className="divide-y divide-slate-100">
+                {uploadJobs.map((job) => (
+                  <div key={job.id} className="px-4 py-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                    <div className="min-w-0">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="font-medium text-slate-900">{job.package?.name || job.packageId}</span>
+                        <UploadJobBadge status={job.status} />
+                        <PlBadge tone="blue">{job.connection?.platform || job.platform || "Mağaza"}</PlBadge>
+                        <PlBadge tone="gray">{job.format}</PlBadge>
+                      </div>
+                      <p className="mt-1 text-xs text-slate-500">
+                        {job.recipe?.name || "Varsayılan reçete"} · {job.storeName || job.connection?.storeId || job.connection?.sellerId || "Mağaza"} · {job.itemCount} satır
+                      </p>
+                      <p className="mt-1 text-xs text-slate-400">
+                        {fmtDate(job.createdAt)} {job.targetUrl ? `· Hedef: ${job.targetUrl}` : ""}
+                      </p>
+                      {job.errorMessage && <p className="mt-1 text-xs text-rose-600">{job.errorMessage}</p>}
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      <PlBtn
+                        variant="secondary"
+                        size="sm"
+                        onClick={() => downloadJobFile(job.id)}
+                        disabled={jobDownloading === job.id}
+                      >
+                        <Download size={12} /> Dosya
+                      </PlBtn>
+                      {(job.status === "FAILED" || job.status === "COMPLETED") && (
+                        <PlBtn variant="ghost" size="sm" onClick={() => retryUploadJob(job)}>
+                          <RefreshCw size={12} /> Yeniden Gönder
+                        </PlBtn>
+                      )}
+                    </div>
                   </div>
                 ))}
               </PlCard>
@@ -668,6 +809,11 @@ export default function DealerProductLibraryPanel() {
                 <PlBtn onClick={saveRecipe} disabled={recipeSaving}>
                   <Save size={12} /> {recipeForm.id ? "Reçeteyi Güncelle" : "Reçeteyi Kaydet"}
                 </PlBtn>
+                {recipeForm.id && (
+                  <PlBtn onClick={queueRecipeToMarketplace} disabled={queueingRecipe}>
+                    <Store size={12} /> {queueingRecipe ? "Kuyruğa Alınıyor" : "Mağazaya Gönder"}
+                  </PlBtn>
+                )}
                 {recipeForm.id && (
                   <PlBtn
                     variant="secondary"

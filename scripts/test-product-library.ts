@@ -21,6 +21,13 @@ import { resolvePackageTemplate } from "../src/lib/product-library/template-engi
 import { buildRecipePreview } from "../src/lib/product-library/recipe-engine";
 import { itemsToXlsxBuffer } from "../src/lib/product-library/excel";
 import { commitPackageSourceImport, previewPackageSourceImport } from "../src/lib/product-library/package-import";
+import {
+  claimMarketplaceUploadJobs,
+  completeMarketplaceUploadJob,
+  createMarketplaceUploadJob,
+  loadMarketplaceJobFile,
+  resolveMarketplacePanelUrl,
+} from "../src/lib/product-library/marketplace-jobs";
 
 let passed = 0;
 let failed = 0;
@@ -46,14 +53,19 @@ async function cleanup() {
   await prisma.productDistributionLog.deleteMany({
     where: { package: { slug: { startsWith: TEST_PREFIX } } },
   });
+  if ((prisma as any).productMarketplaceJob?.deleteMany) {
+    await (prisma as any).productMarketplaceJob.deleteMany({ where: { package: { slug: { startsWith: TEST_PREFIX } } } });
+  }
   await prisma.productPackageRecipe.deleteMany({ where: { package: { slug: { startsWith: TEST_PREFIX } } } });
   if ((prisma as any).productPackageVersion?.deleteMany) {
     await (prisma as any).productPackageVersion.deleteMany({ where: { package: { slug: { startsWith: TEST_PREFIX } } } });
   }
+  await prisma.marketplaceConnection.deleteMany({ where: { sellerId: { startsWith: TEST_PREFIX } } });
   await prisma.productPackage.deleteMany({ where: { slug: { startsWith: TEST_PREFIX } } });
   await prisma.productCatalog.deleteMany({ where: { slug: { startsWith: TEST_PREFIX } } });
   await prisma.productImportJob.deleteMany({ where: { createdBy: { contains: "pl-test" } } });
   await fs.rm(path.join(process.cwd(), "storage", "product-library", "packages"), { recursive: true, force: true });
+  await fs.rm(path.join(process.cwd(), "storage", "product-library", "marketplace-jobs"), { recursive: true, force: true });
 }
 
 const SAMPLE_XML = `<?xml version="1.0"?>
@@ -130,12 +142,27 @@ async function main() {
   });
   assert(!!pkgFree.id && !!pkgPro.id, "Packages created");
 
+  let dealer = await prisma.dealer.findFirst({ where: { email: "pl-test-marketplace@enaunity.com" } });
+  if (!dealer) {
+    dealer = await prisma.dealer.create({
+      data: {
+        name: "PL Test Dealer",
+        title: "PL Test Dealer",
+        email: "pl-test-marketplace@enaunity.com",
+        phone: "5550000000",
+        company: "PL Test Dealer Ltd",
+        location: "Istanbul",
+        companySize: "1-10",
+        markets: "TR",
+        status: "active",
+      },
+    });
+  }
+  if (!dealer) throw new Error("Test dealer oluşturulamadı");
+
   // 5) Package access + dealer isolation
   console.log("\n5) Package access & dealer isolation");
-  const dealer = await prisma.dealer.findFirst({ where: { status: "ACTIVE" } });
-  if (!dealer) {
-    console.log("  ⚠ No active dealer — skipping dealer tests");
-  } else {
+  {
     const freeAccess = await dealerCanAccessPackage(dealer.id, pkgFree.id);
     assert(freeAccess.ok, "Dealer can access FREE package (default tier)");
 
@@ -207,16 +234,71 @@ async function main() {
   const committedPackage = await prisma.productPackage.findUnique({ where: { id: committed.package.id } });
   assert(committedPackage?.currentVersionId === committed.version.id, "Current version pointer updated");
 
-  // 9) THYRONIX prep field
-  console.log("\n9) THYRONIX readiness field");
+  // 9) Marketplace queue
+  console.log("\n9) Marketplace queue");
+  const recipe = await prisma.productPackageRecipe.create({
+    data: {
+      packageId: pkgFree.id,
+      dealerId: dealer.id,
+      connectionId: "",
+      name: "pl-test-recipe",
+      storeName: "Test Store",
+      format: "XML",
+      valuesJson: JSON.stringify({ brand: { value: "ENA Test" }, barcode: { prefix: "ENA-" } }),
+    },
+  });
+  const connection = await prisma.marketplaceConnection.create({
+    data: {
+      dealerId: dealer.id,
+      platform: "TRENDYOL",
+      sellerId: `${TEST_PREFIX}seller`,
+      storeId: `${TEST_PREFIX}store`,
+      supplierId: "",
+      apiKey: "test-api-key",
+      apiSecret: "test-secret",
+      connectionStatus: "CONNECTED",
+      active: true,
+    },
+  });
+  await prisma.productPackageRecipe.update({
+    where: { id: recipe.id },
+    data: { connectionId: connection.id, connectionLabel: "TRENDYOL / Test Store" },
+  });
+  assert(resolveMarketplacePanelUrl("TRENDYOL").includes("trendyol"), "Marketplace panel URL resolved");
+  const uploadJob = await createMarketplaceUploadJob({
+    dealerId: dealer.id,
+    packageId: pkgFree.id,
+    recipeId: recipe.id,
+  });
+  assert(uploadJob.status === "PENDING", "Marketplace upload job created");
+  assert(!!uploadJob.fileName && uploadJob.fileSize > 0, "Marketplace upload artifact saved");
+  const claimedJobs = await claimMarketplaceUploadJobs({
+    dealerId: dealer.id,
+    connectionId: connection.id,
+    claimedBy: "pl-test-connector",
+    limit: 5,
+  });
+  assert(claimedJobs.length === 1 && claimedJobs[0].status === "PROCESSING", "Marketplace job claimed by connector");
+  const uploadedFile = await loadMarketplaceJobFile(uploadJob.id, dealer.id);
+  assert(uploadedFile.file.byteLength > 0, "Marketplace job file can be loaded");
+  const completedJob = await completeMarketplaceUploadJob({
+    dealerId: dealer.id,
+    jobId: uploadJob.id,
+    success: true,
+    result: { uploadedCount: 1 },
+  });
+  assert(completedJob.status === "COMPLETED", "Marketplace job completion recorded");
+
+  // 10) THYRONIX prep field
+  console.log("\n10) THYRONIX readiness field");
   const thyPkg = await prisma.productPackage.update({
     where: { id: pkgFree.id },
     data: { thyronixReady: true },
   });
   assert(thyPkg.thyronixReady === true, "thyronixReady field works");
 
-  // 10) Import job model
-  console.log("\n10) Import job records");
+  // 11) Import job model
+  console.log("\n11) Import job records");
   const job = await prisma.productImportJob.create({
     data: {
       type: "XML",

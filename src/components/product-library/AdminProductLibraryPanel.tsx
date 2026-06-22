@@ -13,7 +13,7 @@ import {
 import { CATALOG_STATUSES, LICENSE_LEVELS, PACKAGE_FIELD_BEHAVIORS } from "@/lib/product-library/types";
 import { UI, billingTypeLabel, catalogFieldLabel, licenseLevelLabel, statusLabel } from "@/lib/ui/turkish-labels";
 
-type Tab = "dashboard" | "catalogs" | "products" | "packages" | "suppliers" | "imports" | "distribution" | "access";
+type Tab = "dashboard" | "catalogs" | "products" | "packages" | "suppliers" | "imports" | "distribution" | "upload-jobs" | "access";
 
 const TABS: { id: Tab; label: string; icon: typeof Package }[] = [
   { id: "dashboard", label: UI.overview, icon: BarChart3 },
@@ -23,6 +23,7 @@ const TABS: { id: Tab; label: string; icon: typeof Package }[] = [
   { id: "suppliers", label: UI.suppliers, icon: Truck },
   { id: "imports", label: "İçe Aktarım", icon: Upload },
   { id: "distribution", label: "Dağıtım Logları", icon: Download },
+  { id: "upload-jobs", label: "Mağaza Kuyruğu", icon: Globe },
   { id: "access", label: "Erişim Yönetimi", icon: Shield },
 ];
 
@@ -57,6 +58,7 @@ export default function AdminProductLibraryPanel() {
   const [packages, setPackages] = useState<any[]>([]);
   const [importJobs, setImportJobs] = useState<any[]>([]);
   const [distributionLogs, setDistributionLogs] = useState<any[]>([]);
+  const [marketplaceJobs, setMarketplaceJobs] = useState<any[]>([]);
   const [accessRows, setAccessRows] = useState<any[]>([]);
   const [dealers, setDealers] = useState<any[]>([]);
 
@@ -127,6 +129,9 @@ export default function AdminProductLibraryPanel() {
       if (t === "imports") setImportJobs(await plApi("/api/product-library/import-jobs?limit=100"));
       if (t === "distribution") {
         setDistributionLogs(await plApi("/api/product-library/distribution-logs?scope=admin"));
+      }
+      if (t === "upload-jobs") {
+        setMarketplaceJobs(await plApi("/api/product-library/marketplace-jobs?scope=admin&limit=200"));
       }
       if (t === "access") {
         const [access, dealerList] = await Promise.all([
@@ -425,6 +430,7 @@ export default function AdminProductLibraryPanel() {
       { label: "Aktif Ürün", value: dashboard.productCount, icon: Package },
       { label: "Tedarikçi", value: dashboard.supplierCount, icon: Truck },
       { label: "Paket", value: dashboard.packageCount, icon: Box },
+      { label: "Mağaza Kuyruğu", value: dashboard.uploadJobCount || 0, icon: Globe },
     ];
   }, [dashboard]);
 
@@ -448,7 +454,7 @@ export default function AdminProductLibraryPanel() {
         <>
           {tab === "dashboard" && dashboard && (
             <div className="space-y-6">
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
                 {dashboardStats.map((s) => <PlStat key={s.label} {...s} />)}
               </div>
               <div className="grid lg:grid-cols-2 gap-4">
@@ -471,15 +477,26 @@ export default function AdminProductLibraryPanel() {
                   ))}
                 </PlCard>
               </div>
-              <PlCard className="p-4">
-                <h3 className="font-semibold text-sm text-slate-800 mb-3">Son İndirmeler</h3>
-                {dashboard.recentDistributions?.map((l: any) => (
-                  <div key={l.id} className="flex justify-between py-2 border-b border-slate-100 last:border-0 text-sm text-slate-700">
-                    <span>{l.package?.name} — {l.format}</span>
-                    <span className="text-slate-400 text-xs">{fmtDate(l.createdAt)}</span>
-                  </div>
-                ))}
-              </PlCard>
+              <div className="grid lg:grid-cols-2 gap-4">
+                <PlCard className="p-4">
+                  <h3 className="font-semibold text-sm text-slate-800 mb-3">Son İndirmeler</h3>
+                  {dashboard.recentDistributions?.map((l: any) => (
+                    <div key={l.id} className="flex justify-between py-2 border-b border-slate-100 last:border-0 text-sm text-slate-700">
+                      <span>{l.package?.name} — {l.format}</span>
+                      <span className="text-slate-400 text-xs">{fmtDate(l.createdAt)}</span>
+                    </div>
+                  ))}
+                </PlCard>
+                <PlCard className="p-4">
+                  <h3 className="font-semibold text-sm text-slate-800 mb-3">Son Mağaza Yükleme İşleri</h3>
+                  {dashboard.recentMarketplaceJobs?.map((job: any) => (
+                    <div key={job.id} className="flex justify-between py-2 border-b border-slate-100 last:border-0 text-sm text-slate-700 gap-3">
+                      <span className="truncate">{job.package?.name} · {job.connection?.platform} · {job.recipe?.name || "Varsayılan"}</span>
+                      <span className="text-slate-400 text-xs">{job.status}</span>
+                    </div>
+                  ))}
+                </PlCard>
+              </div>
             </div>
           )}
 
@@ -857,6 +874,46 @@ export default function AdminProductLibraryPanel() {
             </PlCard>
           )}
 
+          {tab === "upload-jobs" && (
+            <PlCard className="overflow-hidden">
+              <PlTable>
+                <thead className="bg-slate-50 text-xs text-slate-500 uppercase">
+                  <tr>
+                    <th className="p-3 text-left">Tarih</th>
+                    <th className="p-3 text-left">Paket</th>
+                    <th className="p-3 text-left">Mağaza</th>
+                    <th className="p-3 text-left">Reçete</th>
+                    <th className="p-3 text-left">Durum</th>
+                    <th className="p-3 text-left">Bayi</th>
+                    <th className="p-3 text-left">Dosya</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 text-sm text-slate-700">
+                  {marketplaceJobs.map((job) => (
+                    <tr key={job.id}>
+                      <td className="p-3 text-xs">{fmtDate(job.createdAt)}</td>
+                      <td className="p-3">{job.package?.name || job.packageId}</td>
+                      <td className="p-3 text-xs">{job.connection?.platform} / {job.storeName || job.connection?.storeId || job.connection?.sellerId || "Mağaza"}</td>
+                      <td className="p-3 text-xs">{job.recipe?.name || "Varsayılan"}</td>
+                      <td className="p-3"><PlStatusBadge status={job.status} /></td>
+                      <td className="p-3 text-xs">{job.dealer?.company || job.dealer?.name || job.dealerId}</td>
+                      <td className="p-3">
+                        {job.fileName ? (
+                          <a className="text-xs text-ena-primary hover:underline" href={`/api/product-library/marketplace-jobs/${job.id}/file`}>
+                            {job.fileName}
+                          </a>
+                        ) : (
+                          <span className="text-xs text-slate-400">—</span>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </PlTable>
+              {!marketplaceJobs.length && <PlEmpty message="Henüz mağaza kuyruğu kaydı yok" />}
+            </PlCard>
+          )}
+
           {tab === "access" && (
             <div className="space-y-4">
               <PlCard className="p-4">
@@ -955,8 +1012,9 @@ export default function AdminProductLibraryPanel() {
               <PlStat label="Erişim" value={viewPackage.accessCount} icon={Users} />
               <PlStat label="İndirme" value={viewPackage.downloadCount} icon={Download} />
             </div>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-3 gap-3">
               <PlStat label="Reçete" value={viewPackage.recipeCount || 0} icon={Shield} />
+              <PlStat label="Mağaza Kuyruğu" value={viewPackage.uploadJobCount || 0} icon={Globe} />
               <PlStat label="Format" value={(viewPackage.template?.exportFormats || []).join(", ") || "—"} icon={FileSpreadsheet} />
             </div>
             <div>
@@ -1088,6 +1146,24 @@ export default function AdminProductLibraryPanel() {
                 <div key={i.id} className="py-1 border-b border-slate-100 text-xs">{i.name} — {i.brand} — {fmtMoney(i.price)}</div>
               ))}
             </div>
+            <PlCard className="p-4">
+              <h4 className="font-medium text-slate-900 mb-3">Son Mağaza Yükleme İşleri</h4>
+              {viewPackage.recentMarketplaceJobs?.length ? (
+                <div className="space-y-2">
+                  {viewPackage.recentMarketplaceJobs.map((job: any) => (
+                    <div key={job.id} className="flex flex-wrap items-center justify-between gap-3 border border-slate-100 rounded-xl px-3 py-2">
+                      <div className="text-xs text-slate-600">
+                        <div className="font-medium text-slate-900">{job.connection?.platform} · {job.recipe?.name || "Varsayılan"}</div>
+                        <div>{job.storeName || job.connection?.storeId || job.connection?.sellerId || "Mağaza"} · {fmtDate(job.createdAt)}</div>
+                      </div>
+                      <PlStatusBadge status={job.status} />
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <PlEmpty message="Henüz mağaza kuyruğu kaydı yok" />
+              )}
+            </PlCard>
             <PlCard className="p-4">
               <h4 className="font-medium text-slate-900 mb-3">Kaynak Versiyonlar</h4>
               {viewPackage.versions?.length ? (

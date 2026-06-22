@@ -1611,6 +1611,7 @@ model MarketplaceConnection {
   orders            MarketplaceOrder[]
   syncLogs          MarketplaceSyncLog[]
   webhookEvents     MarketplaceWebhookEvent[]
+  listingJobs       ProductMarketplaceJob[]
   createdAt         DateTime            @default(now())
   updatedAt         DateTime            @updatedAt
 
@@ -2113,6 +2114,7 @@ model ProductPackage {
   logs          ProductDistributionLog[]
   recipes       ProductPackageRecipe[]
   versions      ProductPackageVersion[]
+  marketplaceJobs ProductMarketplaceJob[]
 
   @@index([status])
   @@index([licenseLevel])
@@ -2196,6 +2198,7 @@ model ProductPackageRecipe {
   lastPreviewJson  String   @default("{}")
   lastDownloadedAt DateTime?
   package          ProductPackage @relation(fields: [packageId], references: [id], onDelete: Cascade)
+  marketplaceJobs  ProductMarketplaceJob[]
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 
@@ -2232,6 +2235,40 @@ model ProductPackageVersion {
   @@index([catalogId])
   @@index([createdAt])
   @@index([status])
+}
+
+model ProductMarketplaceJob {
+  id           String   @id @default(cuid())
+  dealerId     String
+  packageId    String
+  recipeId     String?
+  connectionId String
+  platform     String   @default("")
+  storeName    String   @default("")
+  format       String   @default("EXCEL")
+  targetUrl    String   @default("")
+  status       String   @default("PENDING")
+  itemCount    Int      @default(0)
+  fileName     String   @default("")
+  filePath     String   @default("")
+  fileSize     Int      @default(0)
+  checksum     String   @default("")
+  payloadJson  String   @default("{}")
+  resultJson   String   @default("{}")
+  errorMessage String   @default("")
+  claimedBy    String   @default("")
+  claimedAt    DateTime?
+  completedAt  DateTime?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  package      ProductPackage @relation(fields: [packageId], references: [id], onDelete: Cascade)
+  recipe       ProductPackageRecipe? @relation(fields: [recipeId], references: [id], onDelete: SetNull)
+  connection   MarketplaceConnection @relation(fields: [connectionId], references: [id], onDelete: Cascade)
+
+  @@index([dealerId, status, createdAt])
+  @@index([connectionId, status, createdAt])
+  @@index([packageId, createdAt])
+  @@index([recipeId])
 }
 
 // ── Fulfillment & Dealer Accounting ──
