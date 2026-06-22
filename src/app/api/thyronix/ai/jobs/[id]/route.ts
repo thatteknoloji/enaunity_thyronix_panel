@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { requireThyronixAdmin } from "@/lib/thyronix/access";
+import { requireThyronixDealerOrAdmin } from "@/lib/thyronix/access";
 
 export async function PUT(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-    await requireThyronixAdmin();
+    await requireThyronixDealerOrAdmin();
     const { id } = await params;
     const body = await req.json();
     const { action } = body; // pause, resume, cancel, retry_failed
@@ -18,7 +18,9 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
       if (job.status !== "running") return NextResponse.json({ error: "Sadece çalışan görevler duraklatılabilir" }, { status: 400 });
       data.status = "paused";
     } else if (action === "resume") {
-      if (job.status !== "paused") return NextResponse.json({ error: "Sadece duraklatılmış görevler devam ettirilebilir" }, { status: 400 });
+      if (job.status !== "paused" && job.status !== "pending") {
+        return NextResponse.json({ error: "Sadece bekleyen veya duraklatılmış görevler devam ettirilebilir" }, { status: 400 });
+      }
       data.status = "running";
     } else if (action === "cancel") {
       data.status = "cancelled";
@@ -38,7 +40,7 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
 
 export async function DELETE(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-    await requireThyronixAdmin();
+    await requireThyronixDealerOrAdmin();
     const { id } = await params;
     await prisma.thyronixAiJob.delete({ where: { id } });
     return NextResponse.json({ success: true });

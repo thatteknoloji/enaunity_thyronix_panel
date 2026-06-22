@@ -25,6 +25,29 @@ export function validateImageUrl(url: string): { valid: boolean; reason?: string
   }
 }
 
+export function collectImageUrlsFromRow(
+  row: Record<string, string | number | null | undefined>,
+  imageColumns: string[]
+): { urls: string[]; invalidCount: number } {
+  const urls: string[] = [];
+  let invalidCount = 0;
+
+  for (const col of imageColumns) {
+    const val = String(row[col] ?? "").trim();
+    if (!val) continue;
+    const parts = val.includes(",") ? val.split(",").map((u) => u.trim()) : [val];
+    for (const part of parts) {
+      if (!part) continue;
+      const normalized = part.startsWith("//") ? `https:${part}` : part;
+      const check = validateImageUrl(normalized);
+      if (check.valid) urls.push(normalized);
+      else invalidCount++;
+    }
+  }
+
+  return { urls: [...new Set(urls)], invalidCount };
+}
+
 export function getProductImageDir(productId: string): string {
   return path.join(process.cwd(), "storage", "products", productId);
 }
@@ -65,6 +88,7 @@ export async function harvestProductImages(opts: {
         data: {
           productId: opts.productId,
           sourceUrl,
+          publicUrl: sourceUrl.startsWith("//") ? `https:${sourceUrl}` : sourceUrl,
           sortOrder: i,
           status: "PENDING",
         },

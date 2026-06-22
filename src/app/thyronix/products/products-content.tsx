@@ -71,6 +71,13 @@ export default function ThyronixProductsPage() {
 
   const getProvider = async () => {
     if (cachedProvider) return cachedProvider;
+    const myRes = await fetch("/api/thyronix/ai/my-provider");
+    const myData = await myRes.json();
+    if (myData.success && myData.data?.configured && myData.data?.id) {
+      const p = { id: myData.data.id, model: myData.data.model };
+      setCachedProvider(p);
+      return p;
+    }
     const res = await fetch("/api/admin/nexa-ai-providers");
     const d = await res.json();
     if (d.success && d.data.length > 0) { setCachedProvider(d.data[0]); return d.data[0]; }
@@ -193,7 +200,7 @@ export default function ThyronixProductsPage() {
       setBulkLoading(true);
       try {
         const provider = await getProvider();
-        if (!provider) { toast.error("Önce AI provider ekleyin"); setBulkLoading(false); return; }
+        if (!provider) { toast.error("Önce Ayarlar → Yapay Zeka API bölümünden API anahtarınızı girin"); setBulkLoading(false); return; }
 
         let targetIds = Array.from(selected);
         if (bulkScope !== "ids") {
@@ -638,7 +645,7 @@ export default function ThyronixProductsPage() {
                     ].map(ai => (
                       <button key={ai.task} onClick={async () => {
                         const provider = await getProvider();
-                        if (!provider) return toast.error("Önce AI provider ekleyin");
+                        if (!provider) return toast.error("Önce Ayarlar → Yapay Zeka API bölümünden API anahtarınızı girin");
                         toast.loading("AI çalışıyor...");
                         const res = await fetch("/api/thyronix/ai/action", {
                           method: "POST",

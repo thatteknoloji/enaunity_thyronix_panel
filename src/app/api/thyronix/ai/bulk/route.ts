@@ -2,19 +2,29 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { aiCall } from "@/lib/thyronix/ai-service";
 import { checkAiLicense } from "@/lib/thyronix/ai-license";
-import { requireThyronixAdmin } from "@/lib/thyronix/access";
+import { requireThyronixDealerOrAdmin } from "@/lib/thyronix/access";
+import { resolveDealerId } from "@/lib/thyronix/workspace";
+import { resolveAiProviderId } from "@/lib/thyronix/ai-provider-resolve";
 
 export async function POST(req: Request) {
   try {
     const licenseError = checkAiLicense();
     if (licenseError) return NextResponse.json({ error: licenseError.error }, { status: licenseError.status });
-    await requireThyronixAdmin();
+    const user = await requireThyronixDealerOrAdmin();
 
     const body = await req.json();
     const { jobId, taskType, productIds, providerId, batchSize = 10 } = body;
 
-    if (!jobId || !taskType || !productIds?.length || !providerId) {
-      return NextResponse.json({ error: "jobId, taskType, productIds ve providerId zorunlu" }, { status: 400 });
+    if (!jobId || !taskType || !productIds?.length) {
+      return NextResponse.json({ error: "jobId, taskType ve productIds zorunlu" }, { status: 400 });
+    }
+
+    const dealerId = await resolveDealerId(user);
+    const resolvedProviderId = await resolveAiProviderId({ providerId, dealerId });
+    if (!resolvedProviderId) {
+      return NextResponse.json({
+        error: "AI sağlayıcı tanımlı değil — Ayarlar → Yapay Zeka API veya /thyronix/ai → Sağlayıcılar",
+      }, { status: 400 });
     }
 
     const job = await prisma.thyronixAiJob.findUnique({ where: { id: jobId } });
@@ -36,7 +46,7 @@ export async function POST(req: Request) {
       try {
         const prompt = buildPrompt(taskType, product);
         const result = await aiCall({
-          providerId,
+          providerId: resolvedProviderId,
           task: taskType,
           productId: product.id,
           systemPrompt: getSystemPrompt(taskType),
@@ -51,7 +61,7 @@ export async function POST(req: Request) {
               taskType,
               originalValue: getOriginalValue(taskType, product),
               suggestedValue: result.content,
-              providerId,
+              providerId: resolvedProviderId,
               model: result.model,
               tokenUsage: result.usage.totalTokens,
               cost: result.cost,

@@ -18,6 +18,8 @@ import {
 import { PRODUCTION_TYPES, type ProductionType } from "@/lib/page-factory/types";
 import { AdminModuleAccessPanel } from "@/components/admin/AdminModuleAccessPanel";
 import { BlueprintUniverseTab } from "@/components/page-factory/BlueprintUniverseTab";
+import { PublishGateReviewTab } from "@/components/page-factory/PublishGateReviewTab";
+import { ContentDraftPreviewModal } from "@/components/page-factory/ContentDraftPreviewModal";
 
 type Dashboard = {
   totalProjects: number;
@@ -39,7 +41,7 @@ type Dashboard = {
 
 type ProjectDetail = Dashboard["projects"][0] & {
   topologies?: Array<{ topologyType: string; nodeCount: number; metadataJson: string }>;
-  blueprints?: Array<{ title: string; pageType: string; hierarchyLevel: number; clusterPath: string; metadataJson: string }>;
+  blueprints?: Array<{ id: string; title: string; pageType: string; hierarchyLevel: number; clusterPath: string; metadataJson: string }>;
   metadata?: {
     estimatedPageCount?: number;
     estimate?: { totalPages: number; formula: string; breakdown: Record<string, number>; note: string };
@@ -72,6 +74,26 @@ export function PageFactoryShell({ showLicensePanel = false }: Props) {
   const [deleting, setDeleting] = useState(false);
   const [projectTab, setProjectTab] = useState<"overview" | "universe">("overview");
   const [blueprintSourceFilter, setBlueprintSourceFilter] = useState<"all" | "PRODUCT_UNIVERSE_V2">("all");
+  const [aeoFilter, setAeoFilter] = useState<"all" | "missing" | "ready" | "low">("all");
+  const [aeoMinScore, setAeoMinScore] = useState(0);
+  const [aeoBulkLoading, setAeoBulkLoading] = useState(false);
+  const [draftBulkLoading, setDraftBulkLoading] = useState(false);
+  const [draftStats, setDraftStats] = useState<{
+    totalBlueprints: number;
+    totalDrafts: number;
+    readyToPublish: number;
+    needsReview: number;
+    rejected: number;
+    withoutDraft: number;
+    avgPublishScore: number;
+    avgAeoScore: number;
+  } | null>(null);
+  const [draftPreview, setDraftPreview] = useState<{ open: boolean; data: any; title: string }>({
+    open: false,
+    data: null,
+    title: "",
+  });
+  const [shellView, setShellView] = useState<"projects" | "review">("projects");
   const [error, setError] = useState<string | null>(null);
   const [form, setForm] = useState({
     name: "",
@@ -114,6 +136,9 @@ export function PageFactoryShell({ showLicensePanel = false }: Props) {
         language: d.data.language,
         productionType: d.data.productionType,
       });
+      const statsR = await fetch(`/api/page-factory/projects/${id}/draft-stats`);
+      const statsD = await statsR.json();
+      if (statsD.success) setDraftStats(statsD.data);
     }
   };
 
@@ -208,7 +233,26 @@ export function PageFactoryShell({ showLicensePanel = false }: Props) {
         <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>
       )}
 
-      {loading ? (
+      <div className="flex gap-1 bg-white border border-gray-200 p-1 rounded-lg w-fit">
+        <button
+          type="button"
+          onClick={() => setShellView("projects")}
+          className={`px-4 py-1.5 text-xs font-medium rounded-md ${shellView === "projects" ? "bg-violet-600 text-white" : "text-gray-600 hover:bg-gray-100"}`}
+        >
+          Projeler
+        </button>
+        <button
+          type="button"
+          onClick={() => setShellView("review")}
+          className={`px-4 py-1.5 text-xs font-medium rounded-md ${shellView === "review" ? "bg-emerald-600 text-white" : "text-gray-600 hover:bg-gray-100"}`}
+        >
+          Publish Gate / Review Queue
+        </button>
+      </div>
+
+      {shellView === "review" ? (
+        <PublishGateReviewTab projectId={selected?.id} />
+      ) : loading ? (
         <div className="flex justify-center py-16">
           <Loader2 className="animate-spin text-violet-500" size={28} />
         </div>
@@ -455,37 +499,202 @@ export function PageFactoryShell({ showLicensePanel = false }: Props) {
                 </div>
               )}
 
+              {draftStats && (
+                <div className="rounded-lg bg-white border border-violet-200 p-4">
+                  <p className="text-xs font-semibold uppercase text-violet-700 mb-3">Content Drafts (PAGE_FACTORY_V3)</p>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+                    <div><p className="text-gray-500">Blueprint</p><p className="font-bold text-gray-900">{draftStats.totalBlueprints}</p></div>
+                    <div><p className="text-gray-500">Draft üretilmiş</p><p className="font-bold text-gray-900">{draftStats.totalDrafts}</p></div>
+                    <div><p className="text-gray-500">Ready to publish</p><p className="font-bold text-emerald-600">{draftStats.readyToPublish}</p></div>
+                    <div><p className="text-gray-500">Needs review</p><p className="font-bold text-amber-600">{draftStats.needsReview}</p></div>
+                    <div><p className="text-gray-500">Rejected</p><p className="font-bold text-red-600">{draftStats.rejected}</p></div>
+                    <div><p className="text-gray-500">Draft yok</p><p className="font-bold text-gray-600">{draftStats.withoutDraft}</p></div>
+                    <div><p className="text-gray-500">Ort. AEO</p><p className="font-bold text-cyan-700">{draftStats.avgAeoScore}</p></div>
+                    <div><p className="text-gray-500">Ort. Publish</p><p className="font-bold text-violet-700">{draftStats.avgPublishScore}</p></div>
+                  </div>
+                </div>
+              )}
+
               {selected.blueprints && selected.blueprints.length > 0 && (
                 <div className="rounded-lg bg-white border border-gray-200 overflow-hidden">
                   <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between gap-2 flex-wrap">
                     <p className="text-xs font-semibold uppercase text-gray-600">Blueprint Engine (şablon — içerik yok)</p>
-                    <select
-                      value={blueprintSourceFilter}
-                      onChange={(e) => setBlueprintSourceFilter(e.target.value as "all" | "PRODUCT_UNIVERSE_V2")}
-                      className="text-[10px] rounded border border-gray-200 px-2 py-1"
-                    >
-                      <option value="all">Tüm blueprintler</option>
-                      <option value="PRODUCT_UNIVERSE_V2">Product Universe Blueprintleri</option>
-                    </select>
+                    <div className="flex flex-wrap gap-2 items-center">
+                      <select
+                        value={blueprintSourceFilter}
+                        onChange={(e) => setBlueprintSourceFilter(e.target.value as "all" | "PRODUCT_UNIVERSE_V2")}
+                        className="text-[10px] rounded border border-gray-200 px-2 py-1"
+                      >
+                        <option value="all">Tüm blueprintler</option>
+                        <option value="PRODUCT_UNIVERSE_V2">Product Universe Blueprintleri</option>
+                      </select>
+                      <select
+                        value={aeoFilter}
+                        onChange={(e) => setAeoFilter(e.target.value as typeof aeoFilter)}
+                        className="text-[10px] rounded border border-gray-200 px-2 py-1"
+                      >
+                        <option value="all">AEO: Tümü</option>
+                        <option value="missing">AEO yok</option>
+                        <option value="ready">AEO hazır</option>
+                        <option value="low">Düşük kalite</option>
+                      </select>
+                      <input
+                        type="number"
+                        min={0}
+                        max={100}
+                        value={aeoMinScore}
+                        onChange={(e) => setAeoMinScore(Number(e.target.value))}
+                        placeholder="Min AEO"
+                        className="text-[10px] w-16 rounded border border-gray-200 px-2 py-1"
+                      />
+                      <button
+                        type="button"
+                        disabled={aeoBulkLoading || !selected.id}
+                        onClick={async () => {
+                          setAeoBulkLoading(true);
+                          try {
+                            const r = await fetch("/api/aeo/blueprints/bulk-generate", {
+                              method: "POST",
+                              headers: { "Content-Type": "application/json" },
+                              body: JSON.stringify({
+                                projectId: selected.id,
+                                generationSource: "PRODUCT_UNIVERSE_V2",
+                                aeoStatus: aeoFilter === "all" ? undefined : aeoFilter,
+                                minAeoScore: aeoMinScore || undefined,
+                                limit: 100,
+                                dryRun: false,
+                              }),
+                            });
+                            const d = await r.json();
+                            if (!d.success) throw new Error(d.error);
+                            await loadProject(selected.id);
+                          } catch (e) {
+                            setError(e instanceof Error ? e.message : "Toplu AEO başarısız");
+                          } finally {
+                            setAeoBulkLoading(false);
+                          }
+                        }}
+                        className="text-[10px] inline-flex items-center gap-1 rounded bg-cyan-600 text-white px-2 py-1 disabled:opacity-50"
+                      >
+                        {aeoBulkLoading ? <Loader2 size={10} className="animate-spin" /> : <Sparkles size={10} />}
+                        Toplu AEO Üret
+                      </button>
+                      <button
+                        type="button"
+                        disabled={draftBulkLoading || !selected.id}
+                        onClick={async () => {
+                          setDraftBulkLoading(true);
+                          try {
+                            const r = await fetch("/api/page-factory/blueprints/drafts/bulk-generate", {
+                              method: "POST",
+                              headers: { "Content-Type": "application/json" },
+                              body: JSON.stringify({
+                                projectId: selected.id,
+                                generationSource: "PRODUCT_UNIVERSE_V2",
+                                onlyWithoutDraft: true,
+                                limit: 100,
+                                dryRun: false,
+                              }),
+                            });
+                            const d = await r.json();
+                            if (!d.success) throw new Error(d.error);
+                            await loadProject(selected.id);
+                          } catch (e) {
+                            setError(e instanceof Error ? e.message : "Toplu draft başarısız");
+                          } finally {
+                            setDraftBulkLoading(false);
+                          }
+                        }}
+                        className="text-[10px] inline-flex items-center gap-1 rounded bg-violet-600 text-white px-2 py-1 disabled:opacity-50"
+                      >
+                        {draftBulkLoading ? <Loader2 size={10} className="animate-spin" /> : <FileStack size={10} />}
+                        Toplu Draft Oluştur
+                      </button>
+                    </div>
                   </div>
                   <div className="max-h-64 overflow-y-auto divide-y divide-gray-50">
                     {selected.blueprints
                       .filter((bp) => {
-                        if (blueprintSourceFilter === "all") return true;
-                        try {
-                          const m = JSON.parse(bp.metadataJson || "{}") as { generationSource?: string };
-                          return m.generationSource === blueprintSourceFilter;
-                        } catch {
-                          return false;
+                        if (blueprintSourceFilter !== "all") {
+                          try {
+                            const m = JSON.parse(bp.metadataJson || "{}") as { generationSource?: string };
+                            if (m.generationSource !== blueprintSourceFilter) return false;
+                          } catch {
+                            return false;
+                          }
                         }
+                        try {
+                          const m = JSON.parse(bp.metadataJson || "{}") as { aeo?: { version?: string; aeoQualityScore?: number } };
+                          const hasAeo = m.aeo?.version === "AEO_LAYER_V1";
+                          const score = m.aeo?.aeoQualityScore ?? 0;
+                          if (aeoFilter === "missing" && hasAeo) return false;
+                          if (aeoFilter === "ready" && !hasAeo) return false;
+                          if (aeoFilter === "low" && (!hasAeo || score >= 50)) return false;
+                          if (aeoMinScore > 0 && score < aeoMinScore) return false;
+                        } catch {
+                          if (aeoFilter !== "all" && aeoFilter !== "missing") return false;
+                        }
+                        return true;
                       })
-                      .slice(0, 12)
-                      .map((bp, i) => (
-                      <div key={i} className="px-4 py-2 text-xs">
-                        <p className="font-medium text-gray-900">{bp.title}</p>
-                        <p className="text-gray-500">{bp.pageType} · L{bp.hierarchyLevel}</p>
-                      </div>
-                    ))}
+                      .slice(0, 20)
+                      .map((bp) => {
+                        let aeoStatus = "Yok";
+                        let aeoScore: number | null = null;
+                        let draftStatus = "Yok";
+                        let publishScore: number | null = null;
+                        try {
+                          const m = JSON.parse(bp.metadataJson || "{}") as {
+                            aeo?: { version?: string; aeoQualityScore?: number };
+                            contentDraft?: { publishScore?: number; version?: string };
+                            contentStatus?: string;
+                          };
+                          if (m.aeo?.version === "AEO_LAYER_V1") {
+                            aeoScore = m.aeo.aeoQualityScore ?? null;
+                            aeoStatus = (aeoScore ?? 0) < 50 ? "Düşük kalite" : "Hazır";
+                          }
+                          if (m.contentDraft?.version === "PAGE_FACTORY_V3") {
+                            publishScore = m.contentDraft.publishScore ?? null;
+                            draftStatus = m.contentStatus || "DRAFT_GENERATED";
+                          }
+                        } catch { /* skip */ }
+                        return (
+                          <div key={bp.id} className="px-4 py-2 text-xs space-y-1">
+                            <p className="font-medium text-gray-900">{bp.title}</p>
+                            <p className="text-gray-500">
+                              {bp.pageType} · L{bp.hierarchyLevel}
+                              <span className="ml-2 text-cyan-700">AEO: {aeoStatus}{aeoScore != null ? ` (${aeoScore})` : ""}</span>
+                              <span className="ml-2 text-violet-700">Draft: {draftStatus}{publishScore != null ? ` (${publishScore})` : ""}</span>
+                            </p>
+                            <div className="flex flex-wrap gap-1">
+                              <button
+                                type="button"
+                                className="text-[9px] px-1.5 py-0.5 rounded bg-violet-50 text-violet-700 hover:bg-violet-100"
+                                onClick={async () => {
+                                  const r = await fetch(`/api/page-factory/blueprints/${bp.id}/draft/preview`, { method: "POST" });
+                                  const d = await r.json();
+                                  if (d.success) setDraftPreview({ open: true, data: d.data, title: bp.title });
+                                }}
+                              >
+                                Draft Önizle
+                              </button>
+                              <button
+                                type="button"
+                                className="text-[9px] px-1.5 py-0.5 rounded bg-violet-600 text-white hover:bg-violet-500"
+                                onClick={async () => {
+                                  await fetch(`/api/page-factory/blueprints/${bp.id}/draft/generate`, {
+                                    method: "POST",
+                                    headers: { "Content-Type": "application/json" },
+                                    body: JSON.stringify({ dryRun: false }),
+                                  });
+                                  await loadProject(selected!.id);
+                                }}
+                              >
+                                Draft Oluştur
+                              </button>
+                            </div>
+                          </div>
+                        );
+                      })}
                   </div>
                 </div>
               )}
@@ -496,12 +705,19 @@ export function PageFactoryShell({ showLicensePanel = false }: Props) {
         </>
       ) : null}
 
-      {showLicensePanel && (
+      {shellView === "projects" && showLicensePanel && (
         <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
           <h2 className="text-sm font-semibold text-gray-800 mb-4">Modül Lisansları</h2>
           <AdminModuleAccessPanel moduleKey="AI_PAGE_FACTORY" />
         </div>
       )}
+
+      <ContentDraftPreviewModal
+        open={draftPreview.open}
+        onClose={() => setDraftPreview({ open: false, data: null, title: "" })}
+        data={draftPreview.data}
+        title={draftPreview.title}
+      />
     </div>
   );
 }

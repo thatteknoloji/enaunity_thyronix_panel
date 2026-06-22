@@ -2,18 +2,12 @@
 
 import { useCallback, useEffect, useState } from "react";
 import {
-  Loader2, Upload, Package, Sparkles, Image as ImageIcon, Layers, AlertTriangle,
-  CheckCircle2, RefreshCw, X, ChevronRight, FileStack,
+  Loader2, Package, Sparkles, Image as ImageIcon, Layers, AlertTriangle,
+  RefreshCw, X, ChevronRight, FileStack,
 } from "lucide-react";
 import { ProductUniverseBlueprintPanel } from "./ProductUniverseBlueprintPanel";
 import { ProductUniverseThyronixBridgePanel } from "./ProductUniverseThyronixBridgePanel";
-
-const SOURCE_TYPES = [
-  { value: "CSV", label: "CSV" },
-  { value: "XLSX", label: "XLSX" },
-  { value: "TRENDYOL", label: "Trendyol Export" },
-  { value: "MANUAL", label: "Manuel" },
-];
+import { ProductUniverseImportWizard } from "./ProductUniverseImportWizard";
 
 type Stats = { total: number; analyzed: number; withImages: number; clusters: number; lowQuality: number };
 type Product = {
@@ -67,13 +61,7 @@ export function ProductUniverseShell({ mode }: Props) {
   const [jobs, setJobs] = useState<Job[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
-  const [importing, setImporting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [result, setResult] = useState<Record<string, unknown> | null>(null);
-  const [file, setFile] = useState<File | null>(null);
-  const [sourceType, setSourceType] = useState("CSV");
-  const [projectId, setProjectId] = useState("");
-  const [dryRun, setDryRun] = useState(true);
   const [selected, setSelected] = useState<ProductDetail | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
   const [q, setQ] = useState("");
@@ -113,30 +101,6 @@ export function ProductUniverseShell({ mode }: Props) {
   useEffect(() => {
     loadData();
   }, [loadData]);
-
-  const handleImport = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!file) return;
-    setImporting(true);
-    setError(null);
-    setResult(null);
-    try {
-      const fd = new FormData();
-      fd.append("file", file);
-      fd.append("type", sourceType);
-      fd.append("dryRun", String(dryRun));
-      if (projectId) fd.append("projectId", projectId);
-      const r = await fetch("/api/product-universe/import", { method: "POST", body: fd });
-      const d = await r.json();
-      if (!d.success) throw new Error(d.error || "Import başarısız");
-      setResult(d.data);
-      await loadData();
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Import başarısız");
-    } finally {
-      setImporting(false);
-    }
-  };
 
   const openDetail = async (id: string) => {
     setDetailLoading(true);
@@ -274,82 +238,11 @@ export function ProductUniverseShell({ mode }: Props) {
         </div>
       )}
 
-      <form onSubmit={handleImport} className="rounded-xl border border-gray-200 bg-white p-6 space-y-4 shadow-sm">
-        <h2 className="text-sm font-semibold text-gray-800">Ürün Import</h2>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <div>
-            <label className="text-xs text-gray-500">Kaynak Tipi</label>
-            <select
-              value={sourceType}
-              onChange={(e) => setSourceType(e.target.value)}
-              className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm"
-            >
-              {SOURCE_TYPES.map((t) => (
-                <option key={t.value} value={t.value}>{t.label}</option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label className="text-xs text-gray-500">Proje (opsiyonel)</label>
-            <select
-              value={projectId}
-              onChange={(e) => setProjectId(e.target.value)}
-              className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm"
-            >
-              <option value="">— Seçin —</option>
-              {projects.map((p) => (
-                <option key={p.id} value={p.id}>{p.name}</option>
-              ))}
-            </select>
-          </div>
-          <div className="flex items-end">
-            <label className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
-              <input type="checkbox" checked={dryRun} onChange={(e) => setDryRun(e.target.checked)} />
-              Dry-run
-            </label>
-          </div>
-          <div>
-            <label className="text-xs text-gray-500">Dosya (CSV / XLSX / JSON)</label>
-            <input
-              type="file"
-              accept=".csv,.json,.xlsx,.xls"
-              onChange={(e) => setFile(e.target.files?.[0] || null)}
-              className="mt-1 w-full text-sm"
-            />
-          </div>
-        </div>
-        <button
-          type="submit"
-          disabled={importing || !file}
-          className="inline-flex items-center gap-2 rounded-lg bg-violet-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-violet-500 disabled:opacity-50"
-        >
-          {importing ? <Loader2 size={16} className="animate-spin" /> : <Upload size={16} />}
-          {dryRun ? "Dry-run Başlat" : "Import Başlat"}
-        </button>
-      </form>
-
-      {result && (
-        <div className="rounded-xl border border-emerald-200 bg-emerald-50/50 p-5 space-y-3">
-          <div className="flex items-center gap-2 text-emerald-800 font-semibold">
-            <CheckCircle2 size={18} />
-            Import tamamlandı
-          </div>
-          <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 text-sm">
-            <Stat label="Toplam" value={result.totalRows as number} />
-            <Stat label="Eklenen" value={result.insertedRows as number} />
-            <Stat label="Güncellenen" value={result.updatedRows as number} />
-            <Stat label="Atlanan" value={result.skippedRows as number} />
-            <Stat label="Hata" value={result.errorRows as number} />
-          </div>
-          {(result.warnings as string[])?.length > 0 && (
-            <div className="text-xs text-amber-700">
-              {(result.warnings as string[]).slice(0, 5).map((w) => (
-                <p key={w}>{w}</p>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
+      <ProductUniverseImportWizard
+        projects={projects}
+        mode={mode}
+        onComplete={loadData}
+      />
 
       <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
         <h2 className="text-sm font-semibold text-gray-800 mb-4">Son Import Jobs</h2>

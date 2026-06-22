@@ -1,13 +1,16 @@
 import Papa from "papaparse";
 import * as XLSX from "xlsx";
 import { detectProductColumns, getDetectedColumnsSummary, type ProductColumnMapping } from "./column-detector";
-import { cleanProductDescription } from "./description-cleaner";
+import { analyzeDescription, cleanProductDescription } from "./description-cleaner";
+import { collectImageUrlsFromRow } from "./image-harvester";
 import {
   buildDuplicateKey,
   generateProductSlug,
   normalizeProductName,
   parsePrice,
+  parseStock,
 } from "./product-normalizer";
+import { productMappingToUserMapping } from "./import-types";
 
 export type ImportRow = Record<string, string | number | null | undefined>;
 
@@ -24,6 +27,8 @@ export type ParsedProductRow = {
   descriptionClean: string;
   price: number | null;
   currency: string;
+  stock: number | null;
+  productUrl: string;
   imageUrls: string[];
   duplicateKey: string;
 };
@@ -32,6 +37,7 @@ export type ParseImportResult = {
   rows: ParsedProductRow[];
   columns: string[];
   mapping: ProductColumnMapping;
+  columnMapping: Record<string, string>;
   detectedColumns: Record<string, string | string[]>;
   warnings: string[];
   errors: Array<{ row: number; message: string }>;
@@ -68,21 +74,7 @@ export function parseImportFile(buffer: Buffer, fileName: string): ImportRow[] {
     if (!sheet) throw new Error("XLSX sayfası bulunamadı");
     return XLSX.utils.sheet_to_json<ImportRow>(sheet, { defval: "" });
   }
-  throw new Error("Desteklenen formatlar: CSV, JSON, XLSX");
-}
-
-function extractImageUrls(row: ImportRow, imageColumns: string[]): string[] {
-  const urls: string[] = [];
-  for (const col of imageColumns) {
-    const val = norm(row[col]);
-    if (!val) continue;
-    if (val.includes(",")) {
-      val.split(",").map((u) => u.trim()).filter(Boolean).forEach((u) => urls.push(u));
-    } else {
-      urls.push(val);
-    }
-  }
-  return [...new Set(urls.filter((u) => u.startsWith("http") || u.startsWith("//")))];
+  throw new Error("Desteklenen formatlar: CSV, JSON, XLSX, XLS");
 }
 
 export function parseProductRows(
@@ -94,9 +86,10 @@ export function parseProductRows(
   const columns = rows.length ? Object.keys(rows[0]!) : [];
   const mapping = detectProductColumns(columns, customMapping);
   const detectedColumns = getDetectedColumnsSummary(mapping);
+  const columnMapping = productMappingToUserMapping(columns, mapping);
 
-  if (!mapping.name) {
-    warnings.push("Ürün adı kolonu tespit edilemedi — ilk kolon kullanılacak");
+  if (!mapping.name && !mapping.stockCode) {
+    warnings.push("Ürün adı veya SKU kolonu tespit edilemedi — ilk kolon ad olarak kullanılacak");
     mapping.name = columns[0];
   }
 
@@ -105,21 +98,34 @@ export function parseProductRows(
 
   rows.forEach((row, idx) => {
     const rowIndex = idx + 2;
-    const rawName = pick(row, mapping.name) || pick(row, columns[0]);
-    if (!rawName) {
-      errors.push({ row: rowIndex, message: "Ürün adı boş" });
+    const rawName = pick(row, mapping.name) || pick(row, mapping.stockCode) || pick(row, columns[0]);
+    const stockCode = pick(row, mapping.stockCode);
+
+    if (!rawName && !stockCode) {
+      errors.push({ row: rowIndex, message: "Ürün adı ve SKU boş" });
       return;
     }
 
-    const normalizedName = normalizeProductName(rawName);
+    const displayName = rawName || stockCode;
+    const normalizedName = normalizeProductName(displayName);
     const brand = pick(row, mapping.brand);
     const barcode = pick(row, mapping.barcode);
-    const stockCode = pick(row, mapping.stockCode);
     const categoryPath = pick(row, mapping.categoryPath);
     const descriptionRaw = pick(row, mapping.description);
     const descriptionClean = cleanProductDescription(descriptionRaw);
-    const { price, currency } = parsePrice(mapping.price ? row[mapping.price] : null);
-    const imageUrls = extractImageUrls(row, mapping.imageColumns);
+
+    const priceCol = mapping.price ? row[mapping.price] : null;
+    const { price, currency: parsedCurrency } = parsePrice(priceCol);
+    const currencyCol = pick(row, mapping.currency);
+    const currency = currencyCol
+      ? currencyCol.toUpperCase() === "TL"
+        ? "TRY"
+        : currencyCol.toUpperCase()
+      : parsedCurrency;
+
+    const stock = parseStock(mapping.stock ? row[mapping.stock] : null);
+    const productUrl = pick(row, mapping.productUrl);
+    const { urls: imageUrls } = collectImageUrlsFromRow(row, mapping.imageColumns);
 
     let slug = generateProductSlug(normalizedName);
     const count = slugCounts.get(slug) || 0;
@@ -128,7 +134,7 @@ export function parseProductRows(
 
     parsed.push({
       rowIndex,
-      rawName,
+      rawName: displayName,
       normalizedName,
       slug,
       brand,
@@ -139,14 +145,25 @@ export function parseProductRows(
       descriptionClean,
       price,
       currency,
+      stock,
+      productUrl,
       imageUrls,
-      duplicateKey: buildDuplicateKey({ barcode, normalizedName, brand, categoryPath }),
+      duplicateKey: buildDuplicateKey({
+        barcode,
+        stockCode,
+        normalizedName,
+        brand,
+        categoryPath,
+        imageUrl: imageUrls[0],
+      }),
     });
   });
 
   if (!mapping.brand) warnings.push("Marka kolonu tespit edilemedi");
-  if (!mapping.barcode) warnings.push("Barkod kolonu tespit edilemedi");
-  if (!mapping.imageColumns.length) warnings.push("Görsel kolonu tespit edilemedi");
+  if (!mapping.barcode && !mapping.stockCode) warnings.push("Barkod/SKU kolonu tespit edilemedi");
+  if (!mapping.imageColumns.length) warnings.push("Görsel kolonu tespit edilemedi — kalite düşük olabilir");
+  if (!mapping.price) warnings.push("Fiyat kolonu tespit edilemedi");
+  if (!mapping.stock) warnings.push("Stok kolonu tespit edilemedi");
 
-  return { rows: parsed, columns, mapping, detectedColumns, warnings, errors };
+  return { rows: parsed, columns, mapping, columnMapping, detectedColumns, warnings, errors };
 }

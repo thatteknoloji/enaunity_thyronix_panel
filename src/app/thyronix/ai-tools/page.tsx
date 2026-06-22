@@ -40,12 +40,23 @@ export default function ThyronixAiToolsPage() {
   const [qualityResult, setQualityResult] = useState<any>(null);
 
   useEffect(() => {
-    fetch("/api/admin/nexa-ai-providers").then(r => r.json()).then(d => {
+    const loadProviders = async () => {
+      const myRes = await fetch("/api/thyronix/ai/my-provider");
+      const myData = await myRes.json();
+      if (myData.success && myData.data?.configured && myData.data?.id) {
+        const p = { id: myData.data.id, name: myData.data.name, model: myData.data.model, provider: myData.data.provider };
+        setProviders([p]);
+        setSelectedProvider(p.id);
+        return;
+      }
+      const res = await fetch("/api/admin/nexa-ai-providers");
+      const d = await res.json();
       if (d.success && d.data.length > 0) {
         setProviders(d.data);
         setSelectedProvider(d.data[0].id);
       }
-    });
+    };
+    loadProviders();
   }, []);
 
   const handleSearch = async () => {
@@ -56,7 +67,7 @@ export default function ThyronixAiToolsPage() {
   };
 
   const callAi = async (task: string, prompt: string, productId?: string, extra?: any) => {
-    if (!selectedProvider) return toast.error("Önce bir AI provider seçin");
+    if (!selectedProvider) return toast.error("Önce Ayarlar → Yapay Zeka API bölümünden API anahtarınızı girin");
     setLoading(true); setResult(null); setPreviewHtml("");
     try {
       const res = await fetch("/api/thyronix/ai/action", {

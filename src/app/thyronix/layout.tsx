@@ -25,6 +25,7 @@ const navItems = [
   { href: "/thyronix/users", label: "Ekip", icon: Users, planFeature: "multiUser" as const },
   { href: "/thyronix/checklist", label: "Kontrol Listesi", icon: ListChecks },
   { href: "/thyronix/help", label: "Yardım", icon: HelpCircle },
+  { href: "/thyronix/settings", label: "Ayarlar", icon: Settings },
   { href: "/thyronix/admin", label: "Yönetim", icon: Settings, adminOnly: true },
 ];
 

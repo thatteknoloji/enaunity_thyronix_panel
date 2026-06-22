@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Settings } from "lucide-react";
+import { ThyronixMyAiProviderPanel } from "@/components/thyronix/ThyronixMyAiProviderPanel";
 
 export default function ThyronixSettingsPage() {
   const [stats, setStats] = useState<any>(null);
@@ -12,7 +13,9 @@ export default function ThyronixSettingsPage() {
 
   return (
     <div className="space-y-6 max-w-2xl">
-      <div><h1 className="text-2xl font-bold text-nexa-text">Settings</h1><p className="text-sm text-nexa-text-secondary mt-1">THYRONIX sistem yapılandırması ve durumu</p></div>
+      <div><h1 className="text-2xl font-bold text-nexa-text">Ayarlar</h1><p className="text-sm text-nexa-text-secondary mt-1">THYRONIX yapılandırması — AI API anahtarınız ve sistem durumu</p></div>
+
+      <ThyronixMyAiProviderPanel />
 
       <div className="rounded-xl border border-nexa-border bg-nexa-card p-6 space-y-5">
         <h2 className="font-semibold text-nexa-text flex items-center gap-2"><Settings size={16}/> Genel Ayarlar</h2>

@@ -61,7 +61,7 @@ export function ProductUniverseThyronixBridgePanel() {
   const [running, setRunning] = useState(false);
   const [result, setResult] = useState<ImportResult | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [dryRun, setDryRun] = useState(true);
+  const [dryRun, setDryRun] = useState(false);
   const [analyze, setAnalyze] = useState(true);
   const [minStock, setMinStock] = useState(0);
   const [limit, setLimit] = useState(1000);
@@ -149,7 +149,7 @@ export function ProductUniverseThyronixBridgePanel() {
           <p className="text-[10px] font-semibold uppercase tracking-wider text-cyan-700">Thyronix → Product Universe</p>
           <h2 className="text-lg font-bold text-gray-900">Thyronix Köprüsü V3</h2>
           <p className="text-sm text-gray-500 mt-1">
-            Thyronix XML ürünlerini Product Universe&apos;e aktarır; entity, Content DNA ve kalite skoru otomatik çalışır.
+            Thyronix XML ürünlerini Product Universe&apos;e aktarır. Konum: Admin → Product Universe → <strong>Thyronix Köprüsü</strong> sekmesi
           </p>
         </div>
         <button
@@ -217,11 +217,12 @@ export function ProductUniverseThyronixBridgePanel() {
             className="inline-flex items-center gap-2 rounded-lg bg-cyan-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-cyan-500 disabled:opacity-50"
           >
             {running ? <Loader2 size={16} className="animate-spin" /> : <Play size={16} />}
-            {dryRun ? "Dry Run" : `İlk ${limit} ürünü aktar`}
+            {dryRun ? `Dry Run (${limit})` : `İlk ${limit} ürünü aktar`}
           </button>
           <button
             type="button"
             disabled={running || dryRun}
+            title={dryRun ? "Önce Dry-run kutusunu kapatın" : "Tüm aktif Thyronix kaynaklarını batch halinde aktarır"}
             onClick={() => runImport({ all: true })}
             className="inline-flex items-center gap-2 rounded-lg border border-violet-300 bg-violet-50 px-4 py-2.5 text-sm font-medium text-violet-700 hover:bg-violet-100 disabled:opacity-50"
           >
@@ -229,6 +230,11 @@ export function ProductUniverseThyronixBridgePanel() {
             Tüm aktif kaynakları aktar (batch)
           </button>
         </div>
+        {dryRun && (
+          <p className="text-xs text-amber-700">
+            Dry-run açıkken veritabanına yazılmaz. Gerçek aktarım için Dry-run&apos;u kapatın; &quot;Tüm aktif kaynakları aktar&quot; butonu da Dry-run kapalıyken aktif olur.
+          </p>
+        )}
       </div>
 
       {result && (

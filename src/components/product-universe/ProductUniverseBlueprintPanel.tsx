@@ -2,6 +2,8 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { Eye, Loader2, Save, Layers } from "lucide-react";
+import { ProductUniverseAeoSection } from "./ProductUniverseAeoSection";
+import { ProductUniverseContentDraftSection } from "./ProductUniverseContentDraftSection";
 
 type Project = { id: string; name: string };
 
@@ -56,7 +58,11 @@ export function ProductUniverseBlueprintPanel({
     title: string;
     pageType: string;
     hierarchyLevel: number;
-    metadata: Record<string, unknown>;
+    metadata: Record<string, unknown> & {
+      aeo?: { aeoQualityScore?: number; version?: string };
+      contentDraft?: { publishScore?: number; draftId?: string; version?: string };
+      contentStatus?: string;
+    };
   }>>([]);
 
   const loadSaved = useCallback(async () => {
@@ -264,11 +270,27 @@ export function ProductUniverseBlueprintPanel({
       {savedBlueprints.length > 0 && (
         <div>
           <p className="text-xs font-semibold text-gray-700 mb-2">Kayıtlı Blueprintler ({savedBlueprints.length})</p>
-          <div className="max-h-40 overflow-y-auto space-y-1">
+          <div className="max-h-96 overflow-y-auto space-y-2">
             {savedBlueprints.map((bp) => (
               <div key={bp.id} className="text-[10px] bg-gray-50 rounded px-2 py-1.5">
                 <p className="font-medium">{bp.title}</p>
                 <p className="text-gray-500">{bp.pageType} · skor {String(bp.metadata.qualityScore ?? "—")}</p>
+                <ProductUniverseAeoSection
+                  blueprintId={bp.id}
+                  blueprintTitle={bp.title}
+                  initialAeoScore={bp.metadata.aeo?.aeoQualityScore ?? null}
+                  hasAeo={bp.metadata.aeo?.version === "AEO_LAYER_V1"}
+                />
+                <ProductUniverseContentDraftSection
+                  blueprintId={bp.id}
+                  blueprintTitle={bp.title}
+                  draftId={(bp.metadata.contentDraft as { draftId?: string })?.draftId}
+                  initialPublishScore={bp.metadata.contentDraft?.publishScore ?? null}
+                  draftStatus={bp.metadata.contentStatus || null}
+                  gateStatus={(bp.metadata.publishGate as { status?: string })?.status ?? null}
+                  gateScore={(bp.metadata.publishGate as { score?: number })?.score ?? null}
+                  hasDraft={bp.metadata.contentDraft?.version === "PAGE_FACTORY_V3"}
+                />
               </div>
             ))}
           </div>

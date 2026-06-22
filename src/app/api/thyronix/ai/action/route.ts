@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/db";
 import { aiCall } from "@/lib/thyronix/ai-service";
 import { checkAiLicense } from "@/lib/thyronix/ai-license";
-import { requireThyronixAdmin } from "@/lib/thyronix/access";
+import { requireThyronixDealerOrAdmin } from "@/lib/thyronix/access";
+import { resolveDealerId } from "@/lib/thyronix/workspace";
+import { resolveAiProviderId } from "@/lib/thyronix/ai-provider-resolve";
 
 // Safety layer - blocked patterns
 const BLOCKED_PATTERNS = [
@@ -31,7 +32,7 @@ export async function POST(req: Request) {
   try {
     const licenseError = checkAiLicense();
     if (licenseError) return NextResponse.json({ error: licenseError.error }, { status: licenseError.status });
-    await requireThyronixAdmin();
+    const user = await requireThyronixDealerOrAdmin();
 
     const body = await req.json();
     const { providerId, task, productId, prompt, responseFormat, temperature, maxTokens } = body;
@@ -40,13 +41,21 @@ export async function POST(req: Request) {
     const safetyError = safetyCheck(prompt);
     if (safetyError) return NextResponse.json({ error: safetyError }, { status: 400 });
 
-    if (!providerId || !task || !prompt) {
-      return NextResponse.json({ error: "providerId, task ve prompt zorunlu" }, { status: 400 });
+    if (!task || !prompt) {
+      return NextResponse.json({ error: "task ve prompt zorunlu" }, { status: 400 });
+    }
+
+    const dealerId = await resolveDealerId(user);
+    const resolvedProviderId = await resolveAiProviderId({ providerId, dealerId });
+    if (!resolvedProviderId) {
+      return NextResponse.json({
+        error: "AI sağlayıcı tanımlı değil — Ayarlar → Yapay Zeka API veya /thyronix/ai → Sağlayıcılar",
+      }, { status: 400 });
     }
 
     // AI call
     const result = await aiCall({
-      providerId,
+      providerId: resolvedProviderId,
       task,
       productId: productId || "",
       systemPrompt: getSystemPrompt(task),

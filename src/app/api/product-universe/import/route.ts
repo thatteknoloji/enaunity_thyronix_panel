@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
-import { IMPORT_SOURCE_TYPES, runProductImport } from "@/lib/product-universe/import-service";
+import { commitProductImport, IMPORT_SOURCE_TYPES } from "@/lib/product-universe/import-service";
 import { requireProductUniverseApiAccess } from "@/lib/product-universe/api-guard";
 
+/** Legacy import endpoint — delegates to commitProductImport */
 export async function POST(req: Request) {
   try {
     const guard = await requireProductUniverseApiAccess();
@@ -36,14 +37,17 @@ export async function POST(req: Request) {
     }
 
     const buffer = Buffer.from(await file.arrayBuffer());
-    const result = await runProductImport(buffer, file.name, {
+    const result = await commitProductImport(buffer, file.name, {
       dealerId: guard.dealerId,
+      isAdmin: guard.isAdmin,
       projectId,
-      sourceType: type as "CSV",
+      sourceType: type,
       fileName: file.name,
       dryRun,
       downloadImages,
       mapping,
+      duplicateMode: dryRun ? "skip" : "update",
+      runAnalysis: !dryRun,
     });
 
     return NextResponse.json({ success: true, data: result });
