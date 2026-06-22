@@ -45,6 +45,7 @@
     "test:thyronix-dealer-api": "tsx scripts/test-thyronix-dealer-api.ts",
     "test:ecosystem-showcase": "tsx scripts/test-ecosystem-showcase.ts",
     "test:thyronix-commercial": "tsx scripts/test-thyronix-commercial.ts",
+    "test:thyronix-bridge": "tsx scripts/test-thyronix-bridge.ts",
     "test:product-library": "tsx scripts/test-product-library.ts",
     "test:product-library-live": "tsx scripts/test-product-library-live.ts",
     "test:fulfillment": "tsx scripts/test-fulfillment.ts",

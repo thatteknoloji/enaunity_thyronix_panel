@@ -6,6 +6,7 @@ import {
   CheckCircle2, RefreshCw, X, ChevronRight, FileStack,
 } from "lucide-react";
 import { ProductUniverseBlueprintPanel } from "./ProductUniverseBlueprintPanel";
+import { ProductUniverseThyronixBridgePanel } from "./ProductUniverseThyronixBridgePanel";
 
 const SOURCE_TYPES = [
   { value: "CSV", label: "CSV" },
@@ -82,6 +83,7 @@ export function ProductUniverseShell({ mode }: Props) {
   const [bulkResult, setBulkResult] = useState<Record<string, unknown> | null>(null);
   const [bulkProjectId, setBulkProjectId] = useState("");
   const [bulkDryRun, setBulkDryRun] = useState(true);
+  const [shellTab, setShellTab] = useState<"main" | "thyronix">("main");
 
   const loadData = useCallback(async () => {
     setLoading(true);
@@ -227,6 +229,37 @@ export function ProductUniverseShell({ mode }: Props) {
         </p>
       </div>
 
+      {mode === "admin" && (
+        <div className="flex gap-1 border-b border-gray-200">
+          <button
+            type="button"
+            onClick={() => setShellTab("main")}
+            className={`px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-colors ${
+              shellTab === "main"
+                ? "border-violet-600 text-violet-700"
+                : "border-transparent text-gray-500 hover:text-gray-700"
+            }`}
+          >
+            Ürün Evreni
+          </button>
+          <button
+            type="button"
+            onClick={() => setShellTab("thyronix")}
+            className={`px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-colors ${
+              shellTab === "thyronix"
+                ? "border-cyan-600 text-cyan-700"
+                : "border-transparent text-gray-500 hover:text-gray-700"
+            }`}
+          >
+            Thyronix Köprüsü
+          </button>
+        </div>
+      )}
+
+      {mode === "admin" && shellTab === "thyronix" ? (
+        <ProductUniverseThyronixBridgePanel />
+      ) : (
+      <>
       {error && (
         <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>
       )}
@@ -595,6 +628,8 @@ export function ProductUniverseShell({ mode }: Props) {
             ) : null}
           </div>
         </div>
+      )}
+      </>
       )}
     </div>
   );
