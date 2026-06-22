@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { writeFile, mkdir } from "fs/promises";
 import path from "path";
-import { requireAdmin } from "@/lib/auth";
+import { requireSuperAdmin } from "@/lib/auth";
 import { assertImageUploadSize, optimizeContentImage } from "@/lib/images/optimize-upload";
 
 const IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp", "image/gif", "image/svg+xml"]);
@@ -9,7 +9,7 @@ const VIDEO_TYPES = new Set(["video/mp4", "video/webm"]);
 
 export async function POST(req: Request) {
   try {
-    await requireAdmin();
+    await requireSuperAdmin();
     const formData = await req.formData();
     const file = formData.get("file") as File | null;
     const kind = (formData.get("kind") as string) || "banner";

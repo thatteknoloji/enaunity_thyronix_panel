@@ -119,6 +119,12 @@ export async function requireAdmin(): Promise<User & { adminRole?: { id: string;
   return user;
 }
 
+export async function requireSuperAdmin(): Promise<User & { adminRole?: { id: string; name: string; permissions: string } }> {
+  const user = await requireAdmin();
+  if (user.role !== "SUPER_ADMIN") throw new Error("Forbidden");
+  return user;
+}
+
 export async function requireDealer(): Promise<User> {
   const user = await requireAuth();
   if (!user.dealerId) throw new Error("Forbidden");

@@ -18,6 +18,129 @@
     checkoutPath: '/payment/checkout?type=module&moduleKey=LINKSLASH&planKey=starter'
   };
 
+  var MOBILE_BASE = '/linkslash/mobile';
+
+  var PATH_ROUTES = {
+    '/linkslash/mobile/login': 'login',
+    '/linkslash/mobile/dashboard': 'app',
+    '/linkslash/mobile/license': 'license',
+    '/linkslash/mobile/device': 'device',
+    '/linkslash/mobile/update': 'update',
+    '/linkslash/mobile/import': 'app'
+  };
+
+  var SCREEN_ROUTES = {
+    login: MOBILE_BASE + '/login',
+    license: MOBILE_BASE + '/license',
+    device: MOBILE_BASE + '/device',
+    update: MOBILE_BASE + '/update',
+    app: MOBILE_BASE + '/dashboard',
+    import: MOBILE_BASE + '/import'
+  };
+
+  function normalizePath(path) {
+    if (!path) return MOBILE_BASE;
+    var p = String(path).split('?')[0].split('#')[0].replace(/\/$/, '');
+    if (!p) return MOBILE_BASE;
+    return p;
+  }
+
+  function isShellPath(path) {
+    var p = normalizePath(path);
+    return p === MOBILE_BASE || p.indexOf(MOBILE_BASE + '/') === 0;
+  }
+
+  function isAllowedExternalUrl(url) {
+    if (!url) return false;
+    if (url.indexOf('/api/') !== -1) return true;
+    if (url.indexOf('/api/linkslash/download/') !== -1) return true;
+    return false;
+  }
+
+  function navigateShell(routePath, replace) {
+    var path = routePath || MOBILE_BASE + '/login';
+    if (!isShellPath(path)) path = MOBILE_BASE + '/login';
+    var method = replace ? 'replaceState' : 'pushState';
+    if (window.history && window.history[method]) {
+      window.history[method]({}, '', path);
+    }
+    syncRouteFromPath();
+  }
+
+  function syncRouteFromPath() {
+    var path = normalizePath(window.location.pathname);
+    if (path === MOBILE_BASE) return;
+    var screen = PATH_ROUTES[path];
+    if (screen === 'app' && path.indexOf('/import') !== -1 && state.hasShare) {
+      showScreen('app');
+      renderSharePreview(state.share);
+      return;
+    }
+    if (screen) showScreen(screen);
+  }
+
+  function installNavigationGuard() {
+    document.documentElement.classList.add('linkslash-mobile-shell');
+    document.body.classList.add('linkslash-mobile-shell');
+
+    document.addEventListener('click', function(e) {
+      var a = e.target && e.target.closest ? e.target.closest('a[href]') : null;
+      if (!a) return;
+      var href = a.getAttribute('href') || '';
+      if (href.indexOf('http') === 0) {
+        e.preventDefault();
+        return;
+      }
+      if (href.charAt(0) === '/' && !isShellPath(href) && !isAllowedExternalUrl(href)) {
+        e.preventDefault();
+        console.warn('[LinkSlash Mobile] Dış rota engellendi:', href);
+      }
+    }, true);
+
+    var origAssign = window.location.assign.bind(window.location);
+    window.location.assign = function(url) {
+      var path = url;
+      if (typeof url === 'string' && url.indexOf('http') === 0) {
+        try { path = new URL(url).pathname; } catch (_) { path = url; }
+      }
+      if (typeof path === 'string' && !isShellPath(path) && !isAllowedExternalUrl(path)) {
+        console.warn('[LinkSlash Mobile] location.assign engellendi:', url);
+        return;
+      }
+      origAssign(url);
+    };
+
+    try {
+      var hrefDesc = Object.getOwnPropertyDescriptor(window.Location.prototype, 'href');
+      if (hrefDesc && hrefDesc.set) {
+        var origHrefSet = hrefDesc.set;
+        Object.defineProperty(window.location, 'href', {
+          get: hrefDesc.get ? hrefDesc.get.bind(window.location) : function() { return window.location.toString(); },
+          set: function(url) {
+            var path = url;
+            if (typeof url === 'string' && url.indexOf('http') === 0) {
+              try { path = new URL(url).pathname; } catch (_) { path = url; }
+            }
+            if (typeof path === 'string' && !isShellPath(path) && !isAllowedExternalUrl(path)) {
+              console.warn('[LinkSlash Mobile] location.href engellendi:', url);
+              return;
+            }
+            origHrefSet.call(window.location, url);
+          },
+          configurable: true
+        });
+      }
+    } catch (_) {}
+
+    window.addEventListener('popstate', function() {
+      if (!isShellPath(window.location.pathname)) {
+        navigateShell(SCREEN_ROUTES[state.screen] || MOBILE_BASE + '/login', true);
+        return;
+      }
+      syncRouteFromPath();
+    });
+  }
+
   var SCREEN_MAP = {
     login: 'screenLogin',
     license: 'screenLicense',
@@ -59,6 +182,12 @@
     });
     var logoutBtn = $('logoutBtn');
     if (logoutBtn) logoutBtn.classList.toggle('hidden', name === 'login' || name === 'update');
+    var route = SCREEN_ROUTES[name];
+    if (route && normalizePath(window.location.pathname) !== normalizePath(route)) {
+      try {
+        window.history.replaceState({}, '', route);
+      } catch (_) {}
+    }
   }
 
   function setSyncPill() {
@@ -219,6 +348,7 @@
         $('updateMessage').textContent = 'Mevcut sürüm (' + APP_VERSION + ') artık desteklenmiyor. v' + json.required + ' veya üzeri gerekli.';
         $('updateVersionInfo').textContent = 'En son sürüm: v' + json.latest;
         showScreen('update');
+        navigateShell(MOBILE_BASE + '/update', true);
         return false;
       }
       if (json.updateAvailable && state.session && state.session.authenticated) {
@@ -281,7 +411,14 @@
       var resp = await fetch(CONFIG.apiBase + '/api/linkslash/download/token', { method: 'POST', credentials: 'include' });
       var json = await resp.json();
       if (json.success && json.data && json.data.downloadUrl) {
-        window.location.href = CONFIG.apiBase + json.data.downloadUrl;
+        var url = CONFIG.apiBase + json.data.downloadUrl;
+        var a = document.createElement('a');
+        a.href = url;
+        a.target = '_blank';
+        a.rel = 'noopener';
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
       } else {
         setStatus(json.error || 'İndirme başlatılamadı', 'err', 'updateMessage');
       }
@@ -304,23 +441,28 @@
     var session = state.session;
     if (!session || !session.authenticated) {
       showScreen('login');
+      navigateShell(MOBILE_BASE + '/login', true);
       return;
     }
     if (!session.linkslashAccess) {
       var msg = $('licenseMessage');
       if (msg) msg.textContent = licenseMessage(session);
       showScreen('license');
+      navigateShell(MOBILE_BASE + '/license', true);
       return;
     }
     var device = await registerDevice();
     if (!device.ok) {
       showScreen('device');
+      navigateShell(MOBILE_BASE + '/device', true);
       return;
     }
     showScreen('app');
     if (state.hasShare) {
+      navigateShell(MOBILE_BASE + '/import', true);
       renderSharePreview(state.share);
     } else {
+      navigateShell(MOBILE_BASE + '/dashboard', true);
       renderDefaultDashboard();
     }
   }
@@ -369,6 +511,7 @@
     } catch (_) {}
     state.session = null;
     showScreen('login');
+    navigateShell(MOBILE_BASE + '/login', true);
     setSyncPill();
     setStatus('', '', 'loginStatus');
   }
@@ -441,6 +584,7 @@
     } catch (err) {
       if (err.code === 'AUTH_REQUIRED') {
         showScreen('login');
+        navigateShell(MOBILE_BASE + '/login', true);
         setStatus('Oturum süresi doldu — tekrar giriş yapın', 'err', 'loginStatus');
         return;
       }
@@ -538,12 +682,15 @@
       applySharePayload(typeof payload === 'string' ? { text: payload } : payload);
       if (state.session && state.session.authenticated && state.session.linkslashAccess) {
         showScreen('app');
+        navigateShell(MOBILE_BASE + '/import', true);
       }
     },
     applySharePayload: applySharePayload
   };
 
   async function bootstrap() {
+    installNavigationGuard();
+
     window.addEventListener('online', function() {
       state.online = true;
       setSyncPill();
@@ -576,7 +723,23 @@
     if (!(await checkVersionGate())) return;
 
     await checkSession();
-    await routeAfterSession();
+
+    var path = normalizePath(window.location.pathname);
+    if (path === MOBILE_BASE) {
+      await routeAfterSession();
+    } else {
+      syncRouteFromPath();
+      if (state.session && state.session.authenticated) {
+        if (!state.session.linkslashAccess && PATH_ROUTES[path] !== 'license') {
+          await routeAfterSession();
+        } else if (state.session.linkslashAccess && (path === MOBILE_BASE + '/login' || path === MOBILE_BASE + '/license')) {
+          await routeAfterSession();
+        }
+      } else if (PATH_ROUTES[path] && PATH_ROUTES[path] !== 'login') {
+        showScreen('login');
+        navigateShell(MOBILE_BASE + '/login', true);
+      }
+    }
 
     $('loginBtn').addEventListener('click', login);
     $('logoutBtn').addEventListener('click', logout);

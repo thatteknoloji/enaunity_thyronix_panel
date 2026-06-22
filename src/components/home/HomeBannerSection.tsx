@@ -6,20 +6,40 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import type { HomeBannerSlotDTO } from "@/lib/homepage/service";
 
-function BannerPicture({
+type BannerItem = HomeBannerSlotDTO["banners"][number];
+
+function BannerMedia({
   banner,
   className = "",
   priority = false,
 }: {
-  banner: HomeBannerSlotDTO["banners"][number];
+  banner: BannerItem;
   className?: string;
   priority?: boolean;
 }) {
+  if (banner.mediaType === "video" && banner.videoDesktop) {
+    const mobile = banner.videoMobile || banner.videoDesktop;
+    return (
+      <video
+        className={`w-full h-full object-cover ${className}`}
+        autoPlay
+        muted
+        loop
+        playsInline
+        poster={banner.imageDesktop || undefined}
+        preload={priority ? "auto" : "metadata"}
+      >
+        <source src={mobile} media="(max-width: 640px)" />
+        <source src={banner.videoDesktop} />
+      </video>
+    );
+  }
+
   const mobile = banner.imageMobile || banner.imageDesktop;
   const tablet = banner.imageTablet || banner.imageDesktop;
   const desktop = banner.imageDesktop;
 
-  const img = (
+  return (
     <picture>
       <source media="(max-width: 640px)" srcSet={mobile} />
       <source media="(max-width: 1024px)" srcSet={tablet} />
@@ -33,6 +53,18 @@ function BannerPicture({
       />
     </picture>
   );
+}
+
+function BannerPicture({
+  banner,
+  className = "",
+  priority = false,
+}: {
+  banner: BannerItem;
+  className?: string;
+  priority?: boolean;
+}) {
+  const inner = <BannerMedia banner={banner} className={className} priority={priority} />;
 
   if (banner.linkUrl) {
     return (
@@ -42,17 +74,40 @@ function BannerPicture({
         rel={banner.linkTarget === "_blank" ? "noopener noreferrer" : undefined}
         className="block w-full h-full"
       >
-        {img}
+        {inner}
       </Link>
     );
   }
-  return img;
+  return inner;
 }
 
-function BannerFrame({ children, className = "" }: { children: React.ReactNode; className?: string }) {
+function alignClass(align: string) {
+  if (align === "left") return "mr-auto";
+  if (align === "right") return "ml-auto";
+  return "mx-auto";
+}
+
+function mobileLayoutClass(layout: string) {
+  if (layout === "hidden") return "hidden md:block";
+  if (layout === "full") return "max-w-none px-0 md:px-4";
+  return "";
+}
+
+function BannerFrame({
+  children,
+  slot,
+  className = "",
+}: {
+  children: React.ReactNode;
+  slot: HomeBannerSlotDTO;
+  className?: string;
+}) {
+  const style = slot.backgroundColor ? { backgroundColor: slot.backgroundColor } : undefined;
   return (
-    <section className="py-4 md:py-6">
-      <div className={`mx-auto max-w-7xl px-4 ${className}`}>{children}</div>
+    <section className="py-4 md:py-6" style={style}>
+      <div className={`mx-auto max-w-7xl px-4 ${mobileLayoutClass(slot.mobileLayout)} ${alignClass(slot.contentAlign)} ${className}`}>
+        {children}
+      </div>
     </section>
   );
 }
@@ -78,11 +133,12 @@ export function HomeBannerSection({ slot, priority = false }: { slot: HomeBanner
   if (!banners.length) return null;
 
   const aspect = "aspect-[2/1] sm:aspect-[21/9] md:aspect-[3/1]";
+  const widthClass = slot.contentAlign === "center" ? "w-full max-w-5xl" : "w-full";
 
   if (slot.displayMode === "single") {
     return (
-      <BannerFrame>
-        <div className={`relative overflow-hidden rounded-xl md:rounded-2xl ${aspect} bg-ena-gray`}>
+      <BannerFrame slot={slot}>
+        <div className={`relative overflow-hidden rounded-xl md:rounded-2xl ${aspect} bg-ena-gray ${widthClass}`}>
           <BannerPicture banner={banners[0]} priority={priority} />
         </div>
       </BannerFrame>
@@ -92,8 +148,8 @@ export function HomeBannerSection({ slot, priority = false }: { slot: HomeBanner
   if (slot.displayMode === "grid") {
     const cols = slot.gridColumns === 3 ? "md:grid-cols-3" : "md:grid-cols-2";
     return (
-      <BannerFrame>
-        <div className={`grid grid-cols-1 ${cols} gap-3 md:gap-4`}>
+      <BannerFrame slot={slot}>
+        <div className={`grid grid-cols-1 ${cols} gap-3 md:gap-4 ${widthClass}`}>
           {banners.map((b, i) => (
             <div key={b.id} className={`relative overflow-hidden rounded-xl ${aspect} bg-ena-gray`}>
               <BannerPicture banner={b} priority={priority && i === 0} />
@@ -106,8 +162,8 @@ export function HomeBannerSection({ slot, priority = false }: { slot: HomeBanner
 
   if (slot.displayMode === "strip") {
     return (
-      <BannerFrame>
-        <div className="bleed-x-scroll flex gap-3 pb-2 snap-x scrollbar-none">
+      <BannerFrame slot={slot}>
+        <div className={`bleed-x-scroll flex gap-3 pb-2 snap-x scrollbar-none ${widthClass}`}>
           {banners.map((b, i) => (
             <div
               key={b.id}
@@ -124,8 +180,8 @@ export function HomeBannerSection({ slot, priority = false }: { slot: HomeBanner
   const current = banners[index];
 
   return (
-    <BannerFrame>
-      <div className={`relative overflow-hidden rounded-xl md:rounded-2xl ${aspect} bg-ena-gray group`}>
+    <BannerFrame slot={slot}>
+      <div className={`relative overflow-hidden rounded-xl md:rounded-2xl ${aspect} bg-ena-gray group ${widthClass}`}>
         <AnimatePresence mode="wait">
           <motion.div
             key={current.id}
@@ -178,14 +234,22 @@ export function HomeBannerSection({ slot, priority = false }: { slot: HomeBanner
 export function HomeBannersAtPlacement({
   slots,
   placement,
+  categorySectionId,
   priorityFirst = false,
 }: {
   slots: HomeBannerSlotDTO[];
   placement: string;
+  categorySectionId?: string;
   priorityFirst?: boolean;
 }) {
   const matching = slots
-    .filter((s) => s.placement === placement && s.active && s.banners.length > 0)
+    .filter((s) => {
+      if (s.placement !== placement || !s.active || s.banners.length === 0) return false;
+      if (placement === "before_category" || placement === "after_category") {
+        return categorySectionId ? s.categorySectionId === categorySectionId : false;
+      }
+      return true;
+    })
     .sort((a, b) => a.sortOrder - b.sortOrder);
 
   if (!matching.length) return null;

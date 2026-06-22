@@ -1,16 +1,26 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { requireAdmin } from "@/lib/auth";
+import { requireSuperAdmin } from "@/lib/auth";
 import { reorderHomeBanners } from "@/lib/homepage/service";
 
 export async function POST(req: Request) {
   try {
-    await requireAdmin();
+    await requireSuperAdmin();
     const body = await req.json();
-    const { slotKey, title, imageDesktop, imageTablet, imageMobile, linkUrl, linkTarget, startsAt, endsAt } = body;
+    const {
+      slotKey, title, mediaType, imageDesktop, imageTablet, imageMobile,
+      videoDesktop, videoMobile, linkUrl, linkTarget, startsAt, endsAt,
+    } = body;
 
-    if (!slotKey || !imageDesktop) {
-      return NextResponse.json({ success: false, error: "Konum ve masaüstü görseli gerekli" }, { status: 400 });
+    if (!slotKey) {
+      return NextResponse.json({ success: false, error: "Konum gerekli" }, { status: 400 });
+    }
+    const type = mediaType || "image";
+    if (type === "video" && !videoDesktop) {
+      return NextResponse.json({ success: false, error: "Masaüstü video gerekli" }, { status: 400 });
+    }
+    if (type === "image" && !imageDesktop) {
+      return NextResponse.json({ success: false, error: "Masaüstü görseli gerekli" }, { status: 400 });
     }
 
     const max = await prisma.homeBanner.aggregate({
@@ -22,9 +32,12 @@ export async function POST(req: Request) {
       data: {
         slotKey,
         title: title?.trim() || "",
-        imageDesktop,
+        mediaType: type,
+        imageDesktop: imageDesktop || "",
         imageTablet: imageTablet || "",
         imageMobile: imageMobile || "",
+        videoDesktop: videoDesktop || "",
+        videoMobile: videoMobile || "",
         linkUrl: linkUrl || "",
         linkTarget: linkTarget || "_self",
         sortOrder: (max._max.sortOrder ?? -1) + 1,
@@ -34,21 +47,23 @@ export async function POST(req: Request) {
       },
     });
     return NextResponse.json({ success: true, data: banner });
-  } catch {
-    return NextResponse.json({ success: false, error: "Banner eklenemedi" }, { status: 500 });
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : "Banner eklenemedi";
+    const status = msg === "Forbidden" ? 403 : 500;
+    return NextResponse.json({ success: false, error: msg }, { status });
   }
 }
 
 export async function PATCH(req: Request) {
   try {
-    await requireAdmin();
+    await requireSuperAdmin();
     const body = await req.json();
     const { id, ...rest } = body;
     if (!id) return NextResponse.json({ success: false, error: "ID gerekli" }, { status: 400 });
 
     const allowed = [
-      "title", "imageDesktop", "imageTablet", "imageMobile",
-      "linkUrl", "linkTarget", "active", "startsAt", "endsAt",
+      "title", "mediaType", "imageDesktop", "imageTablet", "imageMobile",
+      "videoDesktop", "videoMobile", "linkUrl", "linkTarget", "active", "startsAt", "endsAt",
     ] as const;
     const data: Record<string, unknown> = {};
     for (const key of allowed) {
@@ -63,33 +78,39 @@ export async function PATCH(req: Request) {
 
     const banner = await prisma.homeBanner.update({ where: { id }, data });
     return NextResponse.json({ success: true, data: banner });
-  } catch {
-    return NextResponse.json({ success: false, error: "Güncellenemedi" }, { status: 500 });
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : "Güncellenemedi";
+    const status = msg === "Forbidden" ? 403 : 500;
+    return NextResponse.json({ success: false, error: msg }, { status });
   }
 }
 
 export async function DELETE(req: Request) {
   try {
-    await requireAdmin();
+    await requireSuperAdmin();
     const { id } = await req.json();
     if (!id) return NextResponse.json({ success: false, error: "ID gerekli" }, { status: 400 });
     await prisma.homeBanner.delete({ where: { id } });
     return NextResponse.json({ success: true });
-  } catch {
-    return NextResponse.json({ success: false, error: "Silinemedi" }, { status: 500 });
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : "Silinemedi";
+    const status = msg === "Forbidden" ? 403 : 500;
+    return NextResponse.json({ success: false, error: msg }, { status });
   }
 }
 
 export async function PUT(req: Request) {
   try {
-    await requireAdmin();
+    await requireSuperAdmin();
     const { slotKey, ids } = await req.json();
     if (!slotKey || !Array.isArray(ids)) {
       return NextResponse.json({ success: false, error: "slotKey ve ids gerekli" }, { status: 400 });
     }
     const data = await reorderHomeBanners(slotKey, ids);
     return NextResponse.json({ success: true, data });
-  } catch {
-    return NextResponse.json({ success: false, error: "Sıralama kaydedilemedi" }, { status: 500 });
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : "Sıralama kaydedilemedi";
+    const status = msg === "Forbidden" ? 403 : 500;
+    return NextResponse.json({ success: false, error: msg }, { status });
   }
 }

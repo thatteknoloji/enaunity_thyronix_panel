@@ -8,7 +8,12 @@ import { isAdminPath } from "@/lib/auth/admin-access";
 
 function isStandaloneProductPath(pathname?: string | null): boolean {
   if (!pathname) return false;
-  return pathname.startsWith("/thyronix") || pathname.startsWith("/hive") || pathname.startsWith("/gateway");
+  return (
+    pathname.startsWith("/thyronix") ||
+    pathname.startsWith("/hive") ||
+    pathname.startsWith("/gateway") ||
+    pathname.startsWith("/linkslash/mobile")
+  );
 }
 
 export default function AppShell({ children }: { children: React.ReactNode }) {

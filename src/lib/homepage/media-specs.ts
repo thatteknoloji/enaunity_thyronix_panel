@@ -9,10 +9,29 @@ export const PAGE_PLACEMENTS = [
   { value: "after_hero", label: "Hero videosu altı" },
   { value: "after_features", label: "Özellik kartları altı" },
   { value: "after_search", label: "Arama bölümü altı" },
+  { value: "before_category", label: "Kategori satırı üstü (belirli kategori)" },
+  { value: "after_category", label: "Kategori satırı altı (belirli kategori)" },
   { value: "between_categories", label: "Kategori satırları arası (ortada)" },
   { value: "before_ecosystem", label: "Ekosistem vitrini öncesi" },
   { value: "before_partners", label: "İş ortakları öncesi" },
   { value: "before_cta", label: "Alt e-posta CTA öncesi" },
+] as const;
+
+export const SLOT_CONTENT_ALIGNS = [
+  { value: "left", label: "Sola hizala" },
+  { value: "center", label: "Ortala" },
+  { value: "right", label: "Sağa hizala" },
+] as const;
+
+export const SLOT_MOBILE_LAYOUTS = [
+  { value: "default", label: "Mobil: varsayılan" },
+  { value: "full", label: "Mobil: tam genişlik" },
+  { value: "hidden", label: "Mobilde gizle" },
+] as const;
+
+export const BANNER_MEDIA_TYPES = [
+  { value: "image", label: "Görsel" },
+  { value: "video", label: "Video" },
 ] as const;
 
 export const MEDIA_SPECS = {

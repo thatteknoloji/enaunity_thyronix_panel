@@ -1,12 +1,12 @@
 import { NextResponse } from "next/server";
-import { requireAdmin } from "@/lib/auth";
+import { requireSuperAdmin } from "@/lib/auth";
 import { deleteHomepageHero, updateHomepageHero } from "@/lib/homepage/heroes";
 
 type Params = { params: Promise<{ id: string }> };
 
 export async function PATCH(req: Request, { params }: Params) {
   try {
-    await requireAdmin();
+    await requireSuperAdmin();
     const { id } = await params;
     const body = await req.json();
     const data = await updateHomepageHero(id, body);
@@ -19,7 +19,7 @@ export async function PATCH(req: Request, { params }: Params) {
 
 export async function DELETE(_req: Request, { params }: Params) {
   try {
-    await requireAdmin();
+    await requireSuperAdmin();
     const { id } = await params;
     await deleteHomepageHero(id);
     return NextResponse.json({ success: true });

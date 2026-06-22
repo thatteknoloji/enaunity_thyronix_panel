@@ -142,6 +142,7 @@ export async function listProjectBlueprints(
   const limit = Math.min(100, Math.max(1, parseInt(searchParams.get("limit") || "50", 10) || 50));
   const q = searchParams.get("q")?.trim() || "";
   const pageType = searchParams.get("pageType") || "";
+  const generationSource = searchParams.get("generationSource") || "";
   const intent = searchParams.get("intent") || "";
   const province = searchParams.get("province") || "";
   const district = searchParams.get("district") || "";
@@ -160,6 +161,7 @@ export async function listProjectBlueprints(
       /* skip */
     }
     if (pageType && bp.pageType !== pageType) return false;
+    if (generationSource && meta.generationSource !== generationSource) return false;
     if (q && !bp.title.toLowerCase().includes(q.toLowerCase()) && !(meta.slug || "").includes(q.toLowerCase())) return false;
     if (intent && meta.intent !== intent) return false;
     if (province && !(meta.geoPath || "").includes(province)) return false;

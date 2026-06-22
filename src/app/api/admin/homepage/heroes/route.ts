@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
-import { requireAdmin } from "@/lib/auth";
+import { requireSuperAdmin } from "@/lib/auth";
 import { createHomepageHero, getAdminHomepageHeroes, reorderHomepageHeroes } from "@/lib/homepage/heroes";
 
 export async function GET() {
   try {
-    await requireAdmin();
+    await requireSuperAdmin();
     const data = await getAdminHomepageHeroes();
     return NextResponse.json({ success: true, data });
   } catch {
@@ -14,7 +14,7 @@ export async function GET() {
 
 export async function POST(req: Request) {
   try {
-    await requireAdmin();
+    await requireSuperAdmin();
     const body = await req.json();
 
     if (body.reorder && Array.isArray(body.ids)) {

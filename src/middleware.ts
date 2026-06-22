@@ -72,6 +72,14 @@ export async function middleware(request: NextRequest) {
   const isApi = pathname.startsWith("/api/");
   const token = request.cookies.get("token")?.value;
 
+  // ── LinkSlash Mobile shell (APK / WebView) — auth redirect yok, ana site layout yok ──
+  if (
+    pathname === "/linkslash/mobile" ||
+    pathname.startsWith("/linkslash/mobile/")
+  ) {
+    return NextResponse.next();
+  }
+
   // ── Redirect old /nexa/* to /thyronix/* ──
   if (pathname.startsWith("/nexa/") || pathname === "/nexa") {
     const newPath = pathname.replace("/nexa", "/thyronix");

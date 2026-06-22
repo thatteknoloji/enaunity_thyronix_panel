@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Fragment, useEffect, useState, useRef, useCallback } from "react";
+import { Fragment, useEffect, useState, useRef, useCallback, useMemo } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { formatPrice } from "@/lib/utils";
@@ -31,6 +31,7 @@ type HomeCategoryConfig = {
   categoryName: string;
   title: string;
   maxProducts: number;
+  active: boolean;
 };
 
 function useHorizontalScroll() {
@@ -121,7 +122,36 @@ export default function HomePage() {
     });
   }, []);
 
-  const categoryMid = Math.ceil(homeCategories.length / 2);
+  const categorySections = useMemo(() => {
+    const activeCount = homeCategories.filter(
+      (s) => s.active !== false && products.some((p) => p.category === s.categoryName),
+    ).length;
+    const mid = Math.max(0, Math.ceil(activeCount / 2) - 1);
+    let activeIdx = -1;
+
+    return homeCategories.map((section) => {
+      const category = section.categoryName;
+      const catProducts = products.filter((p) => p.category === category).slice(0, section.maxProducts || 12);
+      const showCategoryRow = section.active !== false && catProducts.length > 0;
+      const hasCategoryBanners = bannerSlots.some(
+        (s) =>
+          s.active &&
+          s.banners.length > 0 &&
+          (s.placement === "before_category" || s.placement === "after_category") &&
+          s.categorySectionId === section.id,
+      );
+      if (showCategoryRow) activeIdx += 1;
+
+      return {
+        section,
+        catProducts,
+        showCategoryRow,
+        hasCategoryBanners,
+        showBetween: showCategoryRow && activeIdx === mid,
+        visible: showCategoryRow || hasCategoryBanners,
+      };
+    }).filter((row) => row.visible);
+  }, [homeCategories, products, bannerSlots]);
 
   return (
     <div className="bg-ena-dark overflow-x-clip">
@@ -186,36 +216,45 @@ export default function HomePage() {
 
       <HomeBannersAtPlacement slots={bannerSlots} placement="after_search" />
 
-      {(homeCategories.length > 0 ? homeCategories : []).map((section, idx) => {
+      {categorySections.map(({ section, catProducts, showCategoryRow, showBetween }) => {
         const category = section.categoryName;
-        const catProducts = products.filter((p) => p.category === category).slice(0, section.maxProducts || 12);
-        if (catProducts.length === 0) return null;
         return (
           <Fragment key={section.id}>
-            <motion.section
-              key={section.id}
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true, margin: "-50px" }}
-              variants={containerVariants}
-              className="overflow-x-clip py-8"
-            >
-              <div className="mx-auto max-w-7xl min-w-0 px-4">
-                <motion.div variants={itemVariants} className="flex items-center justify-between mb-4">
-                  <h2 className="text-xl font-bold text-ena-text">{section.title || category}</h2>
-                  <Link
-                    href={`/products?category=${encodeURIComponent(category)}`}
-                    className="text-sm text-ena-light hover:text-ena-text transition-colors flex items-center gap-1"
-                  >
-                    {t("home.view_all")} <ChevronRight size={14} />
-                  </Link>
-                </motion.div>
-                <ProductRow products={catProducts} />
-              </div>
-            </motion.section>
-            {idx === categoryMid - 1 && (
+            <HomeBannersAtPlacement
+              slots={bannerSlots}
+              placement="before_category"
+              categorySectionId={section.id}
+            />
+            {showCategoryRow && (
+              <motion.section
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true, margin: "-50px" }}
+                variants={containerVariants}
+                className="overflow-x-clip py-8"
+              >
+                <div className="mx-auto max-w-7xl min-w-0 px-4">
+                  <motion.div variants={itemVariants} className="flex items-center justify-between mb-4">
+                    <h2 className="text-xl font-bold text-ena-text">{section.title || category}</h2>
+                    <Link
+                      href={`/products?category=${encodeURIComponent(category)}`}
+                      className="text-sm text-ena-light hover:text-ena-text transition-colors flex items-center gap-1"
+                    >
+                      {t("home.view_all")} <ChevronRight size={14} />
+                    </Link>
+                  </motion.div>
+                  <ProductRow products={catProducts} />
+                </div>
+              </motion.section>
+            )}
+            {showBetween && (
               <HomeBannersAtPlacement slots={bannerSlots} placement="between_categories" />
             )}
+            <HomeBannersAtPlacement
+              slots={bannerSlots}
+              placement="after_category"
+              categorySectionId={section.id}
+            />
           </Fragment>
         );
       })}

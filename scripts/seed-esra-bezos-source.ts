@@ -5,7 +5,7 @@
  * Run: npx tsx scripts/seed-esra-bezos-source.ts
  */
 import { prisma } from "../src/lib/db";
-import { buildBezosSourcePayload } from "../src/lib/thyronix/connectors/bezos-bayi-xml";
+import { buildBezosSourcePayload, BEZOS_BAYI_XML } from "../src/lib/thyronix/connectors/bezos-bayi-xml";
 import { getBezosAllowedEmails } from "../src/lib/thyronix/connectors/bezos-bayi-access";
 
 async function resolveTargetDealerId(): Promise<string | null> {
@@ -91,8 +91,8 @@ async function main() {
   }
 
   console.log("\nFeed URL'leri:");
-  console.log("  1.", "https://bezos.com.tr/xml-bayi/?xml=BAY%C4%B0%20XML&B2BXML=1");
-  console.log("  2.", "https://www.bezos.com.tr/xml-bayi/?xml=BAY%C4%B0%20XML&B2BXML=1&OFFSET=50000");
+  console.log("  1.", BEZOS_BAYI_XML.feedUrls[0]);
+  console.log("  2.", BEZOS_BAYI_XML.feedUrls[1]);
   console.log("\nEşleştirme ekranı: /thyronix/connectors/bezos-bayi (yalnızca hedef bayi)");
 }
 

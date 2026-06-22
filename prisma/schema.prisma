@@ -1944,19 +1944,24 @@ model HomeCategorySection {
 }
 
 model HomeBannerSlot {
-  key         String       @id
-  label       String
-  placement   String       @default("after_hero")
-  displayMode String       @default("carousel")
-  gridColumns Int          @default(2)
-  autoplay    Boolean      @default(true)
-  intervalMs  Int          @default(5000)
-  active      Boolean      @default(true)
-  sortOrder   Int          @default(0)
-  banners     HomeBanner[]
-  updatedAt   DateTime     @updatedAt
+  key               String       @id
+  label             String
+  placement         String       @default("after_hero")
+  categorySectionId String?
+  displayMode       String       @default("carousel")
+  gridColumns       Int          @default(2)
+  autoplay          Boolean      @default(true)
+  intervalMs        Int          @default(5000)
+  active            Boolean      @default(true)
+  sortOrder         Int          @default(0)
+  backgroundColor   String       @default("")
+  contentAlign      String       @default("center")
+  mobileLayout      String       @default("default")
+  banners           HomeBanner[]
+  updatedAt         DateTime     @updatedAt
 
   @@index([placement])
+  @@index([categorySectionId])
   @@index([sortOrder])
 }
 
@@ -1965,9 +1970,12 @@ model HomeBanner {
   slotKey      String
   slot         HomeBannerSlot @relation(fields: [slotKey], references: [key], onDelete: Cascade)
   title        String         @default("")
-  imageDesktop String
+  mediaType    String         @default("image")
+  imageDesktop String         @default("")
   imageTablet  String         @default("")
   imageMobile  String         @default("")
+  videoDesktop String         @default("")
+  videoMobile  String         @default("")
   linkUrl      String         @default("")
   linkTarget   String         @default("_self")
   sortOrder    Int            @default(0)

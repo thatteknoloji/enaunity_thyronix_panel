@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { requireAdmin } from "@/lib/auth";
-import { reorderHomeCategories } from "@/lib/homepage/service";
+import { requireSuperAdmin } from "@/lib/auth";
+import { bulkSetHomeCategoriesActive, reorderHomeCategories } from "@/lib/homepage/service";
 
 export async function POST(req: Request) {
   try {
-    await requireAdmin();
+    await requireSuperAdmin();
     const { categoryName, title, maxProducts } = await req.json();
     if (!categoryName?.trim()) {
       return NextResponse.json({ success: false, error: "Kategori adı gerekli" }, { status: 400 });
@@ -22,15 +22,24 @@ export async function POST(req: Request) {
       },
     });
     return NextResponse.json({ success: true, data: cat });
-  } catch {
-    return NextResponse.json({ success: false, error: "Eklenemedi" }, { status: 500 });
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : "Eklenemedi";
+    const status = msg === "Forbidden" ? 403 : 500;
+    return NextResponse.json({ success: false, error: msg }, { status });
   }
 }
 
 export async function PATCH(req: Request) {
   try {
-    await requireAdmin();
-    const { id, title, maxProducts, active, categoryName } = await req.json();
+    await requireSuperAdmin();
+    const body = await req.json();
+    const { id, title, maxProducts, active, categoryName, bulkActive } = body;
+
+    if (bulkActive !== undefined) {
+      const data = await bulkSetHomeCategoriesActive(!!bulkActive);
+      return NextResponse.json({ success: true, data });
+    }
+
     if (!id) return NextResponse.json({ success: false, error: "ID gerekli" }, { status: 400 });
 
     const data: Record<string, unknown> = {};
@@ -41,33 +50,39 @@ export async function PATCH(req: Request) {
 
     const cat = await prisma.homeCategorySection.update({ where: { id }, data });
     return NextResponse.json({ success: true, data: cat });
-  } catch {
-    return NextResponse.json({ success: false, error: "Güncellenemedi" }, { status: 500 });
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : "Güncellenemedi";
+    const status = msg === "Forbidden" ? 403 : 500;
+    return NextResponse.json({ success: false, error: msg }, { status });
   }
 }
 
 export async function DELETE(req: Request) {
   try {
-    await requireAdmin();
+    await requireSuperAdmin();
     const { id } = await req.json();
     if (!id) return NextResponse.json({ success: false, error: "ID gerekli" }, { status: 400 });
     await prisma.homeCategorySection.delete({ where: { id } });
     return NextResponse.json({ success: true });
-  } catch {
-    return NextResponse.json({ success: false, error: "Silinemedi" }, { status: 500 });
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : "Silinemedi";
+    const status = msg === "Forbidden" ? 403 : 500;
+    return NextResponse.json({ success: false, error: msg }, { status });
   }
 }
 
 export async function PUT(req: Request) {
   try {
-    await requireAdmin();
+    await requireSuperAdmin();
     const { ids } = await req.json();
     if (!Array.isArray(ids)) {
       return NextResponse.json({ success: false, error: "ids dizisi gerekli" }, { status: 400 });
     }
     const data = await reorderHomeCategories(ids);
     return NextResponse.json({ success: true, data });
-  } catch {
-    return NextResponse.json({ success: false, error: "Sıralama kaydedilemedi" }, { status: 500 });
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : "Sıralama kaydedilemedi";
+    const status = msg === "Forbidden" ? 403 : 500;
+    return NextResponse.json({ success: false, error: msg }, { status });
   }
 }

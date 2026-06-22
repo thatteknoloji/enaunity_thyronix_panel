@@ -3,8 +3,9 @@
 import { useCallback, useEffect, useState } from "react";
 import {
   Loader2, Upload, Package, Sparkles, Image as ImageIcon, Layers, AlertTriangle,
-  CheckCircle2, RefreshCw, X, ChevronRight,
+  CheckCircle2, RefreshCw, X, ChevronRight, FileStack,
 } from "lucide-react";
+import { ProductUniverseBlueprintPanel } from "./ProductUniverseBlueprintPanel";
 
 const SOURCE_TYPES = [
   { value: "CSV", label: "CSV" },
@@ -75,6 +76,12 @@ export function ProductUniverseShell({ mode }: Props) {
   const [selected, setSelected] = useState<ProductDetail | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
   const [q, setQ] = useState("");
+  const [detailTab, setDetailTab] = useState<"detail" | "blueprints">("detail");
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [bulkLoading, setBulkLoading] = useState(false);
+  const [bulkResult, setBulkResult] = useState<Record<string, unknown> | null>(null);
+  const [bulkProjectId, setBulkProjectId] = useState("");
+  const [bulkDryRun, setBulkDryRun] = useState(true);
 
   const loadData = useCallback(async () => {
     setLoading(true);
@@ -131,12 +138,65 @@ export function ProductUniverseShell({ mode }: Props) {
 
   const openDetail = async (id: string) => {
     setDetailLoading(true);
+    setDetailTab("detail");
     try {
       const r = await fetch(`/api/product-universe/products/${id}`);
       const d = await r.json();
       if (d.success) setSelected(d.data);
     } finally {
       setDetailLoading(false);
+    }
+  };
+
+  const toggleSelect = (id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedIds.size === products.length) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(products.map((p) => p.id)));
+    }
+  };
+
+  const handleBulkGenerate = async (dryRun: boolean) => {
+    if (!bulkProjectId || selectedIds.size === 0) {
+      setError("Proje ve en az bir ürün seçin");
+      return;
+    }
+    setBulkLoading(true);
+    setError(null);
+    setBulkResult(null);
+    try {
+      const r = await fetch("/api/product-universe/blueprints/bulk-generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          projectId: bulkProjectId,
+          productIds: [...selectedIds],
+          dryRun,
+          minQualityScore: 70,
+          maxGenerate: mode === "admin" ? 500 : 100,
+          includeProductPage: true,
+          includeCategoryPage: true,
+          includeIntentPages: true,
+          includeFaqPage: true,
+        }),
+      });
+      const d = await r.json();
+      if (!d.success) throw new Error(d.error || "Bulk generate başarısız");
+      setBulkResult(d.data);
+      if (!dryRun) await loadData();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Bulk generate başarısız");
+    } finally {
+      setBulkLoading(false);
     }
   };
 
@@ -157,13 +217,13 @@ export function ProductUniverseShell({ mode }: Props) {
     <div className="space-y-6">
       <div>
         <p className="text-[10px] font-semibold uppercase tracking-wider text-violet-600">
-          AI Page Factory · Product Universe V1
+          AI Page Factory · Product Universe V2
         </p>
         <h1 className="text-xl font-bold text-gray-900">
           {mode === "admin" ? "Product Universe" : "Ürün Evreni"}
         </h1>
         <p className="text-sm text-gray-500">
-          Ürün import, entity çıkarımı, Content DNA ve blueprint planlama altyapısı
+          Ürün import, entity çıkarımı, Content DNA ve PageFactory blueprint köprüsü
         </p>
       </div>
 
@@ -290,9 +350,39 @@ export function ProductUniverseShell({ mode }: Props) {
       </div>
 
       <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
-        <div className="flex items-center justify-between mb-4 gap-3">
+        <div className="flex items-center justify-between mb-4 gap-3 flex-wrap">
           <h2 className="text-sm font-semibold text-gray-800">Ürün Listesi</h2>
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap items-center">
+            {selectedIds.size > 0 && (
+              <div className="flex items-center gap-2 mr-2">
+                <select
+                  value={bulkProjectId}
+                  onChange={(e) => setBulkProjectId(e.target.value)}
+                  className="rounded-lg border border-gray-200 px-2 py-1 text-xs"
+                >
+                  <option value="">Proje seç</option>
+                  {projects.map((p) => (
+                    <option key={p.id} value={p.id}>{p.name}</option>
+                  ))}
+                </select>
+                <button
+                  type="button"
+                  disabled={bulkLoading}
+                  onClick={() => handleBulkGenerate(true)}
+                  className="text-xs rounded-lg bg-violet-100 text-violet-700 px-2 py-1"
+                >
+                  Bulk dry-run ({selectedIds.size})
+                </button>
+                <button
+                  type="button"
+                  disabled={bulkLoading}
+                  onClick={() => handleBulkGenerate(false)}
+                  className="text-xs rounded-lg bg-violet-600 text-white px-2 py-1"
+                >
+                  Bulk üret
+                </button>
+              </div>
+            )}
             <input
               value={q}
               onChange={(e) => setQ(e.target.value)}
@@ -304,6 +394,11 @@ export function ProductUniverseShell({ mode }: Props) {
             </button>
           </div>
         </div>
+        {bulkResult && (
+          <div className="mb-4 rounded-lg border border-emerald-200 bg-emerald-50/50 px-3 py-2 text-xs text-emerald-800">
+            Bulk: {bulkResult.processed as number} ürün · +{bulkResult.inserted as number} / ~{bulkResult.updated as number} / skip {bulkResult.skipped as number}
+          </div>
+        )}
         {loading ? (
           <div className="flex justify-center py-8"><Loader2 className="animate-spin text-violet-600" /></div>
         ) : (
@@ -311,6 +406,13 @@ export function ProductUniverseShell({ mode }: Props) {
             <table className="w-full text-xs">
               <thead>
                 <tr className="border-b border-gray-100 text-left text-gray-500">
+                  <th className="py-2 pr-2 w-8">
+                    <input
+                      type="checkbox"
+                      checked={products.length > 0 && selectedIds.size === products.length}
+                      onChange={toggleSelectAll}
+                    />
+                  </th>
                   <th className="py-2 pr-3">Ürün</th>
                   <th className="py-2 pr-3">Kategori</th>
                   <th className="py-2 pr-3">Marka</th>
@@ -324,6 +426,13 @@ export function ProductUniverseShell({ mode }: Props) {
               <tbody>
                 {products.map((p) => (
                   <tr key={p.id} className="border-b border-gray-50 hover:bg-gray-50/50">
+                    <td className="py-2 pr-2">
+                      <input
+                        type="checkbox"
+                        checked={selectedIds.has(p.id)}
+                        onChange={() => toggleSelect(p.id)}
+                      />
+                    </td>
                     <td className="py-2 pr-3 max-w-[200px] truncate">{p.normalizedName || p.rawName}</td>
                     <td className="py-2 pr-3 max-w-[120px] truncate">{p.categoryPath || "—"}</td>
                     <td className="py-2 pr-3">{p.brand || "—"}</td>
@@ -347,7 +456,7 @@ export function ProductUniverseShell({ mode }: Props) {
                   </tr>
                 ))}
                 {!products.length && (
-                  <tr><td colSpan={8} className="py-8 text-center text-gray-400">Henüz ürün yok — import başlatın</td></tr>
+                  <tr><td colSpan={9} className="py-8 text-center text-gray-400">Henüz ürün yok — import başlatın</td></tr>
                 )}
               </tbody>
             </table>
@@ -368,6 +477,34 @@ export function ProductUniverseShell({ mode }: Props) {
               <div className="flex justify-center py-12"><Loader2 className="animate-spin" /></div>
             ) : selected ? (
               <div className="p-6 space-y-6">
+                <div className="flex gap-1 bg-gray-100 p-1 rounded-lg w-fit">
+                  <button
+                    type="button"
+                    onClick={() => setDetailTab("detail")}
+                    className={`px-3 py-1 text-xs font-medium rounded-md ${detailTab === "detail" ? "bg-white shadow text-gray-900" : "text-gray-600"}`}
+                  >
+                    Detay
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setDetailTab("blueprints")}
+                    className={`px-3 py-1 text-xs font-medium rounded-md flex items-center gap-1 ${detailTab === "blueprints" ? "bg-white shadow text-gray-900" : "text-gray-600"}`}
+                  >
+                    <FileStack size={12} /> Blueprintler
+                  </button>
+                </div>
+
+                {detailTab === "blueprints" ? (
+                  <ProductUniverseBlueprintPanel
+                    productId={selected.id}
+                    productName={selected.normalizedName || selected.rawName}
+                    qualityScore={selected.qualityScore}
+                    projects={projects}
+                    mode={mode}
+                    defaultProjectId={projectId}
+                  />
+                ) : (
+                <>
                 <div className="flex gap-2">
                   <button
                     onClick={() => reanalyze(selected.id)}
@@ -451,6 +588,8 @@ export function ProductUniverseShell({ mode }: Props) {
                       </div>
                     </div>
                   </Section>
+                )}
+                </>
                 )}
               </div>
             ) : null}

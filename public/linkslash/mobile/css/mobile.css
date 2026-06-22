@@ -13,6 +13,18 @@
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
 html, body { height: 100%; }
+html.linkslash-mobile-shell,
+html.linkslash-mobile-shell body,
+body.linkslash-mobile-shell,
+[data-linkslash-mobile-shell="true"] {
+  background: linear-gradient(180deg, #0b0d14 0%, #111827 100%) !important;
+  color: var(--text) !important;
+}
+body.linkslash-mobile-shell {
+  display: block !important;
+  min-height: 100dvh;
+  overflow-x: hidden;
+}
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   background: linear-gradient(180deg, #0b0d14 0%, #111827 100%);

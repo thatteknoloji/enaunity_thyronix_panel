@@ -11,6 +11,11 @@ const config: CapacitorConfig = {
     url: serverUrl,
     cleartext: serverUrl.startsWith("http://"),
     androidScheme: "https",
+    allowNavigation: [
+      "enaunity.com.tr",
+      "localhost",
+      "10.0.2.2",
+    ],
   },
   android: {
     allowMixedContent: true,

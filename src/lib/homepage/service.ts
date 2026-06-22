@@ -17,9 +17,12 @@ export type HomeBannerDTO = {
   id: string;
   slotKey: string;
   title: string;
+  mediaType: string;
   imageDesktop: string;
   imageTablet: string;
   imageMobile: string;
+  videoDesktop: string;
+  videoMobile: string;
   linkUrl: string;
   linkTarget: string;
   sortOrder: number;
@@ -34,12 +37,16 @@ export type HomeBannerSlotDTO = {
   key: string;
   label: string;
   placement: string;
+  categorySectionId: string | null;
   displayMode: string;
   gridColumns: number;
   autoplay: boolean;
   intervalMs: number;
   active: boolean;
   sortOrder: number;
+  backgroundColor: string;
+  contentAlign: string;
+  mobileLayout: string;
   banners: HomeBannerDTO[];
 };
 
@@ -60,9 +67,12 @@ function mapBanner(b: {
   id: string;
   slotKey: string;
   title: string;
+  mediaType?: string;
   imageDesktop: string;
   imageTablet: string;
   imageMobile: string;
+  videoDesktop?: string;
+  videoMobile?: string;
   linkUrl: string;
   linkTarget: string;
   sortOrder: number;
@@ -76,9 +86,12 @@ function mapBanner(b: {
     id: b.id,
     slotKey: b.slotKey,
     title: b.title,
+    mediaType: b.mediaType || "image",
     imageDesktop: b.imageDesktop,
     imageTablet: b.imageTablet,
     imageMobile: b.imageMobile,
+    videoDesktop: b.videoDesktop || "",
+    videoMobile: b.videoMobile || "",
     linkUrl: b.linkUrl,
     linkTarget: b.linkTarget,
     sortOrder: b.sortOrder,
@@ -94,24 +107,32 @@ function mapSlot(s: {
   key: string;
   label: string;
   placement: string;
+  categorySectionId?: string | null;
   displayMode: string;
   gridColumns: number;
   autoplay: boolean;
   intervalMs: number;
   active: boolean;
   sortOrder: number;
+  backgroundColor?: string;
+  contentAlign?: string;
+  mobileLayout?: string;
   banners: Parameters<typeof mapBanner>[0][];
 }, now: Date): HomeBannerSlotDTO {
   return {
     key: s.key,
     label: s.label,
     placement: s.placement,
+    categorySectionId: s.categorySectionId ?? null,
     displayMode: s.displayMode,
     gridColumns: s.gridColumns,
     autoplay: s.autoplay,
     intervalMs: s.intervalMs,
     active: s.active,
     sortOrder: s.sortOrder,
+    backgroundColor: s.backgroundColor || "",
+    contentAlign: s.contentAlign || "center",
+    mobileLayout: s.mobileLayout || "default",
     banners: s.banners
       .filter((b) => b.active && isBannerLive(b.startsAt, b.endsAt, now))
       .map(mapBanner),
@@ -196,7 +217,6 @@ export async function getPublicHomepageConfig() {
 
   const [categories, slots, hero, builderHero] = await Promise.all([
     prisma.homeCategorySection.findMany({
-      where: { active: true },
       orderBy: { sortOrder: "asc" },
     }),
     prisma.homeBannerSlot.findMany({
@@ -281,8 +301,12 @@ export async function createBannerSlot(data: {
   key: string;
   label: string;
   placement: string;
+  categorySectionId?: string | null;
   displayMode?: string;
   gridColumns?: number;
+  backgroundColor?: string;
+  contentAlign?: string;
+  mobileLayout?: string;
 }) {
   const max = await prisma.homeBannerSlot.aggregate({ _max: { sortOrder: true } });
   return prisma.homeBannerSlot.create({
@@ -290,12 +314,21 @@ export async function createBannerSlot(data: {
       key: data.key,
       label: data.label,
       placement: data.placement,
+      categorySectionId: data.categorySectionId || null,
       displayMode: data.displayMode || "carousel",
       gridColumns: data.gridColumns ?? 2,
+      backgroundColor: data.backgroundColor || "",
+      contentAlign: data.contentAlign || "center",
+      mobileLayout: data.mobileLayout || "default",
       sortOrder: (max._max.sortOrder ?? -1) + 1,
       active: true,
       autoplay: true,
       intervalMs: 5000,
     },
   });
+}
+
+export async function bulkSetHomeCategoriesActive(active: boolean) {
+  await prisma.homeCategorySection.updateMany({ data: { active } });
+  return prisma.homeCategorySection.findMany({ orderBy: { sortOrder: "asc" } });
 }

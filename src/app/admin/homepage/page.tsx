@@ -11,7 +11,7 @@ import toast from "react-hot-toast";
 import type { HomeBannerDTO, HomeBannerSlotDTO, HomeHeroDTO } from "@/lib/homepage/service";
 import { MediaSpecGuide } from "@/components/admin/homepage/MediaSpecGuide";
 import { MediaUploadField } from "@/components/admin/homepage/MediaUploadField";
-import { BANNER_DISPLAY_MODES, MEDIA_SPECS, PAGE_PLACEMENTS } from "@/lib/homepage/media-specs";
+import { BANNER_DISPLAY_MODES, BANNER_MEDIA_TYPES, MEDIA_SPECS, PAGE_PLACEMENTS, SLOT_CONTENT_ALIGNS, SLOT_MOBILE_LAYOUTS } from "@/lib/homepage/media-specs";
 import { DEFAULT_HERO } from "@/lib/homepage/defaults";
 import { HeroBuilderPanel } from "@/components/admin/homepage/HeroBuilderPanel";
 
@@ -33,9 +33,12 @@ type AdminData = {
 
 const EMPTY_BANNER_FORM = {
   title: "",
+  mediaType: "image",
   imageDesktop: "",
   imageTablet: "",
   imageMobile: "",
+  videoDesktop: "",
+  videoMobile: "",
   linkUrl: "",
   linkTarget: "_self",
   startsAt: "",
@@ -77,7 +80,17 @@ export default function AdminHomepagePage() {
   const [heroForm, setHeroForm] = useState<HomeHeroDTO>(DEFAULT_HERO);
   const [savingHero, setSavingHero] = useState(false);
   const [showNewSlot, setShowNewSlot] = useState(false);
-  const [newSlot, setNewSlot] = useState({ key: "", label: "", placement: "after_hero", displayMode: "carousel", gridColumns: 2 });
+  const [newSlot, setNewSlot] = useState({
+    key: "",
+    label: "",
+    placement: "after_hero",
+    categorySectionId: "",
+    displayMode: "carousel",
+    gridColumns: 2,
+    backgroundColor: "",
+    contentAlign: "center",
+    mobileLayout: "default",
+  });
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -167,6 +180,27 @@ export default function AdminHomepagePage() {
     load();
   };
 
+  const bulkToggleCategories = async (active: boolean) => {
+    const r = await fetch("/api/admin/homepage/categories", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ bulkActive: active }),
+    });
+    const d = await r.json();
+    if (d.success) {
+      toast.success(active ? "Tüm kategoriler gösteriliyor" : "Tüm kategoriler gizlendi");
+      load();
+    } else toast.error(d.error || "İşlem başarısız");
+  };
+
+  const placementNeedsCategory = (p: string) => p === "before_category" || p === "after_category";
+
+  const categoryLabel = (id: string | null | undefined) => {
+    if (!id || !data) return "";
+    const cat = data.categories.find((c) => c.id === id);
+    return cat ? cat.title || cat.categoryName : "";
+  };
+
   const updateSlot = async (key: string, patch: Partial<HomeBannerSlotDTO>) => {
     const r = await fetch("/api/admin/homepage/slots", {
       method: "PATCH",
@@ -186,13 +220,16 @@ export default function AdminHomepagePage() {
     const r = await fetch("/api/admin/homepage/slots", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(newSlot),
+      body: JSON.stringify({
+        ...newSlot,
+        categorySectionId: placementNeedsCategory(newSlot.placement) ? newSlot.categorySectionId : null,
+      }),
     });
     const d = await r.json();
     if (d.success) {
       toast.success("Banner konumu oluşturuldu");
       setShowNewSlot(false);
-      setNewSlot({ key: "", label: "", placement: "after_hero", displayMode: "carousel", gridColumns: 2 });
+      setNewSlot({ key: "", label: "", placement: "after_hero", categorySectionId: "", displayMode: "carousel", gridColumns: 2, backgroundColor: "", contentAlign: "center", mobileLayout: "default" });
       setSelectedSlot(d.data.key);
       load();
     } else toast.error(d.error || "Oluşturulamadı");
@@ -211,7 +248,12 @@ export default function AdminHomepagePage() {
   };
 
   const saveBanner = async () => {
-    if (!bannerForm.imageDesktop) {
+    const isVideo = bannerForm.mediaType === "video";
+    if (isVideo && !bannerForm.videoDesktop) {
+      toast.error("Masaüstü video zorunlu");
+      return;
+    }
+    if (!isVideo && !bannerForm.imageDesktop) {
       toast.error("Masaüstü görseli zorunlu");
       return;
     }
@@ -239,9 +281,12 @@ export default function AdminHomepagePage() {
     setEditingBanner(b.id);
     setBannerForm({
       title: b.title,
+      mediaType: b.mediaType || "image",
       imageDesktop: b.imageDesktop,
       imageTablet: b.imageTablet,
       imageMobile: b.imageMobile,
+      videoDesktop: b.videoDesktop || "",
+      videoMobile: b.videoMobile || "",
       linkUrl: b.linkUrl,
       linkTarget: b.linkTarget,
       startsAt: toDatetimeLocal(b.startsAt),
@@ -321,7 +366,14 @@ export default function AdminHomepagePage() {
   };
 
   const currentSlot = data?.slots.find((s) => s.key === selectedSlot);
-  const placementLabel = (p: string) => PAGE_PLACEMENTS.find((x) => x.value === p)?.label || p;
+  const placementLabel = (p: string, categorySectionId?: string | null) => {
+    const base = PAGE_PLACEMENTS.find((x) => x.value === p)?.label || p;
+    if (placementNeedsCategory(p) && categorySectionId) {
+      const cat = categoryLabel(categorySectionId);
+      return cat ? `${base}: ${cat}` : base;
+    }
+    return base;
+  };
 
   if (loading) return <div className="text-center py-16 text-gray-400">Yükleniyor...</div>;
 
@@ -367,9 +419,17 @@ export default function AdminHomepagePage() {
       {tab === "categories" && data && (
         <div className="space-y-4">
           <div className="rounded-xl border bg-white p-4 shadow-sm">
-            <p className="text-sm text-gray-600 mb-3">
-              Ana sayfada gösterilecek kategori satırlarını sürükleyerek sıralayın, ekleyin veya kaldırın.
-            </p>
+          <p className="text-sm text-gray-600 mb-3">
+            Ana sayfada gösterilecek kategori satırlarını sürükleyerek sıralayın. Gizli kategorilerin yerine banner konumu ekleyebilirsiniz.
+          </p>
+          <div className="flex gap-2 flex-wrap mb-3">
+            <button type="button" onClick={() => bulkToggleCategories(true)} className="px-3 py-1.5 text-xs border rounded-lg hover:bg-gray-50 flex items-center gap-1">
+              <Eye size={12} /> Tümünü göster
+            </button>
+            <button type="button" onClick={() => bulkToggleCategories(false)} className="px-3 py-1.5 text-xs border rounded-lg hover:bg-gray-50 flex items-center gap-1">
+              <EyeOff size={12} /> Tümünü gizle
+            </button>
+          </div>
             <div className="flex gap-2 flex-wrap">
               <select
                 value={newCat}
@@ -510,6 +570,18 @@ export default function AdminHomepagePage() {
                     <option key={p.value} value={p.value}>{p.label}</option>
                   ))}
                 </select>
+                {placementNeedsCategory(newSlot.placement) && (
+                  <select
+                    value={newSlot.categorySectionId}
+                    onChange={(e) => setNewSlot((s) => ({ ...s, categorySectionId: e.target.value }))}
+                    className="w-full rounded-lg border px-3 py-2 text-sm"
+                  >
+                    <option value="">Kategori satırı seç...</option>
+                    {data?.categories.map((c) => (
+                      <option key={c.id} value={c.id}>{c.title || c.categoryName}</option>
+                    ))}
+                  </select>
+                )}
                 <select
                   value={newSlot.displayMode}
                   onChange={(e) => setNewSlot((s) => ({ ...s, displayMode: e.target.value }))}
@@ -538,7 +610,7 @@ export default function AdminHomepagePage() {
                   <span className="font-medium text-gray-900">{slot.label}</span>
                   <span className="text-xs text-gray-400">{slot.banners.length} banner</span>
                 </div>
-                <p className="text-xs text-gray-500 mt-1">{placementLabel(slot.placement)} · {slot.displayMode}</p>
+                <p className="text-xs text-gray-500 mt-1">{placementLabel(slot.placement, slot.categorySectionId)} · {slot.displayMode}</p>
               </button>
             ))}
           </div>
@@ -563,6 +635,21 @@ export default function AdminHomepagePage() {
                         ))}
                       </select>
                     </div>
+                    {placementNeedsCategory(currentSlot.placement) && (
+                      <div>
+                        <label className="text-xs font-semibold text-gray-500 uppercase">Kategori satırı</label>
+                        <select
+                          value={currentSlot.categorySectionId || ""}
+                          onChange={(e) => updateSlot(currentSlot.key, { categorySectionId: e.target.value || null })}
+                          className="mt-1 w-full rounded-lg border px-3 py-2 text-sm"
+                        >
+                          <option value="">Seçin...</option>
+                          {data?.categories.map((c) => (
+                            <option key={c.id} value={c.id}>{c.title || c.categoryName}</option>
+                          ))}
+                        </select>
+                      </div>
+                    )}
                     <div>
                       <label className="text-xs font-semibold text-gray-500 uppercase">Görünüm</label>
                       <select
@@ -601,6 +688,39 @@ export default function AdminHomepagePage() {
                         />
                       </div>
                     )}
+                    <div>
+                      <label className="text-xs font-semibold text-gray-500 uppercase">Arka plan rengi</label>
+                      <input
+                        type="color"
+                        value={currentSlot.backgroundColor || "#000000"}
+                        onChange={(e) => updateSlot(currentSlot.key, { backgroundColor: e.target.value })}
+                        className="mt-1 h-10 w-full rounded-lg border px-1 py-1"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs font-semibold text-gray-500 uppercase">Hizalama</label>
+                      <select
+                        value={currentSlot.contentAlign || "center"}
+                        onChange={(e) => updateSlot(currentSlot.key, { contentAlign: e.target.value })}
+                        className="mt-1 w-full rounded-lg border px-3 py-2 text-sm"
+                      >
+                        {SLOT_CONTENT_ALIGNS.map((a) => (
+                          <option key={a.value} value={a.value}>{a.label}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="text-xs font-semibold text-gray-500 uppercase">Mobil görünüm</label>
+                      <select
+                        value={currentSlot.mobileLayout || "default"}
+                        onChange={(e) => updateSlot(currentSlot.key, { mobileLayout: e.target.value })}
+                        className="mt-1 w-full rounded-lg border px-3 py-2 text-sm"
+                      >
+                        {SLOT_MOBILE_LAYOUTS.map((m) => (
+                          <option key={m.value} value={m.value}>{m.label}</option>
+                        ))}
+                      </select>
+                    </div>
                   </div>
                   <div className="flex flex-wrap gap-4">
                     {(currentSlot.displayMode === "carousel") && (
@@ -645,6 +765,45 @@ export default function AdminHomepagePage() {
                     onChange={(e) => setBannerForm((f) => ({ ...f, title: e.target.value }))}
                     className="w-full rounded-lg border px-3 py-2 text-sm"
                   />
+                  <div>
+                    <label className="text-xs font-semibold text-gray-500 uppercase">Medya tipi</label>
+                    <select
+                      value={bannerForm.mediaType}
+                      onChange={(e) => setBannerForm((f) => ({ ...f, mediaType: e.target.value }))}
+                      className="mt-1 w-full rounded-lg border px-3 py-2 text-sm"
+                    >
+                      {BANNER_MEDIA_TYPES.map((m) => (
+                        <option key={m.value} value={m.value}>{m.label}</option>
+                      ))}
+                    </select>
+                  </div>
+                  {bannerForm.mediaType === "video" ? (
+                    <>
+                      <MediaUploadField
+                        label="Masaüstü video (MP4) *"
+                        value={bannerForm.videoDesktop}
+                        onChange={(v) => setBannerForm((f) => ({ ...f, videoDesktop: v }))}
+                        accept="video/mp4,video/webm"
+                        kind="hero"
+                        maxBytes={(MEDIA_SPECS.hero.videoDesktop.maxMb ?? 15) * 1024 * 1024}
+                      />
+                      <MediaUploadField
+                        label="Mobil video (boş = masaüstü)"
+                        value={bannerForm.videoMobile}
+                        onChange={(v) => setBannerForm((f) => ({ ...f, videoMobile: v }))}
+                        accept="video/mp4,video/webm"
+                        kind="hero"
+                        maxBytes={(MEDIA_SPECS.hero.videoMobile.maxMb ?? 8) * 1024 * 1024}
+                      />
+                      <MediaUploadField
+                        label="Poster görsel (opsiyonel)"
+                        value={bannerForm.imageDesktop}
+                        onChange={(v) => setBannerForm((f) => ({ ...f, imageDesktop: v }))}
+                        maxBytes={(MEDIA_SPECS.hero.poster.maxKb ?? 250) * 1024}
+                      />
+                    </>
+                  ) : (
+                    <>
                   <MediaUploadField
                     label="Masaüstü görsel *"
                     value={bannerForm.imageDesktop}
@@ -663,6 +822,8 @@ export default function AdminHomepagePage() {
                     onChange={(v) => setBannerForm((f) => ({ ...f, imageMobile: v }))}
                     maxBytes={(MEDIA_SPECS.banner.mobile.maxKb ?? 200) * 1024}
                   />
+                    </>
+                  )}
                   <input
                     placeholder="Link URL (opsiyonel)"
                     value={bannerForm.linkUrl}

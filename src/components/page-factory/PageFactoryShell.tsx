@@ -71,6 +71,7 @@ export function PageFactoryShell({ showLicensePanel = false }: Props) {
   const [editForm, setEditForm] = useState({ name: "", sector: "", country: "TR", language: "tr", productionType: "GEO_SEO" as ProductionType });
   const [deleting, setDeleting] = useState(false);
   const [projectTab, setProjectTab] = useState<"overview" | "universe">("overview");
+  const [blueprintSourceFilter, setBlueprintSourceFilter] = useState<"all" | "PRODUCT_UNIVERSE_V2">("all");
   const [error, setError] = useState<string | null>(null);
   const [form, setForm] = useState({
     name: "",
@@ -456,11 +457,30 @@ export function PageFactoryShell({ showLicensePanel = false }: Props) {
 
               {selected.blueprints && selected.blueprints.length > 0 && (
                 <div className="rounded-lg bg-white border border-gray-200 overflow-hidden">
-                  <div className="px-4 py-3 border-b border-gray-100">
+                  <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between gap-2 flex-wrap">
                     <p className="text-xs font-semibold uppercase text-gray-600">Blueprint Engine (şablon — içerik yok)</p>
+                    <select
+                      value={blueprintSourceFilter}
+                      onChange={(e) => setBlueprintSourceFilter(e.target.value as "all" | "PRODUCT_UNIVERSE_V2")}
+                      className="text-[10px] rounded border border-gray-200 px-2 py-1"
+                    >
+                      <option value="all">Tüm blueprintler</option>
+                      <option value="PRODUCT_UNIVERSE_V2">Product Universe Blueprintleri</option>
+                    </select>
                   </div>
                   <div className="max-h-64 overflow-y-auto divide-y divide-gray-50">
-                    {selected.blueprints.slice(0, 12).map((bp, i) => (
+                    {selected.blueprints
+                      .filter((bp) => {
+                        if (blueprintSourceFilter === "all") return true;
+                        try {
+                          const m = JSON.parse(bp.metadataJson || "{}") as { generationSource?: string };
+                          return m.generationSource === blueprintSourceFilter;
+                        } catch {
+                          return false;
+                        }
+                      })
+                      .slice(0, 12)
+                      .map((bp, i) => (
                       <div key={i} className="px-4 py-2 text-xs">
                         <p className="font-medium text-gray-900">{bp.title}</p>
                         <p className="text-gray-500">{bp.pageType} · L{bp.hierarchyLevel}</p>
