@@ -92,8 +92,11 @@ export default function AdminHomepagePage() {
     mobileLayout: "default",
   });
 
+  const [loadError, setLoadError] = useState<string | null>(null);
+
   const load = useCallback(async () => {
     setLoading(true);
+    setLoadError(null);
     try {
       const r = await fetch("/api/admin/homepage");
       const d = await r.json();
@@ -104,9 +107,15 @@ export default function AdminHomepagePage() {
           const keys = d.data.slots?.map((s: HomeBannerSlotDTO) => s.key) || [];
           return keys.includes(prev) ? prev : keys[0] || "after_hero";
         });
-      } else toast.error(d.error || "Yüklenemedi");
+      } else {
+        const msg = d.error || `Yüklenemedi (HTTP ${r.status})`;
+        setLoadError(msg);
+        toast.error(msg);
+      }
     } catch {
-      toast.error("Yüklenemedi");
+      const msg = "Ana sayfa ayarları yüklenemedi — bağlantı veya yetki hatası";
+      setLoadError(msg);
+      toast.error(msg);
     } finally {
       setLoading(false);
     }
@@ -377,6 +386,18 @@ export default function AdminHomepagePage() {
 
   if (loading) return <div className="text-center py-16 text-gray-400">Yükleniyor...</div>;
 
+  if (!data) {
+    return (
+      <div className="rounded-xl border border-amber-200 bg-amber-50 p-8 text-center max-w-lg mx-auto mt-12">
+        <p className="font-semibold text-amber-900 mb-2">Ana sayfa ayarları yüklenemedi</p>
+        <p className="text-sm text-amber-800 mb-4">{loadError || "API yanıt vermedi. Sunucuda güncel deploy ve veritabanı şeması gerekli."}</p>
+        <button type="button" onClick={load} className="px-4 py-2 text-sm bg-gray-900 text-white rounded-lg">
+          Tekrar dene
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div>
       <div className="flex items-center gap-3 mb-6 flex-wrap">
@@ -416,7 +437,7 @@ export default function AdminHomepagePage() {
         ))}
       </div>
 
-      {tab === "categories" && data && (
+      {tab === "categories" && (
         <div className="space-y-4">
           <div className="rounded-xl border bg-white p-4 shadow-sm">
           <p className="text-sm text-gray-600 mb-3">
@@ -532,7 +553,7 @@ export default function AdminHomepagePage() {
         </div>
       )}
 
-      {tab === "banners" && data && (
+      {tab === "banners" && (
         <div className="grid lg:grid-cols-5 gap-6 min-h-0">
           <div className="lg:col-span-2 space-y-3 lg:max-h-[calc(100dvh-14rem)] lg:overflow-y-auto lg:pr-1">
             <div className="flex items-center justify-between gap-2">
