@@ -72,6 +72,20 @@ export async function middleware(request: NextRequest) {
   const isApi = pathname.startsWith("/api/");
   const token = request.cookies.get("token")?.value;
 
+  // www → apex (ana sayfa ve tüm rotalar aynı host'ta kalsın)
+  const hostname = request.nextUrl.hostname;
+  if (hostname.startsWith("www.")) {
+    const apex = request.nextUrl.clone();
+    apex.hostname = hostname.slice(4);
+    return NextResponse.redirect(apex, 301);
+  }
+
+  // Mağaza / tanıtım — giriş zorunlu değil
+  const isPublicStorefront =
+    pathname === "/" ||
+    pathname.startsWith("/platform/") ||
+    pathname.startsWith("/products/");
+
   // ── LinkSlash Mobile shell (APK / WebView) — auth redirect yok, ana site layout yok ──
   if (
     pathname === "/linkslash/mobile" ||
@@ -344,6 +358,7 @@ export async function middleware(request: NextRequest) {
 
   if (!token) {
     if (isApi) return jsonError(401, "Oturum bulunamadı");
+    if (isPublicStorefront) return NextResponse.next();
     if (pathname === "/thyronix/login") return NextResponse.next();
     const loginUrl = new URL(pathname.startsWith("/thyronix") ? "/thyronix/login" : "/auth/login", request.url);
     loginUrl.searchParams.set("redirect", pathname);
@@ -353,6 +368,11 @@ export async function middleware(request: NextRequest) {
   const payload = await verifyJWT(token);
   if (!payload) {
     if (isApi) return jsonError(401, "Geçersiz oturum");
+    if (isPublicStorefront) {
+      const res = NextResponse.next();
+      res.cookies.delete("token");
+      return res;
+    }
     const res = NextResponse.redirect(new URL("/auth/login", request.url));
     res.cookies.delete("token");
     return res;
