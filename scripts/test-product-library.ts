@@ -3,6 +3,8 @@
  * Run: npx tsx scripts/test-product-library.ts
  */
 import { prisma } from "../src/lib/db";
+import fs from "fs/promises";
+import path from "path";
 import {
   canAccessPackageLevel,
   levelsAllowedForDealer,
@@ -17,6 +19,8 @@ import { exportPackageItems } from "../src/lib/product-library/export";
 import { slugify } from "../src/lib/product-library/types";
 import { resolvePackageTemplate } from "../src/lib/product-library/template-engine";
 import { buildRecipePreview } from "../src/lib/product-library/recipe-engine";
+import { itemsToXlsxBuffer } from "../src/lib/product-library/excel";
+import { commitPackageSourceImport, previewPackageSourceImport } from "../src/lib/product-library/package-import";
 
 let passed = 0;
 let failed = 0;
@@ -43,9 +47,13 @@ async function cleanup() {
     where: { package: { slug: { startsWith: TEST_PREFIX } } },
   });
   await prisma.productPackageRecipe.deleteMany({ where: { package: { slug: { startsWith: TEST_PREFIX } } } });
+  if ((prisma as any).productPackageVersion?.deleteMany) {
+    await (prisma as any).productPackageVersion.deleteMany({ where: { package: { slug: { startsWith: TEST_PREFIX } } } });
+  }
   await prisma.productPackage.deleteMany({ where: { slug: { startsWith: TEST_PREFIX } } });
   await prisma.productCatalog.deleteMany({ where: { slug: { startsWith: TEST_PREFIX } } });
   await prisma.productImportJob.deleteMany({ where: { createdBy: { contains: "pl-test" } } });
+  await fs.rm(path.join(process.cwd(), "storage", "product-library", "packages"), { recursive: true, force: true });
 }
 
 const SAMPLE_XML = `<?xml version="1.0"?>
@@ -171,16 +179,44 @@ async function main() {
   assert(String(preview.sampleRows[0].barcode).startsWith("ENA-"), "Recipe applies barcode prefix");
   assert(preview.sampleRows[0].brand === "ENA Marka", "Recipe applies brand replace");
 
-  // 8) THYRONIX prep field
-  console.log("\n8) THYRONIX readiness field");
+  // 8) Package source preview + commit
+  console.log("\n8) Package import wizard");
+  const uploadBuffer = itemsToXlsxBuffer([
+    { barcode: "555", sku: "S-555", name: "Upload Ürün", brand: "Upload", category: "Dekor", price: 120, salePrice: 110, stock: 8, vatRate: 20 },
+  ]);
+  const importPreview = await previewPackageSourceImport({
+    sourceType: "EXCEL",
+    fileName: "pl-test-upload.xlsx",
+    buffer: uploadBuffer,
+  });
+  assert(importPreview.itemCount === 1, "Package import preview sees one item");
+  const committed = await commitPackageSourceImport({
+    sourceType: "EXCEL",
+    fileName: "pl-test-upload.xlsx",
+    buffer: uploadBuffer,
+    packageMode: "NEW",
+    packageName: "pl-test-import-package",
+    description: "test upload package",
+    createdBy: "pl-test@enaunity.com",
+    isFree: true,
+    billingType: "FREE",
+    exportFormats: ["EXCEL", "XML"],
+  });
+  assert(!!committed.version.id, "Package version created");
+  assert(!!committed.version.sourcePath, "Source file saved");
+  const committedPackage = await prisma.productPackage.findUnique({ where: { id: committed.package.id } });
+  assert(committedPackage?.currentVersionId === committed.version.id, "Current version pointer updated");
+
+  // 9) THYRONIX prep field
+  console.log("\n9) THYRONIX readiness field");
   const thyPkg = await prisma.productPackage.update({
     where: { id: pkgFree.id },
     data: { thyronixReady: true },
   });
   assert(thyPkg.thyronixReady === true, "thyronixReady field works");
 
-  // 9) Import job model
-  console.log("\n9) Import job records");
+  // 10) Import job model
+  console.log("\n10) Import job records");
   const job = await prisma.productImportJob.create({
     data: {
       type: "XML",

@@ -2026,6 +2026,7 @@ model ProductCatalog {
   updatedAt     DateTime @updatedAt
   items         ProductCatalogItem[]
   suppliers     ProductSupplier[]
+  packageVersions ProductPackageVersion[]
 
   @@index([status])
 }
@@ -2104,12 +2105,14 @@ model ProductPackage {
   sourceColumnsJson String @default("[]")
   fieldRulesJson  String   @default("[]")
   exportFormatsJson String @default("[\"EXCEL\",\"XML\",\"CSV\"]")
+  currentVersionId String   @default("")
   status        String   @default("DRAFT")
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
   access        ProductPackageAccess[]
   logs          ProductDistributionLog[]
   recipes       ProductPackageRecipe[]
+  versions      ProductPackageVersion[]
 
   @@index([status])
   @@index([licenseLevel])
@@ -2199,6 +2202,35 @@ model ProductPackageRecipe {
   @@index([packageId])
   @@index([dealerId])
   @@index([connectionId])
+  @@index([status])
+}
+
+model ProductPackageVersion {
+  id               String   @id @default(cuid())
+  packageId        String
+  catalogId        String
+  importJobId      String   @default("")
+  versionNo        Int      @default(1)
+  sourceType       String   @default("EXCEL")
+  sourceName       String   @default("")
+  sourcePath       String   @default("")
+  sourceUrl        String   @default("")
+  fileHash         String   @default("")
+  rowCount         Int      @default(0)
+  itemCount        Int      @default(0)
+  duplicateCount   Int      @default(0)
+  columnsJson      String   @default("[]")
+  sampleJson       String   @default("[]")
+  reportJson       String   @default("{}")
+  status           String   @default("ACTIVE")
+  createdBy        String   @default("")
+  package          ProductPackage @relation(fields: [packageId], references: [id], onDelete: Cascade)
+  catalog          ProductCatalog @relation(fields: [catalogId], references: [id], onDelete: Cascade)
+  createdAt        DateTime @default(now())
+
+  @@index([packageId])
+  @@index([catalogId])
+  @@index([createdAt])
   @@index([status])
 }
 

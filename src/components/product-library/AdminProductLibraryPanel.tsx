@@ -87,6 +87,28 @@ export default function AdminProductLibraryPanel() {
   const [excelCatalogId, setExcelCatalogId] = useState("");
   const [excelColumns, setExcelColumns] = useState<string[]>([]);
   const [excelMapping, setExcelMapping] = useState<Record<string, string>>({});
+  const [packageImportFile, setPackageImportFile] = useState<File | null>(null);
+  const [packageImportPreview, setPackageImportPreview] = useState<any>(null);
+  const [packageImportBusy, setPackageImportBusy] = useState(false);
+  const [packageImportForm, setPackageImportForm] = useState({
+    packageMode: "NEW",
+    packageId: "",
+    packageName: "",
+    description: "",
+    catalogId: "",
+    catalogName: "",
+    sourceType: "EXCEL",
+    xmlUrl: "",
+    licenseLevel: "FREE",
+    billingType: "FREE",
+    isFree: true,
+    oneTimePrice: 0,
+    monthlyPrice: 0,
+    yearlyPrice: 0,
+    badgeText: "",
+    status: "ACTIVE",
+    exportFormats: ["EXCEL", "XML", "CSV"] as string[],
+  });
 
   const load = useCallback(async (t: Tab) => {
     setLoading(true);
@@ -263,6 +285,107 @@ export default function AdminProductLibraryPanel() {
     const data = await plApi<any>("/api/product-library/import/excel", { method: "POST", body: fd });
     notify(`${data.sourceType}: ${data.addedCount} yeni · ${data.updatedCount} güncelleme`);
     load("imports");
+  };
+
+  const previewPackageImport = async () => {
+    setPackageImportBusy(true);
+    setError(null);
+    try {
+      const fd = new FormData();
+      fd.append("sourceType", packageImportForm.sourceType);
+      if (packageImportForm.sourceType === "XML" && packageImportForm.xmlUrl.trim()) {
+        fd.append("xmlUrl", packageImportForm.xmlUrl.trim());
+      } else if (packageImportFile) {
+        fd.append("file", packageImportFile);
+      } else {
+        throw new Error("Önizleme için dosya veya XML URL gerekli");
+      }
+      if (Object.keys(excelMapping).length) fd.append("mapping", JSON.stringify(excelMapping));
+      const data = await plApi<any>("/api/product-library/package-import/preview", { method: "POST", body: fd });
+      if (data.columns?.length && packageImportForm.sourceType !== "XML") {
+        const map: Record<string, string> = {};
+        for (const f of ["barcode", "sku", "name", "brand", "category", "price", "salePrice", "stock", "vatRate"]) {
+          map[f] = data.columns.find((c: string) => c.toLowerCase() === f.toLowerCase()) || data.columns.find((c: string) => c.toLowerCase().includes(f.toLowerCase())) || excelMapping[f] || "";
+        }
+        setExcelMapping(map);
+      }
+      setPackageImportPreview(data);
+      notify("Paket önizlemesi hazırlandı");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Paket önizlenemedi");
+    } finally {
+      setPackageImportBusy(false);
+    }
+  };
+
+  const commitPackageImport = async () => {
+    setPackageImportBusy(true);
+    setError(null);
+    try {
+      const fd = new FormData();
+      Object.entries(packageImportForm).forEach(([key, value]) => {
+        if (Array.isArray(value)) fd.append(key, value.join(","));
+        else fd.append(key, String(value));
+      });
+      if (packageImportForm.sourceType === "XML" && packageImportForm.xmlUrl.trim()) {
+        fd.append("xmlUrl", packageImportForm.xmlUrl.trim());
+      } else if (packageImportFile) {
+        fd.append("file", packageImportFile);
+      } else {
+        throw new Error("Paket oluşturmak için dosya veya XML URL gerekli");
+      }
+      if (Object.keys(excelMapping).length) fd.append("mapping", JSON.stringify(excelMapping));
+      const data = await plApi<any>("/api/product-library/package-import/commit", { method: "POST", body: fd });
+      notify(`Paket işlendi: ${data.report.addedCount} yeni · ${data.report.updatedCount} güncelleme`);
+      setPackageImportPreview(null);
+      setPackageImportFile(null);
+      setPackageImportForm({
+        packageMode: "NEW",
+        packageId: "",
+        packageName: "",
+        description: "",
+        catalogId: "",
+        catalogName: "",
+        sourceType: "EXCEL",
+        xmlUrl: "",
+        licenseLevel: "FREE",
+        billingType: "FREE",
+        isFree: true,
+        oneTimePrice: 0,
+        monthlyPrice: 0,
+        yearlyPrice: 0,
+        badgeText: "",
+        status: "ACTIVE",
+        exportFormats: ["EXCEL", "XML", "CSV"],
+      });
+      await load("packages");
+      await load("imports");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Paket oluşturulamadı");
+    } finally {
+      setPackageImportBusy(false);
+    }
+  };
+
+  const downloadSourceVersion = async (versionId: string) => {
+    try {
+      const response = await fetch(`/api/product-library/package-version/${versionId}/download`);
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        throw new Error(data.error || "Kaynak indirilemedi");
+      }
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      const contentDisposition = response.headers.get("Content-Disposition");
+      const match = contentDisposition?.match(/filename=\"?([^"]+)\"?/);
+      a.download = match?.[1] || `${versionId}.dat`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Kaynak indirilemedi");
+    }
   };
 
   const bulkProductStatus = async (status: string) => {
@@ -464,6 +587,113 @@ export default function AdminProductLibraryPanel() {
 
           {tab === "packages" && (
             <div className="space-y-4">
+              <PlCard className="p-4">
+                <h3 className="font-semibold text-sm text-slate-800 mb-3">Paket Yükleme Sihirbazı</h3>
+                <div className="grid md:grid-cols-2 gap-3">
+                  <PlSelect value={packageImportForm.packageMode} onChange={(e) => setPackageImportForm({ ...packageImportForm, packageMode: e.target.value, packageId: "" })}>
+                    <option value="NEW">Yeni paket oluştur</option>
+                    <option value="EXISTING">Mevcut pakete yeni versiyon ekle</option>
+                  </PlSelect>
+                  {packageImportForm.packageMode === "EXISTING" ? (
+                    <PlSelect value={packageImportForm.packageId} onChange={(e) => setPackageImportForm({ ...packageImportForm, packageId: e.target.value })}>
+                      <option value="">Paket seç</option>
+                      {packages.map((pkg) => <option key={pkg.id} value={pkg.id}>{pkg.name}</option>)}
+                    </PlSelect>
+                  ) : (
+                    <PlInput placeholder="Paket adı" value={packageImportForm.packageName} onChange={(e) => setPackageImportForm({ ...packageImportForm, packageName: e.target.value })} />
+                  )}
+                  <PlTextarea className="md:col-span-2" placeholder="Açıklama" value={packageImportForm.description} onChange={(e) => setPackageImportForm({ ...packageImportForm, description: e.target.value })} />
+                  <PlSelect value={packageImportForm.sourceType} onChange={(e) => setPackageImportForm({ ...packageImportForm, sourceType: e.target.value, xmlUrl: "" })}>
+                    <option value="EXCEL">Excel</option>
+                    <option value="CSV">CSV</option>
+                    <option value="XML">XML</option>
+                  </PlSelect>
+                  <PlSelect value={packageImportForm.catalogId} onChange={(e) => setPackageImportForm({ ...packageImportForm, catalogId: e.target.value })}>
+                    <option value="">Yeni katalog oluştur</option>
+                    {catalogs.map((catalog) => <option key={catalog.id} value={catalog.id}>{catalog.name}</option>)}
+                  </PlSelect>
+                  {!packageImportForm.catalogId && (
+                    <PlInput placeholder="Yeni katalog adı (boşsa paket adı kullanılır)" value={packageImportForm.catalogName} onChange={(e) => setPackageImportForm({ ...packageImportForm, catalogName: e.target.value })} />
+                  )}
+                  <PlSelect value={packageImportForm.licenseLevel} onChange={(e) => setPackageImportForm({ ...packageImportForm, licenseLevel: e.target.value })}>
+                    {LICENSE_LEVELS.map((level) => <option key={level} value={level}>{licenseLevelLabel(level)}</option>)}
+                  </PlSelect>
+                  <label className="flex items-center gap-2 text-sm text-slate-700">
+                    <input type="checkbox" checked={packageImportForm.isFree} onChange={(e) => setPackageImportForm({ ...packageImportForm, isFree: e.target.checked, billingType: e.target.checked ? "FREE" : "ONE_TIME" })} />
+                    Ücretsiz ver
+                  </label>
+                  <PlSelect value={packageImportForm.billingType} onChange={(e) => setPackageImportForm({ ...packageImportForm, billingType: e.target.value })}>
+                    {["FREE", "ONE_TIME", "MONTHLY", "YEARLY"].map((billingType) => <option key={billingType} value={billingType}>{billingTypeLabel(billingType)}</option>)}
+                  </PlSelect>
+                  <PlInput type="number" placeholder="Tek seferlik fiyat" value={packageImportForm.oneTimePrice} onChange={(e) => setPackageImportForm({ ...packageImportForm, oneTimePrice: Number(e.target.value) || 0 })} />
+                  <PlInput placeholder="Rozet metni" value={packageImportForm.badgeText} onChange={(e) => setPackageImportForm({ ...packageImportForm, badgeText: e.target.value })} />
+                  <PlSelect value={packageImportForm.status} onChange={(e) => setPackageImportForm({ ...packageImportForm, status: e.target.value })}>
+                    <option value="ACTIVE">Aktif</option>
+                    <option value="DRAFT">Taslak</option>
+                  </PlSelect>
+                  <div className="md:col-span-2">
+                    <div className="text-xs text-slate-500 mb-2">Çıktı formatları</div>
+                    <div className="flex flex-wrap gap-2">
+                      {["EXCEL", "XML", "CSV"].map((format) => (
+                        <label key={format} className="flex items-center gap-2 text-sm text-slate-700 border border-slate-200 rounded-lg px-3 py-2">
+                          <input
+                            type="checkbox"
+                            checked={packageImportForm.exportFormats.includes(format)}
+                            onChange={(e) => setPackageImportForm({
+                              ...packageImportForm,
+                              exportFormats: e.target.checked
+                                ? [...packageImportForm.exportFormats, format]
+                                : packageImportForm.exportFormats.filter((item) => item !== format),
+                            })}
+                          />
+                          {format}
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                  {packageImportForm.sourceType === "XML" ? (
+                    <PlInput className="md:col-span-2" placeholder="XML URL" value={packageImportForm.xmlUrl} onChange={(e) => setPackageImportForm({ ...packageImportForm, xmlUrl: e.target.value })} />
+                  ) : (
+                    <div className="md:col-span-2">
+                      <input type="file" accept={packageImportForm.sourceType === "CSV" ? ".csv" : ".xlsx,.xls,.csv"} onChange={(e) => setPackageImportFile(e.target.files?.[0] || null)} className="text-sm text-slate-700" />
+                    </div>
+                  )}
+                </div>
+                <div className="flex flex-wrap gap-2 mt-4">
+                  <PlBtn variant="secondary" onClick={previewPackageImport} disabled={packageImportBusy}>
+                    <Eye size={14} /> Önizle
+                  </PlBtn>
+                  <PlBtn onClick={commitPackageImport} disabled={packageImportBusy}>
+                    <Upload size={14} /> Paketi İşle
+                  </PlBtn>
+                </div>
+                {packageImportPreview && (
+                  <div className="mt-4 space-y-3">
+                    <div className="grid md:grid-cols-4 gap-3">
+                      <PlStat label="Satır" value={packageImportPreview.rowCount} icon={FileSpreadsheet} />
+                      <PlStat label="Ürün" value={packageImportPreview.itemCount} icon={Package} />
+                      <PlStat label="Kolon" value={packageImportPreview.columns?.length || 0} icon={Layers} />
+                      <PlStat label="Tekrar" value={packageImportPreview.validation?.duplicateCount || 0} icon={Shield} />
+                    </div>
+                    {packageImportPreview.validation?.warnings?.length > 0 && (
+                      <PlAlert type="info">{packageImportPreview.validation.warnings.join(" · ")}</PlAlert>
+                    )}
+                    {packageImportPreview.columns?.length > 0 && packageImportForm.sourceType !== "XML" && (
+                      <div className="grid md:grid-cols-2 gap-2">
+                        {Object.keys(excelMapping).map((field) => (
+                          <div key={field} className="flex items-center gap-2">
+                            <span className="text-xs w-24 text-slate-600">{catalogFieldLabel(field)}</span>
+                            <PlSelect className="flex-1" value={excelMapping[field]} onChange={(e) => setExcelMapping({ ...excelMapping, [field]: e.target.value })}>
+                              <option value="">—</option>
+                              {packageImportPreview.columns.map((column: string) => <option key={column} value={column}>{column}</option>)}
+                            </PlSelect>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </PlCard>
               <PlCard className="p-4">
                 <h3 className="font-semibold text-sm text-slate-800 mb-3">Yeni Paket</h3>
                 <PackageForm value={newPackage} onChange={setNewPackage} catalogs={catalogs} />
@@ -858,6 +1088,26 @@ export default function AdminProductLibraryPanel() {
                 <div key={i.id} className="py-1 border-b border-slate-100 text-xs">{i.name} — {i.brand} — {fmtMoney(i.price)}</div>
               ))}
             </div>
+            <PlCard className="p-4">
+              <h4 className="font-medium text-slate-900 mb-3">Kaynak Versiyonlar</h4>
+              {viewPackage.versions?.length ? (
+                <div className="space-y-2">
+                  {viewPackage.versions.map((version: any) => (
+                    <div key={version.id} className="flex items-center justify-between gap-3 border border-slate-100 rounded-xl px-3 py-2">
+                      <div className="text-xs text-slate-600">
+                        <div className="font-medium text-slate-900">v{version.versionNo} · {version.sourceType} · {version.sourceName || "Kaynak dosya"}</div>
+                        <div>{version.itemCount} ürün · {version.duplicateCount} tekrar · {fmtDate(version.createdAt)}</div>
+                      </div>
+                      <PlBtn variant="secondary" size="sm" onClick={() => downloadSourceVersion(version.id)}>
+                        <Download size={12} /> Kaynağı İndir
+                      </PlBtn>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <PlEmpty message="Henüz kaynak versiyonu kaydedilmedi" />
+              )}
+            </PlCard>
           </div>
         )}
       </PlModal>
