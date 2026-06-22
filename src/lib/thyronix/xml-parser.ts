@@ -62,10 +62,21 @@ export function parseXmlToProducts(
     if (!obj || typeof obj !== "object") return [];
     if (Array.isArray(obj)) return obj;
 
-    // Try rootElement.itemElement path
-    const root = (obj as any)[template.rootElement];
+    // Try rootElement.itemElement path (top-level or one level nested e.g. Root > Urunler)
+    let root = (obj as Record<string, unknown>)[template.rootElement];
+    if (!root || typeof root !== "object") {
+      for (const val of Object.values(obj as object)) {
+        if (val && typeof val === "object" && !Array.isArray(val)) {
+          const nested = (val as Record<string, unknown>)[template.rootElement];
+          if (nested && typeof nested === "object") {
+            root = nested;
+            break;
+          }
+        }
+      }
+    }
     if (root && typeof root === "object") {
-      const items = root[template.itemElement];
+      const items = (root as Record<string, unknown>)[template.itemElement];
       if (items) return Array.isArray(items) ? items : [items];
       // If itemElement not directly found, search for arrays in root
       for (const val of Object.values(root as object)) {
@@ -118,11 +129,66 @@ export function parseXmlToProducts(
 
       const numFields = ["price", "costPrice", "stock", "weight", "vatRate", "shippingCost"];
       if (numFields.includes(internalField)) {
+        if (typeof value === "object" && value !== null) {
+          if (internalField === "price" || internalField === "costPrice") {
+            const nested = value as Record<string, unknown>;
+            value =
+              nested.bayi_fiyati ?? nested.son_kullanici ?? nested.SatisFiyati ??
+              nested.price ?? nested.fiyat ?? nested["#text"];
+          } else if (internalField === "stock") {
+            const nested = value as Record<string, unknown>;
+            value = nested.miktar ?? nested.quantity ?? nested.stok ?? nested["#text"];
+          }
+        }
         const n = parseNumber(value);
         if (n !== undefined) (product as any)[internalField] = n;
+      } else if (internalField === "image" || internalField === "images") {
+        (product as any)[internalField] = String(value);
       } else {
         (product as any)[internalField] = String(value);
       }
+    }
+
+    if (!product.price) {
+      const p =
+        item.price ?? item.sitePrice ?? item.SatisFiyati ?? item.Price ??
+        item.urun_fiyat_bayi_ozel ?? item.urun_fiyat;
+      const fiyat = item.fiyat;
+      const fromFiyat = fiyat && typeof fiyat === "object"
+        ? (fiyat as Record<string, unknown>).bayi_fiyati ?? (fiyat as Record<string, unknown>).son_kullanici
+        : fiyat;
+      product.price = parseNumber(p ?? fromFiyat) ?? product.price;
+    }
+    if (product.stock === undefined) {
+      product.stock =
+        parseNumber(item.quantity ?? item.miktar ?? item.StokAdedi ?? item.stok ?? item.urun_stok) ?? 0;
+    }
+    if (!product.name) {
+      product.name =
+        String(item.adi ?? item.ProductName ?? item.UrunAdi ?? item.urun_ad ?? item.name ?? "").trim() ||
+        undefined;
+    }
+    if (!product.barcode && !product.stockCode) {
+      product.barcode =
+        String(item.barcode ?? item.barcod ?? item.Barkod ?? item.ozel_barkod_kodu ?? "").trim() || undefined;
+      product.stockCode =
+        String(item.stok_kodu ?? item.ProductCode ?? item.StokKodu ?? item.ozel_urun_kodu ?? "").trim() ||
+        undefined;
+    }
+    if (!product.brand) {
+      product.brand = String(item.urun_marka_ad ?? item.marka ?? "").trim() || undefined;
+    }
+    if (!product.category) {
+      product.category =
+        String(item.urun_kategori_path ?? item.urun_kategori_ad ?? item.kategori ?? "").trim() || undefined;
+    }
+    if (!product.image) {
+      product.image =
+        String(item.urun_resim1 ?? item.resim1 ?? "").trim() || product.image;
+    }
+    if (!product.image && item.resim && typeof item.resim === "object") {
+      const r = item.resim as Record<string, unknown>;
+      product.image = String(r.resim1 ?? r.image1 ?? Object.values(r).find((v) => typeof v === "string") ?? "").trim() || undefined;
     }
 
     // Parse variants if template supports them

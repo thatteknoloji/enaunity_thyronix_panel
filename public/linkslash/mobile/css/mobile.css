@@ -97,7 +97,14 @@ body {
 }
 .recent-list .title { font-size: 13px; font-weight: 600; margin-bottom: 4px; word-break: break-word; }
 .recent-list .meta, .queue-list .meta { font-size: 11px; color: var(--muted); }
-.action-grid { display: grid; gap: 8px; }
+.cta-grid { display: grid; gap: 10px; margin-top: 14px; }
+.dashboard-hero .hero-title { font-size: 21px; }
+.import-card .form-row select {
+  width: 100%; padding: 12px 14px; border-radius: 12px; border: 1px solid var(--border);
+  background: rgba(0,0,0,0.25); color: var(--text); font-size: 15px;
+}
+.records-panel .records-empty { margin-top: 12px; text-align: center; }
+.recent-list .empty-recent { text-align: center; padding: 16px; }
 .action-card {
   text-align: left; padding: 12px 14px; border-radius: 10px;
   border: 1px solid var(--border); background: rgba(255,255,255,0.02);

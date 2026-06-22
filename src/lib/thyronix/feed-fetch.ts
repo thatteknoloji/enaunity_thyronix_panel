@@ -1,6 +1,31 @@
+import { XMLParser } from "fast-xml-parser";
 import type { FeedTemplate } from "./templates";
 import { parseXmlToProducts } from "./xml-parser";
 import { BEZOS_BAYI_XML } from "./connectors/bezos-bayi-xml";
+
+const INDEX_PROBE_PARSER = new XMLParser({
+  ignoreAttributes: false,
+  parseTagValue: false,
+  trimValues: true,
+});
+
+/** xmltedarik.com gibi indeks XML'lerinden alt feed URL'lerini çıkarır */
+export function discoverIndexedFeedUrls(xmlText: string): string[] {
+  try {
+    const parsed = INDEX_PROBE_PARSER.parse(xmlText) as Record<string, unknown>;
+    const root = (parsed.XML ?? parsed.xml) as Record<string, unknown> | undefined;
+    if (!root || typeof root !== "object") return [];
+    return [
+      ...new Set(
+        Object.values(root).filter(
+          (v): v is string => typeof v === "string" && /^https?:\/\//i.test(v),
+        ),
+      ),
+    ];
+  } catch {
+    return [];
+  }
+}
 
 export type ParsedFeedProduct = ReturnType<typeof parseXmlToProducts>[number];
 
@@ -57,18 +82,55 @@ export function resolveSourceFeedUrls(xmlUrl: string, fixedValuesRaw?: string | 
   return xmlUrl ? [xmlUrl] : [];
 }
 
-export async function fetchXmlText(url: string, timeoutMs = 90000): Promise<string> {
-  const res = await fetch(url, {
-    headers: FETCH_HEADERS,
-    signal: AbortSignal.timeout(timeoutMs),
-  });
-  if (!res.ok) throw new Error(`HTTP ${res.status} — ${url}`);
-  const text = await res.text();
-  if (!text || text.length < 10) throw new Error(`Boş yanıt — ${url}`);
-  if (text.trim().startsWith("<!DOCTYPE") || text.includes("SAYFA BULUNAMADI")) {
-    throw new Error(`XML değil HTML döndü (404 veya erişim engeli) — ${url}`);
+/** Mask tokens/passwords in feed URLs for logs and error messages */
+export function maskFeedUrl(url: string): string {
+  try {
+    const u = new URL(url);
+    for (const key of ["password", "token", "autologin", "api_key", "apikey", "key", "secret"]) {
+      if (u.searchParams.has(key)) u.searchParams.set(key, "***");
+    }
+    return u
+      .toString()
+      .replace(/\/export\/[^/]+/i, "/export/***")
+      .replace(/TicimaxXml\/[^/]+/i, "TicimaxXml/***");
+  } catch {
+    return url
+      .replace(/password=[^&]+/gi, "password=***")
+      .replace(/autologin=[^&]+/gi, "autologin=***");
   }
-  return text;
+}
+
+export async function fetchXmlText(url: string, timeoutMs = 180000): Promise<string> {
+  const safeUrl = maskFeedUrl(url);
+  let lastError: Error | null = null;
+
+  for (let attempt = 0; attempt < 4; attempt++) {
+    if (attempt > 0) {
+      await new Promise((r) => setTimeout(r, 2000 * attempt));
+    }
+    try {
+      const res = await fetch(url, {
+        headers: FETCH_HEADERS,
+        signal: AbortSignal.timeout(timeoutMs),
+      });
+      if (res.status === 429 || res.status === 503) {
+        lastError = new Error(`HTTP ${res.status} — ${safeUrl}`);
+        continue;
+      }
+      if (!res.ok) throw new Error(`HTTP ${res.status} — ${safeUrl}`);
+      const text = await res.text();
+      if (!text || text.length < 10) throw new Error(`Boş yanıt — ${safeUrl}`);
+      if (text.trim().startsWith("<!DOCTYPE") || text.includes("SAYFA BULUNAMADI")) {
+        throw new Error(`XML değil HTML döndü (404 veya erişim engeli) — ${safeUrl}`);
+      }
+      return text;
+    } catch (e) {
+      lastError = e instanceof Error ? e : new Error(String(e));
+      if (!/HTTP 429|HTTP 503/.test(lastError.message)) throw lastError;
+    }
+  }
+
+  throw lastError ?? new Error(`Fetch başarısız — ${safeUrl}`);
 }
 
 export async function fetchAndParseXmlFeeds(
@@ -82,8 +144,21 @@ export async function fetchAndParseXmlFeeds(
 
   for (const url of urls) {
     try {
-      const xmlText = await fetchXmlText(url);
-      const batch = parseXmlToProducts(xmlText, template, customFieldMap);
+      const xmlText = await fetchXmlText(url, 180000);
+      const indexedUrls = discoverIndexedFeedUrls(xmlText);
+      const xmlChunks: string[] = [];
+      if (indexedUrls.length > 0) {
+        for (const subUrl of indexedUrls) {
+          xmlChunks.push(await fetchXmlText(subUrl, 180000));
+        }
+      } else {
+        xmlChunks.push(xmlText);
+      }
+
+      let batch: ParsedFeedProduct[] = [];
+      for (const chunk of xmlChunks) {
+        batch = batch.concat(parseXmlToProducts(chunk, template, customFieldMap));
+      }
       let added = 0;
       for (const p of batch) {
         const key = String(p.barcode || p.stockCode || (p as { externalId?: string }).externalId || p.name || "");
@@ -92,12 +167,12 @@ export async function fetchAndParseXmlFeeds(
         allProducts.push(p);
         added++;
       }
-      feedStats.push({ url, count: batch.length });
+      feedStats.push({ url: maskFeedUrl(url), count: batch.length });
       // Otomatik OFFSET: boş sayfa gelirse dur
       if (batch.length === 0) break;
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
-      feedStats.push({ url, count: 0, error: msg });
+      feedStats.push({ url: maskFeedUrl(url), count: 0, error: msg });
       // İlk URL başarısızsa hata fırlat; sonraki sayfalar opsiyonel
       if (feedStats.length === 1) throw e;
       break;

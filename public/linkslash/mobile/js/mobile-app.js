@@ -6,12 +6,14 @@
     session: null,
     share: null,
     hasShare: false,
+    serverRecent: [],
     online: navigator.onLine,
     saving: false,
-    screen: 'login'
+    screen: 'login',
+    pendingWhatsApp: null
   };
 
-  var APP_VERSION = '1.0.0';
+  var APP_VERSION = '1.1.0';
 
   var CONFIG = {
     apiBase: window.LINKSLASH_API_BASE || '',
@@ -26,7 +28,9 @@
     '/linkslash/mobile/license': 'license',
     '/linkslash/mobile/device': 'device',
     '/linkslash/mobile/update': 'update',
-    '/linkslash/mobile/import': 'app'
+    '/linkslash/mobile/import': 'import',
+    '/linkslash/mobile/whatsapp': 'whatsapp',
+    '/linkslash/mobile/records': 'records'
   };
 
   var SCREEN_ROUTES = {
@@ -35,7 +39,9 @@
     device: MOBILE_BASE + '/device',
     update: MOBILE_BASE + '/update',
     app: MOBILE_BASE + '/dashboard',
-    import: MOBILE_BASE + '/import'
+    import: MOBILE_BASE + '/import',
+    whatsapp: MOBILE_BASE + '/whatsapp',
+    records: MOBILE_BASE + '/records'
   };
 
   function normalizePath(path) {
@@ -71,12 +77,27 @@
     var path = normalizePath(window.location.pathname);
     if (path === MOBILE_BASE) return;
     var screen = PATH_ROUTES[path];
-    if (screen === 'app' && path.indexOf('/import') !== -1 && state.hasShare) {
-      showScreen('app');
-      renderSharePreview(state.share);
+    if (!screen) return;
+    if (screen === 'import') {
+      showScreen('import');
+      populateImportFromShare();
       return;
     }
-    if (screen) showScreen(screen);
+    if (screen === 'whatsapp') {
+      showScreen('whatsapp');
+      return;
+    }
+    if (screen === 'records') {
+      showScreen('records');
+      renderRecordsList(getRecentItems());
+      return;
+    }
+    if (screen === 'app') {
+      showScreen('app');
+      renderDashboard();
+      return;
+    }
+    showScreen(screen);
   }
 
   function installNavigationGuard() {
@@ -146,7 +167,10 @@
     license: 'screenLicense',
     device: 'screenDevice',
     update: 'screenUpdate',
-    app: 'screenApp'
+    app: 'screenApp',
+    import: 'screenImport',
+    whatsapp: 'screenWhatsApp',
+    records: 'screenRecords'
   };
 
   function getDeviceId() {
@@ -181,13 +205,102 @@
       if (el) el.classList.toggle('hidden', key !== name);
     });
     var logoutBtn = $('logoutBtn');
-    if (logoutBtn) logoutBtn.classList.toggle('hidden', name === 'login' || name === 'update');
+    if (logoutBtn) {
+      logoutBtn.classList.toggle('hidden', name === 'login' || name === 'update');
+    }
     var route = SCREEN_ROUTES[name];
     if (route && normalizePath(window.location.pathname) !== normalizePath(route)) {
       try {
         window.history.replaceState({}, '', route);
       } catch (_) {}
     }
+  }
+
+  function openDashboard(replace) {
+    showScreen('app');
+    renderDashboard();
+    navigateShell(MOBILE_BASE + '/dashboard', !!replace);
+  }
+
+  function openImport() {
+    showScreen('import');
+    populateImportFromShare();
+    navigateShell(MOBILE_BASE + '/import', false);
+  }
+
+  function openRecords() {
+    showScreen('records');
+    renderRecordsList(getRecentItems());
+    navigateShell(MOBILE_BASE + '/records', false);
+  }
+
+  function clearImportForm() {
+    var urlEl = $('importUrl');
+    var titleEl = $('importTitle');
+    var sourceEl = $('importSourceType');
+    if (urlEl) urlEl.value = '';
+    if (titleEl) titleEl.value = '';
+    if (sourceEl) sourceEl.value = 'web';
+    setStatus('', '', 'importStatus');
+    var meta = $('importShareMeta');
+    if (meta) meta.textContent = '';
+  }
+
+  function populateImportFromShare() {
+    var heading = $('importHeading');
+    var label = $('importLabel');
+    var meta = $('importShareMeta');
+    if (!state.hasShare || !state.share) {
+      if (heading) heading.textContent = 'Yeni kayıt';
+      if (label) label.textContent = 'Link Ekle';
+      if (meta) meta.textContent = '';
+      return;
+    }
+    var share = state.share;
+    if (heading) heading.textContent = share.title || 'Paylaşılan link';
+    if (label) label.textContent = 'Paylaşılan içerik';
+    if (meta) {
+      meta.textContent = (share.sourceLabel || share.sourceType || 'web') +
+        (share.sharedFrom ? ' · ' + share.sharedFrom : '');
+    }
+    var urlEl = $('importUrl');
+    var titleEl = $('importTitle');
+    var sourceEl = $('importSourceType');
+    if (urlEl) urlEl.value = share.url || share.rawText || '';
+    if (titleEl && share.title) titleEl.value = share.title;
+    if (sourceEl && share.sourceType) sourceEl.value = mapSourceTypeToSelectValue(share.sourceType);
+  }
+
+  function renderDashboard() {
+    var greeting = $('dashboardGreeting');
+    var hint = $('dashboardHint');
+    if (greeting && state.session && state.session.user) {
+      greeting.textContent = 'Merhaba, ' + (state.session.user.name || state.session.user.email);
+    } else if (greeting) {
+      greeting.textContent = 'Hoş geldiniz';
+    }
+    if (hint) {
+      hint.textContent = state.hasShare
+        ? 'Paylaşılan içerik algılandı — otomatik kaydediliyor veya içe aktarılıyor.'
+        : 'Instagram/WhatsApp\'tan Paylaş → LinkSlash veya dosya içe aktarın.';
+    }
+    renderRecent();
+    renderQueue();
+  }
+
+  function getRecentItems() {
+    if (state.serverRecent && state.serverRecent.length) return state.serverRecent;
+    return LinkSlashOfflineQueue.readRecent();
+  }
+
+  function mapLinkToRecent(item) {
+    return {
+      id: item.id,
+      url: item.url,
+      title: item.title,
+      sourceType: item.sourceType || item.platform || 'web',
+      createdAt: item.createdAt || item.updatedAt || new Date().toISOString()
+    };
   }
 
   function setSyncPill() {
@@ -219,36 +332,36 @@
     nameEl.textContent = state.session.user.name || state.session.user.email;
   }
 
-  function renderSharePreview(share) {
-    state.hasShare = !!(share && (share.url || share.rawText));
-    $('shareLabel').textContent = state.hasShare ? 'Paylaşılan içerik' : 'LinkSlash';
-    $('shareTitle').textContent = share && share.title ? share.title : (state.hasShare ? 'Paylaşılan link' : 'Hoş geldiniz');
-    $('shareUrl').textContent = share && (share.url || share.rawText)
-      ? (share.url || share.rawText)
-      : 'Herhangi bir uygulamadan Paylaş → LinkSlash';
-    $('shareMeta').textContent = share && (share.sourceLabel || share.sourceType)
-      ? 'Kaynak: ' + (share.sourceLabel || share.sourceType) + (share.sharedFrom ? ' · ' + share.sharedFrom : '')
-      : 'Kaynak: —';
-    $('saveBtn').classList.toggle('hidden', !state.hasShare);
-  }
-
-  function renderDefaultDashboard() {
-    state.hasShare = false;
-    renderSharePreview(null);
-  }
-
   function renderRecent() {
     var list = $('recentList');
-    var recent = LinkSlashOfflineQueue.readRecent();
-    $('recentCount').textContent = String(recent.length);
+    var recent = getRecentItems().slice(0, 10).map(mapLinkToRecent);
+    $('recentCount').textContent = String(getRecentItems().length);
     if (!list) return;
     if (!recent.length) {
-      list.innerHTML = '<li class="meta">Henüz kayıt yok</li>';
+      list.innerHTML = '<li class="meta empty-recent">Henüz kayıt yok. <button type="button" class="link-btn" data-action="add-link">İlk linkini ekle</button></li>';
       return;
     }
     list.innerHTML = recent.map(function(r) {
       return '<li><div class="title">' + escapeHtml(r.title || r.url) + '</div>' +
         '<div class="meta">' + escapeHtml(r.sourceType || 'web') + ' · ' + formatDate(r.createdAt) + '</div></li>';
+    }).join('');
+  }
+
+  function renderRecordsList(items) {
+    var list = $('recordsList');
+    var empty = $('recordsEmpty');
+    var mapped = (items || []).map(mapLinkToRecent);
+    if (!list) return;
+    if (!mapped.length) {
+      list.innerHTML = '';
+      if (empty) empty.classList.remove('hidden');
+      return;
+    }
+    if (empty) empty.classList.add('hidden');
+    list.innerHTML = mapped.map(function(r) {
+      return '<li><div class="title">' + escapeHtml(r.title || r.url) + '</div>' +
+        '<div class="meta">' + escapeHtml(r.sourceType || 'web') + ' · ' + formatDate(r.createdAt) + '</div>' +
+        '<div class="meta">' + escapeHtml(r.url || '') + '</div></li>';
     }).join('');
   }
 
@@ -458,23 +571,44 @@
       return;
     }
     showScreen('app');
-    if (state.hasShare) {
-      navigateShell(MOBILE_BASE + '/import', true);
-      renderSharePreview(state.share);
-    } else {
-      navigateShell(MOBILE_BASE + '/dashboard', true);
-      renderDefaultDashboard();
+    if (state.pendingWhatsApp) {
+      var waText = state.pendingWhatsApp;
+      state.pendingWhatsApp = null;
+      processWhatsAppText(waText, 'WhatsApp');
+      return;
     }
+    if (state.hasShare && state.share && state.share.url) {
+      autoCaptureShare(state.share);
+      return;
+    }
+    if (state.hasShare) {
+      openImport();
+      return;
+    }
+    openDashboard(true);
+    pullFromServer(false).catch(function(err) {
+      console.warn('[LinkSlash Mobile] initial pull failed:', err);
+    });
   }
 
-  async function login() {
+  function setLoginLoading(loading) {
+    var btn = $('loginBtn');
+    if (!btn) return;
+    btn.disabled = !!loading;
+    btn.textContent = loading ? 'Giriş yapılıyor...' : 'Giriş Yap';
+  }
+
+  async function login(event) {
+    if (event && event.preventDefault) event.preventDefault();
+
     var email = ($('loginEmail') && $('loginEmail').value.trim()) || '';
     var password = ($('loginPassword') && $('loginPassword').value) || '';
     if (!email || !password) {
       setStatus('E-posta ve şifre gerekli', 'err', 'loginStatus');
       return;
     }
-    $('loginBtn').disabled = true;
+
+    setLoginLoading(true);
     setStatus('Giriş yapılıyor...', 'info', 'loginStatus');
     try {
       var resp = await fetch(CONFIG.apiBase + '/api/auth/login', {
@@ -483,25 +617,52 @@
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: email, password: password })
       });
-      var json = await resp.json();
+
+      var json = {};
+      try {
+        json = await resp.json();
+      } catch (parseErr) {
+        console.error('[LinkSlash Mobile] login response parse failed:', parseErr);
+        setStatus('Sunucu yanıtı okunamadı', 'err', 'loginStatus');
+        return;
+      }
+
       if (!resp.ok || !json.success) {
+        console.error('[LinkSlash Mobile] login failed:', {
+          status: resp.status,
+          error: json.error || 'unknown'
+        });
         setStatus(json.error || 'Giriş başarısız', 'err', 'loginStatus');
         return;
       }
       if (json.requires2FA) {
+        console.error('[LinkSlash Mobile] login blocked: 2FA required');
         setStatus('2FA bu mobil uygulamada desteklenmiyor — tarayıcıdan giriş yapın', 'err', 'loginStatus');
         return;
       }
+
       setStatus('✓ Giriş başarılı', 'ok', 'loginStatus');
       await checkSession();
-      await routeAfterSession();
-      if (state.hasShare && state.session && state.session.linkslashAccess) {
-        setStatus('Paylaşılan içerik hazır — kaydetmek için butona basın', 'info');
+
+      if (state.session && state.session.authenticated && state.session.linkslashAccess) {
+        try {
+          await fetch(CONFIG.apiBase + '/api/linkslash/mobile/sync', {
+            method: 'POST',
+            credentials: 'include',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ items: [] })
+          });
+        } catch (syncErr) {
+          console.warn('[LinkSlash Mobile] post-login sync skipped:', syncErr);
+        }
       }
+
+      await routeAfterSession();
     } catch (err) {
-      setStatus('Bağlantı hatası: ' + err.message, 'err', 'loginStatus');
+      console.error('[LinkSlash Mobile] login request failed:', err);
+      setStatus('Bağlantı hatası: ' + (err && err.message ? err.message : 'bilinmeyen'), 'err', 'loginStatus');
     } finally {
-      $('loginBtn').disabled = false;
+      setLoginLoading(false);
     }
   }
 
@@ -516,22 +677,15 @@
     setStatus('', '', 'loginStatus');
   }
 
-  async function captureOnline(share) {
-    var resp = await fetch(CONFIG.apiBase + '/api/linkslash/capture', {
+  async function captureOnline(payload) {
+    var resp = await fetch(CONFIG.apiBase + '/api/linkslash/mobile/capture', {
       method: 'POST',
       credentials: 'include',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        url: share.url,
-        rawText: share.rawText,
-        title: share.title,
-        sourceType: share.sourceType,
-        sharedFrom: share.sharedFrom,
-        client: 'mobile'
-      })
+      body: JSON.stringify(Object.assign({ client: 'mobile' }, payload))
     });
     var json = await resp.json();
-    if (!resp.ok) {
+    if (!resp.ok || !json.success) {
       var err = new Error(json.error || 'Kaydedilemedi');
       err.code = json.code;
       throw err;
@@ -539,22 +693,37 @@
     return json.data;
   }
 
-  async function saveShare() {
-    if (!state.share || state.saving) return;
-    if (!state.share.url && !state.share.rawText) {
-      setStatus('Kaydedilecek URL veya metin bulunamadı', 'err');
+  async function saveManualImport(event) {
+    if (event && event.preventDefault) event.preventDefault();
+    if (state.saving) return;
+
+    var url = ($('importUrl') && $('importUrl').value.trim()) || '';
+    var title = ($('importTitle') && $('importTitle').value.trim()) || '';
+    var sourceType = ($('importSourceType') && $('importSourceType').value) || 'web';
+    if (!url) {
+      setStatus('URL gerekli', 'err', 'importStatus');
       return;
     }
 
     state.saving = true;
-    $('saveBtn').disabled = true;
-    setStatus('Kaydediliyor...', 'info');
+    var saveBtn = $('importSaveBtn');
+    if (saveBtn) saveBtn.disabled = true;
+    setStatus('Kaydediliyor...', 'info', 'importStatus');
+
+    var payload = {
+      url: url,
+      rawText: url.indexOf('http') === 0 ? '' : url,
+      title: title || undefined,
+      sourceType: sourceType,
+      sharedFrom: state.share && state.share.sharedFrom ? state.share.sharedFrom : undefined
+    };
 
     try {
       var session = state.session || await checkSession();
       if (!session.authenticated) {
         showScreen('login');
-        setStatus('Kaydetmek için giriş yapın', 'info', 'loginStatus');
+        navigateShell(MOBILE_BASE + '/login', true);
+        setStatus('Kaydetmek için giriş yapın', 'err', 'loginStatus');
         return;
       }
       if (!session.linkslashAccess) {
@@ -563,69 +732,55 @@
       }
 
       if (!navigator.onLine) {
-        LinkSlashOfflineQueue.enqueue(state.share);
-        setStatus('İnternet yok — bağlantı gelince kaydedilecek', 'info');
-        renderQueue();
+        LinkSlashOfflineQueue.enqueue(payload);
+        setStatus('Offline — kuyruğa eklendi', 'info', 'importStatus');
+        state.hasShare = false;
+        state.share = null;
+        try { localStorage.removeItem('linkslash_last_share'); } catch (_) {}
+        setTimeout(function() { openDashboard(true); }, 600);
         return;
       }
 
-      var result = await captureOnline(state.share);
+      var result = await captureOnline(payload);
       LinkSlashOfflineQueue.addRecent({
         id: result.id,
         url: result.url,
         title: result.title,
         sourceType: result.sourceType,
-        sharedFrom: state.share.sharedFrom
+        sharedFrom: payload.sharedFrom
       });
-      setStatus('✓ LinkSlash\'a kaydedildi', 'ok');
-      renderRecent();
+      state.hasShare = false;
+      state.share = null;
       try { localStorage.removeItem('linkslash_last_share'); } catch (_) {}
-      renderDefaultDashboard();
+      clearImportForm();
+      openDashboard(true);
+      await pullFromServer(false);
+      setStatus('✓ Link kaydedildi', 'ok', 'dashboardStatus');
     } catch (err) {
+      console.error('[LinkSlash Mobile] import save failed:', err);
       if (err.code === 'AUTH_REQUIRED') {
         showScreen('login');
         navigateShell(MOBILE_BASE + '/login', true);
         setStatus('Oturum süresi doldu — tekrar giriş yapın', 'err', 'loginStatus');
         return;
       }
-      if (err.code === 'LISANS_YOK' || err.code === 'LISANS_BEKLIYOR') {
-        await checkSession();
-        routeAfterSession();
-        return;
-      }
-      if (!navigator.onLine || err.message.indexOf('fetch') !== -1) {
-        LinkSlashOfflineQueue.enqueue(state.share);
-        setStatus('İnternet yok — bağlantı gelince kaydedilecek', 'info');
-        renderQueue();
-      } else {
-        setStatus('Kaydedilemedi: ' + err.message, 'err');
-      }
+      setStatus('Kaydedilemedi: ' + (err.message || 'bilinmeyen hata'), 'err', 'importStatus');
     } finally {
       state.saving = false;
-      $('saveBtn').disabled = false;
+      if (saveBtn) saveBtn.disabled = false;
     }
   }
 
-  async function syncQueue() {
-    if (!navigator.onLine) {
-      setStatus('Sync için internet gerekli', 'err');
-      return;
-    }
-    var session = await checkSession();
-    if (!session.authenticated || !session.linkslashAccess) {
-      routeAfterSession();
-      return;
-    }
+  function showWaitForShare() {
+    setStatus('Instagram, Chrome veya WhatsApp\'ta Paylaş → LinkSlash seçin. Link otomatik kaydedilir; sohbet ZIP/TXT içe aktarılır.', 'info', 'dashboardStatus');
+  }
 
+  async function flushOfflineQueue(silent) {
     var queue = LinkSlashOfflineQueue.readQueue().filter(function(q) {
       return q.status === 'pending' || q.status === 'error';
     });
-    if (!queue.length) {
-      setStatus('Bekleyen kayıt yok', 'info');
-      return;
-    }
+    if (!queue.length) return { synced: 0 };
 
-    setStatus('Kuyruk senkronize ediliyor...', 'info');
     var resp = await fetch(CONFIG.apiBase + '/api/linkslash/mobile/sync', {
       method: 'POST',
       credentials: 'include',
@@ -644,10 +799,7 @@
       })
     });
     var json = await resp.json();
-    if (!json.success) {
-      setStatus(json.error || 'Sync başarısız', 'err');
-      return;
-    }
+    if (!json.success) throw new Error(json.error || 'Kuyruk sync başarısız');
 
     (json.data.results || []).forEach(function(r) {
       if (r.queueId) LinkSlashOfflineQueue.markSynced(r.queueId);
@@ -662,33 +814,354 @@
       if (e.queueId) LinkSlashOfflineQueue.markError(e.queueId, e.error);
     });
 
-    setStatus('✓ ' + json.data.synced + ' kayıt senkronize edildi', 'ok');
+    if (!silent) {
+      setStatus('✓ ' + json.data.synced + ' bekleyen kayıt gönderildi', 'ok', 'dashboardStatus');
+    }
     renderQueue();
-    renderRecent();
+    return json.data;
+  }
+
+  async function pullFromServer(showMessages) {
+    if (!navigator.onLine) {
+      if (showMessages !== false) setStatus('Sync için internet gerekli', 'err', 'dashboardStatus');
+      throw new Error('offline');
+    }
+
+    var session = await checkSession();
+    if (!session.authenticated || !session.linkslashAccess) {
+      routeAfterSession();
+      throw new Error('auth');
+    }
+
+    var syncBtn = $('syncQueueBtn');
+    if (syncBtn) syncBtn.disabled = true;
+    if (showMessages !== false) setStatus('Senkronize ediliyor...', 'info', 'dashboardStatus');
+
+    try {
+      await flushOfflineQueue(true);
+
+      var resp = await fetch(CONFIG.apiBase + '/api/linkslash/sync/pull', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({})
+      });
+      var json = await resp.json();
+      if (!resp.ok || !json.success) {
+        throw new Error(json.error || 'Sync başarısız');
+      }
+
+      var links = (json.data && json.data.links) || [];
+      links.sort(function(a, b) {
+        return new Date(b.updatedAt || b.createdAt).getTime() - new Date(a.updatedAt || a.createdAt).getTime();
+      });
+      state.serverRecent = links;
+      links.slice(0, 10).forEach(function(link) {
+        LinkSlashOfflineQueue.addRecent(mapLinkToRecent(link));
+      });
+
+      renderRecent();
+      if (state.screen === 'records') renderRecordsList(links);
+      if (showMessages !== false) {
+        setStatus('✓ ' + links.length + ' kayıt güncellendi', 'ok', 'dashboardStatus');
+      }
+      return links;
+    } catch (err) {
+      console.error('[LinkSlash Mobile] pull sync failed:', err);
+      if (showMessages !== false) {
+        setStatus('Sync hatası: ' + (err.message || 'bilinmeyen'), 'err', 'dashboardStatus');
+      }
+      throw err;
+    } finally {
+      if (syncBtn) syncBtn.disabled = false;
+    }
+  }
+
+  async function syncQueue() {
+    try {
+      await pullFromServer(true);
+    } catch (err) {
+      if (err && err.message !== 'auth') {
+        setStatus('Sync hatası: ' + err.message, 'err', 'dashboardStatus');
+      }
+    }
+  }
+
+  function openWhatsAppImport() {
+    showScreen('whatsapp');
+    setStatus('', '', 'whatsappStatus');
+    var progress = $('whatsappProgress');
+    if (progress) progress.textContent = '';
+    navigateShell(MOBILE_BASE + '/whatsapp', false);
+  }
+
+  function mapSourceTypeToSelectValue(sourceType) {
+    var map = {
+      instagram_post: 'instagram',
+      instagram_reel: 'instagram',
+      youtube_video: 'youtube',
+      youtube_shorts: 'youtube',
+      tweet: 'twitter',
+      tiktok_video: 'tiktok',
+      facebook_post: 'facebook',
+      linkedin_post: 'linkedin',
+      whatsapp: 'whatsapp',
+      web: 'web'
+    };
+    return map[sourceType] || 'other';
+  }
+
+  async function clearNativeShare() {
+    try { localStorage.removeItem('linkslash_last_share'); } catch (_) {}
+    if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.ShareReceiver) {
+      try { await window.Capacitor.Plugins.ShareReceiver.clearPendingShare(); } catch (_) {}
+    }
+  }
+
+  async function autoCaptureShare(share, payload) {
+    if (!share || !share.url) return false;
+    if (state.saving) return true;
+
+    state.saving = true;
+    showScreen('app');
+    setStatus('Paylaşılan link kaydediliyor...', 'info', 'dashboardStatus');
+
+    var capturePayload = {
+      url: share.url,
+      rawText: share.rawText || '',
+      title: share.title || undefined,
+      sourceType: share.sourceType || 'web',
+      sharedFrom: share.sharedFrom || undefined
+    };
+
+    try {
+      var session = state.session || await checkSession();
+      if (!session.authenticated || !session.linkslashAccess) {
+        routeAfterSession();
+        return true;
+      }
+
+      if (!navigator.onLine) {
+        LinkSlashOfflineQueue.enqueue(capturePayload);
+        setStatus('Offline — paylaşım kuyruğa eklendi', 'info', 'dashboardStatus');
+        state.hasShare = false;
+        state.share = null;
+        await clearNativeShare();
+        openDashboard(true);
+        return true;
+      }
+
+      var result = await captureOnline(capturePayload);
+      LinkSlashOfflineQueue.addRecent({
+        id: result.id,
+        url: result.url,
+        title: result.title,
+        sourceType: result.sourceType,
+        sharedFrom: capturePayload.sharedFrom
+      });
+      state.hasShare = false;
+      state.share = null;
+      await clearNativeShare();
+      openDashboard(true);
+      await pullFromServer(false);
+      setStatus('✓ Kaydedildi: ' + (result.title || result.url), 'ok', 'dashboardStatus');
+      return true;
+    } catch (err) {
+      console.error('[LinkSlash Mobile] auto capture failed:', err);
+      if (err.code === 'AUTH_REQUIRED') {
+        showScreen('login');
+        navigateShell(MOBILE_BASE + '/login', true);
+        setStatus('Oturum süresi doldu — tekrar giriş yapın', 'err', 'loginStatus');
+        return true;
+      }
+      openImport();
+      setStatus('Otomatik kayıt başarısız — düzenleyip Kaydet\'e basın', 'err', 'importStatus');
+      return false;
+    } finally {
+      state.saving = false;
+    }
+  }
+
+  async function processWhatsAppText(rawText, sharedFrom) {
+    if (!rawText || rawText.length < 20) {
+      setStatus('Geçerli WhatsApp sohbet dosyası değil', 'err', 'whatsappStatus');
+      return;
+    }
+
+    var session = state.session || await checkSession();
+    if (!session.authenticated || !session.linkslashAccess) {
+      routeAfterSession();
+      return;
+    }
+
+    showScreen('whatsapp');
+    setStatus('Sohbet ayrıştırılıyor...', 'info', 'whatsappStatus');
+
+    try {
+      var parsed = LinkSlashWhatsAppImport.parseChatText(rawText);
+      var links = parsed.links || [];
+      if (!links.length) {
+        setStatus('Sohbette link bulunamadı (' + (parsed.stats && parsed.stats.totalMessages) + ' mesaj tarandı)', 'err', 'whatsappStatus');
+        return;
+      }
+
+      var items = LinkSlashWhatsAppImport.linksToCaptureItems(links, sharedFrom || 'WhatsApp');
+      var progress = $('whatsappProgress');
+      setStatus(links.length + ' link bulundu, kaydediliyor...', 'info', 'whatsappStatus');
+
+      var result = await LinkSlashWhatsAppImport.captureBatch(CONFIG.apiBase, items, function(done, total, synced) {
+        if (progress) progress.textContent = done + ' / ' + total + ' işlendi (' + synced + ' kayıt)';
+      });
+
+      (result.results || []).forEach(function(r) {
+        LinkSlashOfflineQueue.addRecent({
+          id: r.id,
+          url: r.url,
+          title: r.title,
+          sourceType: r.sourceType || 'whatsapp'
+        });
+      });
+
+      state.hasShare = false;
+      state.share = null;
+      await clearNativeShare();
+      openDashboard(true);
+      await pullFromServer(false);
+      setStatus('✓ ' + result.synced + ' link WhatsApp sohbetinden kaydedildi', 'ok', 'dashboardStatus');
+      if (progress) progress.textContent = result.synced + ' kayıt tamamlandı';
+    } catch (err) {
+      console.error('[LinkSlash Mobile] whatsapp import failed:', err);
+      setStatus('İçe aktarma hatası: ' + (err.message || 'bilinmeyen'), 'err', 'whatsappStatus');
+    }
+  }
+
+  async function processBookmarkHtml(html) {
+    showScreen('whatsapp');
+    setStatus('Yer imleri ayrıştırılıyor...', 'info', 'whatsappStatus');
+    try {
+      var parsed = LinkSlashWhatsAppImport.parseBookmarkHtml(html);
+      var links = parsed.links || [];
+      if (!links.length) {
+        setStatus('HTML dosyasında geçerli link bulunamadı', 'err', 'whatsappStatus');
+        return;
+      }
+      var items = LinkSlashWhatsAppImport.bookmarkLinksToCaptureItems(links);
+      var progress = $('whatsappProgress');
+      setStatus(links.length + ' yer imi bulundu, kaydediliyor...', 'info', 'whatsappStatus');
+      var result = await LinkSlashWhatsAppImport.captureBatch(CONFIG.apiBase, items, function(done, total, synced) {
+        if (progress) progress.textContent = done + ' / ' + total + ' işlendi (' + synced + ' kayıt)';
+      });
+      (result.results || []).forEach(function(r) {
+        LinkSlashOfflineQueue.addRecent({
+          id: r.id,
+          url: r.url,
+          title: r.title,
+          sourceType: r.sourceType || 'web'
+        });
+      });
+      openDashboard(true);
+      await pullFromServer(false);
+      setStatus('✓ ' + result.synced + ' yer imi kaydedildi', 'ok', 'dashboardStatus');
+      if (progress) progress.textContent = result.synced + ' kayıt tamamlandı';
+    } catch (err) {
+      setStatus('Yer imi hatası: ' + (err.message || 'bilinmeyen'), 'err', 'whatsappStatus');
+    }
+  }
+
+  async function handleWhatsAppFileInput(event) {
+    var file = event && event.target && event.target.files && event.target.files[0];
+    if (!file) return;
+    try {
+      setStatus('Dosya okunuyor...', 'info', 'whatsappStatus');
+      var text = await LinkSlashWhatsAppImport.loadFileContent(file);
+      await processWhatsAppText(text, 'WhatsApp');
+    } catch (err) {
+      setStatus('Dosya hatası: ' + (err.message || 'bilinmeyen'), 'err', 'whatsappStatus');
+    } finally {
+      if (event && event.target) event.target.value = '';
+    }
+  }
+
+  async function handleBookmarkFileInput(event) {
+    var file = event && event.target && event.target.files && event.target.files[0];
+    if (!file) return;
+    try {
+      var text = await LinkSlashWhatsAppImport.loadFileContent(file);
+      if ((file.name || '').toLowerCase().endsWith('.html') || text.indexOf('<A ') !== -1 || text.indexOf('<a ') !== -1) {
+        await processBookmarkHtml(text);
+      } else {
+        await processWhatsAppText(text, 'WhatsApp');
+      }
+    } catch (err) {
+      setStatus('Dosya hatası: ' + (err.message || 'bilinmeyen'), 'err', 'whatsappStatus');
+    } finally {
+      if (event && event.target) event.target.value = '';
+    }
+  }
+
+  async function pollPendingShare() {
+    if (!window.Capacitor || !window.Capacitor.Plugins || !window.Capacitor.Plugins.ShareReceiver) return;
+    try {
+      var pending = await window.Capacitor.Plugins.ShareReceiver.getPendingShare();
+      if (pending && (pending.text || pending.html || pending.title)) {
+        await handleIncomingShare(pending, true);
+      }
+    } catch (_) {}
+  }
+
+  async function handleIncomingShare(payload, fromNative) {
+    payload = payload || {};
+    if (payload.kind === 'whatsapp_export' || (payload.text && payload.text.length > 500 && !LinkSlashShareParser.extractPrimaryUrl(payload.text, payload.html))) {
+      try { localStorage.setItem('linkslash_last_share', JSON.stringify(payload)); } catch (_) {}
+      if (state.session && state.session.authenticated && state.session.linkslashAccess) {
+        await processWhatsAppText(payload.text, LinkSlashWhatsAppImport.inferPackageLabel(payload.sharedFrom) || 'WhatsApp');
+        if (fromNative) await clearNativeShare();
+      } else {
+        state.pendingWhatsApp = payload.text;
+        setStatus('WhatsApp sohbeti algılandı — giriş yapınca içe aktarılacak', 'info', 'dashboardStatus');
+      }
+      return;
+    }
+
+    state.share = LinkSlashShareParser.parseSharePayload(payload);
+    state.hasShare = !!(state.share.url || state.share.rawText);
+    try { localStorage.setItem('linkslash_last_share', JSON.stringify(payload)); } catch (_) {}
+
+    if (state.session && state.session.authenticated && state.session.linkslashAccess) {
+      if (state.share.url) {
+        var captured = await autoCaptureShare(state.share, payload);
+        if (captured && fromNative) await clearNativeShare();
+        return;
+      }
+      openImport();
+      setStatus('Paylaşılan içerik — URL bulunamadı, manuel düzenleyin', 'info', 'importStatus');
+      return;
+    }
+
+    if (state.screen === 'app') {
+      setStatus('Paylaşım algılandı — giriş yapınca otomatik kaydedilecek', 'info', 'dashboardStatus');
+      renderDashboard();
+    }
   }
 
   function applySharePayload(payload) {
-    state.share = LinkSlashShareParser.parseSharePayload(payload);
-    state.hasShare = !!(state.share.url || state.share.rawText);
-    renderSharePreview(state.share);
-    try { localStorage.setItem('linkslash_last_share', JSON.stringify(payload)); } catch (_) {}
-    if (state.screen === 'app') {
-      setStatus('Önizleme hazır — kaydetmek için butona basın', 'info');
-    }
+    handleIncomingShare(payload, false);
   }
 
   window.LinkSlashMobile = {
     onNativeShare: function(payload) {
-      applySharePayload(typeof payload === 'string' ? { text: payload } : payload);
-      if (state.session && state.session.authenticated && state.session.linkslashAccess) {
-        showScreen('app');
-        navigateShell(MOBILE_BASE + '/import', true);
-      }
+      handleIncomingShare(typeof payload === 'string' ? { text: payload } : payload, true);
     },
-    applySharePayload: applySharePayload
+    applySharePayload: applySharePayload,
+    pollPendingShare: pollPendingShare
   };
 
+  var booted = false;
+
   async function bootstrap() {
+    if (booted) return;
+    booted = true;
+
     installNavigationGuard();
 
     window.addEventListener('online', function() {
@@ -713,11 +1186,16 @@
     if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.ShareReceiver) {
       try {
         var pending = await window.Capacitor.Plugins.ShareReceiver.getPendingShare();
-        if (pending && (pending.text || pending.url)) {
-          applySharePayload(pending);
-          await window.Capacitor.Plugins.ShareReceiver.clearPendingShare();
+        if (pending && (pending.text || pending.html || pending.title)) {
+          await handleIncomingShare(pending, true);
         }
       } catch (_) {}
+    }
+
+    if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.App) {
+      window.Capacitor.Plugins.App.addListener('appStateChange', function(appState) {
+        if (appState && appState.isActive) pollPendingShare();
+      });
     }
 
     if (!(await checkVersionGate())) return;
@@ -734,6 +1212,8 @@
           await routeAfterSession();
         } else if (state.session.linkslashAccess && (path === MOBILE_BASE + '/login' || path === MOBILE_BASE + '/license')) {
           await routeAfterSession();
+        } else if (state.session.linkslashAccess && (path === MOBILE_BASE + '/dashboard' || path === MOBILE_BASE + '/records')) {
+          try { await pullFromServer(false); } catch (_) {}
         }
       } else if (PATH_ROUTES[path] && PATH_ROUTES[path] !== 'login') {
         showScreen('login');
@@ -741,28 +1221,70 @@
       }
     }
 
-    $('loginBtn').addEventListener('click', login);
-    $('logoutBtn').addEventListener('click', logout);
-    $('logoutLicenseBtn').addEventListener('click', logout);
-    $('logoutDeviceBtn').addEventListener('click', logout);
-    $('activateBtn').addEventListener('click', activateCode);
-    $('downloadUpdateBtn').addEventListener('click', downloadUpdateApk);
-    $('retrySessionBtn').addEventListener('click', async function() {
-      await checkSession();
-      await routeAfterSession();
+    var loginForm = $('loginForm');
+    if (loginForm) loginForm.addEventListener('submit', login);
+
+    if ($('logoutBtn')) $('logoutBtn').addEventListener('click', logout);
+    if ($('dashboardLogoutBtn')) $('dashboardLogoutBtn').addEventListener('click', logout);
+    if ($('logoutLicenseBtn')) $('logoutLicenseBtn').addEventListener('click', logout);
+    if ($('logoutDeviceBtn')) $('logoutDeviceBtn').addEventListener('click', logout);
+    if ($('activateBtn')) $('activateBtn').addEventListener('click', activateCode);
+    if ($('downloadUpdateBtn')) $('downloadUpdateBtn').addEventListener('click', downloadUpdateApk);
+    if ($('retrySessionBtn')) {
+      $('retrySessionBtn').addEventListener('click', async function() {
+        await checkSession();
+        await routeAfterSession();
+      });
+    }
+    if ($('retryDeviceBtn')) {
+      $('retryDeviceBtn').addEventListener('click', async function() {
+        await checkSession();
+        await routeAfterSession();
+      });
+    }
+    if ($('addLinkBtn')) $('addLinkBtn').addEventListener('click', function() { openImport(); });
+    if ($('whatsappImportBtn')) $('whatsappImportBtn').addEventListener('click', openWhatsAppImport);
+    if ($('whatsappFileBtn')) $('whatsappFileBtn').addEventListener('click', function() {
+      var input = $('whatsappFileInput');
+      if (input) input.click();
     });
-    $('retryDeviceBtn').addEventListener('click', async function() {
-      await checkSession();
-      await routeAfterSession();
+    if ($('bookmarkFileBtn')) $('bookmarkFileBtn').addEventListener('click', function() {
+      var input = $('bookmarkFileInput');
+      if (input) input.click();
     });
-    $('saveBtn').addEventListener('click', saveShare);
-    $('syncQueueBtn').addEventListener('click', syncQueue);
-    $('saveAiKeyBtn').addEventListener('click', saveAiSettings);
+    if ($('whatsappFileInput')) $('whatsappFileInput').addEventListener('change', handleWhatsAppFileInput);
+    if ($('bookmarkFileInput')) $('bookmarkFileInput').addEventListener('change', handleBookmarkFileInput);
+    if ($('whatsappBackBtn')) $('whatsappBackBtn').addEventListener('click', function() { openDashboard(true); });
+    if ($('waitShareBtn')) $('waitShareBtn').addEventListener('click', showWaitForShare);
+    if ($('openRecordsBtn')) $('openRecordsBtn').addEventListener('click', openRecords);
+    if ($('importForm')) $('importForm').addEventListener('submit', saveManualImport);
+    if ($('importBackBtn')) $('importBackBtn').addEventListener('click', function() { openDashboard(true); });
+    if ($('recordsBackBtn')) $('recordsBackBtn').addEventListener('click', function() { openDashboard(true); });
+    if ($('recordsAddBtn')) $('recordsAddBtn').addEventListener('click', function() { openImport(); });
+    if ($('syncQueueBtn')) $('syncQueueBtn').addEventListener('click', syncQueue);
+    if ($('saveAiKeyBtn')) $('saveAiKeyBtn').addEventListener('click', saveAiSettings);
+
+    var recentList = $('recentList');
+    if (recentList) {
+      recentList.addEventListener('click', function(e) {
+        var target = e.target;
+        if (target && target.getAttribute && target.getAttribute('data-action') === 'add-link') {
+          e.preventDefault();
+          openImport();
+        }
+      });
+    }
 
     if (navigator.onLine && LinkSlashOfflineQueue.pendingCount() > 0 && state.screen === 'app') {
       syncQueue();
     }
   }
 
-  document.addEventListener('DOMContentLoaded', bootstrap);
+  window.LinkSlashMobileBoot = bootstrap;
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', bootstrap);
+  } else {
+    bootstrap();
+  }
 })();

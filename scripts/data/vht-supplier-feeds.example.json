@@ -1,0 +1,28 @@
+{
+  "feeds": [
+    { "code": "VHT1", "url": "https://www.cercici.com.tr/export/ca4b22d4-c38d-4518-94cb-f886cb4d76e5" },
+    { "code": "VHT5", "url": "https://www.ariasclosetx.com/TicimaxXml/67C26ECC68FB4F2BBB5D93022983D7E8/" },
+    { "code": "VHT7", "url": "https://www.leyna.com.tr/export/1/085b5a5e96ac5c2ecdc1d55a41e903d5d8039f15" },
+    { "code": "VHT8", "url": "https://markentegra.com/converts/tahtadankale.xml" },
+    { "code": "VHT9", "url": "https://www.easytoptan.com.tr/xml.php?c=shopphpid&xmlc=d81d408202&username=esraguden840@gmail.com&password=REDACTED" },
+    { "code": "VHT10", "url": "https://markentegra.com/converts/evvano.xml" },
+    { "code": "VHT16", "url": "https://www.yeninesiltoptanci.com/TicimaxXml/08EDA4EE509B4DC0A062D8B1D55CF5EE/" },
+    { "code": "VHT17", "url": "https://www.xmltedarik.com/export/1/432S4586M431" },
+    { "code": "VHT18", "url": "https://www.beruflic.com/export/e7e7670c970411f785ad20b18790bc56NVxbNSAUp3YEDQcEPA==" },
+    { "code": "VHT21", "url": "https://www.ftaticaret.com/export/1ed0204b7a0c97666d392e7312b60ab7Xe0hD0Z0HmT0rx7QuA==" },
+    { "code": "VHT22", "url": "https://www.teknodayim.com/wp-content/uploads/woo-feed/custom/xml/teknodayim.xml" },
+    { "code": "VHT24", "url": "https://bijuteri.net/TicimaxXml/816DFF7A36094E16B6B68A8775BC631A/" },
+    { "code": "VHT25", "url": "https://hepsicdn.com.tr/xml/MzM0fDQwNTQzMTI2Njkw.ea1afaafd5cfe2f8e456cc19f13dc2afa06a730b29f80848d16a74f1b0b1d0ad" },
+    { "code": "VHT28", "url": "https://www.shticaret.com/export/ffa80496e5959e02f30a82087b770497l7c29XrD3rRKAMyVVQ==" },
+    { "code": "VHT29A", "url": "https://www.markaon.com/export/577dcaf9001e19ab455a5b82ee1a6222KnDUlIXuQTJgXKuA==" },
+    { "code": "VHT30", "url": "http://xml.ebijuteri.com/api/xml/694e83362fac8f35f10d3a6c?format=old" },
+    { "code": "VHT31A", "url": "https://www.markaon.com/export/203807322c926d8eae95add6c52062f32Ze6FljYO3fNo37VFw==" },
+    { "code": "VHT32A", "url": "https://www.markaon.com/export/2ce964b393567baa94b7fd81ccca7c8dh0zJKDFY8ky8uIwL2w==" },
+    { "code": "VHT33A", "url": "https://www.markaon.com/export/253d9c7851494d83950c8b5cbdec2c26rDGtBDcCxC7jGKmOw==" },
+    { "code": "VHT34", "url": "https://www.toptanbudur.com/export/69aa0b588b05f9dc4db6539b6ba990e4fXFAY0xJEMGRoRHtcQ==" },
+    { "code": "VHT36", "url": "https://www.lisinya.com/storage/cache/feed/0-lisinya.xml" },
+    { "code": "VHT37", "url": "https://www.lisinya.com/storage/cache/feed/0-lisinyakitap.xml" },
+    { "code": "VHT40", "url": "https://www.kargolat.com/export/831964343c8474bb46eb488b2ff8378fnXv5zNq89lh6gGFOxA==" },
+    { "code": "VHT41", "url": "https://www.goithalat.com/xml.php?c=alter&xmlc=e25e28eb19&autologin=fce288629fee6bb7cfbb3bfa5ef230a9" }
+  ]
+}

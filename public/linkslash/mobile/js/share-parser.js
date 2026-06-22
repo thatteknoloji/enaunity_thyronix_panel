@@ -88,21 +88,42 @@ var LinkSlashShareParser = (function() {
     return map[type] || type;
   }
 
+  function inferSharedFromPackage(packageName) {
+    var map = {
+      'com.instagram.android': 'Instagram',
+      'com.twitter.android': 'X',
+      'com.reddit.frontpage': 'Reddit',
+      'com.google.android.youtube': 'YouTube',
+      'com.whatsapp': 'WhatsApp',
+      'org.telegram.messenger': 'Telegram',
+      'com.linkedin.android': 'LinkedIn',
+      'com.facebook.katana': 'Facebook',
+      'com.zhiliaoapp.musically': 'TikTok',
+      'com.android.chrome': 'Chrome'
+    };
+    if (!packageName) return '';
+    return map[packageName] || packageName;
+  }
+
   function parseSharePayload(payload) {
     payload = payload || {};
     var text = payload.text || payload.title || '';
     var html = payload.html || '';
+    var sharedFromRaw = payload.sharedFrom || payload.packageName || '';
+    var sharedFrom = inferSharedFromPackage(sharedFromRaw) || sharedFromRaw;
     var url = extractPrimaryUrl(text, html);
-    var sharedFrom = payload.sharedFrom || payload.packageName || '';
-    var sourceType = detectSourceType(url, sharedFrom);
+    var sourceType = detectSourceType(url, sharedFromRaw || sharedFrom);
     var title = payload.title || text.split('\n')[0] || url || 'Paylaşılan içerik';
     return {
       url: url,
       rawText: text,
+      html: html,
       title: title.slice(0, 200),
       sourceType: sourceType,
       sharedFrom: sharedFrom,
-      sourceLabel: formatSourceLabel(sourceType)
+      sharedFromPackage: sharedFromRaw,
+      sourceLabel: formatSourceLabel(sourceType),
+      kind: payload.kind || (payload.mimeType && payload.mimeType.indexOf('zip') !== -1 ? 'file' : 'url')
     };
   }
 

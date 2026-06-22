@@ -27,6 +27,8 @@ Thumbs.db
 
 # Local runtime data
 .data/
+storage/thyronix/vht-supplier-feeds.json
+scripts/data/vht-supplier-feeds.json
 
 .nyc_output/
 

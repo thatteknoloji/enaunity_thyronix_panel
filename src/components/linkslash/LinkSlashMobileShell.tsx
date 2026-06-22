@@ -39,19 +39,21 @@ export function LinkSlashMobileShell() {
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src="/linkslash/icon192.png" alt="LinkSlash" className="login-logo" />
             <h1 className="login-title">LinkSlash Mobile</h1>
-            <p className="login-sub">Paylaşım menüsünden link kaydetmek için giriş yapın.</p>
-            <div className="form-row">
-              <label htmlFor="loginEmail">E-posta</label>
-              <input type="email" id="loginEmail" autoComplete="username" placeholder="ornek@firma.com" />
-            </div>
-            <div className="form-row">
-              <label htmlFor="loginPassword">Şifre</label>
-              <input type="password" id="loginPassword" autoComplete="current-password" placeholder="••••••••" />
-            </div>
-            <button type="button" className="btn btn-primary btn-block" id="loginBtn">
-              Giriş Yap
-            </button>
-            <p className="status-msg" id="loginStatus" />
+            <p className="login-sub">Paylaş menüsünden linkler otomatik kaydedilir. WhatsApp sohbet dosyası da içe aktarılabilir.</p>
+            <form id="loginForm" noValidate>
+              <div className="form-row">
+                <label htmlFor="loginEmail">E-posta</label>
+                <input type="email" id="loginEmail" autoComplete="username" placeholder="ornek@firma.com" required />
+              </div>
+              <div className="form-row">
+                <label htmlFor="loginPassword">Şifre</label>
+                <input type="password" id="loginPassword" autoComplete="current-password" placeholder="••••••••" required />
+              </div>
+              <button type="submit" className="btn btn-primary btn-block" id="loginBtn">
+                Giriş Yap
+              </button>
+            </form>
+            <p className="status-msg" id="loginStatus" role="alert" aria-live="polite" />
           </section>
         </main>
 
@@ -115,23 +117,32 @@ export function LinkSlashMobileShell() {
         </main>
 
         <main className="mobile-main screen hidden" id="screenApp">
-          <section className="hero-card" id="shareCard">
-            <p className="hero-label" id="shareLabel">
-              LinkSlash
-            </p>
-            <h1 className="hero-title" id="shareTitle">
+          <section className="hero-card dashboard-hero">
+            <p className="hero-label">Dashboard</p>
+            <h1 className="hero-title" id="dashboardGreeting">
               Hoş geldiniz
             </h1>
-            <p className="hero-url" id="shareUrl">
-              Paylaşım menüsünden bir link gönderin veya aşağıdan kaydedin.
+            <p className="hero-url" id="dashboardHint">
+              Link kaydetmek için aşağıdaki işlemleri kullanın.
             </p>
-            <p className="hero-meta" id="shareMeta">
-              Kaynak: —
-            </p>
-            <button type="button" className="btn btn-primary btn-block hidden" id="saveBtn">
-              LinkSlash&apos;a Kaydet
-            </button>
-            <p className="status-msg" id="statusMsg" />
+            <p className="status-msg" id="dashboardStatus" role="alert" aria-live="polite" />
+            <div className="cta-grid">
+              <button type="button" className="btn btn-primary btn-block" id="addLinkBtn">
+                Link Ekle
+              </button>
+              <button type="button" className="btn btn-primary btn-block" id="whatsappImportBtn">
+                WhatsApp Sohbeti İçe Aktar
+              </button>
+              <button type="button" className="btn btn-secondary btn-block" id="waitShareBtn">
+                Paylaşımı Bekle
+              </button>
+              <button type="button" className="btn btn-secondary btn-block" id="openRecordsBtn">
+                Son Kayıtları Aç
+              </button>
+              <button type="button" className="btn btn-ghost btn-block" id="dashboardLogoutBtn">
+                Çıkış
+              </button>
+            </div>
           </section>
 
           <section className="user-strip hidden" id="userStrip">
@@ -149,7 +160,7 @@ export function LinkSlashMobileShell() {
             </div>
           </section>
 
-          <section className="panel">
+          <section className="panel" id="recentPanel">
             <div className="panel-head">
               <h2>Son Kaydedilenler</h2>
               <button type="button" className="link-btn" id="syncQueueBtn">
@@ -189,11 +200,120 @@ export function LinkSlashMobileShell() {
             <ul className="queue-list" id="queueList" />
           </section>
         </main>
+
+        <main className="mobile-main screen hidden" id="screenImport">
+          <section className="hero-card import-card">
+            <p className="hero-label" id="importLabel">
+              Link Ekle
+            </p>
+            <h1 className="hero-title" id="importHeading">
+              Yeni kayıt
+            </h1>
+            <p className="hero-meta" id="importShareMeta" />
+            <form id="importForm" noValidate>
+              <div className="form-row">
+                <label htmlFor="importUrl">URL</label>
+                <input type="url" id="importUrl" placeholder="https://ornek.com/urun" required />
+              </div>
+              <div className="form-row">
+                <label htmlFor="importTitle">Başlık (opsiyonel)</label>
+                <input type="text" id="importTitle" placeholder="Kayıt başlığı" />
+              </div>
+              <div className="form-row">
+                <label htmlFor="importSourceType">Kaynak / Platform</label>
+                <select id="importSourceType">
+                  <option value="web">Web</option>
+                  <option value="instagram">Instagram</option>
+                  <option value="youtube">YouTube</option>
+                  <option value="tiktok">TikTok</option>
+                  <option value="twitter">Twitter / X</option>
+                  <option value="facebook">Facebook</option>
+                  <option value="linkedin">LinkedIn</option>
+                  <option value="whatsapp">WhatsApp</option>
+                  <option value="other">Diğer</option>
+                </select>
+              </div>
+              <button type="submit" className="btn btn-primary btn-block" id="importSaveBtn">
+                Kaydet
+              </button>
+              <button type="button" className="btn btn-ghost btn-block" id="importBackBtn">
+                Dashboard&apos;a Dön
+              </button>
+            </form>
+            <p className="status-msg" id="importStatus" role="alert" aria-live="polite" />
+          </section>
+        </main>
+
+        <main className="mobile-main screen hidden" id="screenWhatsApp">
+          <section className="hero-card import-card">
+            <p className="hero-label">WhatsApp İçe Aktar</p>
+            <h1 className="hero-title">Sohbetten linkleri çıkar</h1>
+            <p className="hero-meta">
+              WhatsApp&apos;ta sohbeti dışa aktarın (.txt veya .zip), dosyayı seçin veya Dosyalar&apos;dan
+              Paylaş → LinkSlash ile gönderin.
+            </p>
+            <input
+              type="file"
+              id="whatsappFileInput"
+              accept=".txt,.zip,text/plain,application/zip"
+              className="hidden"
+            />
+            <button type="button" className="btn btn-primary btn-block" id="whatsappFileBtn">
+              WhatsApp Dosyası (.txt / .zip)
+            </button>
+            <button type="button" className="btn btn-secondary btn-block" id="bookmarkFileBtn">
+              Yer İmi Dosyası (.html)
+            </button>
+            <input
+              type="file"
+              id="bookmarkFileInput"
+              accept=".html,text/html"
+              className="hidden"
+            />
+            <button type="button" className="btn btn-ghost btn-block" id="whatsappBackBtn">
+              Dashboard&apos;a Dön
+            </button>
+            <p className="status-msg" id="whatsappStatus" role="alert" aria-live="polite" />
+            <p className="hint" id="whatsappProgress" />
+          </section>
+        </main>
+
+        <main className="mobile-main screen hidden" id="screenRecords">
+          <section className="panel records-panel">
+            <div className="panel-head">
+              <h2>Son Kayıtlar</h2>
+              <button type="button" className="link-btn" id="recordsBackBtn">
+                ← Dashboard
+              </button>
+            </div>
+            <ul className="recent-list" id="recordsList" />
+            <p className="hint records-empty hidden" id="recordsEmpty">
+              Henüz kayıt yok.{" "}
+              <button type="button" className="link-btn" id="recordsAddBtn">
+                İlk linkini ekle
+              </button>
+            </p>
+            <p className="status-msg" id="recordsStatus" role="alert" aria-live="polite" />
+          </section>
+        </main>
       </div>
 
+      <Script src="/linkslash/js/parser.js" strategy="beforeInteractive" />
+      <Script
+        src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"
+        strategy="beforeInteractive"
+      />
       <Script src="/linkslash/mobile/js/share-parser.js" strategy="beforeInteractive" />
       <Script src="/linkslash/mobile/js/offline-queue.js" strategy="beforeInteractive" />
-      <Script src="/linkslash/mobile/js/mobile-app.js" strategy="afterInteractive" />
+      <Script src="/linkslash/mobile/js/whatsapp-import.js" strategy="beforeInteractive" />
+      <Script
+        src="/linkslash/mobile/js/mobile-app.js"
+        strategy="afterInteractive"
+        onReady={() => {
+          const boot = (window as Window & { LinkSlashMobileBoot?: () => void }).LinkSlashMobileBoot;
+          boot?.();
+        }}
+      />
     </>
   );
 }

@@ -10,6 +10,8 @@ export const LINKSLASH_MOBILE_ROUTES = {
   device: `${LINKSLASH_MOBILE_BASE}/device`,
   update: `${LINKSLASH_MOBILE_BASE}/update`,
   import: `${LINKSLASH_MOBILE_BASE}/import`,
+  whatsapp: `${LINKSLASH_MOBILE_BASE}/whatsapp`,
+  records: `${LINKSLASH_MOBILE_BASE}/records`,
 } as const;
 
 export function isLinkSlashMobilePath(pathname: string | null | undefined): boolean {

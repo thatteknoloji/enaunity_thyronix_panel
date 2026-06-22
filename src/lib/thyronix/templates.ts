@@ -165,6 +165,32 @@ export const ALL_TEMPLATES: FeedTemplate[] = [
     cdataFields: ["description"],
     fieldMap: { name: "name", description: "description", brand: "brand", category: "category", barcode: "barcode", stockCode: "sku", price: "regular_price", stock: "stock_quantity", currency: "currency", image: "image", images: "gallery", weight: "weight", dimensions: "dimensions", vatRate: "tax_class", deliveryTime: "shipping_days", shippingCost: "shipping_cost", productUrl: "permalink" },
   },
+  {
+    id: "woo_feed", name: "WooCommerce Feed Export", group: "E-Ticaret",
+    rootElement: "products", itemElement: "product",
+    xmlHeader: ENCODING,
+    cdataFields: ["Description", "ProductName", "Category"],
+    fieldMap: {
+      name: "ProductName", description: "Description", brand: "Brand", category: "Category",
+      barcode: "barcod", stockCode: "ProductCode", externalId: "ProductCode",
+      price: "Price", stock: "Quantity", currency: "Currency", image: "ImageURL",
+      images: "Images", productUrl: "ProductURL", vatRate: "TaxRate",
+    },
+    notes: "Woo feed plugin export — ProductName/Price/Quantity",
+  },
+  {
+    id: "ebijuteri", name: "E-Bijuteri XML", group: "Entegrasyon",
+    rootElement: "Urunler", itemElement: "Urun",
+    xmlHeader: ENCODING,
+    cdataFields: ["adi", "aciklama", "kategori"],
+    fieldMap: {
+      name: "adi", description: "aciklama", brand: "marka", category: "kategori",
+      barcode: "barcode", stockCode: "stok_kodu", externalId: "product_id",
+      price: "fiyat", costPrice: "fiyat", stock: "miktar", currency: "para_birimi",
+      image: "resim", images: "resim", vatRate: "kdv", productUrl: "url",
+    },
+    notes: "xml.ebijuteri.com — Urunler/Urun, fiyat.bayi_fiyati",
+  },
 
   // ─────────────── PAZAR YERLERİ ───────────────
   {
@@ -280,6 +306,33 @@ export const ALL_TEMPLATES: FeedTemplate[] = [
     cdataFields: ["name","description","detail","brand","category","main_category","top_category","image1","image2","image3","image4"],
     fieldMap: { name: "name", description: "detail", brand: "brand", category: "top_category", subcategory: "main_category", barcode: "barcode", stockCode: "productCode", externalId: "id", modelCode: "specCode1", price: "sitePrice", costPrice: "listPrice", stock: "quantity", currency: "currency", image: "image1", images: "image1", weight: "desi", vatRate: "tax", deliveryTime: "", warranty: "", shippingCost: "", productUrl: "", status: "" },
     notes: "Leyna XML — sitePrice=site fiyatı, listPrice=liste fiyatı, name1/value1 varyant",
+  },
+  {
+    id: "markentegra", name: "Markentegra XML", group: "Entegrasyon",
+    rootElement: "products", itemElement: "product",
+    xmlHeader: ENCODING,
+    cdataFields: ["name", "detail", "category"],
+    fieldMap: {
+      name: "name", description: "detail", brand: "brand", category: "category",
+      barcode: "barcode", stockCode: "productCode", externalId: "id",
+      price: "price", costPrice: "listPrice", stock: "quantity", currency: "currency",
+      image: "image1", images: "image1", weight: "desi", vatRate: "tax",
+      productUrl: "url", status: "status",
+    },
+    notes: "markentegra.com/converts — products/product",
+  },
+  {
+    id: "lisinya", name: "Lisinya XML", group: "Entegrasyon",
+    rootElement: "products", itemElement: "product",
+    xmlHeader: ENCODING,
+    cdataFields: ["name", "description", "category", "categories"],
+    fieldMap: {
+      name: "name", description: "description", brand: "brand", category: "category",
+      subcategory: "categories", barcode: "barkod", stockCode: "model",
+      externalId: "product_id", price: "price", stock: "quantity", currency: "currency",
+      image: "image", productUrl: "url", vatRate: "tax", status: "status",
+    },
+    notes: "lisinya.com storage/cache/feed",
   },
 ];
 

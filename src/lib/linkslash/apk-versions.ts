@@ -3,7 +3,7 @@ import path from "path";
 import { prisma } from "@/lib/db";
 
 const STORAGE_DIR = path.join(process.cwd(), "storage/downloads/linkslash");
-export const LINKSLASH_MOBILE_APP_VERSION = process.env.LINKSLASH_APP_VERSION || "1.0.0";
+export const LINKSLASH_MOBILE_APP_VERSION = process.env.LINKSLASH_APP_VERSION || "1.1.0";
 
 export type VersionInfo = {
   latest: string;
