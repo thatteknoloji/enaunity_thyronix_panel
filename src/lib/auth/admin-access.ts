@@ -3,11 +3,18 @@ export type AdminRole = "SUPER_ADMIN" | "ADMIN" | "MANAGER" | "SUPPORT" | "ACCOU
 export const ADMIN_ROLES: AdminRole[] = ["SUPER_ADMIN", "ADMIN", "MANAGER", "SUPPORT", "ACCOUNTING", "WAREHOUSE"];
 export const ELEVATED_ROLES: AdminRole[] = ["SUPER_ADMIN", "ADMIN"];
 
+/** .env içinde yanlışlıkla tırnaklı yazılmış path değerlerini temizler */
+export function normalizeAdminSecretPath(raw?: string | null): string {
+  const value = (raw || "").trim().replace(/^["']+|["']+$/g, "");
+  if (!value) return "/x-control-eu-7294";
+  return value.startsWith("/") ? value : `/${value}`;
+}
+
 export function getAdminSecretPath(): string {
-  return (
+  return normalizeAdminSecretPath(
     process.env.ADMIN_SECRET_PATH ||
-    process.env.NEXT_PUBLIC_ADMIN_SECRET_PATH ||
-    "/x-control-eu-7294"
+      process.env.NEXT_PUBLIC_ADMIN_SECRET_PATH ||
+      "/x-control-eu-7294",
   );
 }
 
@@ -51,7 +58,7 @@ export function canSeeAdminEntry(role?: string): boolean {
 export function isAdminPath(pathname?: string | null): boolean {
   if (!pathname) return false;
   if (pathname === "/admin" || pathname.startsWith("/admin/")) return true;
-  const secret = getAdminSecretPath();
+  const secret = normalizeAdminSecretPath(getAdminSecretPath());
   return pathname === secret || pathname.startsWith(`${secret}/`);
 }
 

@@ -8,7 +8,7 @@ import {
   ClipboardList, Store, DollarSign, Eye, Banknote, RotateCcw, Warehouse, FileText, Tag, Layers, Building2, Percent, Key, MessageSquare, ScrollText, Layout, PackagePlus, Truck, Shield, BarChart3, ClipboardCheck, Barcode, Bell, Megaphone, Webhook, Clock, CalendarClock, Upload, Link2, Plug, Zap, Sparkles, CreditCard, Globe, Smartphone, Handshake, Brain, Shirt
 } from "lucide-react";
 import { getNavPermissionMap, hasAnyPermission } from "@/lib/permissions";
-import { getAdminLoginPath, isAdminLoginPath, isAdminRole, toAdminUrl } from "@/lib/auth/admin-access";
+import { getAdminLoginPath, isAdminLoginPath, isAdminRole, isSuperAdmin, toAdminUrl } from "@/lib/auth/admin-access";
 import { isLegacyMarketplaceEnabledClient } from "@/lib/marketplace-hub/config";
 import NotificationBell from "@/components/NotificationBell";
 import { useT } from "@/lib/i18n/provider";
@@ -164,6 +164,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const [userName, setUserName] = useState("");
   const [userRoleLabel, setUserRoleLabel] = useState("");
   const [userPermissions, setUserPermissions] = useState<string[]>([]);
+  const [userRole, setUserRole] = useState("");
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
   const [lowStockCount, setLowStockCount] = useState(0);
 
@@ -172,18 +173,19 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   const navGroups = useMemo(() => {
     const allNavGroups = buildNavGroups(t);
-    const isSuperAdmin = userPermissions.length === 0 || userPermissions.includes("*");
+    const fullAccess = isSuperAdmin(userRole) || userPermissions.length === 0 || userPermissions.includes("*");
     return allNavGroups
       .map((group) => ({
         ...group,
         items: group.items.filter((item) => {
+          if (fullAccess) return true;
           const perms = permMap[item.href];
-          if (!perms || perms.length === 0) return isSuperAdmin;
+          if (!perms || perms.length === 0) return false;
           return hasAnyPermission(userPermissions, ...perms);
         }),
       }))
       .filter((group) => group.items.length > 0);
-  }, [userPermissions, permMap, t]);
+  }, [userPermissions, userRole, permMap, t]);
 
   useEffect(() => {
     if (isLoginPage) return;
@@ -195,6 +197,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         } else {
           setAuthorized(true);
           setUserName(d.data.name || "Admin");
+          setUserRole(d.data.role || "");
           const roleName = d.data.adminRole?.name;
           setUserRoleLabel(roleName || t("admin.admin_label"));
           try {

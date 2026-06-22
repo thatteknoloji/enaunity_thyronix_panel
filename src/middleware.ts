@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { normalizeAdminSecretPath } from "@/lib/auth/admin-access";
 
 const ADMIN_ROLES = ["SUPER_ADMIN", "ADMIN", "MANAGER", "SUPPORT", "ACCOUNTING", "WAREHOUSE"];
 function isAdminRole(role: string) { return ADMIN_ROLES.includes(role?.toUpperCase()); }
@@ -90,11 +91,12 @@ export async function middleware(request: NextRequest) {
   }
 
   // ── Admin route masking ──
-  const adminSecret = process.env.ADMIN_SECRET_PATH || "/x-control-eu-7294";
-  // Block direct /admin access (except secret path)
+  const adminSecret = normalizeAdminSecretPath(process.env.ADMIN_SECRET_PATH || "/x-control-eu-7294");
+  // /admin/* doğrudan erişimi gizli path'e yönlendir (ana sayfaya atmak yerine)
   if (pathname.startsWith("/admin") && !pathname.startsWith(adminSecret)) {
     if (isApi) return jsonError(404, "Bulunamadı");
-    return NextResponse.redirect(new URL("/", request.url));
+    const target = pathname.replace(/^\/admin/, adminSecret) || adminSecret;
+    return NextResponse.redirect(new URL(target, request.url));
   }
   // Allow secret path to pass through (will be checked for role later)
   if (pathname.startsWith(adminSecret)) {
