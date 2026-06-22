@@ -2,6 +2,15 @@
  * Gradle/build APK varsa storage'a kopyalar ve DB kaydı oluşturur.
  * Run: npx tsx scripts/ensure-linkslash-apk.ts
  */
+import { existsSync } from "fs";
+import { config as loadEnv } from "dotenv";
+
+if (!process.env.DATABASE_URL) {
+  if (existsSync(".env.production")) loadEnv({ path: ".env.production" });
+  else if (existsSync(".env.local")) loadEnv({ path: ".env.local" });
+  else if (existsSync(".env")) loadEnv({ path: ".env" });
+}
+
 import { syncApkFromBuild, getApkSourceHints } from "../src/lib/linkslash/apk-sync";
 
 async function main() {
