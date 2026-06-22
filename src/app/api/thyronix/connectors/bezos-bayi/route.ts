@@ -99,6 +99,20 @@ export async function GET() {
       orderBy: { updatedAt: "desc" },
     });
 
+    let activeSource = savedSource;
+    if (savedSource) {
+      const currentFeeds = resolveSourceFeedUrls(savedSource.xmlUrl, savedSource.fixedValues);
+      if (currentFeeds.length < BEZOS_BAYI_XML.feedUrls.length) {
+        activeSource = await prisma.thyronixSource.update({
+          where: { id: savedSource.id },
+          data: {
+            fixedValues: JSON.stringify(BEZOS_BAYI_XML.fixedValues),
+            xmlUrl: BEZOS_BAYI_XML.primaryUrl,
+          },
+        });
+      }
+    }
+
     const template = getTemplate("bezos");
     const templateMapping: Record<string, string> = {};
     if (template) {
@@ -109,14 +123,14 @@ export async function GET() {
 
     let savedFieldMapping: Record<string, string> = {};
     try {
-      savedFieldMapping = JSON.parse(savedSource?.fieldMapping || "{}");
+      savedFieldMapping = JSON.parse(activeSource?.fieldMapping || "{}");
     } catch {
       savedFieldMapping = {};
     }
 
     let savedFixedValues: Record<string, unknown> = {};
     try {
-      savedFixedValues = JSON.parse(savedSource?.fixedValues || "{}");
+      savedFixedValues = JSON.parse(activeSource?.fixedValues || "{}");
     } catch {
       savedFixedValues = {};
     }
@@ -130,19 +144,19 @@ export async function GET() {
           mappingDoc: BEZOS_BAYI_MAPPING_DOC,
           templateMapping,
         },
-        savedSource: savedSource
+        savedSource: activeSource
           ? {
-              id: savedSource.id,
-              name: savedSource.name,
-              xmlUrl: savedSource.xmlUrl,
-              inputFormat: savedSource.inputFormat,
-              status: savedSource.status,
-              productCount: savedSource.productCount,
-              lastSync: savedSource.lastSync,
-              errorLog: savedSource.errorLog,
+              id: activeSource.id,
+              name: activeSource.name,
+              xmlUrl: activeSource.xmlUrl,
+              inputFormat: activeSource.inputFormat,
+              status: activeSource.status,
+              productCount: activeSource.productCount,
+              lastSync: activeSource.lastSync,
+              errorLog: activeSource.errorLog,
               fieldMapping: savedFieldMapping,
               fixedValues: savedFixedValues,
-              feedUrls: resolveSourceFeedUrls(savedSource.xmlUrl, savedSource.fixedValues),
+              feedUrls: resolveSourceFeedUrls(activeSource.xmlUrl, activeSource.fixedValues),
             }
           : null,
         samplePreview: parseSamplePreview(),

@@ -6,6 +6,7 @@ import {
   thyronixErrorResponse,
   withTenantFilter,
 } from "@/lib/thyronix/access";
+import { resolveSourceFeedUrls } from "@/lib/thyronix/feed-fetch";
 
 export async function GET() {
   try {
@@ -14,7 +15,11 @@ export async function GET() {
       where: withTenantFilter(user, {}),
       orderBy: { createdAt: "desc" },
     });
-    return NextResponse.json({ success: true, data: sources });
+    const data = sources.map((s) => ({
+      ...s,
+      feedUrls: resolveSourceFeedUrls(s.xmlUrl, s.fixedValues),
+    }));
+    return NextResponse.json({ success: true, data });
   } catch (e) {
     return thyronixErrorResponse(e, "Yetkisiz erişim");
   }

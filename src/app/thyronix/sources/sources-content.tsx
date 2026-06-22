@@ -45,6 +45,7 @@ interface Source {
   id: string;
   name: string;
   xmlUrl: string;
+  feedUrls?: string[];
   type: string;
   interval: number;
   status: string;
@@ -239,13 +240,27 @@ export default function ThyronixSources() {
           <h1 className="text-[28px] font-bold text-nexa-text tracking-tight">Sources</h1>
           <p className="mt-0.5 text-sm text-nexa-text-secondary">XML kaynak yönetimi</p>
         </div>
-        <button
-          onClick={openNew}
-          className="inline-flex items-center gap-2 px-4 py-2.5 bg-nexa-primary text-white text-sm font-medium rounded-lg hover:bg-blue-600 transition-colors active:scale-[0.98]"
-        >
-          <Plus size={16} />
-          Yeni Kaynak
-        </button>
+        <div className="flex flex-wrap items-center gap-2">
+          <Link
+            href="/thyronix/connectors/vht-supplier-feeds"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-nexa-border px-3 py-2 text-xs font-medium text-nexa-text hover:bg-nexa-hover"
+          >
+            <Link2 size={14} /> VHT Feedleri (24)
+          </Link>
+          <Link
+            href="/thyronix/connectors/bezos-bayi"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-nexa-border px-3 py-2 text-xs font-medium text-nexa-text hover:bg-nexa-hover"
+          >
+            <Link2 size={14} /> Bezos BAYİ XML
+          </Link>
+          <button
+            onClick={openNew}
+            className="inline-flex items-center gap-2 px-4 py-2.5 bg-nexa-primary text-white text-sm font-medium rounded-lg hover:bg-blue-600 transition-colors active:scale-[0.98]"
+          >
+            <Plus size={16} />
+            Yeni Kaynak
+          </button>
+        </div>
       </div>
 
       {/* Status summary */}
@@ -323,7 +338,11 @@ export default function ThyronixSources() {
                       </div>
                       <div className="min-w-0">
                         <p className="text-sm font-medium text-nexa-text">{s.name}</p>
-                        <p className="text-xs text-nexa-text-secondary truncate max-w-[200px]">{s.xmlUrl}</p>
+                        <p className="text-xs text-nexa-text-secondary truncate max-w-[280px]" title={(s.feedUrls || [s.xmlUrl]).join("\n")}>
+                          {(s.feedUrls?.length || 0) > 1
+                            ? `${s.feedUrls!.length} feed URL · ${s.xmlUrl}`
+                            : s.xmlUrl}
+                        </p>
                       </div>
                     </div>
                   </td>

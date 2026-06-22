@@ -29,6 +29,7 @@
     "seed:esra-bezos": "tsx scripts/seed-esra-bezos-source.ts",
     "test:vht-feeds": "tsx scripts/test-vht-supplier-feeds.ts",
     "seed:vht-feeds": "tsx scripts/seed-vht-supplier-feeds.ts",
+    "deploy:vht-feeds": "bash scripts/deploy-vht-feeds-production.sh",
     "test:bezos-xml": "tsx scripts/test-bezos-xml-parser.ts",
     "seed:page-factory-plans": "tsx scripts/seed-page-factory-plans.ts",
     "mobile:linkslash:setup": "cd mobile/linkslash && npm install && npm run android:build",

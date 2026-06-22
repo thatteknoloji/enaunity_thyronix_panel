@@ -47,7 +47,11 @@ export default function BezosBayiConnectorPage() {
       const d = await res.json();
       if (!d.success) throw new Error(d.error || "Yüklenemedi");
       setMappingDoc(d.data.connector.mappingDoc || []);
-      setFeedUrls(d.data.connector.feedUrls || []);
+      const urls =
+        d.data.savedSource?.feedUrls?.length > 0
+          ? d.data.savedSource.feedUrls
+          : d.data.connector.feedUrls || [];
+      setFeedUrls(urls);
       setSavedSource(d.data.savedSource);
       setSamplePreview(d.data.samplePreview || []);
     } catch (e) {
