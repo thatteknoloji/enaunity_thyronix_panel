@@ -1,27 +1,56 @@
 /**
- * Esra Güden bayisi için Bezos BAYİ XML Thyronix kaynağı oluşturur.
+ * Bezos BAYİ XML kaynağını SADECE hedef bayi için tutar.
+ * - Hedef bayi: BEZOS_BAYI_TARGET_DEALER_ID veya BEZOS_BAYI_ALLOWED_EMAILS
+ * - Diğer bayilerdeki bezos kaynakları temizlenir.
  * Run: npx tsx scripts/seed-esra-bezos-source.ts
  */
 import { prisma } from "../src/lib/db";
 import { buildBezosSourcePayload } from "../src/lib/thyronix/connectors/bezos-bayi-xml";
-import { resolveThyronixOwner } from "../src/lib/thyronix/tenant-access";
+import { getBezosAllowedEmails } from "../src/lib/thyronix/connectors/bezos-bayi-access";
 
-const ESRA_EMAIL = "esraguden840@gmail.com";
+async function resolveTargetDealerId(): Promise<string | null> {
+  const dealerIdFromEnv = process.env.BEZOS_BAYI_TARGET_DEALER_ID?.trim();
+  if (dealerIdFromEnv) return dealerIdFromEnv;
+
+  const allowedEmails = getBezosAllowedEmails();
+  for (const email of allowedEmails) {
+    const user = await prisma.user.findFirst({
+      where: { email, dealerId: { not: null } },
+      select: { dealerId: true },
+    });
+    if (user?.dealerId) return user.dealerId;
+  }
+  return null;
+}
 
 async function main() {
-  const user = await prisma.user.findUnique({ where: { email: ESRA_EMAIL } });
-  if (!user?.dealerId) {
-    console.error(`Kullanıcı veya bayi bulunamadı: ${ESRA_EMAIL}`);
+  const targetDealerId = await resolveTargetDealerId();
+  if (!targetDealerId) {
+    console.error("Hedef bayi bulunamadı. BEZOS_BAYI_TARGET_DEALER_ID veya BEZOS_BAYI_ALLOWED_EMAILS ayarlayın.");
     process.exit(1);
   }
 
-  const dealer = await prisma.dealer.findUnique({ where: { id: user.dealerId } });
-  const owner = resolveThyronixOwner({ ...user, dealerId: user.dealerId } as Parameters<typeof resolveThyronixOwner>[0]);
-  const payload = buildBezosSourcePayload(dealer?.name || user.name || "Esra Güden");
+  const dealer = await prisma.dealer.findUnique({ where: { id: targetDealerId } });
+  if (!dealer) {
+    console.error(`Hedef bayi kaydı bulunamadı: ${targetDealerId}`);
+    process.exit(1);
+  }
+  const payload = buildBezosSourcePayload(dealer.name || dealer.company || "Esra Günen");
+
+  const deletedOthers = await prisma.thyronixSource.deleteMany({
+    where: {
+      inputFormat: "bezos",
+      dealerId: { not: targetDealerId },
+    },
+  });
+  if (deletedOthers.count > 0) {
+    console.log(`✓ Diğer bayilerdeki ${deletedOthers.count} bezos kaynağı temizlendi`);
+  }
 
   const existing = await prisma.thyronixSource.findFirst({
     where: {
-      dealerId: user.dealerId,
+      dealerId: targetDealerId,
+      inputFormat: "bezos",
       OR: [
         { name: payload.name },
         { xmlUrl: { contains: "bezos.com.tr/xml-bayi" } },
@@ -49,9 +78,9 @@ async function main() {
     const created = await prisma.thyronixSource.create({
       data: {
         ...payload,
-        dealerId: owner.dealerId,
-        tenantScope: owner.tenantScope,
-        ownerType: owner.ownerType,
+        dealerId: targetDealerId,
+        tenantScope: "DEALER",
+        ownerType: "DEALER",
       },
     });
     console.log("✓ Bezos kaynağı oluşturuldu:", created.id, created.name);
@@ -60,7 +89,7 @@ async function main() {
   console.log("\nFeed URL'leri:");
   console.log("  1.", "https://bezos.com.tr/xml-bayi/?xml=BAY%C4%B0%20XML&B2BXML=1");
   console.log("  2.", "https://www.bezos.com.tr/xml-bayi/?xml=BAY%C4%B0%20XML&B2BXML=1&OFFSET=50000");
-  console.log("\nEşleştirme ekranı: /thyronix/connectors/bezos-bayi");
+  console.log("\nEşleştirme ekranı: /thyronix/connectors/bezos-bayi (yalnızca hedef bayi)");
 }
 
 main()

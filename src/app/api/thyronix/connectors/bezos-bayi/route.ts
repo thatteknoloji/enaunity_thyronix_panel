@@ -4,20 +4,49 @@ import { join } from "path";
 import { prisma } from "@/lib/db";
 import {
   requireThyronixDealerOrAdmin,
-  tenantOwnerFields,
   thyronixErrorResponse,
-  withTenantFilter,
 } from "@/lib/thyronix/access";
 import {
   BEZOS_BAYI_MAPPING_DOC,
   BEZOS_BAYI_XML,
   buildBezosSourcePayload,
 } from "@/lib/thyronix/connectors/bezos-bayi-xml";
+import {
+  canAccessBezosConnector,
+  getBezosAllowedEmails,
+} from "@/lib/thyronix/connectors/bezos-bayi-access";
 import { getTemplate } from "@/lib/thyronix/templates";
 import { parseXmlToProducts } from "@/lib/thyronix/xml-parser";
 import { fetchAndParseXmlFeeds, resolveSourceFeedUrls } from "@/lib/thyronix/feed-fetch";
 
 const CONNECTOR_SLUG = "bezos-bayi-xml";
+
+async function resolveTargetDealer() {
+  const dealerIdFromEnv = process.env.BEZOS_BAYI_TARGET_DEALER_ID?.trim();
+  if (dealerIdFromEnv) {
+    const dealer = await prisma.dealer.findUnique({
+      where: { id: dealerIdFromEnv },
+      select: { id: true, name: true, company: true },
+    });
+    if (dealer) return dealer;
+  }
+
+  const allowedEmails = getBezosAllowedEmails();
+  for (const email of allowedEmails) {
+    const user = await prisma.user.findFirst({
+      where: { email, dealerId: { not: null } },
+      select: { dealerId: true },
+    });
+    if (user?.dealerId) {
+      const dealer = await prisma.dealer.findUnique({
+        where: { id: user.dealerId },
+        select: { id: true, name: true, company: true },
+      });
+      if (dealer) return dealer;
+    }
+  }
+  return null;
+}
 
 function loadSampleXml() {
   const path = join(process.cwd(), "scripts/data/bezos-bayi-sample.xml");
@@ -49,16 +78,24 @@ function parseSamplePreview() {
 export async function GET() {
   try {
     const user = await requireThyronixDealerOrAdmin();
-    const owner = tenantOwnerFields(user);
+    if (!canAccessBezosConnector(user)) {
+      return NextResponse.json({ success: false, error: "Bu entegrasyon yalnızca yetkili bayi için açıktır" }, { status: 403 });
+    }
+    const targetDealer = await resolveTargetDealer();
+    if (!targetDealer) {
+      return NextResponse.json({ success: false, error: "Hedef bayi bulunamadı (BEZOS_BAYI_TARGET_DEALER_ID/EMAILS kontrol edin)" }, { status: 500 });
+    }
 
     const savedSource = await prisma.thyronixSource.findFirst({
-      where: withTenantFilter(user, {
+      where: {
+        dealerId: targetDealer.id,
+        tenantScope: "DEALER",
         inputFormat: "bezos",
         OR: [
           { name: { contains: "Bezos" } },
           { xmlUrl: { contains: "bezos.com.tr/xml-bayi" } },
         ],
-      }),
+      },
       orderBy: { updatedAt: "desc" },
     });
 
@@ -109,7 +146,7 @@ export async function GET() {
             }
           : null,
         samplePreview: parseSamplePreview(),
-        dealerId: owner.dealerId,
+        dealerId: targetDealer.id,
       },
     });
   } catch (e) {
@@ -121,7 +158,13 @@ export async function GET() {
 export async function POST(req: Request) {
   try {
     const user = await requireThyronixDealerOrAdmin();
-    const owner = tenantOwnerFields(user);
+    if (!canAccessBezosConnector(user)) {
+      return NextResponse.json({ success: false, error: "Bu entegrasyon yalnızca yetkili bayi için açıktır" }, { status: 403 });
+    }
+    const targetDealer = await resolveTargetDealer();
+    if (!targetDealer) {
+      return NextResponse.json({ success: false, error: "Hedef bayi bulunamadı (BEZOS_BAYI_TARGET_DEALER_ID/EMAILS kontrol edin)" }, { status: 500 });
+    }
     const body = await req.json().catch(() => ({}));
     const action = body.action || "save";
 
@@ -146,14 +189,17 @@ export async function POST(req: Request) {
       });
     }
 
-    const payload = buildBezosSourcePayload(body.dealerLabel || user.name || undefined);
+    const payload = buildBezosSourcePayload(body.dealerLabel || targetDealer.name || user.name || undefined);
     const existing = await prisma.thyronixSource.findFirst({
-      where: withTenantFilter(user, {
+      where: {
+        dealerId: targetDealer.id,
+        tenantScope: "DEALER",
+        inputFormat: "bezos",
         OR: [
           { name: payload.name },
           { xmlUrl: { contains: "bezos.com.tr/xml-bayi" } },
         ],
-      }),
+      },
     });
 
     if (existing) {
@@ -177,9 +223,9 @@ export async function POST(req: Request) {
     const created = await prisma.thyronixSource.create({
       data: {
         ...payload,
-        dealerId: owner.dealerId,
-        tenantScope: owner.tenantScope,
-        ownerType: owner.ownerType,
+        dealerId: targetDealer.id,
+        tenantScope: "DEALER",
+        ownerType: "DEALER",
       },
     });
     return NextResponse.json({ success: true, data: created, created: true }, { status: 201 });
