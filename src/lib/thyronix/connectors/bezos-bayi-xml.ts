@@ -8,11 +8,11 @@ export const BEZOS_BAYI_XML = {
   supplier: "bezos.com.tr",
   inputFormat: "bezos" as const,
   /** Birincil feed — OFFSET=0 (ilk 50.000 ürün) */
-  primaryUrl: "https://bezos.com.tr/xml-bayi/?xml=BAY%C4%B0%20XML&B2BXML=1",
+  primaryUrl: "https://bezos.com.tr/xml-bayi/?xml=BAYi%20XML&B2BXML=1",
   /** Sayfalı feed — OFFSET=50000 (50.001+ ürünler) */
   feedUrls: [
-    "https://bezos.com.tr/xml-bayi/?xml=BAY%C4%B0%20XML&B2BXML=1",
-    "https://www.bezos.com.tr/xml-bayi/?xml=BAY%C4%B0%20XML&B2BXML=1&OFFSET=50000",
+    "https://bezos.com.tr/xml-bayi/?xml=BAYi%20XML&B2BXML=1",
+    "https://www.bezos.com.tr/xml-bayi/?xml=BAYi%20XML&B2BXML=1&OFFSET=50000",
   ],
   pagination: {
     type: "offset" as const,
@@ -22,8 +22,8 @@ export const BEZOS_BAYI_XML = {
   fixedValues: {
     currency: "TRY",
     _feedUrls: [
-      "https://bezos.com.tr/xml-bayi/?xml=BAY%C4%B0%20XML&B2BXML=1",
-      "https://www.bezos.com.tr/xml-bayi/?xml=BAY%C4%B0%20XML&B2BXML=1&OFFSET=50000",
+      "https://bezos.com.tr/xml-bayi/?xml=BAYi%20XML&B2BXML=1",
+      "https://www.bezos.com.tr/xml-bayi/?xml=BAYi%20XML&B2BXML=1&OFFSET=50000",
     ],
     _autoOffset: "true",
     _offsetPageSize: "50000",

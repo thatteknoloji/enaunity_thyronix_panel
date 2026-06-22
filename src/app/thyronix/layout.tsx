@@ -11,13 +11,10 @@ import {
 import { isPlatformAdmin } from "@/lib/product-auth/admin-bypass";
 import { OnboardingWizard } from "@/components/thyronix/OnboardingWizard";
 import { LegalReacceptanceGate } from "@/components/legal/LegalReacceptanceGate";
-import { isBezosAllowedEmail } from "@/lib/thyronix/connectors/bezos-bayi-access";
-
 const navItems = [
   { href: "/thyronix", label: "Kontrol Merkezi", icon: LayoutDashboard },
   { href: "/thyronix/getting-started", label: "Hızlı Başlangıç", icon: Rocket },
   { href: "/thyronix/sources", label: "Kaynaklar", icon: Link2 },
-  { href: "/thyronix/connectors/bezos-bayi", label: "Bezos XML", icon: Link2 },
   { href: "/thyronix/products", label: "Ürünler", icon: Package },
   { href: "/thyronix/processing", label: "İşleme", icon: GitBranch },
   { href: "/thyronix/feeds", label: "Feedler", icon: Radio },
@@ -53,7 +50,6 @@ export default function ThyronixLayout({ children }: { children: React.ReactNode
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [onboardingStep, setOnboardingStep] = useState(1);
   const [planLimits, setPlanLimits] = useState<Record<string, boolean | number>>({});
-  const [canSeeBezosConnector, setCanSeeBezosConnector] = useState(false);
   const isLoginPage = pathname === "/thyronix/login";
   const isPublicPage =
     isLoginPage ||
@@ -72,7 +68,6 @@ export default function ThyronixLayout({ children }: { children: React.ReactNode
             setAuthorized(true);
             setIsAdmin(false);
             setUserName(pd.data.name || pd.data.email || "THYRONIX Kullanıcısı");
-            setCanSeeBezosConnector(isBezosAllowedEmail(pd.data?.email));
             return;
           }
         }
@@ -83,7 +78,6 @@ export default function ThyronixLayout({ children }: { children: React.ReactNode
           setAuthorized(true);
           setIsAdmin(true);
           setUserName(d.data.name || "Yönetici");
-          setCanSeeBezosConnector(true);
           return;
         }
 
@@ -96,7 +90,6 @@ export default function ThyronixLayout({ children }: { children: React.ReactNode
             setAuthorized(true);
             setIsAdmin(false);
             setUserName(d.data.name || d.data.email || "Bayi");
-            setCanSeeBezosConnector(isBezosAllowedEmail(d.data?.email));
             return;
           }
           if (step === "pending") {
@@ -159,7 +152,6 @@ export default function ThyronixLayout({ children }: { children: React.ReactNode
 
   const visibleNavItems = navItems.filter((item) => {
     if (item.adminOnly && !isAdmin) return false;
-    if (item.href === "/thyronix/connectors/bezos-bayi" && !isAdmin && !canSeeBezosConnector) return false;
     if (item.planFeature && !isAdmin) {
       const val = planLimits[item.planFeature];
       if (typeof val === "boolean" && !val) return false;
