@@ -40,7 +40,11 @@ async function main() {
   const deletedOthers = await prisma.thyronixSource.deleteMany({
     where: {
       inputFormat: "bezos",
-      dealerId: { not: targetDealerId },
+      OR: [
+        { dealerId: { not: targetDealerId } },
+        { dealerId: null },
+        { tenantScope: "GLOBAL" },
+      ],
     },
   });
   if (deletedOthers.count > 0) {
