@@ -427,7 +427,7 @@ export function ProductUniverseShell({ mode }: Props) {
                     qualityScore={selected.qualityScore}
                     projects={projects}
                     mode={mode}
-                    defaultProjectId={projectId}
+                    defaultProjectId={bulkProjectId}
                   />
                 ) : (
                 <>
