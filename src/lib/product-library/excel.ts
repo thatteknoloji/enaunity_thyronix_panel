@@ -55,11 +55,11 @@ export function mapRowsToItems(rows: Record<string, string>[], mapping: FieldMap
     .filter(Boolean) as CatalogItemInput[];
 }
 
-export function itemsToCsv(items: { name: string; barcode: string; sku: string; brand: string; category: string; price: number; salePrice: number; stock: number; vatRate: number }[]): string {
+export function itemsToCsv(items: Record<string, string | number>[]): string {
   return Papa.unparse(items);
 }
 
-export function itemsToXlsxBuffer(items: { name: string; barcode: string; sku: string; brand: string; category: string; price: number; salePrice: number; stock: number; vatRate: number }[]): Buffer {
+export function itemsToXlsxBuffer(items: Record<string, string | number>[]): Buffer {
   const ws = XLSX.utils.json_to_sheet(items);
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, "Products");

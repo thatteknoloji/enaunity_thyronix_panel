@@ -14,18 +14,27 @@ type ExportItem = {
   vatRate: number;
 };
 
-export function exportPackageItems(items: ExportItem[], format: DistributionFormat) {
-  const normalized = items.map((i) => ({
-    name: i.name,
-    barcode: i.barcode || "",
-    sku: i.sku || "",
-    brand: i.brand || "",
-    category: i.category || "",
-    price: i.price ?? 0,
-    salePrice: i.salePrice ?? i.price ?? 0,
-    stock: i.stock ?? 0,
-    vatRate: i.vatRate ?? 20,
-  }));
+export function exportPackageItems(
+  items: Array<ExportItem | Record<string, string | number>>,
+  format: DistributionFormat
+) {
+  const normalized = items.map((item) => {
+    if ("name" in item || "barcode" in item || "salePrice" in item) {
+      const casted = item as ExportItem;
+      return {
+        name: casted.name,
+        barcode: casted.barcode || "",
+        sku: casted.sku || "",
+        brand: casted.brand || "",
+        category: casted.category || "",
+        price: casted.price ?? 0,
+        salePrice: casted.salePrice ?? casted.price ?? 0,
+        stock: casted.stock ?? 0,
+        vatRate: casted.vatRate ?? 20,
+      };
+    }
+    return item;
+  });
 
   if (format === "XML") {
     const body = itemsToXml(normalized);

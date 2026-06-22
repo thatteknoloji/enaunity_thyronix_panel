@@ -21,6 +21,7 @@ export async function POST(req: Request) {
     const {
       name, description, catalogIds, licenseLevel, monthlyPrice, yearlyPrice, isFree, thyronixReady, status,
       oneTimePrice, billingType, badgeText, isFeatured, isNew, isBestSeller, publishedAt,
+      sourceColumns, fieldRules, exportFormats,
     } = body;
     if (!name?.trim()) {
       return NextResponse.json({ success: false, error: "Paket adı zorunlu" }, { status: 400 });
@@ -44,6 +45,9 @@ export async function POST(req: Request) {
         publishedAt: publishedAt ? new Date(publishedAt) : null,
         isFree: !!isFree,
         thyronixReady: !!thyronixReady,
+        sourceColumnsJson: JSON.stringify(sourceColumns || []),
+        fieldRulesJson: JSON.stringify(fieldRules || []),
+        exportFormatsJson: JSON.stringify(exportFormats || ["EXCEL", "XML", "CSV"]),
         status: status || "DRAFT",
       },
     });

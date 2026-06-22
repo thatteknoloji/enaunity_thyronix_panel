@@ -17,6 +17,11 @@ export async function logDistribution(params: {
   packageId: string;
   dealerId: string;
   format: DistributionFormat;
+  recipeId?: string;
+  recipeName?: string;
+  storeName?: string;
+  fileName?: string;
+  itemCount?: number;
   userId?: string;
   userEmail?: string;
   ipAddress?: string;
@@ -27,6 +32,11 @@ export async function logDistribution(params: {
       packageId: params.packageId,
       dealerId: params.dealerId,
       format: params.format,
+      recipeId: params.recipeId || "",
+      recipeName: params.recipeName || "",
+      storeName: params.storeName || "",
+      fileName: params.fileName || "",
+      itemCount: params.itemCount || 0,
       userId: params.userId || "",
       userEmail: params.userEmail || "",
       ipAddress: params.ipAddress || "",

@@ -15,6 +15,8 @@ import { dealerCanAccessPackage, getAccessiblePackages } from "../src/lib/produc
 import { bulkInsertCatalogItems } from "../src/lib/product-library/items";
 import { exportPackageItems } from "../src/lib/product-library/export";
 import { slugify } from "../src/lib/product-library/types";
+import { resolvePackageTemplate } from "../src/lib/product-library/template-engine";
+import { buildRecipePreview } from "../src/lib/product-library/recipe-engine";
 
 let passed = 0;
 let failed = 0;
@@ -40,6 +42,7 @@ async function cleanup() {
   await prisma.productDistributionLog.deleteMany({
     where: { package: { slug: { startsWith: TEST_PREFIX } } },
   });
+  await prisma.productPackageRecipe.deleteMany({ where: { package: { slug: { startsWith: TEST_PREFIX } } } });
   await prisma.productPackage.deleteMany({ where: { slug: { startsWith: TEST_PREFIX } } });
   await prisma.productCatalog.deleteMany({ where: { slug: { startsWith: TEST_PREFIX } } });
   await prisma.productImportJob.deleteMany({ where: { createdBy: { contains: "pl-test" } } });
@@ -151,16 +154,33 @@ async function main() {
   assert(xlsxExport.extension === "xlsx", "Excel export ready");
   assert((xmlExport.body as string).includes("Test Ürün"), "XML export contains product");
 
-  // 7) THYRONIX prep field
-  console.log("\n7) THYRONIX readiness field");
+  // 7) Template + recipe engine
+  console.log("\n7) Recipe engine");
+  const template = resolvePackageTemplate(pkgFree, items);
+  assert(template.fieldRules.some((r) => r.key === "barcode" && r.behavior === "PREFIX"), "Default barcode prefix rule exists");
+  const preview = buildRecipePreview({
+    items,
+    fieldRules: template.fieldRules,
+    recipeValues: {
+      barcode: { prefix: "ENA-" },
+      brand: { value: "ENA Marka" },
+      salePrice: { formulaType: "MULTIPLY", formulaValue: 1.2 },
+    },
+  });
+  assert(preview.itemCount === 1, "Recipe preview row count matches");
+  assert(String(preview.sampleRows[0].barcode).startsWith("ENA-"), "Recipe applies barcode prefix");
+  assert(preview.sampleRows[0].brand === "ENA Marka", "Recipe applies brand replace");
+
+  // 8) THYRONIX prep field
+  console.log("\n8) THYRONIX readiness field");
   const thyPkg = await prisma.productPackage.update({
     where: { id: pkgFree.id },
     data: { thyronixReady: true },
   });
   assert(thyPkg.thyronixReady === true, "thyronixReady field works");
 
-  // 8) Import job model
-  console.log("\n8) Import job records");
+  // 9) Import job model
+  console.log("\n9) Import job records");
   const job = await prisma.productImportJob.create({
     data: {
       type: "XML",

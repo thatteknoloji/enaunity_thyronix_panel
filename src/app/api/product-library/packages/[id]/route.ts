@@ -3,6 +3,7 @@ import { prisma } from "@/lib/db";
 import { requireAdmin } from "@/lib/auth";
 import { syncPackageCounts } from "@/lib/product-library/access";
 import { getPackageItems } from "@/lib/product-library/items";
+import { resolvePackageTemplate } from "@/lib/product-library/template-engine";
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -22,14 +23,16 @@ export async function GET(_req: Request, { params }: Params) {
       catalogIds = [];
     }
 
-    const [catalogs, items, accessCount, downloadCount] = await Promise.all([
+    const [catalogs, items, accessCount, downloadCount, recipeCount] = await Promise.all([
       catalogIds.length
         ? prisma.productCatalog.findMany({ where: { id: { in: catalogIds } } })
         : [],
       getPackageItems(id),
       prisma.productPackageAccess.count({ where: { packageId: id, status: "ACTIVE" } }),
       prisma.productDistributionLog.count({ where: { packageId: id } }),
+      prisma.productPackageRecipe.count({ where: { packageId: id, status: "ACTIVE" } }),
     ]);
+    const template = resolvePackageTemplate(pkg, items);
 
     return NextResponse.json({
       success: true,
@@ -40,6 +43,8 @@ export async function GET(_req: Request, { params }: Params) {
         productCount: items.length,
         accessCount,
         downloadCount,
+        recipeCount,
+        template,
       },
     });
   } catch {
@@ -67,6 +72,10 @@ export async function PATCH(req: Request, { params }: Params) {
         else data[field] = body[field];
       }
     }
+
+    if (body.sourceColumns !== undefined) data.sourceColumnsJson = JSON.stringify(body.sourceColumns || []);
+    if (body.fieldRules !== undefined) data.fieldRulesJson = JSON.stringify(body.fieldRules || []);
+    if (body.exportFormats !== undefined) data.exportFormatsJson = JSON.stringify(body.exportFormats || []);
 
     const pkg = await prisma.productPackage.update({ where: { id }, data });
     await syncPackageCounts(id);

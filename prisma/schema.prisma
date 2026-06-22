@@ -1667,6 +1667,7 @@ model ThyronixAiProvider {
   maxTokens       Int      @default(4096)
   systemPrompt    String   @default("")
   isDefault       Boolean  @default(false)
+  dealerId        String?
   status          String   @default("active") // active, error, disabled
   lastTested      DateTime?
   testResult      String   @default("")
@@ -1675,6 +1676,8 @@ model ThyronixAiProvider {
   usages          ThyronixAiUsage[]
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
+
+  @@index([dealerId])
 }
 
 model ThyronixAiUsage {
@@ -2000,6 +2003,7 @@ model ThyronixWorkspaceSettings {
   onboardingStep      Int      @default(0)
   onboardingJson      String   @default("{}")
   automationJson      String   @default("{}")
+  aiProviderJson      String   @default("{}")
   teamJson            String   @default("[]")
   checklistJson       String   @default("{}")
   createdAt           DateTime @default(now())
@@ -2097,11 +2101,15 @@ model ProductPackage {
   publishedAt   DateTime?
   isFree        Boolean  @default(false)
   thyronixReady Boolean  @default(false)
+  sourceColumnsJson String @default("[]")
+  fieldRulesJson  String   @default("[]")
+  exportFormatsJson String @default("[\"EXCEL\",\"XML\",\"CSV\"]")
   status        String   @default("DRAFT")
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
   access        ProductPackageAccess[]
   logs          ProductDistributionLog[]
+  recipes       ProductPackageRecipe[]
 
   @@index([status])
   @@index([licenseLevel])
@@ -2154,6 +2162,11 @@ model ProductDistributionLog {
   packageId String
   dealerId  String
   format    String
+  recipeId  String   @default("")
+  recipeName String  @default("")
+  storeName String   @default("")
+  fileName  String   @default("")
+  itemCount Int      @default(0)
   userId    String   @default("")
   userEmail String   @default("")
   ipAddress String   @default("")
@@ -2164,6 +2177,29 @@ model ProductDistributionLog {
   @@index([dealerId])
   @@index([packageId])
   @@index([createdAt])
+}
+
+model ProductPackageRecipe {
+  id               String   @id @default(cuid())
+  packageId        String
+  dealerId         String
+  connectionId     String   @default("")
+  connectionLabel  String   @default("")
+  name             String
+  storeName        String   @default("")
+  format           String   @default("EXCEL")
+  status           String   @default("ACTIVE")
+  valuesJson       String   @default("{}")
+  lastPreviewJson  String   @default("{}")
+  lastDownloadedAt DateTime?
+  package          ProductPackage @relation(fields: [packageId], references: [id], onDelete: Cascade)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@index([packageId])
+  @@index([dealerId])
+  @@index([connectionId])
+  @@index([status])
 }
 
 // ── Fulfillment & Dealer Accounting ──
@@ -2945,8 +2981,93 @@ model PageFactoryBlueprint {
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
+  contentDraft   PageFactoryContentDraft?
+
   @@index([projectId])
   @@index([hierarchyLevel])
+}
+
+enum PageFactoryContentDraftStatus {
+  DRAFT
+  NEEDS_REVIEW
+  READY_TO_PUBLISH
+  REJECTED
+}
+
+model PageFactoryContentDraft {
+  id                  String                        @id @default(cuid())
+  blueprintId         String                        @unique
+  blueprint           PageFactoryBlueprint          @relation(fields: [blueprintId], references: [id], onDelete: Cascade)
+  projectId           String?
+  dealerId            String?
+  title               String
+  slug                String
+  metaTitle           String                        @default("")
+  metaDescription     String                        @default("")
+  h1                  String                        @default("")
+  intro               String                        @default("")
+  bodyJson            String                        @default("[]")
+  faqJson             String                        @default("[]")
+  schemaJson          String                        @default("{}")
+  internalLinksJson   String                        @default("[]")
+  sourceJson          String                        @default("{}")
+  seoScore            Int                           @default(0)
+  aeoScore            Int                           @default(0)
+  geoScore            Int                           @default(0)
+  publishScore        Int                           @default(0)
+  status              PageFactoryContentDraftStatus @default(DRAFT)
+  language            String                        @default("tr")
+  country             String                        @default("TR")
+  noindexRecommended  Boolean                       @default(false)
+  metadataJson        String                        @default("{}")
+  createdAt           DateTime                      @default(now())
+  updatedAt           DateTime                      @updatedAt
+
+  publishGate         PageFactoryPublishGate?
+
+  @@index([projectId])
+  @@index([dealerId])
+  @@index([status])
+  @@index([publishScore])
+}
+
+enum PageFactoryPublishGateStatus {
+  PASSED
+  WARNING
+  BLOCKED
+  NEEDS_REVIEW
+}
+
+model PageFactoryPublishGate {
+  id              String                       @id @default(cuid())
+  draftId         String                       @unique
+  draft           PageFactoryContentDraft      @relation(fields: [draftId], references: [id], onDelete: Cascade)
+  blueprintId     String
+  projectId       String?
+  dealerId        String?
+  status          PageFactoryPublishGateStatus @default(NEEDS_REVIEW)
+  score           Int                          @default(0)
+  seoPassed       Boolean                      @default(false)
+  aeoPassed       Boolean                      @default(false)
+  geoPassed       Boolean                      @default(false)
+  duplicatePassed Boolean                      @default(false)
+  schemaPassed    Boolean                      @default(false)
+  policyPassed    Boolean                      @default(false)
+  checksJson      String                       @default("[]")
+  blockersJson    String                       @default("[]")
+  warningsJson    String                       @default("[]")
+  suggestionsJson String                       @default("[]")
+  reviewedById    String?
+  reviewedAt      DateTime?
+  reviewNote      String                       @default("")
+  createdAt       DateTime                     @default(now())
+  updatedAt       DateTime                     @updatedAt
+
+  @@index([blueprintId])
+  @@index([projectId])
+  @@index([dealerId])
+  @@index([status])
+  @@index([score])
 }
 
 // ── Data Universe Engine (GEO / Industry / Intent / Question — içerik üretmez) ──
@@ -3365,4 +3486,17 @@ model ProductUniverseImportJob {
   @@index([projectId])
   @@index([status])
   @@index([createdAt])
+}
+
+model ProductUniverseImportTemplate {
+  id           String   @id @default(cuid())
+  dealerId     String?
+  name         String
+  sourceType   String   @default("CSV")
+  mappingJson  String   @default("{}")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([dealerId])
+  @@index([sourceType])
 }

@@ -3,6 +3,7 @@ import { requireDealer } from "@/lib/auth";
 import { dealerCanAccessPackage } from "@/lib/product-library/access";
 import { getPackageItems } from "@/lib/product-library/items";
 import { prisma } from "@/lib/db";
+import { resolvePackageTemplate } from "@/lib/product-library/template-engine";
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -26,6 +27,7 @@ export async function GET(_req: Request, { params }: Params) {
       : [];
 
     const brandCount = new Set(items.map((i) => i.brand).filter(Boolean)).size;
+    const template = resolvePackageTemplate(access.pkg, items);
 
     return NextResponse.json({
       success: true,
@@ -36,6 +38,7 @@ export async function GET(_req: Request, { params }: Params) {
         brandCount,
         thyronixReady: access.pkg.thyronixReady,
         tier: access.tier,
+        template,
       },
     });
   } catch {

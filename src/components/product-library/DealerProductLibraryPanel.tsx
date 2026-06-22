@@ -2,8 +2,8 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
-  Package, Download, Layers, RefreshCw, ShoppingCart, Clock, CheckCircle2, Ban, History,
-  Search, Eye, Filter,
+  Package, Download, Layers, ShoppingCart, Clock, CheckCircle2, Ban, History,
+  Search, Eye, Filter, Wand2, Store, Save, Trash2,
 } from "lucide-react";
 import { plApi } from "./api";
 import {
@@ -11,9 +11,49 @@ import {
   PlSelect, PlStat, PlTabs, fmtDate, fmtMoney,
 } from "./pl-ui";
 import { UI } from "@/lib/ui/turkish-labels";
+import { PaymentCheckoutPanel } from "@/components/payments/PaymentCheckoutPanel";
 
 type DealerState = "ACCESSIBLE" | "PURCHASE" | "PENDING" | "INACTIVE";
 type Tab = "packages" | "catalogs" | "history";
+
+type RecipeForm = {
+  id?: string;
+  name: string;
+  connectionId: string;
+  storeName: string;
+  format: string;
+  values: Record<string, any>;
+};
+
+function parseJson<T>(value: string | null | undefined, fallback: T): T {
+  if (!value) return fallback;
+  try {
+    return JSON.parse(value) as T;
+  } catch {
+    return fallback;
+  }
+}
+
+function buildEmptyRecipeForm(): RecipeForm {
+  return {
+    name: "",
+    connectionId: "",
+    storeName: "",
+    format: "EXCEL",
+    values: {},
+  };
+}
+
+function recipeFromApi(recipe: any): RecipeForm {
+  return {
+    id: recipe.id,
+    name: recipe.name || "",
+    connectionId: recipe.connectionId || "",
+    storeName: recipe.storeName || "",
+    format: recipe.format || "EXCEL",
+    values: parseJson(recipe.valuesJson, {}),
+  };
+}
 
 function StateBadge({ state }: { state: DealerState }) {
   const map: Record<DealerState, { label: string; className: string; icon: typeof CheckCircle2 }> = {
@@ -40,8 +80,6 @@ function PriceBadge({ pkg }: { pkg: any }) {
   return <span className="text-sm font-bold text-slate-900">{fmtMoney(price)}{suffix}</span>;
 }
 
-import { PaymentCheckoutPanel } from "@/components/payments/PaymentCheckoutPanel";
-
 export default function DealerProductLibraryPanel() {
   const [tab, setTab] = useState<Tab>("packages");
   const [catalogs, setCatalogs] = useState<any[]>([]);
@@ -57,6 +95,12 @@ export default function DealerProductLibraryPanel() {
   const [detailModal, setDetailModal] = useState<any>(null);
   const [search, setSearch] = useState("");
   const [stateFilter, setStateFilter] = useState<string>("ALL");
+  const [recipeModal, setRecipeModal] = useState<{ packageId: string; packageName: string; slug: string } | null>(null);
+  const [recipeData, setRecipeData] = useState<any>(null);
+  const [recipeForm, setRecipeForm] = useState<RecipeForm>(buildEmptyRecipeForm());
+  const [recipePreview, setRecipePreview] = useState<any>(null);
+  const [recipeSaving, setRecipeSaving] = useState(false);
+  const [recipeLoading, setRecipeLoading] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -95,14 +139,14 @@ export default function DealerProductLibraryPanel() {
     });
   }, [packages, search, stateFilter]);
 
-  const download = async (packageId: string, format: string, slug?: string) => {
-    setDownloading(`${packageId}-${format}`);
+  const download = async (packageId: string, format: string, slug?: string, recipeId?: string) => {
+    setDownloading(`${packageId}-${format}-${recipeId || "default"}`);
     setError(null);
     try {
       const r = await fetch(`/api/product-library/package/${packageId}/download`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ format }),
+        body: JSON.stringify({ format, recipeId }),
       });
       if (!r.ok) {
         const d = await r.json().catch(() => ({}));
@@ -139,7 +183,7 @@ export default function DealerProductLibraryPanel() {
         window.location.href = result.redirectUrl;
         return;
       }
-      setSuccess(result.free ? "Ücretsiz paket erişiminiz açıldı" : "Satın alma talebiniz alındı — ödeme onayı bekleniyor");
+      setSuccess(result.free ? "Ücretsiz paket erişiminiz açıldı" : "Satın alma talebiniz alındı, ödeme onayı bekleniyor");
       setPurchaseModal(null);
       load();
     } catch (e) {
@@ -157,11 +201,100 @@ export default function DealerProductLibraryPanel() {
     }
   };
 
+  const loadRecipeData = useCallback(async (packageId: string) => {
+    const data = await plApi<any>(`/api/product-library/package/${packageId}/recipes`);
+    setRecipeData(data);
+    return data;
+  }, []);
+
+  const openRecipeManager = async (pkg: { id: string; name: string; slug: string }) => {
+    setRecipeLoading(true);
+    setRecipeModal({ packageId: pkg.id, packageName: pkg.name, slug: pkg.slug });
+    setRecipePreview(null);
+    setRecipeForm(buildEmptyRecipeForm());
+    try {
+      const data = await loadRecipeData(pkg.id);
+      if (data.recipes?.[0]) setRecipeForm(recipeFromApi(data.recipes[0]));
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Reçeteler yüklenemedi");
+    } finally {
+      setRecipeLoading(false);
+    }
+  };
+
+  const saveRecipe = async () => {
+    if (!recipeModal) return;
+    if (!recipeForm.name.trim()) {
+      setError("Reçete adı zorunlu");
+      return;
+    }
+    setRecipeSaving(true);
+    try {
+      const body = {
+        name: recipeForm.name,
+        connectionId: recipeForm.connectionId,
+        storeName: recipeForm.storeName,
+        format: recipeForm.format,
+        values: recipeForm.values,
+        lastPreview: recipePreview || {},
+      };
+      const saved = recipeForm.id
+        ? await plApi<any>(`/api/product-library/package/${recipeModal.packageId}/recipes/${recipeForm.id}`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(body),
+          })
+        : await plApi<any>(`/api/product-library/package/${recipeModal.packageId}/recipes`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(body),
+          });
+      const refreshed = await loadRecipeData(recipeModal.packageId);
+      const matched = refreshed.recipes.find((item: any) => item.id === saved.id) || saved;
+      setRecipeForm(recipeFromApi(matched));
+      setSuccess("Reçete kaydedildi");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Reçete kaydedilemedi");
+    } finally {
+      setRecipeSaving(false);
+    }
+  };
+
+  const deleteRecipe = async () => {
+    if (!recipeModal || !recipeForm.id) return;
+    try {
+      await plApi(`/api/product-library/package/${recipeModal.packageId}/recipes/${recipeForm.id}`, { method: "DELETE" });
+      const refreshed = await loadRecipeData(recipeModal.packageId);
+      setRecipeForm(refreshed.recipes?.[0] ? recipeFromApi(refreshed.recipes[0]) : buildEmptyRecipeForm());
+      setRecipePreview(null);
+      setSuccess("Reçete kaldırıldı");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Reçete silinemedi");
+    }
+  };
+
+  const previewRecipe = async () => {
+    if (!recipeModal) return;
+    try {
+      const preview = await plApi<any>(`/api/product-library/package/${recipeModal.packageId}/preview`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ values: recipeForm.values }),
+      });
+      setRecipePreview(preview);
+      setSuccess("Önizleme hazırlandı");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Önizleme alınamadı");
+    }
+  };
+
   const tabs: { id: Tab; label: string; icon: typeof Package }[] = [
     { id: "packages", label: "Paketler", icon: Package },
     { id: "catalogs", label: "Kataloglar", icon: Layers },
     { id: "history", label: "İndirme Geçmişi", icon: History },
   ];
+
+  const editableRules = recipeData?.template?.fieldRules?.filter((rule: any) => !["LOCKED", "HIDDEN"].includes(rule.behavior)) || [];
 
   return (
     <div className={`${PL_PANEL}`}>
@@ -235,13 +368,18 @@ export default function DealerProductLibraryPanel() {
                         <PlBtn variant="ghost" size="sm" onClick={() => openDetail(p.id)}>
                           <Eye size={12} /> Detay
                         </PlBtn>
+                        {p.dealerState === "ACCESSIBLE" && (
+                          <PlBtn variant="secondary" size="sm" onClick={() => openRecipeManager(p)}>
+                            <Wand2 size={12} /> Excel/XML Motoru
+                          </PlBtn>
+                        )}
                         {p.dealerState === "ACCESSIBLE" && ["XML", "CSV", "EXCEL"].map((fmt) => (
                           <PlBtn
                             key={fmt}
                             variant="secondary"
                             size="sm"
                             onClick={() => download(p.id, fmt, p.slug)}
-                            disabled={downloading === `${p.id}-${fmt}`}
+                            disabled={downloading === `${p.id}-${fmt}-default`}
                           >
                             <Download size={12} /> {fmt}
                           </PlBtn>
@@ -285,7 +423,10 @@ export default function DealerProductLibraryPanel() {
               <PlCard className="divide-y divide-slate-100">
                 {downloads.map((d) => (
                   <div key={d.id} className="px-4 py-3 flex justify-between text-sm text-slate-700">
-                    <span>{d.package?.name || d.packageId} · <PlBadge tone="blue">{d.format}</PlBadge></span>
+                    <span>
+                      {d.package?.name || d.packageId} · <PlBadge tone="blue">{d.format}</PlBadge>
+                      {(d.recipeName || d.storeName) && <span className="ml-2 text-xs text-slate-500">{d.recipeName || d.storeName}</span>}
+                    </span>
                     <span className="text-slate-500 text-xs">{fmtDate(d.createdAt)}</span>
                   </div>
                 ))}
@@ -326,7 +467,249 @@ export default function DealerProductLibraryPanel() {
                 {detailModal.catalogs?.map((c: any) => <PlBadge key={c.id} tone="blue">{c.name} ({c.productCount})</PlBadge>)}
               </div>
             </div>
+            <div>
+              <h4 className="font-medium text-slate-900 mb-2">Excel/XML alanları</h4>
+              <div className="flex flex-wrap gap-2">
+                {detailModal.template?.fieldRules?.slice(0, 12).map((rule: any) => (
+                  <PlBadge key={rule.key} tone="gray">{rule.label}</PlBadge>
+                ))}
+              </div>
+            </div>
           </div>
+        )}
+      </PlModal>
+
+      <PlModal open={!!recipeModal} onClose={() => setRecipeModal(null)} title={recipeModal?.packageName || "Excel/XML Motoru"} wide>
+        {recipeModal && (
+          recipeLoading ? (
+            <p className="text-sm text-slate-500">Reçeteler yükleniyor…</p>
+          ) : (
+            <div className="space-y-4 text-sm text-slate-700">
+              <PlCard className="p-4">
+                <div className="flex items-center gap-2 mb-3 text-slate-900 font-medium">
+                  <Store size={16} /> Mağaza Reçeteleri
+                </div>
+                {recipeData?.recipes?.length ? (
+                  <div className="flex flex-wrap gap-2 mb-3">
+                    {recipeData.recipes.map((recipe: any) => (
+                      <button
+                        key={recipe.id}
+                        onClick={() => {
+                          setRecipeForm(recipeFromApi(recipe));
+                          setRecipePreview(parseJson(recipe.lastPreviewJson, null));
+                        }}
+                        className={`text-xs px-3 py-1.5 rounded-full border ${recipeForm.id === recipe.id ? "bg-ena-primary text-white border-ena-primary" : "bg-white text-slate-700 border-slate-200"}`}
+                      >
+                        {recipe.name}
+                      </button>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-xs text-slate-500 mb-3">Henüz kayıtlı reçete yok. İlk mağaza reçeteni oluştur.</p>
+                )}
+
+                <div className="grid md:grid-cols-2 gap-3">
+                  <PlInput
+                    placeholder="Reçete adı"
+                    value={recipeForm.name}
+                    onChange={(e) => setRecipeForm((current) => ({ ...current, name: e.target.value }))}
+                  />
+                  <PlSelect
+                    value={recipeForm.connectionId}
+                    onChange={(e) => setRecipeForm((current) => ({ ...current, connectionId: e.target.value }))}
+                  >
+                    <option value="">Bağlı mağaza seç</option>
+                    {recipeData?.connections?.map((connection: any) => (
+                      <option key={connection.id} value={connection.id}>{connection.label}</option>
+                    ))}
+                  </PlSelect>
+                  <PlInput
+                    placeholder="Mağaza adı"
+                    value={recipeForm.storeName}
+                    onChange={(e) => setRecipeForm((current) => ({ ...current, storeName: e.target.value }))}
+                  />
+                  <PlSelect
+                    value={recipeForm.format}
+                    onChange={(e) => setRecipeForm((current) => ({ ...current, format: e.target.value }))}
+                  >
+                    {(recipeData?.template?.exportFormats || ["EXCEL", "XML", "CSV"]).map((format: string) => (
+                      <option key={format} value={format}>{format}</option>
+                    ))}
+                  </PlSelect>
+                </div>
+              </PlCard>
+
+              <PlCard className="p-4">
+                <div className="flex items-center justify-between gap-3 mb-3">
+                  <div>
+                    <h4 className="font-medium text-slate-900">Dönüştürülebilir Alanlar</h4>
+                    <p className="text-xs text-slate-500 mt-1">Adminin izin verdiği sütunları mağazana özel dönüştür.</p>
+                  </div>
+                  <div className="flex gap-2">
+                    <PlBtn variant="secondary" size="sm" onClick={() => { setRecipeForm(buildEmptyRecipeForm()); setRecipePreview(null); }}>
+                      Yeni Reçete
+                    </PlBtn>
+                    {recipeForm.id && (
+                      <PlBtn variant="danger" size="sm" onClick={deleteRecipe}>
+                        <Trash2 size={12} /> Sil
+                      </PlBtn>
+                    )}
+                  </div>
+                </div>
+
+                <div className="space-y-3 max-h-[360px] overflow-y-auto pr-1">
+                  {editableRules.map((rule: any) => {
+                    const value = recipeForm.values[rule.key] || {};
+                    return (
+                      <div key={rule.key} className="border border-slate-100 rounded-xl p-3">
+                        <div className="flex items-center justify-between gap-2 mb-2">
+                          <div>
+                            <div className="font-medium text-slate-900">{rule.label}</div>
+                            <div className="text-[11px] text-slate-500">{rule.key} · {rule.behavior}</div>
+                          </div>
+                          {rule.required && <PlBadge tone="amber">Zorunlu</PlBadge>}
+                        </div>
+
+                        {rule.behavior === "REPLACE" && (
+                          <PlInput
+                            placeholder="Sabit değer"
+                            value={value.value || ""}
+                            onChange={(e) => setRecipeForm((current) => ({
+                              ...current,
+                              values: { ...current.values, [rule.key]: { ...value, value: e.target.value } },
+                            }))}
+                          />
+                        )}
+
+                        {rule.behavior === "PREFIX" && (
+                          <PlInput
+                            placeholder="Prefix"
+                            value={value.prefix || ""}
+                            onChange={(e) => setRecipeForm((current) => ({
+                              ...current,
+                              values: { ...current.values, [rule.key]: { ...value, prefix: e.target.value } },
+                            }))}
+                          />
+                        )}
+
+                        {rule.behavior === "SUFFIX" && (
+                          <PlInput
+                            placeholder="Suffix"
+                            value={value.suffix || ""}
+                            onChange={(e) => setRecipeForm((current) => ({
+                              ...current,
+                              values: { ...current.values, [rule.key]: { ...value, suffix: e.target.value } },
+                            }))}
+                          />
+                        )}
+
+                        {rule.behavior === "NUMBER_FORMULA" && (
+                          <div className="grid md:grid-cols-4 gap-2">
+                            <PlSelect
+                              value={value.formulaType || "SET"}
+                              onChange={(e) => setRecipeForm((current) => ({
+                                ...current,
+                                values: { ...current.values, [rule.key]: { ...value, formulaType: e.target.value } },
+                              }))}
+                            >
+                              <option value="SET">Sabit Değer</option>
+                              <option value="ADD">Topla</option>
+                              <option value="MULTIPLY">Çarp</option>
+                              <option value="PERCENT">Yüzde</option>
+                            </PlSelect>
+                            <PlInput
+                              type="number"
+                              placeholder="Değer"
+                              value={value.formulaValue ?? ""}
+                              onChange={(e) => setRecipeForm((current) => ({
+                                ...current,
+                                values: {
+                                  ...current.values,
+                                  [rule.key]: { ...value, formulaValue: Number(e.target.value || 0) },
+                                },
+                              }))}
+                            />
+                            <PlInput
+                              type="number"
+                              placeholder="Minimum"
+                              value={value.minValue ?? ""}
+                              onChange={(e) => setRecipeForm((current) => ({
+                                ...current,
+                                values: {
+                                  ...current.values,
+                                  [rule.key]: { ...value, minValue: Number(e.target.value || 0) },
+                                },
+                              }))}
+                            />
+                            <PlInput
+                              type="number"
+                              placeholder="Yuvarlama"
+                              value={value.roundTo ?? ""}
+                              onChange={(e) => setRecipeForm((current) => ({
+                                ...current,
+                                values: {
+                                  ...current.values,
+                                  [rule.key]: { ...value, roundTo: Number(e.target.value || 0) },
+                                },
+                              }))}
+                            />
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </PlCard>
+
+              <div className="flex flex-wrap gap-2">
+                <PlBtn variant="secondary" onClick={previewRecipe}>
+                  <Eye size={12} /> Önizle
+                </PlBtn>
+                <PlBtn onClick={saveRecipe} disabled={recipeSaving}>
+                  <Save size={12} /> {recipeForm.id ? "Reçeteyi Güncelle" : "Reçeteyi Kaydet"}
+                </PlBtn>
+                {recipeForm.id && (
+                  <PlBtn
+                    variant="secondary"
+                    onClick={() => download(recipeModal.packageId, recipeForm.format, recipeModal.slug, recipeForm.id)}
+                    disabled={downloading === `${recipeModal.packageId}-${recipeForm.format}-${recipeForm.id}`}
+                  >
+                    <Download size={12} /> {recipeForm.format} İndir
+                  </PlBtn>
+                )}
+              </div>
+
+              {recipePreview && (
+                <PlCard className="p-4">
+                  <h4 className="font-medium text-slate-900 mb-2">Çıktı Önizlemesi</h4>
+                  <p className="text-xs text-slate-500 mb-3">{recipePreview.itemCount} satır üretilecek</p>
+                  {recipePreview.warnings?.length > 0 && (
+                    <div className="mb-3 space-y-1">
+                      {recipePreview.warnings.map((warning: string) => (
+                        <div key={warning} className="text-xs text-amber-700 bg-amber-50 border border-amber-100 rounded-lg px-3 py-2">{warning}</div>
+                      ))}
+                    </div>
+                  )}
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-xs">
+                      <thead>
+                        <tr className="text-slate-500 border-b border-slate-100">
+                          {recipePreview.exportKeys?.map((key: string) => <th key={key} className="py-2 px-2 text-left">{key}</th>)}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {recipePreview.sampleRows?.map((row: any, index: number) => (
+                          <tr key={index} className="border-b border-slate-50">
+                            {recipePreview.exportKeys?.map((key: string) => <td key={key} className="py-2 px-2">{String(row[key] ?? "")}</td>)}
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </PlCard>
+              )}
+            </div>
+          )
         )}
       </PlModal>
     </div>

@@ -10,7 +10,7 @@ import {
   PL_PANEL, PlAlert, PlBadge, PlBtn, PlCard, PlEmpty, PlHeader, PlInput, PlModal,
   PlSelect, PlStat, PlStatusBadge, PlTable, PlTabs, PlTextarea, fmtDate, fmtMoney,
 } from "./pl-ui";
-import { CATALOG_STATUSES, LICENSE_LEVELS } from "@/lib/product-library/types";
+import { CATALOG_STATUSES, LICENSE_LEVELS, PACKAGE_FIELD_BEHAVIORS } from "@/lib/product-library/types";
 import { UI, billingTypeLabel, catalogFieldLabel, licenseLevelLabel, statusLabel } from "@/lib/ui/turkish-labels";
 
 type Tab = "dashboard" | "catalogs" | "products" | "packages" | "suppliers" | "imports" | "distribution" | "access";
@@ -25,6 +25,25 @@ const TABS: { id: Tab; label: string; icon: typeof Package }[] = [
   { id: "distribution", label: "Dağıtım Logları", icon: Download },
   { id: "access", label: "Erişim Yönetimi", icon: Shield },
 ];
+
+function parseJson<T>(value: string | null | undefined, fallback: T): T {
+  if (!value) return fallback;
+  try {
+    return JSON.parse(value) as T;
+  } catch {
+    return fallback;
+  }
+}
+
+function normalizePackageRecord(pkg: any) {
+  return {
+    ...pkg,
+    catalogIds: Array.isArray(pkg.catalogIds) ? pkg.catalogIds : parseJson<string[]>(pkg.catalogIds, []),
+    sourceColumns: pkg.sourceColumns || parseJson<any[]>(pkg.sourceColumnsJson, []),
+    fieldRules: pkg.fieldRules || parseJson<any[]>(pkg.fieldRulesJson, []),
+    exportFormats: pkg.exportFormats || parseJson<string[]>(pkg.exportFormatsJson, ["EXCEL", "XML", "CSV"]),
+  };
+}
 
 export default function AdminProductLibraryPanel() {
   const [tab, setTab] = useState<Tab>("dashboard");
@@ -55,7 +74,7 @@ export default function AdminProductLibraryPanel() {
     name: "", description: "", catalogIds: [] as string[], licenseLevel: "FREE",
     monthlyPrice: 0, yearlyPrice: 0, oneTimePrice: 0, billingType: "FREE",
     badgeText: "", isFeatured: false, isNew: false, isBestSeller: false,
-    isFree: true, thyronixReady: false, status: "ACTIVE",
+    isFree: true, thyronixReady: false, status: "ACTIVE", exportFormats: ["EXCEL", "XML", "CSV"],
   });
   const [newSupplier, setNewSupplier] = useState({
     name: "", type: "XML", contactName: "", contactEmail: "", xmlUrl: "", notes: "", catalogId: "", status: "ACTIVE",
@@ -79,7 +98,10 @@ export default function AdminProductLibraryPanel() {
         setCatalogs(cats);
       }
       if (t === "suppliers" || t === "imports") setSuppliers(await plApi("/api/product-library/suppliers"));
-      if (t === "packages" || t === "access") setPackages(await plApi("/api/product-library/packages"));
+      if (t === "packages" || t === "access") {
+        const packageRows = await plApi<any[]>("/api/product-library/packages");
+        setPackages(packageRows.map(normalizePackageRecord));
+      }
       if (t === "imports") setImportJobs(await plApi("/api/product-library/import-jobs?limit=100"));
       if (t === "distribution") {
         setDistributionLogs(await plApi("/api/product-library/distribution-logs?scope=admin"));
@@ -134,7 +156,7 @@ export default function AdminProductLibraryPanel() {
 
   const createPackage = async () => {
     await plApi("/api/product-library/packages", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(newPackage) });
-    setNewPackage({ name: "", description: "", catalogIds: [], licenseLevel: "FREE", monthlyPrice: 0, yearlyPrice: 0, oneTimePrice: 0, billingType: "FREE", badgeText: "", isFeatured: false, isNew: false, isBestSeller: false, isFree: true, thyronixReady: false, status: "ACTIVE" });
+    setNewPackage({ name: "", description: "", catalogIds: [], licenseLevel: "FREE", monthlyPrice: 0, yearlyPrice: 0, oneTimePrice: 0, billingType: "FREE", badgeText: "", isFeatured: false, isNew: false, isBestSeller: false, isFree: true, thyronixReady: false, status: "ACTIVE", exportFormats: ["EXCEL", "XML", "CSV"] });
     notify("Paket oluşturuldu");
     load("packages");
   };
@@ -149,9 +171,30 @@ export default function AdminProductLibraryPanel() {
     load("packages");
   };
 
+  const savePackageTemplate = async () => {
+    if (!viewPackage?.package?.id) return;
+    await plApi(`/api/product-library/packages/${viewPackage.package.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        fieldRules: viewPackage.template?.fieldRules || [],
+        exportFormats: viewPackage.template?.exportFormats || ["EXCEL", "XML", "CSV"],
+        sourceColumns: viewPackage.template?.sourceColumns || [],
+      }),
+    });
+    notify("Excel/XML motoru kuralları kaydedildi");
+    openPackageDetail(viewPackage.package.id);
+    load("packages");
+  };
+
   const openPackageDetail = async (id: string) => {
     try {
-      setViewPackage(await plApi(`/api/product-library/packages/${id}`));
+      const detail = await plApi<any>(`/api/product-library/packages/${id}`);
+      setViewPackage({
+        ...detail,
+        package: normalizePackageRecord(detail.package),
+        template: detail.template || { sourceColumns: [], fieldRules: [], exportFormats: ["EXCEL", "XML", "CSV"] },
+      });
     } catch (e) {
       setError(e instanceof Error ? e.message : "Detay yüklenemedi");
     }
@@ -440,7 +483,7 @@ export default function AdminProductLibraryPanel() {
                     <div className="flex items-center gap-2">
                       <PlStatusBadge status={p.status} />
                       <PlBtn variant="ghost" size="sm" onClick={() => openPackageDetail(p.id)}><Eye size={14} /></PlBtn>
-                      <PlBtn variant="ghost" size="sm" onClick={() => setEditPackage({ ...p, catalogIds: JSON.parse(p.catalogIds || "[]") })}><Edit2 size={14} /></PlBtn>
+                      <PlBtn variant="ghost" size="sm" onClick={() => setEditPackage(normalizePackageRecord(p))}><Edit2 size={14} /></PlBtn>
                     </div>
                   </div>
                 ))}
@@ -561,6 +604,7 @@ export default function AdminProductLibraryPanel() {
                   <tr>
                     <th className="p-3 text-left">Tarih</th>
                     <th className="p-3 text-left">Paket</th>
+                    <th className="p-3 text-left">Reçete</th>
                     <th className="p-3 text-left">Format</th>
                     <th className="p-3 text-left">Bayi</th>
                     <th className="p-3 text-left">Kullanıcı</th>
@@ -571,6 +615,7 @@ export default function AdminProductLibraryPanel() {
                     <tr key={l.id}>
                       <td className="p-3 text-xs">{fmtDate(l.createdAt)}</td>
                       <td className="p-3">{l.package?.name || l.packageId}</td>
+                      <td className="p-3 text-xs">{l.recipeName || l.storeName || "Varsayılan"}</td>
                       <td className="p-3"><PlBadge tone="blue">{l.format}</PlBadge></td>
                       <td className="p-3 font-mono text-xs">{l.dealerId.slice(0, 8)}…</td>
                       <td className="p-3 text-xs">{l.userEmail || "—"}</td>
@@ -680,12 +725,133 @@ export default function AdminProductLibraryPanel() {
               <PlStat label="Erişim" value={viewPackage.accessCount} icon={Users} />
               <PlStat label="İndirme" value={viewPackage.downloadCount} icon={Download} />
             </div>
+            <div className="grid grid-cols-2 gap-3">
+              <PlStat label="Reçete" value={viewPackage.recipeCount || 0} icon={Shield} />
+              <PlStat label="Format" value={(viewPackage.template?.exportFormats || []).join(", ") || "—"} icon={FileSpreadsheet} />
+            </div>
             <div>
               <h4 className="font-medium text-slate-900 mb-2">Kataloglar</h4>
               <div className="flex flex-wrap gap-2">
                 {viewPackage.catalogs?.map((c: any) => <PlBadge key={c.id} tone="blue">{c.name}</PlBadge>)}
               </div>
             </div>
+            <PlCard className="p-4">
+              <div className="flex items-center justify-between gap-3 mb-3">
+                <div>
+                  <h4 className="font-medium text-slate-900">Excel/XML Motoru Kuralları</h4>
+                  <p className="text-xs text-slate-500 mt-1">Bayi hangi sütunu nasıl değiştirebilir burada belirlenir.</p>
+                </div>
+                <PlBtn size="sm" onClick={savePackageTemplate}>Kuralları Kaydet</PlBtn>
+              </div>
+              <div className="flex flex-wrap gap-2 mb-4">
+                {["EXCEL", "XML", "CSV"].map((format) => (
+                  <label key={format} className="flex items-center gap-2 text-xs text-slate-700 border border-slate-200 rounded-lg px-3 py-2">
+                    <input
+                      type="checkbox"
+                      checked={(viewPackage.template?.exportFormats || []).includes(format)}
+                      onChange={(e) =>
+                        setViewPackage((current: any) => ({
+                          ...current,
+                          template: {
+                            ...current.template,
+                            exportFormats: e.target.checked
+                              ? [...(current.template?.exportFormats || []), format]
+                              : (current.template?.exportFormats || []).filter((item: string) => item !== format),
+                          },
+                        }))
+                      }
+                    />
+                    {format}
+                  </label>
+                ))}
+              </div>
+              <div className="space-y-3 max-h-[420px] overflow-y-auto pr-1">
+                {viewPackage.template?.fieldRules?.map((rule: any, index: number) => (
+                  <div key={rule.key} className="grid md:grid-cols-5 gap-2 border border-slate-100 rounded-xl p-3">
+                    <div className="md:col-span-2">
+                      <div className="font-medium text-slate-900">{rule.label}</div>
+                      <div className="text-[11px] text-slate-500 mt-1">
+                        {rule.key} · {rule.source} · {rule.dataType}
+                      </div>
+                      {!!viewPackage.template?.sourceColumns?.find((column: any) => column.key === rule.key)?.sampleValues?.length && (
+                        <div className="text-[11px] text-slate-400 mt-1">
+                          Örnek: {viewPackage.template.sourceColumns.find((column: any) => column.key === rule.key)?.sampleValues?.join(" · ")}
+                        </div>
+                      )}
+                    </div>
+                    <PlInput
+                      placeholder="Dışa aktarma adı"
+                      value={rule.exportKey}
+                      onChange={(e) =>
+                        setViewPackage((current: any) => ({
+                          ...current,
+                          template: {
+                            ...current.template,
+                            fieldRules: current.template.fieldRules.map((item: any, itemIndex: number) =>
+                              itemIndex === index ? { ...item, exportKey: e.target.value } : item
+                            ),
+                          },
+                        }))
+                      }
+                    />
+                    <PlSelect
+                      value={rule.behavior}
+                      onChange={(e) =>
+                        setViewPackage((current: any) => ({
+                          ...current,
+                          template: {
+                            ...current.template,
+                            fieldRules: current.template.fieldRules.map((item: any, itemIndex: number) =>
+                              itemIndex === index ? { ...item, behavior: e.target.value } : item
+                            ),
+                          },
+                        }))
+                      }
+                    >
+                      {PACKAGE_FIELD_BEHAVIORS.map((behavior) => <option key={behavior} value={behavior}>{behavior}</option>)}
+                    </PlSelect>
+                    <div className="flex items-center gap-3 text-xs">
+                      <label className="flex items-center gap-1">
+                        <input
+                          type="checkbox"
+                          checked={rule.required}
+                          onChange={(e) =>
+                            setViewPackage((current: any) => ({
+                              ...current,
+                              template: {
+                                ...current.template,
+                                fieldRules: current.template.fieldRules.map((item: any, itemIndex: number) =>
+                                  itemIndex === index ? { ...item, required: e.target.checked } : item
+                                ),
+                              },
+                            }))
+                          }
+                        />
+                        Zorunlu
+                      </label>
+                      <label className="flex items-center gap-1">
+                        <input
+                          type="checkbox"
+                          checked={rule.visible !== false}
+                          onChange={(e) =>
+                            setViewPackage((current: any) => ({
+                              ...current,
+                              template: {
+                                ...current.template,
+                                fieldRules: current.template.fieldRules.map((item: any, itemIndex: number) =>
+                                  itemIndex === index ? { ...item, visible: e.target.checked } : item
+                                ),
+                              },
+                            }))
+                          }
+                        />
+                        Görünsün
+                      </label>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </PlCard>
             <div>
               <h4 className="font-medium text-slate-900 mb-2">Örnek Ürünler</h4>
               {viewPackage.previewItems?.map((i: any) => (
@@ -730,6 +896,26 @@ function PackageForm({ value, onChange, catalogs }: { value: any; onChange: (v: 
         <option value="INACTIVE">Pasif</option>
         <option value="DRAFT">Taslak</option>
       </PlSelect>
+      <div className="md:col-span-2">
+        <div className="text-xs text-slate-500 mb-2">İzin verilen çıktı formatları</div>
+        <div className="flex flex-wrap gap-2">
+          {["EXCEL", "XML", "CSV"].map((format) => (
+            <label key={format} className="flex items-center gap-2 text-sm text-slate-700 border border-slate-200 rounded-lg px-3 py-2">
+              <input
+                type="checkbox"
+                checked={(value.exportFormats || []).includes(format)}
+                onChange={(e) => onChange({
+                  ...value,
+                  exportFormats: e.target.checked
+                    ? [...(value.exportFormats || []), format]
+                    : (value.exportFormats || []).filter((item: string) => item !== format),
+                })}
+              />
+              {format}
+            </label>
+          ))}
+        </div>
+      </div>
       {["isFeatured", "isNew", "isBestSeller", "thyronixReady"].map((key) => (
         <label key={key} className="flex items-center gap-2 text-sm text-slate-700">
           <input type="checkbox" checked={value[key]} onChange={(e) => onChange({ ...value, [key]: e.target.checked })} />

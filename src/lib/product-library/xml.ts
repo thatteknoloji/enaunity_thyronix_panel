@@ -59,20 +59,14 @@ export function parseXmlProducts(xml: string): CatalogItemInput[] {
     .filter(Boolean) as CatalogItemInput[];
 }
 
-export function itemsToXml(items: { name: string; barcode: string; sku: string; brand: string; category: string; price: number; salePrice: number; stock: number; vatRate: number }[]): string {
+export function itemsToXml(items: Record<string, string | number>[]): string {
   const rows = items
     .map(
       (p) =>
         `  <product>
-    <barcode>${escapeXml(p.barcode)}</barcode>
-    <sku>${escapeXml(p.sku)}</sku>
-    <name>${escapeXml(p.name)}</name>
-    <brand>${escapeXml(p.brand)}</brand>
-    <category>${escapeXml(p.category)}</category>
-    <price>${p.price}</price>
-    <salePrice>${p.salePrice}</salePrice>
-    <stock>${p.stock}</stock>
-    <vatRate>${p.vatRate}</vatRate>
+${Object.entries(p)
+  .map(([key, value]) => `    <${sanitizeXmlTag(key)}>${escapeXml(String(value ?? ""))}</${sanitizeXmlTag(key)}>`)
+  .join("\n")}
   </product>`
     )
     .join("\n");
@@ -81,4 +75,8 @@ export function itemsToXml(items: { name: string; barcode: string; sku: string; 
 
 function escapeXml(s: string): string {
   return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
+
+function sanitizeXmlTag(tag: string) {
+  return tag.replace(/[^a-zA-Z0-9_-]/g, "_") || "field";
 }
