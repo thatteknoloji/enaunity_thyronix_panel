@@ -66,6 +66,7 @@ export default function CheckoutPage() {
 
   const isDealer = !!dealer;
   const canUseDealerPayment = !!paymentDealerId;
+  const showGatewayPaymentPanel = canUseDealerPayment || user?.role === "admin";
 
   useEffect(() => {
     fetchCart();
@@ -229,6 +230,11 @@ export default function CheckoutPage() {
         return true;
       }
       if (data.data?.paymentId && paymentMethod && paymentMethod !== "DEALER_ACCOUNT") {
+        if (user?.role === "admin") {
+          const orderId = data.data.order?.id;
+          router.push(orderId ? `/admin/orders/${orderId}` : "/admin/orders");
+          return true;
+        }
         router.push(`/payment/pending?module=B2B_ORDER&plan=${data.data.order?.id || ""}&paymentId=${data.data.paymentId}`);
         return true;
       }
@@ -254,8 +260,8 @@ export default function CheckoutPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (canUseDealerPayment) {
-      setError("Bayi siparişi için ödeme yöntemi seçin.");
+    if (showGatewayPaymentPanel) {
+      setError("Lütfen yukarıdan bir ödeme yöntemi seçin.");
       return;
     }
     await submitOrder();
@@ -525,15 +531,19 @@ export default function CheckoutPage() {
           </label>
         </div>
 
-        {!isDealer && (
+        {!showGatewayPaymentPanel && !isDealer && (
           <Button type="submit" className="w-full" disabled={submitting || items.length === 0}>
             {submitting ? "Sipariş oluşturuluyor..." : "Siparişi Tamamla"}
           </Button>
         )}
 
-        {canUseDealerPayment && (
+        {showGatewayPaymentPanel && (
           <div className="pt-4 border-t border-ena-border">
-            <p className="text-sm text-ena-light mb-3">Ödeme yöntemini aşağıdan seçin. Bayi siparişi admin onayına gider.</p>
+            <p className="text-sm text-ena-light mb-3">
+              {canUseDealerPayment
+                ? "Ödeme yöntemini aşağıdan seçin. Bayi siparişi admin onayına gider."
+                : "Ödeme yöntemini aşağıdan seçin. Admin siparişleri ödeme tamamlandıktan sonra işleme alınır."}
+            </p>
             <PaymentCheckoutPanel
               amount={total}
               title="B2B Online Ödeme"

@@ -15,7 +15,12 @@ import {
   resolveProviderKey,
   type ProductLibraryPaymentMethod,
 } from "@/lib/payments/gateway-config";
-import { calculatePaymentTotal, getPaymentSettings } from "@/lib/payments/payment-settings";
+import {
+  calculatePaymentTotal,
+  getPaymentSettings,
+  getPublicPaymentSettings,
+} from "@/lib/payments/payment-settings";
+import { getSystemPaymentDealer } from "@/lib/payments/system-payment-dealer";
 
 export async function GET() {
   try {
@@ -76,6 +81,8 @@ export async function POST(req: Request) {
     const dealer = user.dealerId
       ? await prisma.dealer.findUnique({ where: { id: user.dealerId } })
       : null;
+    const isAdminCheckout = user.role === "admin";
+    const userPhone = (user as { phone?: string }).phone || "5550000000";
 
     const itemDetails = await Promise.all(
       cart.items.map(async (item) => {
@@ -115,7 +122,7 @@ export async function POST(req: Request) {
     const finalTotal = subTotal + termFee + (campaignFreeShip ? 0 : shipping);
 
     const method = (paymentMethod || "DEALER_ACCOUNT") as ProductLibraryPaymentMethod | "DEALER_ACCOUNT";
-    const useGatewayPayment = dealer && method !== "DEALER_ACCOUNT";
+    const useGatewayPayment = method !== "DEALER_ACCOUNT" && (dealer || isAdminCheckout);
     const isCard = method === "ESNEKPOS" || method === "IYZICO";
 
     if (dealer) {
@@ -125,6 +132,18 @@ export async function POST(req: Request) {
           success: false,
           error: allowed.error,
           alternatives: allowed.alternatives,
+          code: "PAYMENT_METHOD_DENIED",
+        }, { status: 400 });
+      }
+    }
+
+    if (isAdminCheckout && useGatewayPayment) {
+      const publicSettings = await getPublicPaymentSettings();
+      if (!publicSettings.methods.includes(method as ProductLibraryPaymentMethod)) {
+        return NextResponse.json({
+          success: false,
+          error: "Seçilen ödeme yöntemi bu hesap için kullanılamıyor.",
+          alternatives: publicSettings.methods,
           code: "PAYMENT_METHOD_DENIED",
         }, { status: 400 });
       }
@@ -284,7 +303,12 @@ export async function POST(req: Request) {
       );
     }
 
-    if (useGatewayPayment && dealer) {
+    if (useGatewayPayment) {
+      const paymentOwnerDealer = dealer || await getSystemPaymentDealer({
+        email: user.email,
+        name: user.name,
+        phone: userPhone,
+      });
       let payAmount = finalTotal;
       const providerKey = resolveProviderKey(method as ProductLibraryPaymentMethod);
       if (isCard) {
@@ -293,7 +317,7 @@ export async function POST(req: Request) {
       }
 
       const result = await createPaymentIntent({
-        dealerId: dealer.id,
+        dealerId: paymentOwnerDealer.id,
         moduleKey: "B2B_ORDER",
         planKey: order.id,
         amount: payAmount,
@@ -301,12 +325,19 @@ export async function POST(req: Request) {
         paymentType: isCard ? "CARD" : "MANUAL",
         providerKey,
         metadata: {
-          buyer: {
-            id: dealer.id,
-            name: dealer.name || dealer.company || "Bayi",
-            email: dealer.email || user.email || "",
-            phone: dealer.phone || "5550000000",
-          },
+          buyer: dealer
+            ? {
+                id: dealer.id,
+                name: dealer.name || dealer.company || "Bayi",
+                email: dealer.email || user.email || "",
+                phone: dealer.phone || "5550000000",
+              }
+            : {
+                id: user.id,
+                name: user.name || "Admin",
+                email: user.email || "",
+                phone: userPhone,
+              },
           installmentCount,
           orderId: order.id,
         },
@@ -318,12 +349,22 @@ export async function POST(req: Request) {
       }
 
       if (method === "BANK_TRANSFER") {
-        await notifyBankTransferCreated({
-          dealerId: dealer.id,
-          title: "Havale/EFT — dekont yükleyin",
-          message: `#${order.id.slice(0, 8)} nolu sipariş için havale yaptıktan sonra dekont yüklemeniz zorunludur. 24 saat içinde yüklenmezse sipariş iptal edilir.`,
-          link: `/dealer/orders/${order.id}`,
-        });
+        if (dealer) {
+          await notifyBankTransferCreated({
+            dealerId: dealer.id,
+            title: "Havale/EFT — dekont yükleyin",
+            message: `#${order.id.slice(0, 8)} nolu sipariş için havale yaptıktan sonra dekont yüklemeniz zorunludur. 24 saat içinde yüklenmezse sipariş iptal edilir.`,
+            link: `/dealer/orders/${order.id}`,
+          });
+        } else {
+          await createNotification({
+            userId: user.id,
+            title: "Havale/EFT — dekont bekleniyor",
+            message: `#${order.id.slice(0, 8)} nolu sipariş için havale yaptıktan sonra dekont yükleyebilirsiniz.`,
+            type: "payment",
+            link: `/admin/orders/${order.id}`,
+          });
+        }
       }
 
       if (dealer) {
@@ -332,6 +373,14 @@ export async function POST(req: Request) {
           itemDetails.map((item) => ({ name: item.product.name, qty: item.quantity, price: item.effectivePrice })),
           dealer.phone
         );
+      } else {
+        await createNotification({
+          userId: user.id,
+          title: "Sipariş Alındı",
+          message: `#${order.id.slice(0, 8)} nolu siparişiniz alındı.`,
+          type: "order",
+          link: `/admin/orders/${order.id}`,
+        });
       }
 
       return NextResponse.json({

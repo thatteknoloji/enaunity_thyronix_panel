@@ -98,6 +98,21 @@ async function handleCallback(req: Request) {
   if (success) {
     const result = await processPaymentSuccess(paymentId, "ESNEKPOS");
     if (result.success) {
+      const payment = await prisma.modulePayment.findUnique({
+        where: { id: paymentId },
+        select: { moduleKey: true, planKey: true },
+      });
+      if (payment?.moduleKey === "B2B_ORDER" && payment.planKey) {
+        const order = await prisma.order.findUnique({
+          where: { id: payment.planKey },
+          select: { id: true, dealerId: true },
+        });
+        if (order) {
+          return NextResponse.redirect(
+            new URL(order.dealerId ? `/dealer/orders/${order.id}` : `/admin/orders/${order.id}`, req.url),
+          );
+        }
+      }
       return NextResponse.redirect(new URL(`/payment/success?paymentId=${paymentId}`, req.url));
     }
   }
