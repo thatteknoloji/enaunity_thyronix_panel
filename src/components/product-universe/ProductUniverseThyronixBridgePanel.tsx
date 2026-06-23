@@ -70,10 +70,9 @@ export function ProductUniverseThyronixBridgePanel() {
   const loadStatus = useCallback(async () => {
     setLoading(true);
     try {
-      const r = await fetch("/api/product-universe/thyronix/status");
-      const d = await r.json();
+      const d = await fetchPageFactoryJson<BridgeStatus>("/api/product-universe/thyronix/status");
       if (!d.success) throw new Error(d.error || "Durum yüklenemedi");
-      setStatus(d.data);
+      setStatus(d.data || null);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Durum yüklenemedi");
     } finally {
@@ -96,7 +95,7 @@ export function ProductUniverseThyronixBridgePanel() {
       const maxBatches = opts?.all ? 200 : 1;
 
       do {
-        const r = await fetch("/api/product-universe/thyronix/import", {
+        const d = await fetchPageFactoryJson<ImportResult>("/api/product-universe/thyronix/import", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -108,7 +107,6 @@ export function ProductUniverseThyronixBridgePanel() {
             cursor,
           }),
         });
-        const d = await r.json();
         if (!d.success) throw new Error(d.error || "Import başarısız");
 
         const batch = d.data as ImportResult;

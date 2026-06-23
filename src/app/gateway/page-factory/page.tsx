@@ -18,8 +18,7 @@ export default function PageFactoryGatewayPage() {
   const [state, setState] = useState<GatewayState>({ step: "loading" });
 
   useEffect(() => {
-    fetch("/api/gateway/page-factory")
-      .then((r) => r.json())
+    fetchPageFactoryJson<GatewayState>("/api/gateway/page-factory")
       .then((d) => {
         if (!d.success) {
           if (d.code === "AUTH_REQUIRED") {

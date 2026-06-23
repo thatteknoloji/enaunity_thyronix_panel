@@ -83,7 +83,7 @@ export function DataUniverseAdmin() {
       body: JSON.stringify(body),
     });
     if (!d.success) {
-      setError(d.error);
+      setError(d.error ?? null);
       return;
     }
     setForm({});
@@ -108,7 +108,7 @@ export function DataUniverseAdmin() {
       body: JSON.stringify(body),
     });
     if (!d.success) {
-      setError(d.error);
+      setError(d.error ?? null);
       return;
     }
     setForm({});

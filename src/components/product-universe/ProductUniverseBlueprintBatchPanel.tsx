@@ -96,9 +96,8 @@ export function ProductUniverseBlueprintBatchPanel({ projects, mode }: Props) {
 
   const loadJobs = useCallback(async () => {
     try {
-      const r = await fetch("/api/product-universe/blueprints/batch/jobs?limit=10");
-      const d = await r.json();
-      if (d.success) setJobs(d.data.items || []);
+      const d = await fetchPageFactoryJson<{ items: BatchJob[] }>("/api/product-universe/blueprints/batch/jobs?limit=10");
+      if (d.success) setJobs(d.data?.items || []);
     } catch {
       /* ignore */
     }
@@ -114,14 +113,13 @@ export function ProductUniverseBlueprintBatchPanel({ projects, mode }: Props) {
     setPreview(null);
     setResult(null);
     try {
-      const r = await fetch("/api/product-universe/blueprints/batch/preview", {
+      const d = await fetchPageFactoryJson<PreviewResult>("/api/product-universe/blueprints/batch/preview", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(buildBody(true)),
       });
-      const d = await r.json();
       if (!d.success) throw new Error(d.error || "Önizleme başarısız");
-      setPreview(d.data);
+      setPreview(d.data || null);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Önizleme başarısız");
     } finally {
@@ -138,14 +136,13 @@ export function ProductUniverseBlueprintBatchPanel({ projects, mode }: Props) {
     setError(null);
     if (!dryRun) setResult(null);
     try {
-      const r = await fetch("/api/product-universe/blueprints/batch/generate", {
+      const d = await fetchPageFactoryJson<GenerateResult>("/api/product-universe/blueprints/batch/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(buildBody(dryRun)),
       });
-      const d = await r.json();
       if (!d.success) throw new Error(d.error || "Üretim başarısız");
-      setResult(d.data);
+      setResult(d.data || null);
       if (!dryRun) await loadJobs();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Üretim başarısız");

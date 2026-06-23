@@ -143,14 +143,13 @@ export function ProductUniverseImportWizard({ projects, mode, onComplete }: Prop
       const fd = new FormData();
       fd.append("file", file);
       if (mapping) fd.append("mapping", JSON.stringify(mapping));
-      const r = await fetch("/api/product-universe/excel/preview", { method: "POST", body: fd });
-      const d = await r.json();
+      const d = await fetchPageFactoryJson<PreviewData>("/api/product-universe/excel/preview", { method: "POST", body: fd });
       if (!d.success) throw new Error(d.error || "Önizleme başarısız");
-      setPreview(d.data);
-      setColumns(d.data.columns || []);
-      setColumnMapping(d.data.columnMapping || {});
-      setColumnSamples(d.data.columnSamples || {});
-      return d.data as PreviewData;
+      setPreview(d.data || null);
+      setColumns(d.data?.columns || []);
+      setColumnMapping(d.data?.columnMapping || {});
+      setColumnSamples(d.data?.columnSamples || {});
+      return d.data || null;
     } catch (e) {
       setError(e instanceof Error ? e.message : "Önizleme başarısız");
       return null;
@@ -177,12 +176,11 @@ export function ProductUniverseImportWizard({ projects, mode, onComplete }: Prop
     setLoading(true);
     setError(null);
     try {
-      const r = await fetch("/api/product-universe/import/templates", {
+      const d = await fetchPageFactoryJson("/api/product-universe/import/templates", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name: templateName, sourceType, mapping: columnMapping }),
       });
-      const d = await r.json();
       if (!d.success) throw new Error(d.error || "Şablon kaydedilemedi");
       setTemplateName("");
       await loadTemplates();
@@ -230,10 +228,9 @@ export function ProductUniverseImportWizard({ projects, mode, onComplete }: Prop
       fd.append("stopOnError", "false");
       if (minQuality !== "") fd.append("minQuality", String(minQuality));
       if (projectId) fd.append("projectId", projectId);
-      const r = await fetch("/api/product-universe/excel/commit", { method: "POST", body: fd });
-      const d = await r.json();
+      const d = await fetchPageFactoryJson<CommitResult>("/api/product-universe/excel/commit", { method: "POST", body: fd });
       if (!d.success) throw new Error(d.error || "Import başarısız");
-      setResult(d.data);
+      setResult(d.data || null);
       setStep(4);
       onComplete?.();
     } catch (e) {
