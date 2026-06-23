@@ -2,10 +2,16 @@
 
 import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import Link from "next/link";
 import toast from "react-hot-toast";
-import { ArrowLeft, Upload, FileText, ShoppingCart } from "lucide-react";
+import { Upload, FileText, ShoppingCart } from "lucide-react";
 import { parseVariants } from "@/lib/dealer-products/types";
+import {
+  DealerField,
+  DealerPanel,
+  DealerSubPage,
+  dealerInputClass,
+  dealerSelectClass,
+} from "@/components/dealer/DealerSubPage";
 
 function ManualOrderForm() {
   const router = useRouter();
@@ -99,102 +105,150 @@ function ManualOrderForm() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="border-b bg-white px-6 py-4 flex items-center gap-3">
-        <Link href="/dealer/my-products" className="text-gray-400 hover:text-gray-600"><ArrowLeft size={18} /></Link>
-        <div>
-          <h1 className="text-lg font-bold">Manuel Sipariş</h1>
-          <p className="text-xs text-gray-500">Foto + PDF zorunlu — operasyon paneline düşer</p>
-        </div>
-      </div>
-
-      <form onSubmit={submit} className="max-w-lg mx-auto p-6 space-y-4">
-        <div>
-          <label className="text-xs font-medium text-gray-600">Bayi ürünü (opsiyonel)</label>
-          <select
-            value={form.dealerProductId}
-            onChange={(e) => setForm({ ...form, dealerProductId: e.target.value, variantLabel: "" })}
-            className="mt-1 w-full rounded-lg border px-3 py-2 text-sm"
-          >
-            <option value="">Serbest / yeni ürün</option>
-            {products.map((p) => (
-              <option key={p.id} value={p.id}>{p.name}</option>
-            ))}
-          </select>
-        </div>
-
-        {variants.length > 0 && (
-          <div>
-            <label className="text-xs font-medium text-gray-600">Ebat / varyant</label>
+    <DealerSubPage
+      title="Manuel Sipariş"
+      description="Foto + PDF zorunlu — operasyon paneline düşer"
+      backHref="/dealer/my-products"
+      icon={ShoppingCart}
+      maxWidth="md"
+    >
+      <form onSubmit={submit} className="space-y-4">
+        <DealerPanel className="p-5 space-y-4">
+          <DealerField label="Bayi ürünü (opsiyonel)">
             <select
-              value={form.variantLabel}
-              onChange={(e) => setForm({ ...form, variantLabel: e.target.value })}
-              className="mt-1 w-full rounded-lg border px-3 py-2 text-sm"
+              value={form.dealerProductId}
+              onChange={(e) => setForm({ ...form, dealerProductId: e.target.value, variantLabel: "" })}
+              className={dealerSelectClass}
             >
-              <option value="">Seçin</option>
-              {variants.map((v) => (
-                <option key={v.label} value={v.label}>{v.label}</option>
+              <option value="">Serbest / yeni ürün</option>
+              {products.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.name}
+                </option>
               ))}
             </select>
-          </div>
-        )}
+          </DealerField>
 
-        {!form.dealerProductId && (
-          <input
-            placeholder="Ürün adı (serbest sipariş)"
-            value={form.productName}
-            onChange={(e) => setForm({ ...form, productName: e.target.value })}
-            className="w-full rounded-lg border px-3 py-2 text-sm"
-          />
-        )}
-
-        <input required type="number" min={1} placeholder="Adet" value={form.quantity}
-          onChange={(e) => setForm({ ...form, quantity: e.target.value })}
-          className="w-full rounded-lg border px-3 py-2 text-sm" />
-
-        <div className="grid grid-cols-2 gap-2">
-          <input placeholder="Müşteri adı" value={form.customerName} onChange={(e) => setForm({ ...form, customerName: e.target.value })}
-            className="rounded-lg border px-3 py-2 text-sm" />
-          <input placeholder="Telefon" value={form.customerPhone} onChange={(e) => setForm({ ...form, customerPhone: e.target.value })}
-            className="rounded-lg border px-3 py-2 text-sm" />
-        </div>
-        <input placeholder="İl / ilçe" value={form.customerCity} onChange={(e) => setForm({ ...form, customerCity: e.target.value })}
-          className="w-full rounded-lg border px-3 py-2 text-sm" />
-        <textarea placeholder="Teslimat adresi" value={form.customerAddress} onChange={(e) => setForm({ ...form, customerAddress: e.target.value })}
-          className="w-full rounded-lg border px-3 py-2 text-sm" rows={2} />
-
-        <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 space-y-2">
-          <p className="text-xs font-semibold text-amber-800">Zorunlu dosyalar</p>
-          <div className="flex gap-2">
-            <label className="flex-1 inline-flex items-center justify-center gap-1 px-3 py-2 border rounded-lg text-xs cursor-pointer bg-white hover:bg-gray-50">
-              <Upload size={14} /> {uploading === "image" ? "…" : "Ürün foto *"}
-              <input type="file" accept="image/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) uploadFile(f, "image"); }} />
-            </label>
-            <label className="flex-1 inline-flex items-center justify-center gap-1 px-3 py-2 border rounded-lg text-xs cursor-pointer bg-white hover:bg-gray-50">
-              <FileText size={14} /> {uploading === "pdf" ? "…" : "Sipariş PDF *"}
-              <input type="file" accept="application/pdf,.pdf" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) uploadFile(f, "pdf"); }} />
-            </label>
-          </div>
-          {form.orderImageUrl && form.orderPdfUrl && (
-            <p className="text-xs text-emerald-700">Dosyalar yüklendi ✓</p>
+          {variants.length > 0 && (
+            <DealerField label="Ebat / varyant">
+              <select
+                value={form.variantLabel}
+                onChange={(e) => setForm({ ...form, variantLabel: e.target.value })}
+                className={dealerSelectClass}
+              >
+                <option value="">Seçin</option>
+                {variants.map((v) => (
+                  <option key={v.label} value={v.label}>
+                    {v.label}
+                  </option>
+                ))}
+              </select>
+            </DealerField>
           )}
-        </div>
+
+          {!form.dealerProductId && (
+            <input
+              placeholder="Ürün adı (serbest sipariş)"
+              value={form.productName}
+              onChange={(e) => setForm({ ...form, productName: e.target.value })}
+              className={dealerInputClass}
+            />
+          )}
+
+          <input
+            required
+            type="number"
+            min={1}
+            placeholder="Adet"
+            value={form.quantity}
+            onChange={(e) => setForm({ ...form, quantity: e.target.value })}
+            className={dealerInputClass}
+          />
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <input
+              placeholder="Müşteri adı"
+              value={form.customerName}
+              onChange={(e) => setForm({ ...form, customerName: e.target.value })}
+              className={dealerInputClass}
+            />
+            <input
+              placeholder="Telefon"
+              value={form.customerPhone}
+              onChange={(e) => setForm({ ...form, customerPhone: e.target.value })}
+              className={dealerInputClass}
+            />
+          </div>
+          <input
+            placeholder="İl / ilçe"
+            value={form.customerCity}
+            onChange={(e) => setForm({ ...form, customerCity: e.target.value })}
+            className={dealerInputClass}
+          />
+          <textarea
+            placeholder="Teslimat adresi"
+            value={form.customerAddress}
+            onChange={(e) => setForm({ ...form, customerAddress: e.target.value })}
+            className={dealerInputClass}
+            rows={2}
+          />
+
+          <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 p-3 space-y-2">
+            <p className="text-xs font-semibold text-amber-200">Zorunlu dosyalar</p>
+            <div className="flex flex-col sm:flex-row gap-2">
+              <label className="flex-1 inline-flex items-center justify-center gap-1 px-3 py-2 border border-white/10 rounded-lg text-xs cursor-pointer bg-ena-dark/40 hover:bg-white/5 text-ena-light">
+                <Upload size={14} /> {uploading === "image" ? "…" : "Ürün foto *"}
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(e) => {
+                    const f = e.target.files?.[0];
+                    if (f) uploadFile(f, "image");
+                  }}
+                />
+              </label>
+              <label className="flex-1 inline-flex items-center justify-center gap-1 px-3 py-2 border border-white/10 rounded-lg text-xs cursor-pointer bg-ena-dark/40 hover:bg-white/5 text-ena-light">
+                <FileText size={14} /> {uploading === "pdf" ? "…" : "Sipariş PDF *"}
+                <input
+                  type="file"
+                  accept="application/pdf,.pdf"
+                  className="hidden"
+                  onChange={(e) => {
+                    const f = e.target.files?.[0];
+                    if (f) uploadFile(f, "pdf");
+                  }}
+                />
+              </label>
+            </div>
+            {form.orderImageUrl && form.orderPdfUrl && (
+              <p className="text-xs text-emerald-400">Dosyalar yüklendi ✓</p>
+            )}
+          </div>
+        </DealerPanel>
 
         <button
           type="submit"
           disabled={submitting || !form.orderImageUrl || !form.orderPdfUrl}
-          className="w-full py-3 bg-gray-900 text-white rounded-lg text-sm font-medium disabled:opacity-40 inline-flex items-center justify-center gap-2"
+          className="w-full py-3 bg-ena-primary text-white rounded-lg text-sm font-medium disabled:opacity-40 inline-flex items-center justify-center gap-2 hover:bg-ena-primary/90 transition-colors"
         >
           <ShoppingCart size={16} /> {submitting ? "Oluşturuluyor…" : "Siparişi Oluştur"}
         </button>
       </form>
-    </div>
+    </DealerSubPage>
   );
 }
 
 export default function ManualOrderPage() {
   return (
-    <Suspense fallback={<div className="p-6 text-sm text-gray-500">Yükleniyor…</div>}>
+    <Suspense
+      fallback={
+        <div className="animate-pulse space-y-4">
+          <div className="h-8 w-48 rounded bg-ena-card/50" />
+          <div className="h-64 rounded-xl bg-ena-card/30" />
+        </div>
+      }
+    >
       <ManualOrderForm />
     </Suspense>
   );

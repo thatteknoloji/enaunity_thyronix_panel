@@ -11,7 +11,9 @@ import type {
 import {
   TOP_20_CITIES,
   UNIVERSE_GENERATION_SOURCE,
+  UNIVERSE_LEGACY_GENERATION_SOURCE,
   UNIVERSE_LIMITS,
+  UNIVERSE_VERSION,
   type UniverseBlueprintDraft,
   type UniverseBlueprintKind,
   type UniverseEstimateResult,
@@ -23,6 +25,7 @@ import {
   type UniverseSourceType,
   resolveUniverseLimit,
 } from "./universe-types";
+import { runPipelineForUniverseJob } from "./universe-pipeline-service";
 
 type ProductBundle = ProductUniverse & {
   entities: ProductEntity[];
@@ -133,7 +136,8 @@ function buildDupKey(productId: string, pageType: string, variantKey: string): s
 function buildMetadata(
   product: ProductBundle,
   draft: UniverseBlueprintDraft,
-  jobId?: string
+  jobId?: string,
+  sourceTypeFilter?: UniverseSourceType
 ): Record<string, unknown> {
   const dna = product.contentDNA;
   const stock = getProductStock(product);
@@ -142,10 +146,20 @@ function buildMetadata(
 
   return {
     generationSource: UNIVERSE_GENERATION_SOURCE,
-    universeVersion: "PAGE_FACTORY_UNIVERSE_GENERATOR_V1",
+    universeVersion: UNIVERSE_VERSION,
+    universeJobId: jobId || null,
+    createdByUniverseJobId: jobId || null,
+    sourceProductId: product.id,
+    sourceType: product.sourceType,
+    universeSourceFilter: sourceTypeFilter || "ALL",
+    universeType: draft.pageType,
+    blueprintType: draft.blueprintKind,
+    blueprintKind: draft.blueprintKind,
+    targetIntent: draft.intent,
+    geoTarget: draft.geoTarget,
+    autoPipelineEligible: true,
     productUniverseId: product.id,
     productId: product.id,
-    sourceType: product.sourceType,
     productName: product.normalizedName,
     brand: product.brand,
     category: product.categoryPath,
@@ -167,15 +181,12 @@ function buildMetadata(
     qualityScore: product.qualityScore,
     faqSeeds: parseJsonArray(dna?.faqSeedsJson || "[]"),
     noindexRecommended: shouldNoindex(product),
-    createdByUniverseJobId: jobId || null,
-    blueprintKind: draft.blueprintKind,
     universeVariantKey: draft.variantKey,
     contentStatus: "NOT_GENERATED",
     status: "DRAFT",
     slug: draft.slug,
     targetQuery: draft.targetQuery,
     intent: draft.intent,
-    geoTarget: draft.geoTarget,
     priorityScore: draft.priorityScore,
     province: draft.metadata?.province || null,
     region: draft.metadata?.region || null,
@@ -366,6 +377,7 @@ async function loadExistingBlueprintMap(projectId: string): Promise<Map<string, 
       if (!pid) continue;
       if (
         m.generationSource !== UNIVERSE_GENERATION_SOURCE &&
+        m.generationSource !== UNIVERSE_LEGACY_GENERATION_SOURCE &&
         m.generationSource !== "PRODUCT_UNIVERSE_BATCH_V1" &&
         m.generationSource !== "PRODUCT_UNIVERSE_V2"
       ) {
@@ -483,13 +495,14 @@ async function upsertBlueprint(
   product: ProductBundle,
   draft: UniverseBlueprintDraft,
   existingMap: Map<string, string>,
-  jobId: string
+  jobId: string,
+  sourceTypeFilter?: UniverseSourceType
 ): Promise<"created" | "updated" | "skipped"> {
   const dupKey = buildDupKey(product.id, draft.pageType, draft.variantKey);
   const slugDupKey = `${product.id}:${draft.pageType}:${draft.slug}`;
   const existingId = existingMap.get(dupKey) || existingMap.get(slugDupKey);
 
-  const metadata = buildMetadata(product, draft, jobId);
+  const metadata = buildMetadata(product, draft, jobId, sourceTypeFilter);
   const data = {
     title: draft.title,
     pageType: draft.pageType,
@@ -591,7 +604,14 @@ export async function generateUniverseFromProducts(
             continue;
           }
 
-          const result = await upsertBlueprint(projectId!, product, draft, existingMap, jobId);
+          const result = await upsertBlueprint(
+            projectId!,
+            product,
+            draft,
+            existingMap,
+            jobId,
+            filters.sourceType
+          );
           if (result === "created") generatedBlueprints += 1;
           else if (result === "updated") {
             updatedBlueprints += 1;
@@ -609,6 +629,40 @@ export async function generateUniverseFromProducts(
   }
 
   const totalGenerated = generatedBlueprints + updatedBlueprints;
+
+  let pipelineJobId: string | undefined;
+  let pipelineResult: UniverseGenerateResult["pipelineResult"];
+
+  if (!filters.dryRun && jobId !== "dry-run" && filters.autoRunPipeline && totalGenerated > 0) {
+    try {
+      const pipe = await runPipelineForUniverseJob(
+        jobId,
+        {
+          autoRunPipeline: true,
+          autoPublishInternal: filters.autoPublishInternal === true,
+          pipelineLimit: filters.pipelineLimit ?? 100,
+          minPublishScore: filters.minPublishScore ?? 70,
+          blueprintTypes: filters.blueprintTypes,
+          stopOnError: filters.stopOnError ?? false,
+        },
+        opts
+      );
+      pipelineJobId = pipe.jobId;
+      pipelineResult = {
+        triggeredByUniverseJobId: jobId,
+        processedBlueprints: pipe.processedBlueprints,
+        aeoGenerated: pipe.aeoGenerated,
+        draftsGenerated: pipe.draftsGenerated,
+        gatesGenerated: pipe.gatesGenerated,
+        pagesPublished: pipe.pagesPublished,
+        pagesUpdated: pipe.pagesUpdated,
+        errorCount: pipe.errorCount,
+      };
+      if (pipe.warnings.length) warnings.push(...pipe.warnings);
+    } catch (e) {
+      warnings.push(e instanceof Error ? e.message : "Otomatik pipeline başarısız");
+    }
+  }
 
   if (!filters.dryRun && jobId !== "dry-run") {
     await prisma.pageFactoryUniverseJob.update({
@@ -630,6 +684,10 @@ export async function generateUniverseFromProducts(
           intentCount,
           faqCount,
           errors,
+          pipelineJobId,
+          pipelineResult,
+          autoRunPipeline: filters.autoRunPipeline === true,
+          autoPublishInternal: filters.autoPublishInternal === true,
         }),
       },
     });
@@ -650,6 +708,8 @@ export async function generateUniverseFromProducts(
     warnings,
     errors,
     dryRun: !!filters.dryRun,
+    pipelineJobId,
+    pipelineResult,
   };
 }
 

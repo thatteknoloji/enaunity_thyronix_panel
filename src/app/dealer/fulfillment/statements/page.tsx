@@ -1,8 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import Link from "next/link";
-import { ArrowLeft, RefreshCw, FileText } from "lucide-react";
+import { RefreshCw, FileText, ReceiptText } from "lucide-react";
+import { DealerPanel, DealerSubPage } from "@/components/dealer/DealerSubPage";
 
 async function api<T>(url: string): Promise<T> {
   const r = await fetch(url);
@@ -20,9 +20,11 @@ export default function DealerStatementsPage() {
   const [lines, setLines] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [generating, setGenerating] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
+    setError(null);
     try {
       setStatements(await api("/api/my/statements"));
     } catch (e) {
@@ -32,13 +34,25 @@ export default function DealerStatementsPage() {
     }
   }, []);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => {
+    load();
+  }, [load]);
 
   const generate = async () => {
-    const now = new Date();
-    const result = await api<{ lines: any[] }>(`/api/my/statements?generate=true&year=${now.getFullYear()}&month=${now.getMonth() + 1}`);
-    setLines(result.lines || []);
-    load();
+    setGenerating(true);
+    setError(null);
+    try {
+      const now = new Date();
+      const result = await api<{ lines: any[] }>(
+        `/api/my/statements?generate=true&year=${now.getFullYear()}&month=${now.getMonth() + 1}`
+      );
+      setLines(result.lines || []);
+      await load();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Ekstre üretilemedi");
+    } finally {
+      setGenerating(false);
+    }
   };
 
   const viewStatement = (s: any) => {
@@ -50,59 +64,89 @@ export default function DealerStatementsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="border-b bg-white px-6 py-4 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <Link href="/dealer" className="text-gray-400 hover:text-gray-600"><ArrowLeft size={18} /></Link>
-          <h1 className="text-lg font-bold">Ekstrelerim</h1>
-        </div>
+    <DealerSubPage
+      title="Ekstrelerim"
+      description="Aylık cari hesap ekstreleri ve hareket detayları"
+      icon={ReceiptText}
+      maxWidth="xl"
+      actions={
         <div className="flex gap-2">
-          <button onClick={generate} className="text-xs px-3 py-1.5 bg-ena-primary text-white rounded-lg">Bu Ay Üret</button>
-          <button onClick={load} className="text-xs text-gray-500 flex items-center gap-1"><RefreshCw size={14} /></button>
+          <button
+            type="button"
+            onClick={generate}
+            disabled={generating}
+            className="text-xs px-3 py-1.5 bg-ena-primary text-white rounded-lg disabled:opacity-50"
+          >
+            {generating ? "Üretiliyor…" : "Bu Ay Üret"}
+          </button>
+          <button
+            type="button"
+            onClick={load}
+            className="text-xs text-ena-light flex items-center gap-1 px-2 py-1.5 border border-white/10 rounded-lg hover:bg-white/5"
+          >
+            <RefreshCw size={14} />
+          </button>
         </div>
-      </div>
-      <div className="max-w-4xl mx-auto p-6 space-y-6">
-        {error && <div className="p-3 bg-red-50 text-red-700 text-sm rounded-lg">{error}</div>}
-        {loading ? <p className="text-sm text-gray-500">Yükleniyor...</p> : (
-          <>
-            <div className="bg-white rounded-xl border divide-y">
-              {statements.map((s) => (
-                <div key={s.id} className="p-4 flex justify-between cursor-pointer hover:bg-gray-50" onClick={() => viewStatement(s)}>
-                  <div className="flex items-center gap-2"><FileText size={14} /> {s.periodMonth}/{s.periodYear}</div>
-                  <span className="text-sm">Bakiye: {fmt(s.closingBalance)}</span>
+      }
+    >
+      {error && (
+        <div className="p-3 bg-red-500/10 border border-red-500/20 text-red-300 text-sm rounded-lg mb-4">{error}</div>
+      )}
+
+      {loading ? (
+        <div className="animate-pulse space-y-3">
+          <div className="h-16 rounded-xl bg-ena-card/40" />
+          <div className="h-16 rounded-xl bg-ena-card/40" />
+        </div>
+      ) : (
+        <div className="space-y-6">
+          <DealerPanel className="divide-y divide-white/10">
+            {statements.map((s) => (
+              <button
+                key={s.id}
+                type="button"
+                className="w-full p-4 flex justify-between items-center text-left hover:bg-white/5 transition-colors"
+                onClick={() => viewStatement(s)}
+              >
+                <div className="flex items-center gap-2 text-white">
+                  <FileText size={14} className="text-ena-primary" /> {s.periodMonth}/{s.periodYear}
                 </div>
-              ))}
-              {statements.length === 0 && <p className="p-4 text-sm text-gray-500">Henüz ekstre yok.</p>}
-            </div>
-            {lines.length > 0 && (
-              <div className="bg-white rounded-xl border overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th className="p-3 text-left">Tarih</th>
-                      <th className="p-3 text-left">İşlem</th>
-                      <th className="p-3 text-right">Borç</th>
-                      <th className="p-3 text-right">Alacak</th>
-                      <th className="p-3 text-right">Bakiye</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {lines.map((l, i) => (
-                      <tr key={i} className="border-t">
-                        <td className="p-3">{new Date(l.date).toLocaleDateString("tr-TR")}</td>
-                        <td className="p-3">{l.title}</td>
-                        <td className="p-3 text-right text-red-600">{l.debit > 0 ? fmt(l.debit) : "—"}</td>
-                        <td className="p-3 text-right text-emerald-600">{l.credit > 0 ? fmt(l.credit) : "—"}</td>
-                        <td className="p-3 text-right">{fmt(l.balance)}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                <span className="text-sm text-ena-light">Bakiye: {fmt(s.closingBalance)}</span>
+              </button>
+            ))}
+            {statements.length === 0 && (
+              <p className="p-6 text-sm text-ena-light text-center">Henüz ekstre yok. &quot;Bu Ay Üret&quot; ile oluşturabilirsiniz.</p>
             )}
-          </>
-        )}
-      </div>
-    </div>
+          </DealerPanel>
+
+          {lines.length > 0 && (
+            <DealerPanel className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead className="bg-white/5">
+                  <tr className="text-ena-light text-xs">
+                    <th className="p-3 text-left font-medium">Tarih</th>
+                    <th className="p-3 text-left font-medium">İşlem</th>
+                    <th className="p-3 text-right font-medium">Borç</th>
+                    <th className="p-3 text-right font-medium">Alacak</th>
+                    <th className="p-3 text-right font-medium">Bakiye</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {lines.map((l, i) => (
+                    <tr key={i} className="border-t border-white/10 text-white">
+                      <td className="p-3">{new Date(l.date).toLocaleDateString("tr-TR")}</td>
+                      <td className="p-3 text-ena-light">{l.title}</td>
+                      <td className="p-3 text-right text-red-400">{l.debit > 0 ? fmt(l.debit) : "—"}</td>
+                      <td className="p-3 text-right text-emerald-400">{l.credit > 0 ? fmt(l.credit) : "—"}</td>
+                      <td className="p-3 text-right">{fmt(l.balance)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </DealerPanel>
+          )}
+        </div>
+      )}
+    </DealerSubPage>
   );
 }

@@ -40,7 +40,19 @@ export type MappingFieldKey = (typeof MAPPING_FIELD_DEFS)[number]["key"];
 /** Excel column name → field key (or _skip) */
 export type UserColumnMapping = Record<string, MappingFieldKey | string>;
 
-export type ImportCommitOptions = {
+export const EXCEL_AUTOMATION_VERSION = "PRODUCT_UNIVERSE_EXCEL_AUTOMATION_V1" as const;
+
+export type ImportAutomationOptions = {
+  autoGenerateUniverse?: boolean;
+  autoRunPipeline?: boolean;
+  autoPublishInternal?: boolean;
+  pipelineLimit?: number;
+  minPublishScore?: number;
+  includeGeo?: boolean;
+  stopOnError?: boolean;
+};
+
+export type ImportCommitOptions = ImportAutomationOptions & {
   dealerId?: string | null;
   isAdmin?: boolean;
   projectId?: string | null;
@@ -54,6 +66,22 @@ export type ImportCommitOptions = {
   limit?: number;
   minQuality?: number;
   dryRun?: boolean;
+};
+
+export type ImportAutomationResult = {
+  universeJobId?: string;
+  generatedBlueprints?: number;
+  pipelineJobId?: string;
+  pipelineResult?: {
+    processedBlueprints: number;
+    aeoGenerated: number;
+    draftsGenerated: number;
+    gatesGenerated: number;
+    pagesPublished: number;
+    pagesUpdated: number;
+    errorCount: number;
+  };
+  warnings: string[];
 };
 
 export type PreviewRowSample = {

@@ -25,6 +25,7 @@ import { PageFactoryInternalSitemapTab } from "@/components/page-factory/PageFac
 import { PageFactoryProjectBar } from "@/components/page-factory/PageFactoryProjectBar";
 import { PageFactoryUniverseGeneratorTab } from "@/components/page-factory/PageFactoryUniverseGeneratorTab";
 import { ContentDraftPreviewModal } from "@/components/page-factory/ContentDraftPreviewModal";
+import { fetchPageFactoryJson } from "@/lib/page-factory/fetch-json";
 
 type Dashboard = {
   totalProjects: number;
@@ -113,8 +114,7 @@ export function PageFactoryShell({ showLicensePanel = false }: Props) {
     setLoading(true);
     setError(null);
     try {
-      const r = await fetch("/api/page-factory/dashboard");
-      const d = await r.json();
+      const d = await fetchPageFactoryJson<Dashboard>("/api/page-factory/dashboard");
       if (!d.success) throw new Error(d.error || "Yüklenemedi");
       setDashboard(d.data);
     } catch (e) {
@@ -129,23 +129,26 @@ export function PageFactoryShell({ showLicensePanel = false }: Props) {
   }, [loadDashboard]);
 
   const loadProject = async (id: string) => {
-    const r = await fetch(`/api/page-factory/projects/${id}`);
-    const d = await r.json();
-    if (d.success) {
-      setSelected(d.data);
-      setActiveProjectId(id);
-      setEditing(false);
-      setProjectTab("overview");
-      setEditForm({
-        name: d.data.name,
-        sector: d.data.sector,
-        country: d.data.country,
-        language: d.data.language,
-        productionType: d.data.productionType,
-      });
-      const statsR = await fetch(`/api/page-factory/projects/${id}/draft-stats`);
-      const statsD = await statsR.json();
-      if (statsD.success) setDraftStats(statsD.data);
+    try {
+      const d = await fetchPageFactoryJson(`/api/page-factory/projects/${id}`);
+      if (d.success && d.data) {
+        const data = d.data as ProjectDetail;
+        setSelected(data);
+        setActiveProjectId(id);
+        setEditing(false);
+        setProjectTab("overview");
+        setEditForm({
+          name: data.name,
+          sector: data.sector,
+          country: data.country,
+          language: data.language,
+          productionType: data.productionType,
+        });
+        const statsD = await fetchPageFactoryJson(`/api/page-factory/projects/${id}/draft-stats`);
+        if (statsD.success) setDraftStats(statsD.data as typeof draftStats);
+      }
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Proje yüklenemedi");
     }
   };
 
@@ -154,12 +157,11 @@ export function PageFactoryShell({ showLicensePanel = false }: Props) {
     setCreating(true);
     setError(null);
     try {
-      const r = await fetch(`/api/page-factory/projects/${selected.id}`, {
+      const d = await fetchPageFactoryJson(`/api/page-factory/projects/${selected.id}`, {
         method: "PATCH",
         headers: { "content-type": "application/json" },
         body: JSON.stringify(editForm),
       });
-      const d = await r.json();
       if (!d.success) throw new Error(d.error || "Güncellenemedi");
       setEditing(false);
       await loadDashboard();
@@ -176,8 +178,7 @@ export function PageFactoryShell({ showLicensePanel = false }: Props) {
     setDeleting(true);
     setError(null);
     try {
-      const r = await fetch(`/api/page-factory/projects/${id}`, { method: "DELETE" });
-      const d = await r.json();
+      const d = await fetchPageFactoryJson(`/api/page-factory/projects/${id}`, { method: "DELETE" });
       if (!d.success) throw new Error(d.error || "Silinemedi");
       if (selected?.id === id) setSelected(null);
       await loadDashboard();

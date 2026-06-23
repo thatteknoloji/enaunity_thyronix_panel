@@ -9,11 +9,14 @@ import {
   type DuplicateMode,
   type ImportCommitOptions,
   type ImportPreviewResult,
+  type ImportAutomationResult,
   type PreviewRowSample,
+  EXCEL_AUTOMATION_VERSION,
   ROW_LIMITS,
   toPrismaSourceType,
   userMappingToProductMapping,
 } from "./import-types";
+import { generateUniverseFromProducts } from "@/lib/page-factory/universe/universe-generator-service";
 import { analyzeDescription } from "./description-cleaner";
 import { buildDuplicateKeys } from "./product-normalizer";
 import { calculateQualityScore } from "./quality-score";
@@ -52,6 +55,7 @@ export type ImportResponse = {
   updatedRows: number;
   skippedRows: number;
   errorRows: number;
+  importedProductIds: string[];
   sampleProducts: Array<{
     rawName: string;
     normalizedName: string;
@@ -63,6 +67,7 @@ export type ImportResponse = {
   detectedColumns: Record<string, string | string[]>;
   warnings: string[];
   errors?: string[];
+  automation?: ImportAutomationResult | null;
 };
 
 function getMaxRows(isAdmin?: boolean): number {
@@ -412,10 +417,10 @@ async function processImportRow(
     duplicateKeys: Map<string, string>;
     duplicateMode: DuplicateMode;
   }
-): Promise<"inserted" | "updated" | "skipped" | "error"> {
+): Promise<{ action: "inserted" | "updated" | "skipped" | "error"; productId?: string }> {
   const existing = await findExistingProduct(opts.dealerId, row);
 
-  if (existing && state.duplicateMode === "skip") return "skipped";
+  if (existing && state.duplicateMode === "skip") return { action: "skipped" };
 
   let productId: string;
   let isDuplicate = false;
@@ -423,7 +428,7 @@ async function processImportRow(
   const meta = {
     productUrl: row.productUrl || undefined,
     stock: row.stock ?? undefined,
-    importVersion: "PRODUCT_UNIVERSE_EXCEL_IMPORT_V2",
+    importVersion: EXCEL_AUTOMATION_VERSION,
   };
 
   if (existing && state.duplicateMode === "update") {
@@ -458,14 +463,14 @@ async function processImportRow(
       });
     }
     if (opts.runAnalysis !== false) await analyzeProduct(productId);
-    if (!(await enforceMinQuality(productId, opts.minQuality))) return "skipped";
-    return "updated";
+    if (!(await enforceMinQuality(productId, opts.minQuality))) return { action: "skipped" };
+    return { action: "updated", productId };
   }
 
   if (existing && state.duplicateMode === "create_new") {
     // fall through to create
   } else if (existing) {
-    return "skipped";
+    return { action: "skipped" };
   }
 
   const dupKey = row.duplicateKey;
@@ -512,9 +517,83 @@ async function processImportRow(
 
   if (opts.runAnalysis !== false) await analyzeProduct(productId);
 
-  if (!(await enforceMinQuality(productId, opts.minQuality))) return "skipped";
+  if (!(await enforceMinQuality(productId, opts.minQuality))) return { action: "skipped" };
 
-  return "inserted";
+  return { action: "inserted", productId };
+}
+
+async function runPostImportAutomation(
+  productIds: string[],
+  opts: ImportCommitOptions
+): Promise<ImportAutomationResult | null> {
+  if (!opts.autoGenerateUniverse || !productIds.length || !opts.projectId) return null;
+
+  const warnings: string[] = [];
+  let universeJobId: string | undefined;
+  let generatedBlueprints: number | undefined;
+  let pipelineJobId: string | undefined;
+  let pipelineResult: ImportAutomationResult["pipelineResult"];
+
+  try {
+    const readyIds = (
+      await prisma.productUniverse.findMany({
+        where: {
+          id: { in: productIds },
+          status: { in: ["BLUEPRINT_READY", "ANALYZED", "NORMALIZED"] },
+        },
+        select: { id: true },
+      })
+    ).map((p) => p.id);
+
+    if (!readyIds.length) {
+      warnings.push("Otomasyon için uygun ürün bulunamadı (kalite/durum)");
+      return { warnings };
+    }
+
+    const universe = await generateUniverseFromProducts(
+      {
+        projectId: opts.projectId,
+        productIds: readyIds,
+        includeGeo: opts.includeGeo === true,
+        limit: readyIds.length,
+        minQualityScore: 0,
+        mode: "full",
+        sourceType: "ALL",
+        autoRunPipeline: opts.autoRunPipeline === true,
+        autoPublishInternal: opts.autoPublishInternal === true,
+        pipelineLimit: opts.pipelineLimit ?? 100,
+        minPublishScore: opts.minPublishScore ?? 70,
+        stopOnError: opts.stopOnError ?? false,
+      },
+      { isAdmin: opts.isAdmin, dealerId: opts.dealerId }
+    );
+
+    universeJobId = universe.jobId;
+    generatedBlueprints = universe.generatedBlueprints;
+    pipelineJobId = universe.pipelineJobId;
+    if (universe.pipelineResult) {
+      pipelineResult = {
+        processedBlueprints: universe.pipelineResult.processedBlueprints,
+        aeoGenerated: universe.pipelineResult.aeoGenerated,
+        draftsGenerated: universe.pipelineResult.draftsGenerated,
+        gatesGenerated: universe.pipelineResult.gatesGenerated,
+        pagesPublished: universe.pipelineResult.pagesPublished,
+        pagesUpdated: universe.pipelineResult.pagesUpdated,
+        errorCount: universe.pipelineResult.errorCount,
+      };
+    }
+    if (universe.warnings.length) warnings.push(...universe.warnings);
+  } catch (e) {
+    warnings.push(e instanceof Error ? e.message : "Import sonrası otomasyon başarısız");
+  }
+
+  return {
+    universeJobId,
+    generatedBlueprints,
+    pipelineJobId,
+    pipelineResult,
+    warnings,
+  };
 }
 
 export async function commitProductImport(
@@ -548,6 +627,7 @@ export async function commitProductImport(
       updatedRows: 0,
       skippedRows: preview.duplicateInDb,
       errorRows: preview.errorRows,
+      importedProductIds: [],
       sampleProducts: preview.previewRows.slice(0, 5).map((r) => ({
         rawName: r.rawName,
         normalizedName: r.normalizedName,
@@ -572,7 +652,14 @@ export async function commitProductImport(
       metadataJson: JSON.stringify({
         duplicateMode,
         limit,
-        version: "PRODUCT_UNIVERSE_EXCEL_IMPORT_V2",
+        version: EXCEL_AUTOMATION_VERSION,
+        automation: {
+          autoGenerateUniverse: opts.autoGenerateUniverse === true,
+          autoRunPipeline: opts.autoRunPipeline === true,
+          autoPublishInternal: opts.autoPublishInternal === true,
+          pipelineLimit: opts.pipelineLimit ?? 100,
+          minPublishScore: opts.minPublishScore ?? 70,
+        },
         detectedColumns: parsed.detectedColumns,
         warnings: parsed.warnings,
       }),
@@ -587,11 +674,13 @@ export async function commitProductImport(
   const jobErrors: string[] = [];
   const jobWarnings = [...parsed.warnings];
   const duplicateKeys = new Map<string, string>();
+  const importedProductIds: string[] = [];
+  let automation: ImportAutomationResult | null = null;
 
   try {
     for (const row of parsed.rows) {
       try {
-        const result = await processImportRow(
+        const { action, productId } = await processImportRow(
           row,
           {
             ...opts,
@@ -601,15 +690,16 @@ export async function commitProductImport(
           { duplicateKeys, duplicateMode }
         );
 
-        if (result === "inserted") insertedRows++;
-        else if (result === "updated") updatedRows++;
-        else if (result === "skipped") skippedRows++;
+        if (action === "inserted") insertedRows++;
+        else if (action === "updated") updatedRows++;
+        else if (action === "skipped") skippedRows++;
 
-        if (sampleProducts.length < 5 && result !== "skipped" && result !== "error") {
-          const p = await prisma.productUniverse.findFirst({
-            where: { normalizedName: row.normalizedName, stockCode: row.stockCode || undefined },
-            orderBy: { createdAt: "desc" },
-          });
+        if (productId && (action === "inserted" || action === "updated")) {
+          importedProductIds.push(productId);
+        }
+
+        if (sampleProducts.length < 5 && action !== "skipped" && action !== "error" && productId) {
+          const p = await prisma.productUniverse.findUnique({ where: { id: productId } });
           if (p) {
             sampleProducts.push({
               rawName: p.rawName,
@@ -629,6 +719,9 @@ export async function commitProductImport(
       }
     }
 
+    automation = await runPostImportAutomation(importedProductIds, opts);
+    if (automation?.warnings.length) jobWarnings.push(...automation.warnings);
+
     await prisma.productUniverseImportJob.update({
       where: { id: job.id },
       data: {
@@ -641,7 +734,18 @@ export async function commitProductImport(
         metadataJson: JSON.stringify({
           duplicateMode,
           limit,
-          version: "PRODUCT_UNIVERSE_EXCEL_IMPORT_V2",
+          version: EXCEL_AUTOMATION_VERSION,
+          importedProductIds,
+          automation: {
+            requested: {
+              autoGenerateUniverse: opts.autoGenerateUniverse === true,
+              autoRunPipeline: opts.autoRunPipeline === true,
+              autoPublishInternal: opts.autoPublishInternal === true,
+              pipelineLimit: opts.pipelineLimit ?? 100,
+              minPublishScore: opts.minPublishScore ?? 70,
+            },
+            result: automation,
+          },
           detectedColumns: parsed.detectedColumns,
           warnings: jobWarnings,
           errors: jobErrors,
@@ -671,10 +775,32 @@ export async function commitProductImport(
     updatedRows,
     skippedRows,
     errorRows,
+    importedProductIds,
     sampleProducts,
     detectedColumns: parsed.detectedColumns,
     warnings: jobWarnings,
     errors: jobErrors,
+    automation: automation ?? null,
+  };
+}
+
+export async function getImportJob(id: string, dealerId?: string | null) {
+  const job = await prisma.productUniverseImportJob.findUnique({ where: { id } });
+  if (!job) return null;
+  if (dealerId && job.dealerId && job.dealerId !== dealerId) return null;
+
+  let metadata: Record<string, unknown> = {};
+  try {
+    metadata = JSON.parse(job.metadataJson || "{}") as Record<string, unknown>;
+  } catch {
+    /* ignore */
+  }
+
+  return {
+    ...job,
+    createdAt: job.createdAt.toISOString(),
+    completedAt: job.completedAt?.toISOString() || null,
+    metadata,
   };
 }
 

@@ -81,24 +81,40 @@ export default function Footer() {
             </ul>
           </div>
         </div>
-        <div className="mt-10 border-t border-ena-border pt-6 text-center text-xs text-ena-light/50 space-y-2">
-          <p>
-            © 2026 Enaunity®. {t("footer.rights") || "Tüm hakları saklıdır."}{" "}
-            <button
-              type="button"
-              onClick={() => openCookiePreferences(true)}
-              className="text-ena-primary/70 hover:text-ena-primary transition-colors underline-offset-2 hover:underline"
+        <div className="mt-10 border-t border-ena-border pt-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-ena-light/50">
+          <div className="shrink-0">
+            <a
+              href="https://etbis.ticaret.gov.tr/SiteSorgulama/SiteDogrulama?url=www.enaunity.com.tr"
+              target="_blank"
+              rel="noopener noreferrer"
+              title="ETBİS'e Kayıtlı Site"
             >
-              Çerez Tercihleri
-            </button>
-          </p>
-          <p className="text-[10px] text-ena-light/40">
-            Teknoloji altyapısı{" "}
-            <a href="https://thatteknoloji.com" target="_blank" rel="noopener noreferrer" className="hover:text-ena-light/60 transition-colors">
-              THAT Teknoloji
-            </a>{" "}
-            tarafından geliştirilmiştir.
-          </p>
+              <img
+                src="https://api.qrserver.com/v1/create-qr-code/?size=80x80&data=https://etbis.ticaret.gov.tr/SiteSorgulama/SiteDogrulama?url=www.enaunity.com.tr"
+                alt="ETBİS Karekod"
+                className="w-[70px] h-[70px] sm:w-[60px] sm:h-[60px] border border-white/10 rounded p-0.5 bg-white/5"
+              />
+            </a>
+          </div>
+          <div className="text-center sm:text-right space-y-1">
+            <p>
+              © 2026 Enaunity®. {t("footer.rights") || "Tüm hakları saklıdır."}{" "}
+              <button
+                type="button"
+                onClick={() => openCookiePreferences(true)}
+                className="text-ena-primary/70 hover:text-ena-primary transition-colors underline-offset-2 hover:underline"
+              >
+                Çerez Tercihleri
+              </button>
+            </p>
+            <p className="text-[10px] text-ena-light/40">
+              Teknoloji altyapısı{" "}
+              <a href="https://thatteknoloji.com" target="_blank" rel="noopener noreferrer" className="hover:text-ena-light/60 transition-colors">
+                THAT Teknoloji
+              </a>{" "}
+              tarafından geliştirilmiştir.
+            </p>
+          </div>
         </div>
       </div>
     </footer>

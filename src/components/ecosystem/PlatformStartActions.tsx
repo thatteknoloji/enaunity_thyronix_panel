@@ -96,6 +96,16 @@ export function PlatformStartActions({
           return;
         }
 
+        if (user.role === "dealer") {
+          setState({
+            status: "ready",
+            primaryHref: "/dealer/modules",
+            primaryLabel: "Modül Pazarından Satın Al",
+            licensed: false,
+          });
+          return;
+        }
+
         setState({
           status: "ready",
           primaryHref: meta.checkoutPath,

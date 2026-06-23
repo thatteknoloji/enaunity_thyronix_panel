@@ -5,9 +5,13 @@ export type PipelineMode = "full" | "aeo_only" | "draft_only" | "gate_only";
 export type PipelineFilters = {
   projectId?: string;
   generationSource?: string;
+  universeJobId?: string;
+  triggeredByUniverseJobId?: string;
   blueprintType?: string;
+  blueprintTypes?: string[];
   minQualityScore?: number;
   minAeoScore?: number;
+  minPublishScore?: number;
   onlyWithoutAeo?: boolean;
   onlyWithoutDraft?: boolean;
   onlyWithoutGate?: boolean;

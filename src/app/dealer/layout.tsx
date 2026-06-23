@@ -158,14 +158,11 @@ export default function DealerLayout({ children }: { children: React.ReactNode }
   };
 
   if (!authorized) {
-    if (isModuleShell) {
-      return (
-        <div className="flex min-h-screen items-center justify-center bg-[#0f1117]">
-          <div className="animate-pulse text-sm text-ena-light">Yükleniyor…</div>
-        </div>
-      );
-    }
-    return null;
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-ena-dark">
+        <div className="animate-pulse text-sm text-ena-light">Yükleniyor…</div>
+      </div>
+    );
   }
 
   if (

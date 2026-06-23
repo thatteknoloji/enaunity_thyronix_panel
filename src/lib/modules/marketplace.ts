@@ -277,19 +277,15 @@ export function buildHeaderNavItems(modules: MarketplaceCard[]) {
 export function buildLicensedNavItems(modules: MarketplaceCard[]) {
   return MARKETPLACE_MODULE_KEYS.map((key) => {
     const card = modules.find((m) => m.moduleKey === key);
+    if (!card?.licensed) return null;
     const meta = MARKETPLACE_MODULES[key];
-    const stub: Pick<MarketplaceCard, "moduleKey" | "licensed" | "displayStatus"> = card || {
-      moduleKey: key,
-      licensed: false,
-      displayStatus: "PURCHASABLE",
-    };
     return {
-      href: resolveModuleNavHref(stub),
+      href: resolveModuleNavHref(card),
       label: meta.label,
       icon: meta.icon,
       moduleKey: key,
     };
-  });
+  }).filter(Boolean) as Array<{ href: string; label: string; icon: LucideIcon; moduleKey: MarketplaceModuleKey }>;
 }
 
 /** Lisanslı premium modül giriş yolu — gateway üzerinden SSO / provisioning */

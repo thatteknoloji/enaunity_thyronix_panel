@@ -1,5 +1,6 @@
-export const UNIVERSE_GENERATION_SOURCE = "PAGE_FACTORY_UNIVERSE_GENERATOR_V1" as const;
-export const UNIVERSE_VERSION = "PAGE_FACTORY_UNIVERSE_GENERATOR_V1" as const;
+export const UNIVERSE_GENERATION_SOURCE = "UNIVERSE_GENERATOR_V1" as const;
+export const UNIVERSE_LEGACY_GENERATION_SOURCE = "PAGE_FACTORY_UNIVERSE_GENERATOR_V1" as const;
+export const UNIVERSE_VERSION = "PAGE_FACTORY_UNIVERSE_TO_PIPELINE_AUTORUN_V1" as const;
 
 export const UNIVERSE_LIMITS = {
   defaultBatch: 100,
@@ -35,7 +36,17 @@ export type UniverseGenerationMode =
   | "faq_only"
   | "selected";
 
-export type UniverseGeneratorFilters = {
+export type UniverseAutoPipelineOptions = {
+  autoRunPipeline?: boolean;
+  autoPublishInternal?: boolean;
+  pipelineLimit?: number;
+  minPublishScore?: number;
+  blueprintTypes?: string[];
+  stopOnError?: boolean;
+  dryRun?: boolean;
+};
+
+export type UniverseGeneratorFilters = UniverseAutoPipelineOptions & {
   projectId: string;
   sourceType?: UniverseSourceType;
   productIds?: string[];
@@ -144,6 +155,17 @@ export type UniverseGenerateResult = {
   warnings: string[];
   errors: Array<{ productId: string; message: string }>;
   dryRun: boolean;
+  pipelineJobId?: string;
+  pipelineResult?: {
+    triggeredByUniverseJobId: string;
+    processedBlueprints: number;
+    aeoGenerated: number;
+    draftsGenerated: number;
+    gatesGenerated: number;
+    pagesPublished: number;
+    pagesUpdated: number;
+    errorCount: number;
+  };
 };
 
 export type UniverseJobStats = {

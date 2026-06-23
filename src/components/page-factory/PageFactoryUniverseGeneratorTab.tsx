@@ -12,6 +12,8 @@ import {
   Sparkles,
   Eye,
   HelpCircle,
+  GitBranch,
+  ExternalLink,
   Package,
 } from "lucide-react";
 import { UNIVERSE_SOURCE_OPTIONS } from "@/lib/page-factory/universe/universe-types";
@@ -57,6 +59,15 @@ type GenerateResult = {
   faqCount: number;
   errorCount: number;
   warnings: string[];
+  pipelineJobId?: string;
+  pipelineResult?: {
+    processedBlueprints: number;
+    aeoGenerated: number;
+    draftsGenerated: number;
+    gatesGenerated: number;
+    pagesPublished: number;
+    pagesUpdated: number;
+  };
 };
 
 type Props = {
@@ -70,7 +81,13 @@ export function PageFactoryUniverseGeneratorTab({ projects, defaultProjectId }: 
   const [minQuality, setMinQuality] = useState(0);
   const [limit, setLimit] = useState(100);
   const [includeGeo, setIncludeGeo] = useState(true);
+  const [autoRunPipeline, setAutoRunPipeline] = useState(false);
+  const [autoPublishInternal, setAutoPublishInternal] = useState(false);
+  const [pipelineLimit, setPipelineLimit] = useState(100);
+  const [minPublishScore, setMinPublishScore] = useState(70);
   const [productIds, setProductIds] = useState("");
+  const [pipelineLoading, setPipelineLoading] = useState(false);
+  const [publishedPages, setPublishedPages] = useState<Array<{ path: string; title: string }>>([]);
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [preview, setPreview] = useState<PreviewResult | null>(null);
   const [result, setResult] = useState<GenerateResult | null>(null);
@@ -105,6 +122,11 @@ export function PageFactoryUniverseGeneratorTab({ projects, defaultProjectId }: 
     includeGeo,
     mode,
     dryRun,
+    autoRunPipeline,
+    autoPublishInternal,
+    pipelineLimit,
+    minPublishScore,
+    stopOnError: false,
     productIds: productIds.trim()
       ? productIds.split(/[,\s]+/).filter(Boolean)
       : undefined,
@@ -156,6 +178,62 @@ export function PageFactoryUniverseGeneratorTab({ projects, defaultProjectId }: 
       setError(e instanceof Error ? e.message : "Generate başarısız");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const runPipelineForJob = async (jobId: string) => {
+    setPipelineLoading(true);
+    setError(null);
+    try {
+      const r = await fetch(`/api/page-factory/universe/jobs/${jobId}/run-pipeline`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          autoPublishInternal,
+          pipelineLimit,
+          minPublishScore,
+          stopOnError: false,
+        }),
+      });
+      const d = await r.json();
+      if (!d.success) throw new Error(d.error || "Pipeline başarısız");
+      setResult((prev) =>
+        prev
+          ? {
+              ...prev,
+              pipelineJobId: d.data.jobId,
+              pipelineResult: {
+                processedBlueprints: d.data.processedBlueprints,
+                aeoGenerated: d.data.aeoGenerated,
+                draftsGenerated: d.data.draftsGenerated,
+                gatesGenerated: d.data.gatesGenerated,
+                pagesPublished: d.data.pagesPublished,
+                pagesUpdated: d.data.pagesUpdated,
+              },
+            }
+          : prev
+      );
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Pipeline başarısız");
+    } finally {
+      setPipelineLoading(false);
+    }
+  };
+
+  const loadPublishedForJob = async (jobId: string) => {
+    try {
+      const r = await fetch(`/api/page-factory/universe/jobs/${jobId}/run-pipeline`);
+      const d = await r.json();
+      if (d.success) {
+        setPublishedPages(
+          (d.data.publishedPages || []).map((p: { path: string; title: string }) => ({
+            path: p.path,
+            title: p.title,
+          }))
+        );
+      }
+    } catch {
+      /* ignore */
     }
   };
 
@@ -285,6 +363,55 @@ export function PageFactoryUniverseGeneratorTab({ projects, defaultProjectId }: 
           </label>
         </div>
 
+        <div className="rounded-lg border border-indigo-100 bg-indigo-50/50 p-4 space-y-3">
+          <h4 className="text-xs font-semibold uppercase tracking-wide text-indigo-800 flex items-center gap-1.5">
+            <GitBranch size={14} /> Pipeline Auto Run
+          </h4>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+            <label className="flex items-center gap-2 text-sm text-gray-700">
+              <input
+                type="checkbox"
+                checked={autoRunPipeline}
+                onChange={(e) => setAutoRunPipeline(e.target.checked)}
+                className="rounded"
+              />
+              Blueprint üretince pipeline çalıştır
+            </label>
+            <label className="flex items-center gap-2 text-sm text-gray-700">
+              <input
+                type="checkbox"
+                checked={autoPublishInternal}
+                onChange={(e) => setAutoPublishInternal(e.target.checked)}
+                disabled={!autoRunPipeline}
+                className="rounded"
+              />
+              Gate geçerse iç yayına al
+            </label>
+            <label className="block text-xs text-gray-600">
+              Pipeline limit
+              <input
+                type="number"
+                min={1}
+                max={1000}
+                value={pipelineLimit}
+                onChange={(e) => setPipelineLimit(Number(e.target.value))}
+                className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm"
+              />
+            </label>
+            <label className="block text-xs text-gray-600">
+              Min publish score
+              <input
+                type="number"
+                min={0}
+                max={100}
+                value={minPublishScore}
+                onChange={(e) => setMinPublishScore(Number(e.target.value))}
+                className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm"
+              />
+            </label>
+          </div>
+        </div>
+
         <div className="flex flex-wrap gap-2 pt-2">
           <button
             type="button"
@@ -393,6 +520,70 @@ export function PageFactoryUniverseGeneratorTab({ projects, defaultProjectId }: 
           {result.errorCount > 0 && (
             <p className="text-sm text-amber-700">{result.errorCount} ürün hata aldı (diğerleri devam etti)</p>
           )}
+          {result.pipelineResult && (
+            <p className="text-sm text-indigo-800">
+              Pipeline: {result.pipelineResult.processedBlueprints} işlendi · AEO: {result.pipelineResult.aeoGenerated} ·
+              Draft: {result.pipelineResult.draftsGenerated} · Gate: {result.pipelineResult.gatesGenerated} · Yayın:{" "}
+              {result.pipelineResult.pagesPublished + result.pipelineResult.pagesUpdated}
+            </p>
+          )}
+          <div className="flex flex-wrap gap-2 pt-2">
+            <button
+              type="button"
+              onClick={() => runPipelineForJob(result.jobId)}
+              disabled={pipelineLoading}
+              className="inline-flex items-center gap-1 text-xs px-3 py-1.5 rounded-lg border border-indigo-300 bg-white text-indigo-700 hover:bg-indigo-50 disabled:opacity-50"
+            >
+              {pipelineLoading ? <Loader2 size={14} className="animate-spin" /> : <GitBranch size={14} />}
+              Bu job&apos;ı pipeline&apos;a gönder
+            </button>
+            <button
+              type="button"
+              onClick={() => loadPublishedForJob(result.jobId)}
+              className="inline-flex items-center gap-1 text-xs px-3 py-1.5 rounded-lg border border-emerald-300 bg-white text-emerald-700 hover:bg-emerald-50"
+            >
+              <ExternalLink size={14} />
+              Yayınlanan sayfaları gör
+            </button>
+          </div>
+          {publishedPages.length > 0 && (
+            <ul className="text-xs text-emerald-900 space-y-1 pt-2">
+              {publishedPages.map((p) => (
+                <li key={p.path}>
+                  <a href={p.path} target="_blank" rel="noreferrer" className="hover:underline font-mono">
+                    {p.path}
+                  </a>
+                  <span className="text-gray-500"> — {p.title}</span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
+
+      {stats?.lastJob && (
+        <div className="rounded-xl border border-gray-200 bg-white p-4 flex flex-wrap items-center justify-between gap-3">
+          <div className="text-sm text-gray-600">
+            Son job: <code className="text-xs">{stats.lastJob.id}</code> · {stats.lastJob.generatedBlueprints} blueprint ·{" "}
+            {stats.lastJob.status}
+          </div>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => runPipelineForJob(stats.lastJob!.id)}
+              disabled={pipelineLoading}
+              className="text-xs px-3 py-1.5 rounded-lg border border-indigo-200 text-indigo-700 hover:bg-indigo-50 disabled:opacity-50"
+            >
+              Pipeline&apos;a gönder
+            </button>
+            <button
+              type="button"
+              onClick={() => loadPublishedForJob(stats.lastJob!.id)}
+              className="text-xs px-3 py-1.5 rounded-lg border border-emerald-200 text-emerald-700 hover:bg-emerald-50"
+            >
+              Yayınlanan sayfalar
+            </button>
+          </div>
         </div>
       )}
     </div>

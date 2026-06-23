@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { generateUniverseForProduct } from "@/lib/page-factory/universe/universe-generator-service";
-import type { UniverseGenerationMode } from "@/lib/page-factory/universe/universe-types";
+import { parseUniverseFilters } from "@/lib/page-factory/universe/universe-api-parse";
 import { requirePageFactoryApiAccess } from "@/lib/page-factory/api-guard";
 import { isAdminRole } from "@/lib/auth/admin-access";
 
@@ -14,25 +14,15 @@ export async function POST(
 
     const { id: productId } = await params;
     const body = await req.json();
-    const projectId = String(body.projectId || "");
-    if (!projectId) {
+    const filters = parseUniverseFilters(body);
+    if (!filters.projectId) {
       return NextResponse.json({ success: false, error: "projectId gerekli" }, { status: 400 });
     }
 
-    const mode = body.mode as UniverseGenerationMode | undefined;
-    const data = await generateUniverseForProduct(
-      productId,
-      {
-        projectId,
-        includeGeo: body.includeGeo !== false,
-        mode: mode && ["full", "geo_only", "faq_only", "selected"].includes(mode) ? mode : "full",
-        dryRun: body.dryRun === true,
-      },
-      {
-        isAdmin: isAdminRole(user.role),
-        dealerId: user.dealerId,
-      }
-    );
+    const data = await generateUniverseForProduct(productId, filters, {
+      isAdmin: isAdminRole(user.role),
+      dealerId: user.dealerId,
+    });
 
     return NextResponse.json({ success: true, data });
   } catch (e) {

@@ -72,14 +72,17 @@ export function ProductUniverseShell({ mode }: Props) {
   const [bulkResult, setBulkResult] = useState<Record<string, unknown> | null>(null);
   const [bulkProjectId, setBulkProjectId] = useState("");
   const [bulkDryRun, setBulkDryRun] = useState(true);
-  const [shellTab, setShellTab] = useState<"main" | "thyronix" | "blueprint-batch">("main");
+  const [shellTab, setShellTab] = useState<"main" | "excel-import" | "thyronix" | "blueprint-batch">("main");
+  const [selectedJobId, setSelectedJobId] = useState<string | null>(null);
+  const [jobDetail, setJobDetail] = useState<Record<string, unknown> | null>(null);
+  const [jobDetailLoading, setJobDetailLoading] = useState(false);
 
   const loadData = useCallback(async () => {
     setLoading(true);
     try {
       const [prodRes, jobRes, projRes] = await Promise.all([
         fetch(`/api/product-universe/products?page=1&limit=30${q ? `&q=${encodeURIComponent(q)}` : ""}`),
-        fetch("/api/product-universe/import/jobs?limit=10"),
+        fetch("/api/product-universe/excel/jobs?limit=10"),
         fetch("/api/page-factory/projects"),
       ]);
       const prodData = await prodRes.json();
@@ -98,6 +101,20 @@ export function ProductUniverseShell({ mode }: Props) {
       setLoading(false);
     }
   }, [q]);
+
+  const loadJobDetail = async (jobId: string) => {
+    setSelectedJobId(jobId);
+    setJobDetailLoading(true);
+    try {
+      const r = await fetch(`/api/product-universe/excel/jobs/${jobId}`);
+      const d = await r.json();
+      if (d.success) setJobDetail(d.data);
+    } catch {
+      /* ignore */
+    } finally {
+      setJobDetailLoading(false);
+    }
+  };
 
   useEffect(() => {
     loadData();
@@ -209,6 +226,17 @@ export function ProductUniverseShell({ mode }: Props) {
           </button>
           <button
             type="button"
+            onClick={() => setShellTab("excel-import")}
+            className={`px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-colors ${
+              shellTab === "excel-import"
+                ? "border-emerald-600 text-emerald-700"
+                : "border-transparent text-gray-500 hover:text-gray-700"
+            }`}
+          >
+            Excel Import
+          </button>
+          <button
+            type="button"
             onClick={() => setShellTab("blueprint-batch")}
             className={`px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-colors ${
               shellTab === "blueprint-batch"
@@ -236,6 +264,64 @@ export function ProductUniverseShell({ mode }: Props) {
         <ProductUniverseThyronixBridgePanel />
       ) : mode === "admin" && shellTab === "blueprint-batch" ? (
         <ProductUniverseBlueprintBatchPanel projects={projects} mode={mode} />
+      ) : mode === "admin" && shellTab === "excel-import" ? (
+        <>
+          <ProductUniverseImportWizard projects={projects} mode={mode} onComplete={loadData} />
+          <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+            <h2 className="text-sm font-semibold text-gray-800 mb-4">Import Jobs</h2>
+            <div className="overflow-x-auto">
+              <table className="w-full text-xs">
+                <thead>
+                  <tr className="border-b border-gray-100 text-left text-gray-500">
+                    <th className="py-2 pr-3">Dosya</th>
+                    <th className="py-2 pr-3">Tip</th>
+                    <th className="py-2 pr-3">Durum</th>
+                    <th className="py-2 pr-3">Satır</th>
+                    <th className="py-2">+/~/-</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {jobs.map((j) => (
+                    <tr
+                      key={j.id}
+                      className="border-b border-gray-50 hover:bg-gray-50 cursor-pointer"
+                      onClick={() => loadJobDetail(j.id)}
+                    >
+                      <td className="py-2 pr-3">{j.fileName}</td>
+                      <td className="py-2 pr-3">{j.sourceType}</td>
+                      <td className="py-2 pr-3">{j.status}</td>
+                      <td className="py-2 pr-3">{j.totalRows}</td>
+                      <td className="py-2">{j.insertedRows}/{j.updatedRows}/{j.errorRows}</td>
+                    </tr>
+                  ))}
+                  {!jobs.length && (
+                    <tr><td colSpan={5} className="py-4 text-center text-gray-400">Henüz import yok</td></tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+            {selectedJobId && (
+              <div className="mt-4 rounded-lg border border-gray-100 bg-gray-50 p-4 text-xs text-gray-700">
+                {jobDetailLoading ? (
+                  <Loader2 size={16} className="animate-spin" />
+                ) : jobDetail ? (
+                  <div className="space-y-2">
+                    <p><strong>Job:</strong> {selectedJobId}</p>
+                    <p><strong>Durum:</strong> {String(jobDetail.status)}</p>
+                    <p>
+                      <strong>Sonuç:</strong> +{String(jobDetail.insertedRows)} / ~{String(jobDetail.updatedRows)} / -{String(jobDetail.skippedRows)} / !{String(jobDetail.errorRows)}
+                    </p>
+                    {!!jobDetail.metadata && typeof jobDetail.metadata === "object" && (
+                      <pre className="text-[10px] overflow-x-auto max-h-40 bg-white p-2 rounded border">
+                        {JSON.stringify(jobDetail.metadata, null, 2)}
+                      </pre>
+                    )}
+                  </div>
+                ) : null}
+              </div>
+            )}
+          </div>
+        </>
       ) : (
       <>
       {error && (
@@ -252,12 +338,15 @@ export function ProductUniverseShell({ mode }: Props) {
         </div>
       )}
 
-      <ProductUniverseImportWizard
-        projects={projects}
-        mode={mode}
-        onComplete={loadData}
-      />
+      {mode === "dealer" && (
+        <ProductUniverseImportWizard
+          projects={projects}
+          mode={mode}
+          onComplete={loadData}
+        />
+      )}
 
+      {mode === "dealer" && (
       <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
         <h2 className="text-sm font-semibold text-gray-800 mb-4">Son Import Jobs</h2>
         <div className="overflow-x-auto">
@@ -273,7 +362,11 @@ export function ProductUniverseShell({ mode }: Props) {
             </thead>
             <tbody>
               {jobs.map((j) => (
-                <tr key={j.id} className="border-b border-gray-50">
+                <tr
+                  key={j.id}
+                  className="border-b border-gray-50 hover:bg-gray-50 cursor-pointer"
+                  onClick={() => loadJobDetail(j.id)}
+                >
                   <td className="py-2 pr-3">{j.fileName}</td>
                   <td className="py-2 pr-3">{j.sourceType}</td>
                   <td className="py-2 pr-3">{j.status}</td>
@@ -288,6 +381,7 @@ export function ProductUniverseShell({ mode }: Props) {
           </table>
         </div>
       </div>
+      )}
 
       <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
         <div className="flex items-center justify-between mb-4 gap-3 flex-wrap">

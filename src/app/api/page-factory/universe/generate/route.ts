@@ -1,22 +1,8 @@
 import { NextResponse } from "next/server";
 import { generateUniverseFromProducts } from "@/lib/page-factory/universe/universe-generator-service";
-import type { UniverseGenerationMode, UniverseSourceType } from "@/lib/page-factory/universe/universe-types";
+import { parseUniverseFilters } from "@/lib/page-factory/universe/universe-api-parse";
 import { requirePageFactoryApiAccess } from "@/lib/page-factory/api-guard";
 import { isAdminRole } from "@/lib/auth/admin-access";
-
-function parseFilters(body: Record<string, unknown>) {
-  const mode = body.mode as UniverseGenerationMode | undefined;
-  return {
-    projectId: String(body.projectId || ""),
-    sourceType: (body.sourceType ? String(body.sourceType) : "ALL") as UniverseSourceType,
-    productIds: Array.isArray(body.productIds) ? body.productIds.map(String) : undefined,
-    minQualityScore: body.minQualityScore != null ? Number(body.minQualityScore) : 0,
-    limit: body.limit != null ? Number(body.limit) : undefined,
-    includeGeo: body.includeGeo !== false,
-    mode: mode && ["full", "geo_only", "faq_only", "selected"].includes(mode) ? mode : "full",
-    dryRun: body.dryRun === true,
-  };
-}
 
 export async function POST(req: Request) {
   try {
@@ -24,7 +10,7 @@ export async function POST(req: Request) {
     if (error) return error;
 
     const body = await req.json();
-    const filters = parseFilters(body);
+    const filters = parseUniverseFilters(body);
     if (!filters.projectId) {
       return NextResponse.json({ success: false, error: "projectId gerekli" }, { status: 400 });
     }

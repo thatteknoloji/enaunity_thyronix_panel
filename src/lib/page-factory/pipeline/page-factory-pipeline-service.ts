@@ -39,6 +39,29 @@ function hasAeo(metadata: Record<string, unknown>): boolean {
   return aeo?.version === "AEO_LAYER_V1";
 }
 
+function matchesUniverseJob(metadata: Record<string, unknown>, universeJobId?: string): boolean {
+  if (!universeJobId) return true;
+  const id = String(metadata.universeJobId || metadata.createdByUniverseJobId || "");
+  return id === universeJobId;
+}
+
+function matchesBlueprintTypes(metadata: Record<string, unknown>, bp: BlueprintRow, filters: PipelineFilters): boolean {
+  if (filters.blueprintTypes?.length) {
+    const kind = String(metadata.blueprintKind || metadata.blueprintType || "").toUpperCase();
+    const pageType = bp.pageType.toLowerCase();
+    return filters.blueprintTypes.some((t) => {
+      const normalized = t.toUpperCase();
+      const asPageType = t.toLowerCase().startsWith("product_") ? t.toLowerCase() : `product_${t.toLowerCase()}`;
+      return kind === normalized || pageType === asPageType || pageType === t.toLowerCase();
+    });
+  }
+  if (filters.blueprintType) {
+    const kind = metadata.blueprintKind || metadata.blueprintType;
+    if (kind !== filters.blueprintType) return false;
+  }
+  return true;
+}
+
 function matchesBlueprintFilters(
   bp: BlueprintRow,
   metadata: Record<string, unknown>,
@@ -49,12 +72,12 @@ function matchesBlueprintFilters(
 ): boolean {
   if (!isBlueprintPipelineEligible(metadata)) return false;
 
+  if (!matchesUniverseJob(metadata, filters.universeJobId)) return false;
+
   if (!matchesGenerationSource(sourceFilter, metadata, bp.pageType)) return false;
 
-  if (filters.blueprintType) {
-    const kind = metadata.blueprintKind || metadata.blueprintType;
-    if (kind !== filters.blueprintType) return false;
-  }
+  if (!matchesBlueprintTypes(metadata, bp, filters)) return false;
+
   if (filters.minQualityScore != null && filters.minQualityScore > 0) {
     const qs = Number(metadata.qualityScore ?? 0);
     if (qs < filters.minQualityScore) return false;
@@ -126,7 +149,7 @@ async function loadBlueprintBatch(
     )
     .slice(0, limit);
 
-  if (matched.length === 0 && totalCandidates > 0 && sourceFilter !== "ALL") {
+  if (matched.length === 0 && totalCandidates > 0 && sourceFilter !== "ALL" && !filters.universeJobId) {
     warnings.push(
       `Kaynak filtresi (${sourceFilter}) eşleşmedi — projectId içindeki blueprintlere fallback (${limit})`
     );
@@ -135,14 +158,14 @@ async function loadBlueprintBatch(
       .slice(0, limit);
   }
 
-  if (matched.length === 0 && totalCandidates > 0) {
+  if (matched.length === 0 && totalCandidates > 0 && !filters.universeJobId) {
     warnings.push("Filtre sonucu 0 — proje blueprint fallback (kalite/kaynak filtresi atlandı)");
     matched = all
       .filter((bp) => isBlueprintPipelineEligible(parseMetadata(bp.metadataJson)))
       .slice(0, limit);
   }
 
-  if (matched.length === 0 && totalCandidates > 0) {
+  if (matched.length === 0 && totalCandidates > 0 && !filters.universeJobId) {
     const extra = await prisma.pageFactoryBlueprint.findMany({
       where: { projectId: filters.projectId },
       select: { id: true, metadataJson: true, projectId: true, pageType: true },
@@ -177,6 +200,9 @@ function shouldRunDraft(mode: PipelineMode, filters: PipelineFilters, hasDraft: 
 
 function shouldAutoPublish(mode: PipelineMode, filters: PipelineFilters): boolean {
   if (mode !== "full") return false;
+  if (filters.universeJobId || filters.triggeredByUniverseJobId) {
+    return filters.autoPublish === true;
+  }
   return filters.autoPublish !== false;
 }
 
@@ -339,6 +365,7 @@ export async function runPipeline(
       }
 
       if (shouldAutoPublish(mode, filters) && draftId && !dryRun) {
+        const minPublish = filters.minPublishScore ?? 70;
         const draft = await prisma.pageFactoryContentDraft.findUnique({
           where: { id: draftId },
           include: { publishGate: true },
@@ -346,13 +373,13 @@ export async function runPipeline(
         if (draft?.publishGate) {
           const gs = draft.publishGate.status;
           if (gs === "PASSED" || gs === "WARNING") {
-            if (draft.status !== "READY_TO_PUBLISH" && draft.publishScore >= 70) {
+            if (draft.status !== "READY_TO_PUBLISH" && draft.publishScore >= minPublish) {
               await prisma.pageFactoryContentDraft.update({
                 where: { id: draftId },
                 data: { status: "READY_TO_PUBLISH" },
               });
             }
-            if (draft.publishScore >= 70) {
+            if (draft.publishScore >= minPublish) {
               try {
                 const pub = await publishDraftInternal(draftId);
                 if (pub.created) pagesPublished++;
@@ -382,6 +409,8 @@ export async function runPipeline(
 
   skipped = Math.max(0, blueprints.length - processed + errorCount);
 
+  const gatesGenerated = gatePassed + gateWarning + gateBlocked;
+
   const resultPayload = {
     version: PIPELINE_VERSION,
     mode,
@@ -393,10 +422,14 @@ export async function runPipeline(
     gatePassed,
     gateWarning,
     gateBlocked,
+    gatesGenerated,
     pagesPublished,
     pagesUpdated,
     publishSkipped,
     errorCount,
+    triggeredByUniverseJobId: filters.triggeredByUniverseJobId || filters.universeJobId || null,
+    generatedBlueprints: blueprints.length,
+    processedBlueprints: processed,
     warnings,
     errors,
   };

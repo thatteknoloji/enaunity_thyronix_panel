@@ -8,6 +8,8 @@ import {
   ChevronRight,
   Download,
   FileSpreadsheet,
+  GitBranch,
+  Globe,
   Loader2,
   Save,
   Upload,
@@ -64,9 +66,23 @@ type CommitResult = {
   updatedRows: number;
   skippedRows: number;
   errorRows: number;
+  importedProductIds?: string[];
   warnings: string[];
   errors?: string[];
   sampleProducts: Array<{ rawName: string; qualityScore?: number; status?: string }>;
+  automation?: {
+    universeJobId?: string;
+    generatedBlueprints?: number;
+    pipelineJobId?: string;
+    pipelineResult?: {
+      processedBlueprints: number;
+      draftsGenerated: number;
+      gatesGenerated: number;
+      pagesPublished: number;
+      pagesUpdated: number;
+    };
+    warnings: string[];
+  } | null;
 };
 
 type Template = { id: string; name: string; sourceType: string; mappingJson: string };
@@ -95,7 +111,12 @@ export function ProductUniverseImportWizard({ projects, mode, onComplete }: Prop
   const [projectId, setProjectId] = useState("");
   const [duplicateMode, setDuplicateMode] = useState<"skip" | "update" | "create_new">("skip");
   const [runAnalysis, setRunAnalysis] = useState(true);
-  const [generateBlueprintPreview, setGenerateBlueprintPreview] = useState(false);
+  const [autoGenerateUniverse, setAutoGenerateUniverse] = useState(false);
+  const [autoRunPipeline, setAutoRunPipeline] = useState(false);
+  const [autoPublishInternal, setAutoPublishInternal] = useState(false);
+  const [pipelineLimit, setPipelineLimit] = useState(100);
+  const [minPublishScore, setMinPublishScore] = useState(70);
+  const [includeGeo, setIncludeGeo] = useState(false);
   const [minQuality, setMinQuality] = useState<number | "">("");
   const [limit, setLimit] = useState(mode === "admin" ? 1000 : 500);
   const [columnSamples, setColumnSamples] = useState<Record<string, string[]>>({});
@@ -122,7 +143,7 @@ export function ProductUniverseImportWizard({ projects, mode, onComplete }: Prop
       const fd = new FormData();
       fd.append("file", file);
       if (mapping) fd.append("mapping", JSON.stringify(mapping));
-      const r = await fetch("/api/product-universe/import/preview", { method: "POST", body: fd });
+      const r = await fetch("/api/product-universe/excel/preview", { method: "POST", body: fd });
       const d = await r.json();
       if (!d.success) throw new Error(d.error || "Önizleme başarısız");
       setPreview(d.data);
@@ -184,6 +205,10 @@ export function ProductUniverseImportWizard({ projects, mode, onComplete }: Prop
 
   const handleCommit = async () => {
     if (!file) return;
+    if ((autoGenerateUniverse || autoRunPipeline || autoPublishInternal) && !projectId) {
+      setError("Otomasyon için Page Factory projesi seçin");
+      return;
+    }
     setLoading(true);
     setError(null);
     setResult(null);
@@ -194,12 +219,18 @@ export function ProductUniverseImportWizard({ projects, mode, onComplete }: Prop
       fd.append("mapping", JSON.stringify(columnMapping));
       fd.append("duplicateMode", duplicateMode);
       fd.append("runAnalysis", String(runAnalysis));
-      fd.append("generateBlueprintPreview", String(generateBlueprintPreview));
       fd.append("limit", String(limit));
-      if (minQuality !== "") fd.append("minQuality", String(minQuality));
       fd.append("dryRun", "false");
+      fd.append("autoGenerateUniverse", String(autoGenerateUniverse));
+      fd.append("autoRunPipeline", String(autoRunPipeline));
+      fd.append("autoPublishInternal", String(autoPublishInternal));
+      fd.append("pipelineLimit", String(pipelineLimit));
+      fd.append("minPublishScore", String(minPublishScore));
+      fd.append("includeGeo", String(includeGeo));
+      fd.append("stopOnError", "false");
+      if (minQuality !== "") fd.append("minQuality", String(minQuality));
       if (projectId) fd.append("projectId", projectId);
-      const r = await fetch("/api/product-universe/import/commit", { method: "POST", body: fd });
+      const r = await fetch("/api/product-universe/excel/commit", { method: "POST", body: fd });
       const d = await r.json();
       if (!d.success) throw new Error(d.error || "Import başarısız");
       setResult(d.data);
@@ -226,8 +257,10 @@ export function ProductUniverseImportWizard({ projects, mode, onComplete }: Prop
       <div className="border-b border-gray-100 bg-gray-50/80 px-6 py-4">
         <div className="flex items-center justify-between gap-4">
           <div>
-            <h2 className="text-sm font-semibold text-gray-800">Excel Import V2</h2>
-            <p className="text-xs text-gray-500 mt-0.5">Mapping → dry-run → commit akışı</p>
+            <h2 className="text-sm font-semibold text-gray-800">Excel Import</h2>
+            <p className="text-xs text-gray-500 mt-0.5">
+              Excel/CSV/Trendyol → Product Universe → Universe → Pipeline → Published Page
+            </p>
           </div>
           <button
             type="button"
@@ -486,7 +519,7 @@ export function ProductUniverseImportWizard({ projects, mode, onComplete }: Prop
           <div className="space-y-4">
             <div className="grid gap-4 sm:grid-cols-2">
               <div>
-                <label className="text-xs text-gray-500">Proje (opsiyonel)</label>
+                <label className="text-xs text-gray-500">Proje {autoGenerateUniverse ? "(zorunlu)" : "(opsiyonel)"}</label>
                 <select
                   value={projectId}
                   onChange={(e) => setProjectId(e.target.value)}
@@ -521,22 +554,6 @@ export function ProductUniverseImportWizard({ projects, mode, onComplete }: Prop
                   className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm"
                 />
               </div>
-              <div className="flex items-end">
-                <label className="flex items-center gap-2 text-sm cursor-pointer">
-                  <input type="checkbox" checked={runAnalysis} onChange={(e) => setRunAnalysis(e.target.checked)} />
-                  Entity + DNA + kalite analizi
-                </label>
-              </div>
-              <div className="flex items-end">
-                <label className="flex items-center gap-2 text-sm cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={generateBlueprintPreview}
-                    onChange={(e) => setGenerateBlueprintPreview(e.target.checked)}
-                  />
-                  Blueprint önizleme (metadata)
-                </label>
-              </div>
               <div>
                 <label className="text-xs text-gray-500">Min kalite skoru (opsiyonel)</label>
                 <input
@@ -550,6 +567,88 @@ export function ProductUniverseImportWizard({ projects, mode, onComplete }: Prop
                   }
                   className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm"
                 />
+              </div>
+              <div className="flex items-end sm:col-span-2">
+                <label className="flex items-center gap-2 text-sm cursor-pointer">
+                  <input type="checkbox" checked={runAnalysis} onChange={(e) => setRunAnalysis(e.target.checked)} />
+                  Entity + DNA + kalite analizi
+                </label>
+              </div>
+            </div>
+
+            <div className="rounded-lg border border-indigo-100 bg-indigo-50/50 p-4 space-y-3">
+              <h4 className="text-xs font-semibold uppercase tracking-wide text-indigo-800 flex items-center gap-1.5">
+                <GitBranch size={14} /> Import Sonrası Otomasyon
+              </h4>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <label className="flex items-center gap-2 text-sm text-gray-700">
+                  <input
+                    type="checkbox"
+                    checked={autoGenerateUniverse}
+                    onChange={(e) => {
+                      setAutoGenerateUniverse(e.target.checked);
+                      if (!e.target.checked) {
+                        setAutoRunPipeline(false);
+                        setAutoPublishInternal(false);
+                      }
+                    }}
+                  />
+                  Ürünleri sayfa evrenine gönder
+                </label>
+                <label className="flex items-center gap-2 text-sm text-gray-700">
+                  <input
+                    type="checkbox"
+                    checked={autoRunPipeline}
+                    disabled={!autoGenerateUniverse}
+                    onChange={(e) => {
+                      setAutoRunPipeline(e.target.checked);
+                      if (!e.target.checked) setAutoPublishInternal(false);
+                    }}
+                  />
+                  Pipeline çalıştır (AEO → Draft → Gate)
+                </label>
+                <label className="flex items-center gap-2 text-sm text-gray-700">
+                  <input
+                    type="checkbox"
+                    checked={autoPublishInternal}
+                    disabled={!autoRunPipeline}
+                    onChange={(e) => setAutoPublishInternal(e.target.checked)}
+                  />
+                  Gate geçerse iç yayına al
+                </label>
+                <label className="flex items-center gap-2 text-sm text-gray-700">
+                  <input
+                    type="checkbox"
+                    checked={includeGeo}
+                    disabled={!autoGenerateUniverse}
+                    onChange={(e) => setIncludeGeo(e.target.checked)}
+                  />
+                  <Globe size={14} className="text-gray-500" /> GEO expansion (Top 20 şehir)
+                </label>
+                <div>
+                  <label className="text-xs text-gray-500">Pipeline limit</label>
+                  <input
+                    type="number"
+                    min={1}
+                    max={mode === "admin" ? 1000 : 100}
+                    value={pipelineLimit}
+                    disabled={!autoRunPipeline}
+                    onChange={(e) => setPipelineLimit(parseInt(e.target.value, 10) || 100)}
+                    className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm disabled:opacity-50"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs text-gray-500">Min publish score</label>
+                  <input
+                    type="number"
+                    min={0}
+                    max={100}
+                    value={minPublishScore}
+                    disabled={!autoRunPipeline}
+                    onChange={(e) => setMinPublishScore(parseInt(e.target.value, 10) || 70)}
+                    className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm disabled:opacity-50"
+                  />
+                </div>
               </div>
             </div>
             <div className="flex gap-2">
@@ -582,6 +681,31 @@ export function ProductUniverseImportWizard({ projects, mode, onComplete }: Prop
               <MiniStat label="Atlanan" value={result.skippedRows} />
               <MiniStat label="Hata" value={result.errorRows} color="red" />
             </div>
+            {result.automation && (
+              <div className="rounded-lg border border-indigo-200 bg-indigo-50 p-3 text-sm text-indigo-900 space-y-1">
+                <p className="font-medium flex items-center gap-1.5">
+                  <GitBranch size={14} /> Otomasyon sonucu
+                </p>
+                {result.automation.universeJobId && (
+                  <p>Universe job: <code className="text-xs">{result.automation.universeJobId}</code> — {result.automation.generatedBlueprints ?? 0} blueprint</p>
+                )}
+                {result.automation.pipelineJobId && (
+                  <p>Pipeline job: <code className="text-xs">{result.automation.pipelineJobId}</code></p>
+                )}
+                {result.automation.pipelineResult && (
+                  <p>
+                    Pipeline: {result.automation.pipelineResult.processedBlueprints} işlendi · Draft:{" "}
+                    {result.automation.pipelineResult.draftsGenerated} · Gate:{" "}
+                    {result.automation.pipelineResult.gatesGenerated} · Yayın:{" "}
+                    {(result.automation.pipelineResult.pagesPublished ?? 0) +
+                      (result.automation.pipelineResult.pagesUpdated ?? 0)}
+                  </p>
+                )}
+                {result.automation.warnings?.map((w) => (
+                  <p key={w} className="text-xs text-amber-700">{w}</p>
+                ))}
+              </div>
+            )}
             {result.sampleProducts?.length > 0 && (
               <div className="text-xs text-gray-600 space-y-1">
                 <p className="font-medium text-gray-700">Örnek ürünler:</p>

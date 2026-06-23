@@ -564,8 +564,8 @@ export const PLATFORM_CONTENT: Record<string, PlatformContent> = {
     cta: {
       title: "Sayfa evreninizi planlamaya başlayın",
       description: "Data Universe ile GEO altyapınızı kurun, projelerinizi modelleyin.",
-      primaryText: "Page Factory'a Giriş",
-      primaryUrl: "/gateway/page-factory",
+      primaryText: "Satın Al ve Başla",
+      primaryUrl: "/payment/checkout?type=module&moduleKey=AI_PAGE_FACTORY&planKey=starter",
       secondaryText: "Paketleri İncele",
       secondaryUrl: "#plans",
     },
