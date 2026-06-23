@@ -34,6 +34,7 @@
     "seed:page-factory-plans": "tsx scripts/seed-page-factory-plans.ts",
     "mobile:linkslash:setup": "cd mobile/linkslash && npm install && npm run android:build",
     "package:linkslash-extension": "node scripts/package-linkslash-extension.mjs",
+    "package:product-library-connector": "node scripts/package-product-library-connector.mjs",
     "verify:linkslash-android": "node scripts/verify-linkslash-android.mjs",
     "prepare:linkslash-play-store": "node scripts/prepare-linkslash-play-store.mjs",
     "test:product-links": "tsx scripts/test-product-links.ts",

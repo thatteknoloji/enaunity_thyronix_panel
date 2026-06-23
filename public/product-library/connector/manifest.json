@@ -1,0 +1,29 @@
+{
+  "manifest_version": 3,
+  "name": "ENA Marketplace Connector",
+  "version": "0.1.0",
+  "description": "ENA Product Library kuyrugundaki magazaya gonderim islerini acik pazaryeri oturumunda calistirir.",
+  "permissions": [
+    "alarms",
+    "notifications",
+    "storage",
+    "tabs",
+    "scripting"
+  ],
+  "host_permissions": [
+    "https://enaunity.com.tr/*",
+    "http://localhost:3333/*",
+    "http://127.0.0.1:3333/*",
+    "https://*.trendyol.com/*",
+    "https://*.hepsiburada.com/*",
+    "https://*.n11.com.tr/*",
+    "https://*.temu.com/*"
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "ENA Marketplace Connector"
+  },
+  "background": {
+    "service_worker": "background.js"
+  }
+}

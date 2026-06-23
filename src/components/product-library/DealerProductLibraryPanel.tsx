@@ -533,46 +533,77 @@ export default function DealerProductLibraryPanel() {
           )}
 
           {tab === "uploads" && (
-            uploadJobs.length === 0 ? (
-              <PlCard className="p-8"><PlEmpty message="Henüz mağazaya gönderilmiş iş yok" /></PlCard>
-            ) : (
-              <PlCard className="divide-y divide-slate-100">
-                {uploadJobs.map((job) => (
-                  <div key={job.id} className="px-4 py-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-                    <div className="min-w-0">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <span className="font-medium text-slate-900">{job.package?.name || job.packageId}</span>
-                        <UploadJobBadge status={job.status} />
-                        <PlBadge tone="blue">{job.connection?.platform || job.platform || "Mağaza"}</PlBadge>
-                        <PlBadge tone="gray">{job.format}</PlBadge>
-                      </div>
-                      <p className="mt-1 text-xs text-slate-500">
-                        {job.recipe?.name || "Varsayılan reçete"} · {job.storeName || job.connection?.storeId || job.connection?.sellerId || "Mağaza"} · {job.itemCount} satır
-                      </p>
-                      <p className="mt-1 text-xs text-slate-400">
-                        {fmtDate(job.createdAt)} {job.targetUrl ? `· Hedef: ${job.targetUrl}` : ""}
-                      </p>
-                      {job.errorMessage && <p className="mt-1 text-xs text-rose-600">{job.errorMessage}</p>}
-                    </div>
-                    <div className="flex flex-wrap gap-2">
-                      <PlBtn
-                        variant="secondary"
-                        size="sm"
-                        onClick={() => downloadJobFile(job.id)}
-                        disabled={jobDownloading === job.id}
-                      >
-                        <Download size={12} /> Dosya
-                      </PlBtn>
-                      {(job.status === "FAILED" || job.status === "COMPLETED") && (
-                        <PlBtn variant="ghost" size="sm" onClick={() => retryUploadJob(job)}>
-                          <RefreshCw size={12} /> Yeniden Gönder
-                        </PlBtn>
-                      )}
-                    </div>
+            <div className="space-y-4">
+              <PlCard className="p-4">
+                <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                  <div>
+                    <h3 className="font-medium text-slate-900">ENA Marketplace Connector</h3>
+                    <p className="mt-1 text-xs text-slate-500">
+                      Chromium tabanlı tarayıcılarda çalışır: Chrome, Edge, Brave, Opera. Reçeteyi mağazaya gönderdikten sonra kuyruktaki işi bu connector işler.
+                    </p>
                   </div>
-                ))}
+                  <div className="flex flex-wrap gap-2">
+                    <a
+                      className="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50"
+                      href="/product-library/connector/manifest.json"
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      Manifest Aç
+                    </a>
+                    <a
+                      className="inline-flex items-center justify-center rounded-xl border border-ena-primary bg-ena-primary px-3 py-2 text-xs font-medium text-white hover:opacity-90"
+                      href="/downloads/product-library/ena-marketplace-connector.zip"
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      Connector İndir
+                    </a>
+                  </div>
+                </div>
               </PlCard>
-            )
+
+              {uploadJobs.length === 0 ? (
+                <PlCard className="p-8"><PlEmpty message="Henüz mağazaya gönderilmiş iş yok" /></PlCard>
+              ) : (
+                <PlCard className="divide-y divide-slate-100">
+                  {uploadJobs.map((job) => (
+                    <div key={job.id} className="px-4 py-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                      <div className="min-w-0">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span className="font-medium text-slate-900">{job.package?.name || job.packageId}</span>
+                          <UploadJobBadge status={job.status} />
+                          <PlBadge tone="blue">{job.connection?.platform || job.platform || "Mağaza"}</PlBadge>
+                          <PlBadge tone="gray">{job.format}</PlBadge>
+                        </div>
+                        <p className="mt-1 text-xs text-slate-500">
+                          {job.recipe?.name || "Varsayılan reçete"} · {job.storeName || job.connection?.storeId || job.connection?.sellerId || "Mağaza"} · {job.itemCount} satır
+                        </p>
+                        <p className="mt-1 text-xs text-slate-400">
+                          {fmtDate(job.createdAt)} {job.targetUrl ? `· Hedef: ${job.targetUrl}` : ""}
+                        </p>
+                        {job.errorMessage && <p className="mt-1 text-xs text-rose-600">{job.errorMessage}</p>}
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        <PlBtn
+                          variant="secondary"
+                          size="sm"
+                          onClick={() => downloadJobFile(job.id)}
+                          disabled={jobDownloading === job.id}
+                        >
+                          <Download size={12} /> Dosya
+                        </PlBtn>
+                        {(job.status === "FAILED" || job.status === "COMPLETED") && (
+                          <PlBtn variant="ghost" size="sm" onClick={() => retryUploadJob(job)}>
+                            <RefreshCw size={12} /> Yeniden Gönder
+                          </PlBtn>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </PlCard>
+              )}
+            </div>
           )}
         </>
       )}
