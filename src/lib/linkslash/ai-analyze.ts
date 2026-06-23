@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/db";
 import { aiCall } from "@/lib/thyronix/ai-service";
+import { resolveAiProviderId } from "@/lib/thyronix/ai-provider-resolve";
 import { normalizeLinkUrl } from "@/lib/linkslash/normalize-url";
 
 export type AiAnalysisPayload = {
@@ -28,6 +29,7 @@ export type AnalyzeLinkInput = {
   sourceType?: string;
   userId?: string;
   tenantId?: string;
+  dealerId?: string | null;
   save?: boolean;
 };
 
@@ -115,12 +117,8 @@ function ruleBasedFallback(input: AnalyzeLinkInput): AiAnalysisPayload {
   };
 }
 
-async function resolveProviderId() {
-  const provider = await prisma.thyronixAiProvider.findFirst({
-    where: { status: "active" },
-    orderBy: [{ isDefault: "desc" }, { updatedAt: "desc" }],
-  });
-  return provider?.id || null;
+async function resolveProviderId(dealerId?: string | null) {
+  return resolveAiProviderId({ dealerId });
 }
 
 async function callEnvFallback(userPrompt: string): Promise<{ ok: boolean; content: string }> {
@@ -184,7 +182,7 @@ export async function analyzeLinkContent(input: AnalyzeLinkInput) {
   }
 
   const userPrompt = buildUserPrompt(resolved);
-  const providerId = await resolveProviderId();
+  const providerId = await resolveProviderId(input.dealerId);
 
   let analysis: AiAnalysisPayload;
   let status: "ok" | "provider_missing" | "fallback" = "ok";

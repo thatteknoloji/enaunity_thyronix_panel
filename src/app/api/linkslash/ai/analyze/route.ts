@@ -34,6 +34,7 @@ export async function POST(req: Request) {
       sourceType: body.sourceType,
       userId: ctx.userId,
       tenantId: ctx.tenantId,
+      dealerId: user.dealerId,
       save: body.save !== false,
     });
 

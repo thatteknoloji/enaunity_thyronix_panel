@@ -3,8 +3,9 @@ import { runPipeline } from "@/lib/page-factory/pipeline/page-factory-pipeline-s
 import type { PipelineRunResult } from "@/lib/page-factory/pipeline/pipeline-types";
 import { PIPELINE_LIMITS } from "@/lib/page-factory/pipeline/pipeline-types";
 import {
-  UNIVERSE_GENERATION_SOURCE,
+  UNIVERSE_BRIDGE_GENERATION_SOURCE,
   UNIVERSE_LEGACY_GENERATION_SOURCE,
+  UNIVERSE_PRE_BRIDGE_SOURCE,
   type UniverseAutoPipelineOptions,
 } from "./universe-types";
 import { getUniverseJob } from "./universe-generator-service";
@@ -72,7 +73,7 @@ export async function runPipelineForUniverseJob(
   const pipelineResult = await runPipeline(
     {
       projectId: job.projectId,
-      generationSource: UNIVERSE_GENERATION_SOURCE,
+      generationSource: UNIVERSE_BRIDGE_GENERATION_SOURCE,
       universeJobId,
       blueprintType: options.blueprintTypes?.length === 1 ? options.blueprintTypes[0] : undefined,
       blueprintTypes: options.blueprintTypes,
@@ -160,7 +161,8 @@ export async function getPublishedPagesForUniverseJob(universeJobId: string, pro
 export function isUniverseBlueprintMetadata(metadata: Record<string, unknown>): boolean {
   const src = String(metadata.generationSource || "");
   return (
-    src === UNIVERSE_GENERATION_SOURCE ||
+    src === UNIVERSE_BRIDGE_GENERATION_SOURCE ||
+    src === UNIVERSE_PRE_BRIDGE_SOURCE ||
     src === UNIVERSE_LEGACY_GENERATION_SOURCE ||
     metadata.autoPipelineEligible === true
   );

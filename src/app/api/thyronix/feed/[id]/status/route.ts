@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { buildFeedOutputUrls, FEED_MAX_PRODUCTS_PER_FILE, planFeedChunks } from "@/lib/thyronix/feed-chunk";
+import { loadActiveSourceIds, loadMergedFeedProducts } from "@/lib/thyronix/feed-output-service";
 
 export const dynamic = "force-dynamic";
 
@@ -9,25 +11,33 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
     const feed = await prisma.thyronixFeed.findUnique({ where: { id } });
     if (!feed) return NextResponse.json({ error: "Feed bulunamadı" }, { status: 404 });
 
-    const sources = await prisma.thyronixSource.findMany({ where: { status: "active" } });
-    const productCount = await prisma.thyronixProduct.count({ where: { sourceId: { in: sources.map(s => s.id) } } });
-
-    const origin = _req.headers.get("host") ? `http://${_req.headers.get("host")}` : "";
+    const sourceIds = await loadActiveSourceIds({ dealerId: feed.dealerId });
+    const merged = await loadMergedFeedProducts(feed, sourceIds);
+    const plan = planFeedChunks(merged.length);
+    const outputUrls = buildFeedOutputUrls(id, plan);
 
     return NextResponse.json({
       success: true,
       data: {
-        productCount,
+        feedId: id,
+        feedName: feed.name,
+        totalProducts: plan.totalProducts,
+        mergedProductCount: merged.length,
+        maxPerFile: FEED_MAX_PRODUCTS_PER_FILE,
+        partCount: plan.partCount,
+        needsSplit: plan.needsSplit,
+        summary: plan.summaryTr,
+        parts: plan.parts,
         lastGeneratedAt: feed.lastPublished || null,
         supportedFormats: ["xml", "csv", "xlsx", "json"],
-        maxRowsPerFormat: 50000,
-        outputUrls: {
-          xml: `/api/thyronix/feed/${id}/output.xml`,
-          csv: `/api/thyronix/feed/${id}/output.csv`,
-          xlsx: `/api/thyronix/feed/${id}/output.xlsx`,
-          json: `/api/thyronix/feed/${id}/output.json`,
-        },
-        warnings: productCount > 50000 ? [`${productCount.toLocaleString("tr-TR")} ürün var. Büyük feed'ler için chunked pagination kullanılıyor.`] : [],
+        outputUrls: outputUrls.default,
+        outputParts: outputUrls.parts,
+        warnings: plan.needsSplit
+          ? [
+              plan.summaryTr,
+              `Her dosyada en fazla ${FEED_MAX_PRODUCTS_PER_FILE.toLocaleString("tr-TR")} ürün. Tüm parçaları indirmek için ?part=1, ?part=2 … kullanın.`,
+            ]
+          : [],
       },
     });
   } catch {

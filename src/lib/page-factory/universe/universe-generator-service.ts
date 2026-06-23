@@ -1,41 +1,45 @@
 import { prisma } from "@/lib/db";
 import { slugify } from "@/lib/utils";
-import type {
-  ProductAttribute,
-  ProductContentDNA,
-  ProductEntity,
-  ProductImage,
-  ProductUniverse,
-  ProductUniverseSourceType,
-} from "@prisma/client";
+import type { ProductContentDNA } from "@prisma/client";
 import {
-  TOP_20_CITIES,
-  UNIVERSE_GENERATION_SOURCE,
+  UNIVERSE_BRIDGE_GENERATION_SOURCE,
   UNIVERSE_LEGACY_GENERATION_SOURCE,
   UNIVERSE_LIMITS,
+  UNIVERSE_PRE_BRIDGE_SOURCE,
   UNIVERSE_VERSION,
   type UniverseBlueprintDraft,
-  type UniverseBlueprintKind,
   type UniverseEstimateResult,
   type UniverseGenerateResult,
   type UniverseGeneratorFilters,
   type UniverseGenerationMode,
-  type UniversePageType,
   type UniversePreviewResult,
+  type UniverseProductSourceFilters,
   type UniverseSourceType,
-  resolveUniverseLimit,
 } from "./universe-types";
+import {
+  normalizeProductForUniverse,
+  resolveUniverseProducts,
+  countUniverseProducts,
+  toProductSample,
+  type UniverseProductBundle,
+} from "./product-source-resolver";
 import { runPipelineForUniverseJob } from "./universe-pipeline-service";
+import {
+  getGeoCatalogCounts,
+  resolveUniverseGeoNodes,
+  type UniverseGeoNode,
+} from "./universe-geo-resolver";
+import {
+  buildCategoryVariant,
+  matchProductCategories,
+  resolveIndustryCategories,
+  resolveVariantsForMode,
+  type ProductVariantSpec,
+} from "./universe-variant-resolver";
 
-type ProductBundle = ProductUniverse & {
-  entities: ProductEntity[];
-  attributes: ProductAttribute[];
-  images: ProductImage[];
-  contentDNA: ProductContentDNA | null;
-};
-
-const HIERARCHY: Record<UniversePageType, number> = {
+const HIERARCHY: Record<string, number> = {
   product_geo: 1,
+  product_category: 2,
   product_intent: 2,
   product_faq: 2,
   product_guide: 2,
@@ -46,30 +50,6 @@ const HIERARCHY: Record<UniversePageType, number> = {
   product_detail: 4,
 };
 
-type VariantSpec = {
-  pageType: UniversePageType;
-  blueprintKind: UniverseBlueprintKind;
-  variantKey: string;
-  titleSuffix: string;
-  slugSuffix: string;
-  intent: string;
-  targetQueryTemplate: (name: string) => string;
-};
-
-const CORE_VARIANTS: VariantSpec[] = [
-  { pageType: "product_detail", blueprintKind: "PRODUCT_DETAIL", variantKey: "default", titleSuffix: "", slugSuffix: "", intent: "commercial", targetQueryTemplate: (n) => n.toLowerCase() },
-  { pageType: "product_faq", blueprintKind: "PRODUCT_FAQ", variantKey: "default", titleSuffix: " — SSS", slugSuffix: "", intent: "informational", targetQueryTemplate: (n) => `${n.toLowerCase()} sık sorulan sorular` },
-  { pageType: "product_intent", blueprintKind: "PRODUCT_INTENT", variantKey: "nasil-secilir", titleSuffix: " Nasıl Seçilir?", slugSuffix: "nasil-secilir", intent: "commercial", targetQueryTemplate: (n) => `${n.toLowerCase()} nasıl seçilir` },
-  { pageType: "product_intent", blueprintKind: "PRODUCT_INTENT", variantKey: "en-iyi-mi", titleSuffix: " En İyi Mi?", slugSuffix: "en-iyi-mi", intent: "comparison", targetQueryTemplate: (n) => `${n.toLowerCase()} en iyi mi` },
-  { pageType: "product_intent", blueprintKind: "PRODUCT_INTENT", variantKey: "kime-uygun", titleSuffix: " Kime Uygun?", slugSuffix: "kime-uygun", intent: "informational", targetQueryTemplate: (n) => `${n.toLowerCase()} kime uygun` },
-  { pageType: "product_guide", blueprintKind: "PRODUCT_GUIDE", variantKey: "nasil-kullanilir", titleSuffix: " Nasıl Kullanılır?", slugSuffix: "nasil-kullanilir", intent: "howto", targetQueryTemplate: (n) => `${n.toLowerCase()} nasıl kullanılır` },
-  { pageType: "product_guide", blueprintKind: "PRODUCT_GUIDE", variantKey: "bakim-ipuclari", titleSuffix: " Bakım İpuçları", slugSuffix: "bakim-ipuclari", intent: "howto", targetQueryTemplate: (n) => `${n.toLowerCase()} bakım ipuçları` },
-  { pageType: "product_benefit", blueprintKind: "PRODUCT_BENEFIT", variantKey: "avantajlari", titleSuffix: " Avantajları", slugSuffix: "avantajlari", intent: "informational", targetQueryTemplate: (n) => `${n.toLowerCase()} avantajları` },
-  { pageType: "product_benefit", blueprintKind: "PRODUCT_BENEFIT", variantKey: "neden-tercih", titleSuffix: " Neden Tercih Edilmeli?", slugSuffix: "neden-tercih", intent: "commercial", targetQueryTemplate: (n) => `${n.toLowerCase()} neden tercih edilmeli` },
-  { pageType: "product_problem", blueprintKind: "PRODUCT_PROBLEM", variantKey: "sorun-cozumu", titleSuffix: " Sorun Çözümü", slugSuffix: "sorun-cozumu", intent: "problem", targetQueryTemplate: (n) => `${n.toLowerCase()} sorun çözümü` },
-  { pageType: "product_problem", blueprintKind: "PRODUCT_PROBLEM", variantKey: "dikkat-edilecekler", titleSuffix: " Dikkat Edilecekler", slugSuffix: "dikkat-edilecekler", intent: "informational", targetQueryTemplate: (n) => `${n.toLowerCase()} dikkat edilecekler` },
-];
-
 function parseJsonArray(json: string): string[] {
   try {
     const v = JSON.parse(json || "[]");
@@ -79,7 +59,7 @@ function parseJsonArray(json: string): string[] {
   }
 }
 
-function getProductStock(product: ProductBundle): number | null {
+function getProductStock(product: UniverseProductBundle): number | null {
   try {
     const meta = JSON.parse(product.metadataJson || "{}") as { stock?: number };
     if (typeof meta.stock === "number") return meta.stock;
@@ -94,7 +74,7 @@ function getProductStock(product: ProductBundle): number | null {
   return null;
 }
 
-function shouldNoindex(product: ProductBundle): boolean {
+function shouldNoindex(product: UniverseProductBundle): boolean {
   if (product.qualityScore < 70) return true;
   if (product.duplicateGroupId) return true;
   if (!product.descriptionClean?.trim()) return true;
@@ -103,7 +83,7 @@ function shouldNoindex(product: ProductBundle): boolean {
   return false;
 }
 
-function computePriorityScore(product: ProductBundle): number {
+function computePriorityScore(product: UniverseProductBundle): number {
   let score = product.qualityScore;
   if (product.images.length) score += 5;
   if (product.descriptionClean.length > 30) score += 5;
@@ -134,23 +114,24 @@ function buildDupKey(productId: string, pageType: string, variantKey: string): s
 }
 
 function buildMetadata(
-  product: ProductBundle,
+  product: UniverseProductBundle,
   draft: UniverseBlueprintDraft,
   jobId?: string,
   sourceTypeFilter?: UniverseSourceType
 ): Record<string, unknown> {
+  const seed = normalizeProductForUniverse(product);
   const dna = product.contentDNA;
   const stock = getProductStock(product);
   const imageUrls = product.images.map((i) => i.publicUrl || i.sourceUrl).filter(Boolean);
   const categoryLabel = product.categoryPath.split(/[>/|]/).pop()?.trim() || product.categoryPath;
 
   return {
-    generationSource: UNIVERSE_GENERATION_SOURCE,
+    generationSource: UNIVERSE_BRIDGE_GENERATION_SOURCE,
     universeVersion: UNIVERSE_VERSION,
     universeJobId: jobId || null,
     createdByUniverseJobId: jobId || null,
-    sourceProductId: product.id,
-    sourceType: product.sourceType,
+    sourceProductId: seed.productId,
+    sourceType: seed.sourceType,
     universeSourceFilter: sourceTypeFilter || "ALL",
     universeType: draft.pageType,
     blueprintType: draft.blueprintKind,
@@ -158,13 +139,14 @@ function buildMetadata(
     targetIntent: draft.intent,
     geoTarget: draft.geoTarget,
     autoPipelineEligible: true,
-    productUniverseId: product.id,
-    productId: product.id,
-    productName: product.normalizedName,
-    brand: product.brand,
-    category: product.categoryPath,
-    categoryPath: product.categoryPath,
-    sku: product.stockCode,
+    productUniverseId: seed.productUniverseId,
+    productId: seed.productId,
+    productName: seed.productName,
+    brand: seed.brand,
+    category: seed.category,
+    categoryPath: seed.category,
+    sku: seed.sku,
+    importJobId: seed.importJobId,
     barcode: product.barcode,
     price: product.price,
     stock,
@@ -195,32 +177,49 @@ function buildMetadata(
   };
 }
 
-function resolveVariants(mode: UniverseGenerationMode, includeGeo: boolean): VariantSpec[] {
-  if (mode === "faq_only") {
-    return CORE_VARIANTS.filter((v) => v.pageType === "product_faq");
-  }
-  if (mode === "geo_only") {
-    return [];
-  }
-  return CORE_VARIANTS;
+function resolveVariantsForProduct(
+  baseVariants: ProductVariantSpec[],
+  product: UniverseProductBundle,
+  categoryCatalog: Array<{ id: string; name: string; slug: string; industryName: string }>
+): ProductVariantSpec[] {
+  const matched = matchProductCategories(product.categoryPath, categoryCatalog);
+  const categoryVariants =
+    matched.length > 0
+      ? matched.map((c) => buildCategoryVariant(c, product.normalizedName))
+      : product.categoryPath?.trim()
+        ? [
+            buildCategoryVariant(
+              { id: "product-path", name: product.categoryPath.split(/[>/|]/).pop()?.trim() || product.categoryPath, slug: slugify(product.categoryPath) },
+              product.normalizedName
+            ),
+          ]
+        : [];
+  return [...baseVariants, ...categoryVariants];
+}
+
+function geoTitle(geo: UniverseGeoNode, productName: string): string {
+  if (geo.level === "province") return `${geo.name} ${productName}`;
+  if (geo.level === "district") return `${geo.provinceName} ${geo.name} ${productName}`;
+  return `${geo.name} ${productName}`;
 }
 
 function buildDraftsForProduct(
-  product: ProductBundle,
+  product: UniverseProductBundle,
   mode: UniverseGenerationMode,
   includeGeo: boolean,
-  slugSet: Set<string>
+  slugSet: Set<string>,
+  variants: ProductVariantSpec[],
+  geoNodes: UniverseGeoNode[]
 ): UniverseBlueprintDraft[] {
   const drafts: UniverseBlueprintDraft[] = [];
   const name = product.normalizedName;
   const priorityScore = computePriorityScore(product);
   const categoryLabel = product.categoryPath.split(/[>/|]/).pop()?.trim() || product.categoryPath;
-  const variants = resolveVariants(mode, includeGeo);
 
   for (const spec of variants) {
     const slugBase = spec.slugSuffix ? `${product.slug}-${spec.slugSuffix}` : product.slug;
     const slug = uniqueSlug(slugBase, slugSet);
-    const title = `${name}${spec.titleSuffix}`;
+    const title = spec.pageType === "product_category" ? spec.titleSuffix || categoryLabel : `${name}${spec.titleSuffix}`;
 
     drafts.push({
       productId: product.id,
@@ -230,7 +229,7 @@ function buildDraftsForProduct(
       variantKey: spec.variantKey,
       title,
       slug,
-      targetQuery: spec.targetQueryTemplate(name),
+      targetQuery: spec.targetQueryTemplate(name, categoryLabel),
       intent: spec.intent,
       geoTarget: null,
       priorityScore,
@@ -240,122 +239,41 @@ function buildDraftsForProduct(
         region: null,
         geoPath: null,
         clusterPath: `Product > ${categoryLabel}`,
+        intentId: spec.intentId || null,
+        categoryId: spec.categoryId || null,
       },
     });
   }
 
   if ((mode === "full" || mode === "geo_only" || mode === "selected") && includeGeo) {
-    for (const city of TOP_20_CITIES) {
-      const slug = uniqueSlug(product.slug, slugSet);
+    for (const geo of geoNodes) {
+      const slug = uniqueSlug(`${product.slug}-${geo.slug}`, slugSet);
       drafts.push({
         productId: product.id,
         productName: name,
         pageType: "product_geo",
         blueprintKind: "PRODUCT_GEO",
-        variantKey: city.slug,
-        title: `${city.name} ${name}`,
+        variantKey: geo.slug,
+        title: geoTitle(geo, name),
         slug,
-        targetQuery: `${city.name.toLowerCase()} ${name.toLowerCase()}`,
+        targetQuery: `${geo.path.replace(/>/g, " ").toLowerCase()} ${name.toLowerCase()}`,
         intent: "local",
-        geoTarget: city.name,
+        geoTarget: geo.path,
         priorityScore,
         qualityScore: product.qualityScore,
         metadata: {
-          province: city.name,
-          region: city.region,
-          geoPath: city.name,
-          clusterPath: `Product > ${categoryLabel} > GEO > ${city.name}`,
+          province: geo.provinceName || geo.name,
+          region: geo.provinceName || null,
+          geoPath: geo.path,
+          geoLevel: geo.level,
+          geoId: geo.id,
+          clusterPath: `Product > ${categoryLabel} > GEO > ${geo.path}`,
         },
       });
     }
   }
 
   return drafts;
-}
-
-function matchesSourceType(product: ProductBundle, sourceType: UniverseSourceType): boolean {
-  if (sourceType === "ALL" || sourceType === "PRODUCT_UNIVERSE") return true;
-
-  if (sourceType === "XLSX") return product.sourceType === "XLSX";
-  if (sourceType === "XML") return product.sourceType === "XML";
-  if (sourceType === "CSV") return product.sourceType === "CSV";
-
-  if (sourceType === "THYRONIX") {
-    try {
-      const meta = JSON.parse(product.metadataJson || "{}") as { importSource?: string; bridgeType?: string };
-      return (
-        meta.importSource?.includes("THYRONIX") === true ||
-        meta.bridgeType === "THYRONIX_BRIDGE_V1" ||
-        product.sourceFileName.includes("THYRONIX")
-      );
-    } catch {
-      return product.sourceFileName.includes("THYRONIX");
-    }
-  }
-
-  if (sourceType === "PRODUCT_LIBRARY") {
-    try {
-      const meta = JSON.parse(product.metadataJson || "{}") as { importSource?: string; catalogId?: string };
-      return meta.importSource === "PRODUCT_LIBRARY" || !!meta.catalogId;
-    } catch {
-      return false;
-    }
-  }
-
-  return true;
-}
-
-async function loadProducts(
-  filters: UniverseGeneratorFilters,
-  opts: { dealerId?: string | null; isAdmin?: boolean }
-): Promise<{ products: ProductBundle[]; totalProducts: number }> {
-  const minQuality = filters.minQualityScore ?? 0;
-  const limit = resolveUniverseLimit(filters.limit, opts.isAdmin);
-  const sourceType = filters.sourceType || "ALL";
-
-  if (filters.productIds?.length) {
-    const products = await prisma.productUniverse.findMany({
-      where: {
-        id: { in: filters.productIds },
-        ...(opts.dealerId && !opts.isAdmin ? { dealerId: opts.dealerId } : {}),
-      },
-      include: { entities: true, attributes: true, images: true, contentDNA: true },
-    });
-    return { products: products as ProductBundle[], totalProducts: products.length };
-  }
-
-  const where: {
-    status: "BLUEPRINT_READY";
-    qualityScore: { gte: number };
-    dealerId?: string;
-    sourceType?: ProductUniverseSourceType;
-    projectId?: string;
-  } = {
-    status: "BLUEPRINT_READY",
-    qualityScore: { gte: minQuality },
-  };
-
-  if (!opts.isAdmin && opts.dealerId) where.dealerId = opts.dealerId;
-  if (filters.projectId) where.projectId = filters.projectId;
-
-  if (sourceType === "XLSX") where.sourceType = "XLSX";
-  else if (sourceType === "XML") where.sourceType = "XML";
-  else if (sourceType === "CSV") where.sourceType = "CSV";
-
-  const totalProducts = await prisma.productUniverse.count({ where });
-
-  let products = await prisma.productUniverse.findMany({
-    where,
-    include: { entities: true, attributes: true, images: true, contentDNA: true },
-    orderBy: [{ qualityScore: "desc" }, { updatedAt: "desc" }],
-    take: Math.min(limit, totalProducts),
-  });
-
-  if (["THYRONIX", "PRODUCT_LIBRARY", "ALL"].includes(sourceType)) {
-    products = products.filter((p) => matchesSourceType(p as ProductBundle, sourceType));
-  }
-
-  return { products: products as ProductBundle[], totalProducts };
 }
 
 async function loadExistingBlueprintMap(projectId: string): Promise<Map<string, string>> {
@@ -369,20 +287,12 @@ async function loadExistingBlueprintMap(projectId: string): Promise<Map<string, 
       const m = JSON.parse(bp.metadataJson || "{}") as {
         productId?: string;
         productUniverseId?: string;
-        generationSource?: string;
+        sourceProductId?: string;
         universeVariantKey?: string;
         slug?: string;
       };
-      const pid = m.productUniverseId || m.productId;
+      const pid = m.productUniverseId || m.sourceProductId || m.productId;
       if (!pid) continue;
-      if (
-        m.generationSource !== UNIVERSE_GENERATION_SOURCE &&
-        m.generationSource !== UNIVERSE_LEGACY_GENERATION_SOURCE &&
-        m.generationSource !== "PRODUCT_UNIVERSE_BATCH_V1" &&
-        m.generationSource !== "PRODUCT_UNIVERSE_V2"
-      ) {
-        continue;
-      }
       const variant = m.universeVariantKey || "default";
       map.set(buildDupKey(pid, bp.pageType, variant), bp.id);
       if (m.slug) {
@@ -417,38 +327,94 @@ function countByType(drafts: UniverseBlueprintDraft[]) {
   let geoCount = 0;
   let intentCount = 0;
   let faqCount = 0;
+  let categoryCount = 0;
   for (const d of drafts) {
     byPageType[d.pageType] = (byPageType[d.pageType] || 0) + 1;
     if (d.pageType === "product_geo") geoCount += 1;
     if (d.pageType === "product_intent") intentCount += 1;
     if (d.pageType === "product_faq") faqCount += 1;
+    if (d.pageType === "product_category") categoryCount += 1;
   }
-  return { byPageType, geoCount, intentCount, faqCount };
+  return { byPageType, geoCount, intentCount, faqCount, categoryCount };
 }
 
-export function estimateUniverseSize(
+type UniverseContext = {
+  baseVariants: ProductVariantSpec[];
+  geoNodes: UniverseGeoNode[];
+  categoryCatalog: Array<{ id: string; name: string; slug: string; industryName: string }>;
+  geoCatalog: Awaited<ReturnType<typeof getGeoCatalogCounts>>;
+};
+
+async function loadUniverseContext(
+  filters: UniverseGeneratorFilters,
+  mode: UniverseGenerationMode,
+  includeGeo: boolean
+): Promise<UniverseContext> {
+  const [baseVariants, geoNodes, categoryCatalog, geoCatalog] = await Promise.all([
+    resolveVariantsForMode(mode, includeGeo),
+    includeGeo && (mode === "full" || mode === "geo_only" || mode === "selected")
+      ? resolveUniverseGeoNodes({
+          geoLevel: filters.geoLevel || "province",
+          geoLimit: filters.geoLimit,
+          provinceIds: filters.provinceIds,
+          districtIds: filters.districtIds,
+          neighborhoodIds: filters.neighborhoodIds,
+          villageIds: filters.villageIds,
+        })
+      : Promise.resolve([]),
+    resolveIndustryCategories(),
+    getGeoCatalogCounts(),
+  ]);
+  return { baseVariants, geoNodes, categoryCatalog, geoCatalog };
+}
+
+export async function estimateUniverseSize(
   productCount: number,
-  mode: UniverseGenerationMode = "full",
-  includeGeo = true
-): UniverseEstimateResult {
-  const coreCount = resolveVariants(mode, includeGeo).length;
-  const geoCount = (mode === "full" || mode === "geo_only" || mode === "selected") && includeGeo ? TOP_20_CITIES.length : 0;
-  const perProduct = coreCount + geoCount;
+  filters: Pick<
+    UniverseGeneratorFilters,
+    "mode" | "includeGeo" | "geoLevel" | "geoLimit" | "provinceIds" | "districtIds" | "neighborhoodIds" | "villageIds"
+  > & { sampleCategoryPath?: string }
+): Promise<UniverseEstimateResult> {
+  const mode = filters.mode || "full";
+  const includeGeo =
+    mode === "geo_only" ? true : filters.includeGeo !== false && mode !== "faq_only";
+  const ctx = await loadUniverseContext(
+    { ...filters, projectId: "", mode, includeGeo } as UniverseGeneratorFilters,
+    mode,
+    includeGeo
+  );
+
+  const sampleVariants = filters.sampleCategoryPath
+    ? resolveVariantsForProduct(ctx.baseVariants, { categoryPath: filters.sampleCategoryPath } as UniverseProductBundle, ctx.categoryCatalog)
+    : ctx.baseVariants;
+
+  const coreCount = sampleVariants.length;
+  const geoNodeCount = ctx.geoNodes.length;
+  const perProduct = coreCount + geoNodeCount;
   const byPageType: Record<string, number> = {};
-  for (const v of resolveVariants(mode, includeGeo)) {
+  for (const v of sampleVariants) {
     byPageType[v.pageType] = (byPageType[v.pageType] || 0) + 1;
   }
-  if (geoCount) byPageType.product_geo = geoCount;
+  if (geoNodeCount) byPageType.product_geo = geoNodeCount;
+
+  const warnings: string[] = [];
+  if (includeGeo && geoNodeCount === 0) {
+    warnings.push("GEO katmanı seçildi ancak veritabanında aktif kayıt bulunamadı — mahalle/köy/cadde için Data Universe import gerekebilir.");
+  }
 
   return {
     totalProducts: productCount,
     estimatedBlueprints: productCount * perProduct,
-    perProductMin: mode === "full" ? UNIVERSE_LIMITS.minBlueprintsPerProduct : perProduct,
+    perProductMin: perProduct,
     geoCount: productCount * (byPageType.product_geo || 0),
     intentCount: productCount * (byPageType.product_intent || 0),
     faqCount: productCount * (byPageType.product_faq || 0),
+    categoryCount: productCount * (byPageType.product_category || 0),
+    variantsPerProduct: coreCount,
+    geoNodesPerProduct: geoNodeCount,
+    geoCatalog: ctx.geoCatalog,
     byPageType,
-    warnings: [],
+    warnings,
   };
 }
 
@@ -459,16 +425,26 @@ export async function previewUniverseGeneration(
   const mode = filters.mode || "full";
   const includeGeo =
     mode === "geo_only" ? true : filters.includeGeo !== false && mode !== "faq_only";
-  const { products, totalProducts } = await loadProducts(filters, opts);
-  const existingMap = await loadExistingBlueprintMap(filters.projectId);
-  const slugSet = await loadExistingSlugs(filters.projectId);
+  const { products, totalProducts } = await resolveUniverseProducts(filters, opts);
+  const projectId = filters.projectId;
+  const existingMap = projectId ? await loadExistingBlueprintMap(projectId) : new Map<string, string>();
+  const slugSet = projectId ? await loadExistingSlugs(projectId) : new Set<string>();
+  const ctx = await loadUniverseContext(filters, mode, includeGeo);
 
   const allDrafts: UniverseBlueprintDraft[] = [];
   let duplicateCount = 0;
   const warnings: string[] = [];
 
+  if (totalProducts === 0) {
+    warnings.push("Product Universe'de seçilen filtrelere uyan ürün bulunamadı.");
+  }
+  if (includeGeo && ctx.geoNodes.length === 0) {
+    warnings.push("GEO katmanı seçildi ancak veritabanında aktif kayıt bulunamadı — mahalle/köy/cadde için Data Universe import gerekebilir.");
+  }
+
   for (const product of products) {
-    const drafts = buildDraftsForProduct(product, mode, includeGeo, slugSet);
+    const variants = resolveVariantsForProduct(ctx.baseVariants, product, ctx.categoryCatalog);
+    const drafts = buildDraftsForProduct(product, mode, includeGeo, slugSet, variants, ctx.geoNodes);
     for (const d of drafts) {
       const dupKey = buildDupKey(product.id, d.pageType, d.variantKey);
       if (existingMap.has(dupKey)) duplicateCount += 1;
@@ -476,15 +452,25 @@ export async function previewUniverseGeneration(
     }
   }
 
-  const counts = countByType(allDrafts);
-  const estimate = estimateUniverseSize(products.length, mode, includeGeo);
-  estimate.warnings = warnings;
+  const estimate = await estimateUniverseSize(products.length || totalProducts, {
+    mode,
+    includeGeo,
+    geoLevel: filters.geoLevel,
+    geoLimit: filters.geoLimit,
+    provinceIds: filters.provinceIds,
+    districtIds: filters.districtIds,
+    neighborhoodIds: filters.neighborhoodIds,
+    villageIds: filters.villageIds,
+    sampleCategoryPath: products[0]?.categoryPath,
+  });
+  estimate.warnings = [...estimate.warnings, ...warnings];
   estimate.totalProducts = totalProducts;
 
   return {
     ...estimate,
     estimatedBlueprints: allDrafts.length,
-    sampleBlueprints: allDrafts.slice(0, UNIVERSE_LIMITS.previewSampleSize),
+    sampleBlueprints: allDrafts.slice(0, 10),
+    sampleProducts: products.slice(0, 10).map(toProductSample),
     duplicateCount,
     warnings,
   };
@@ -492,7 +478,7 @@ export async function previewUniverseGeneration(
 
 async function upsertBlueprint(
   projectId: string,
-  product: ProductBundle,
+  product: UniverseProductBundle,
   draft: UniverseBlueprintDraft,
   existingMap: Map<string, string>,
   jobId: string,
@@ -506,7 +492,7 @@ async function upsertBlueprint(
   const data = {
     title: draft.title,
     pageType: draft.pageType,
-    hierarchyLevel: HIERARCHY[draft.pageType],
+    hierarchyLevel: HIERARCHY[draft.pageType] ?? 2,
     clusterPath: String(metadata.clusterPath || "Product"),
     metadataJson: JSON.stringify(metadata),
   };
@@ -540,11 +526,11 @@ export async function generateUniverseFromProducts(
   opts: { dealerId?: string | null; isAdmin?: boolean }
 ): Promise<UniverseGenerateResult> {
   const projectId = filters.projectId;
-  if (!projectId && !filters.dryRun) {
-    throw new Error("projectId gerekli");
+  if (!projectId) {
+    throw new Error("projectId gerekli — Page Factory projesi seçin");
   }
 
-  if (projectId) {
+  if (!filters.dryRun) {
     const project = await prisma.pageFactoryProject.findUnique({ where: { id: projectId } });
     if (!project) throw new Error("Proje bulunamadı");
     if (!opts.isAdmin && opts.dealerId && project.dealerId && project.dealerId !== opts.dealerId) {
@@ -556,7 +542,11 @@ export async function generateUniverseFromProducts(
   const includeGeo =
     mode === "geo_only" ? true : filters.includeGeo !== false && mode !== "faq_only";
   const preview = await previewUniverseGeneration(filters, opts);
-  const { products } = await loadProducts(filters, opts);
+  const { products } = await resolveUniverseProducts(filters, opts);
+
+  if (!filters.dryRun && products.length === 0) {
+    throw new Error("Üretilecek ürün bulunamadı — Product Universe filtresini kontrol edin");
+  }
 
   let jobId = "dry-run";
   if (!filters.dryRun) {
@@ -577,6 +567,7 @@ export async function generateUniverseFromProducts(
 
   const existingMap = projectId ? await loadExistingBlueprintMap(projectId) : new Map<string, string>();
   const slugSet = projectId ? await loadExistingSlugs(projectId) : new Set<string>();
+  const ctx = await loadUniverseContext(filters, mode, includeGeo);
 
   let generatedBlueprints = 0;
   let updatedBlueprints = 0;
@@ -593,7 +584,8 @@ export async function generateUniverseFromProducts(
     const chunk = products.slice(i, i + UNIVERSE_LIMITS.chunkSize);
     for (const product of chunk) {
       try {
-        const drafts = buildDraftsForProduct(product, mode, includeGeo, slugSet);
+        const variants = resolveVariantsForProduct(ctx.baseVariants, product, ctx.categoryCatalog);
+        const drafts = buildDraftsForProduct(product, mode, includeGeo, slugSet, variants, ctx.geoNodes);
         for (const draft of drafts) {
           if (draft.pageType === "product_geo") geoCount += 1;
           if (draft.pageType === "product_intent") intentCount += 1;
@@ -745,27 +737,50 @@ export async function getUniverseJob(id: string, dealerId?: string | null) {
   return job;
 }
 
-export async function getUniverseDashboardStats(projectId?: string) {
-  const where = projectId ? { projectId } : {};
-  const [productCount, lastJob, blueprintCount] = await Promise.all([
-    prisma.productUniverse.count({ where: { status: "BLUEPRINT_READY", ...(projectId ? { projectId } : {}) } }),
+export async function getUniverseDashboardStats(
+  filters: UniverseProductSourceFilters & Pick<UniverseGeneratorFilters, "geoLevel" | "geoLimit" | "provinceIds" | "districtIds" | "neighborhoodIds" | "villageIds" | "includeGeo">,
+  opts: { dealerId?: string | null; isAdmin?: boolean }
+) {
+  const projectId = filters.projectId;
+  const productCount = await countUniverseProducts(filters, opts);
+
+  const jobWhere = projectId ? { projectId } : {};
+  const [lastJob, blueprintCount] = await Promise.all([
     prisma.pageFactoryUniverseJob.findFirst({
-      where,
+      where: jobWhere,
       orderBy: { createdAt: "desc" },
     }),
     projectId
       ? prisma.pageFactoryBlueprint.count({
           where: {
             projectId,
-            metadataJson: { contains: UNIVERSE_GENERATION_SOURCE },
+            OR: [
+              { metadataJson: { contains: UNIVERSE_BRIDGE_GENERATION_SOURCE } },
+              { metadataJson: { contains: UNIVERSE_PRE_BRIDGE_SOURCE } },
+              { metadataJson: { contains: "PRODUCT_UNIVERSE_V2" } },
+            ],
           },
         })
       : prisma.pageFactoryBlueprint.count({
-          where: { metadataJson: { contains: UNIVERSE_GENERATION_SOURCE } },
+          where: {
+            OR: [
+              { metadataJson: { contains: UNIVERSE_BRIDGE_GENERATION_SOURCE } },
+              { metadataJson: { contains: UNIVERSE_PRE_BRIDGE_SOURCE } },
+            ],
+          },
         }),
   ]);
 
-  const estimate = estimateUniverseSize(productCount, "full", true);
+  const estimate = await estimateUniverseSize(productCount, {
+    mode: "full",
+    includeGeo: true,
+    geoLevel: filters.geoLevel || "province",
+    geoLimit: filters.geoLimit,
+    provinceIds: filters.provinceIds,
+    districtIds: filters.districtIds,
+    neighborhoodIds: filters.neighborhoodIds,
+    villageIds: filters.villageIds,
+  });
 
   return {
     totalProducts: productCount,
@@ -783,5 +798,9 @@ export async function getUniverseDashboardStats(projectId?: string) {
     geoCount: estimate.geoCount,
     intentCount: estimate.intentCount,
     faqCount: estimate.faqCount,
+    categoryCount: estimate.categoryCount,
+    variantsPerProduct: estimate.variantsPerProduct,
+    geoNodesPerProduct: estimate.geoNodesPerProduct,
+    geoCatalog: estimate.geoCatalog,
   };
 }

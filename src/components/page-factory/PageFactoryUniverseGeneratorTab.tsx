@@ -16,7 +16,7 @@ import {
   ExternalLink,
   Package,
 } from "lucide-react";
-import { UNIVERSE_SOURCE_OPTIONS } from "@/lib/page-factory/universe/universe-types";
+import { UNIVERSE_GEO_LEVEL_OPTIONS, UNIVERSE_SOURCE_OPTIONS } from "@/lib/page-factory/universe/universe-types";
 import { fetchPageFactoryJson } from "@/lib/page-factory/fetch-json";
 
 type Project = { id: string; name: string };
@@ -28,6 +28,16 @@ type DashboardStats = {
   geoCount: number;
   intentCount: number;
   faqCount: number;
+  categoryCount?: number;
+  variantsPerProduct?: number;
+  geoNodesPerProduct?: number;
+  geoCatalog?: {
+    provinces: number;
+    districts: number;
+    neighborhoods: number;
+    villages: number;
+    streets: number;
+  };
   lastJob: {
     id: string;
     status: string;
@@ -44,9 +54,23 @@ type PreviewResult = {
   geoCount: number;
   intentCount: number;
   faqCount: number;
+  categoryCount?: number;
+  variantsPerProduct?: number;
+  geoNodesPerProduct?: number;
+  geoCatalog?: DashboardStats["geoCatalog"];
   duplicateCount: number;
   byPageType: Record<string, number>;
   sampleBlueprints: Array<{ title: string; slug: string; pageType: string; blueprintKind: string }>;
+  sampleProducts: Array<{
+    id: string;
+    name: string;
+    brand: string;
+    category: string;
+    sourceType: string;
+    qualityScore: number;
+    status: string;
+    imageCount: number;
+  }>;
   warnings: string[];
 };
 
@@ -80,8 +104,13 @@ export function PageFactoryUniverseGeneratorTab({ projects, defaultProjectId }: 
   const [projectId, setProjectId] = useState(defaultProjectId || "");
   const [sourceType, setSourceType] = useState("ALL");
   const [minQuality, setMinQuality] = useState(0);
+  const [brand, setBrand] = useState("");
+  const [category, setCategory] = useState("");
+  const [hasImage, setHasImage] = useState(false);
   const [limit, setLimit] = useState(100);
   const [includeGeo, setIncludeGeo] = useState(true);
+  const [geoLevel, setGeoLevel] = useState("province");
+  const [geoLimit, setGeoLimit] = useState(0);
   const [autoRunPipeline, setAutoRunPipeline] = useState(false);
   const [autoPublishInternal, setAutoPublishInternal] = useState(false);
   const [pipelineLimit, setPipelineLimit] = useState(100);
@@ -100,15 +129,32 @@ export function PageFactoryUniverseGeneratorTab({ projects, defaultProjectId }: 
     if (defaultProjectId) setProjectId(defaultProjectId);
   }, [defaultProjectId]);
 
+  const filterQuery = useCallback(() => {
+    const q = new URLSearchParams();
+    if (projectId) q.set("projectId", projectId);
+    if (sourceType && sourceType !== "ALL") q.set("sourceType", sourceType);
+    if (minQuality > 0) q.set("minQualityScore", String(minQuality));
+    if (brand.trim()) q.set("brand", brand.trim());
+    if (category.trim()) q.set("category", category.trim());
+    if (hasImage) q.set("hasImage", "true");
+    if (includeGeo) {
+      q.set("includeGeo", "true");
+      q.set("geoLevel", geoLevel);
+      if (geoLimit > 0) q.set("geoLimit", String(geoLimit));
+    }
+    return q.toString();
+  }, [projectId, sourceType, minQuality, brand, category, hasImage, includeGeo, geoLevel, geoLimit]);
+
   const loadStats = useCallback(async () => {
     if (!projectId) return;
     try {
-      const d = await fetchPageFactoryJson(`/api/page-factory/universe/jobs?projectId=${projectId}`);
+      const qs = filterQuery();
+      const d = await fetchPageFactoryJson(`/api/page-factory/universe/jobs?${qs}`);
       if (d.success) setStats((d.data as { stats: DashboardStats }).stats);
     } catch {
       /* ignore */
     }
-  }, [projectId]);
+  }, [projectId, filterQuery]);
 
   useEffect(() => {
     loadStats();
@@ -118,8 +164,13 @@ export function PageFactoryUniverseGeneratorTab({ projects, defaultProjectId }: 
     projectId,
     sourceType,
     minQualityScore: minQuality,
+    brand: brand.trim() || undefined,
+    category: category.trim() || undefined,
+    hasImage: hasImage || undefined,
     limit,
     includeGeo,
+    geoLevel: includeGeo ? geoLevel : undefined,
+    geoLimit: includeGeo && geoLimit > 0 ? geoLimit : undefined,
     mode,
     dryRun,
     autoRunPipeline,
@@ -266,31 +317,39 @@ export function PageFactoryUniverseGeneratorTab({ projects, defaultProjectId }: 
       )}
 
       {stats && (
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
-          {[
-            { label: "Toplam Ürün", value: stats.totalProducts, icon: Package },
-            { label: "Tahmini Blueprint", value: stats.estimatedBlueprints, icon: Sparkles },
-            { label: "Üretilen Blueprint", value: stats.generatedBlueprints, icon: CheckCircle2 },
-            { label: "GEO Sayısı", value: stats.geoCount, icon: MapPin },
-            { label: "Intent Sayısı", value: stats.intentCount, icon: Globe },
-            { label: "FAQ Sayısı", value: stats.faqCount, icon: HelpCircle },
-            {
-              label: "Son Job",
-              value: stats.lastJob ? stats.lastJob.status : "—",
-              icon: RefreshCw,
-            },
-          ].map(({ label, value, icon: Icon }) => (
-            <div key={label} className="rounded-lg border border-gray-200 bg-white p-3">
-              <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-wide text-gray-500">
-                <Icon size={12} />
-                {label}
+        <>
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
+            {[
+              { label: "Toplam Ürün", value: stats.totalProducts, icon: Package },
+              { label: "Tahmini Blueprint", value: stats.estimatedBlueprints, icon: Sparkles },
+              { label: "Üretilen Blueprint", value: stats.generatedBlueprints, icon: CheckCircle2 },
+              { label: "GEO / Ürün", value: stats.geoNodesPerProduct ?? "—", icon: MapPin },
+              { label: "Varyant / Ürün", value: stats.variantsPerProduct ?? "—", icon: Globe },
+              { label: "Intent Sayısı", value: stats.intentCount, icon: Globe },
+              { label: "FAQ Sayısı", value: stats.faqCount, icon: HelpCircle },
+            ].map(({ label, value, icon: Icon }) => (
+              <div key={label} className="rounded-lg border border-gray-200 bg-white p-3">
+                <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-wide text-gray-500">
+                  <Icon size={12} />
+                  {label}
+                </div>
+                <p className="text-lg font-bold text-gray-900 mt-1">
+                  {typeof value === "number" ? value.toLocaleString("tr-TR") : value}
+                </p>
               </div>
-              <p className="text-lg font-bold text-gray-900 mt-1">
-                {typeof value === "number" ? value.toLocaleString("tr-TR") : value}
-              </p>
+            ))}
+          </div>
+          {stats.geoCatalog && (
+            <div className="rounded-lg border border-emerald-100 bg-emerald-50/60 px-4 py-3 text-xs text-emerald-900 flex flex-wrap gap-x-4 gap-y-1">
+              <span className="font-semibold">DB GEO Kataloğu:</span>
+              <span>{stats.geoCatalog.provinces} il</span>
+              <span>{stats.geoCatalog.districts} ilçe</span>
+              <span>{stats.geoCatalog.neighborhoods} mahalle</span>
+              <span>{stats.geoCatalog.villages} köy</span>
+              <span>{stats.geoCatalog.streets} cadde/sokak</span>
             </div>
-          ))}
-        </div>
+          )}
+        </>
       )}
 
       <div className="rounded-xl border border-gray-200 bg-white p-5 space-y-4">
@@ -337,6 +396,26 @@ export function PageFactoryUniverseGeneratorTab({ projects, defaultProjectId }: 
             />
           </label>
           <label className="block text-xs text-gray-600">
+            Marka
+            <input
+              type="text"
+              value={brand}
+              onChange={(e) => setBrand(e.target.value)}
+              placeholder="Marka filtre"
+              className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm"
+            />
+          </label>
+          <label className="block text-xs text-gray-600">
+            Kategori
+            <input
+              type="text"
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
+              placeholder="Kategori path içinde ara"
+              className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm"
+            />
+          </label>
+          <label className="block text-xs text-gray-600">
             Batch Limit (max 1000)
             <input
               type="number"
@@ -360,12 +439,50 @@ export function PageFactoryUniverseGeneratorTab({ projects, defaultProjectId }: 
           <label className="flex items-center gap-2 text-sm text-gray-700 pt-5">
             <input
               type="checkbox"
+              checked={hasImage}
+              onChange={(e) => setHasImage(e.target.checked)}
+              className="rounded"
+            />
+            Yalnızca görseli olanlar
+          </label>
+          <label className="flex items-center gap-2 text-sm text-gray-700 pt-5">
+            <input
+              type="checkbox"
               checked={includeGeo}
               onChange={(e) => setIncludeGeo(e.target.checked)}
               className="rounded"
             />
-            GEO expansion (Top 20 şehir)
+            GEO expansion (DB — Türkiye)
           </label>
+          {includeGeo && (
+            <>
+              <label className="block text-xs text-gray-600">
+                GEO Katmanı
+                <select
+                  value={geoLevel}
+                  onChange={(e) => setGeoLevel(e.target.value)}
+                  className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm"
+                >
+                  {UNIVERSE_GEO_LEVEL_OPTIONS.map((o) => (
+                    <option key={o.value} value={o.value}>
+                      {o.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="block text-xs text-gray-600">
+                GEO Limit (0 = tam katalog)
+                <input
+                  type="number"
+                  min={0}
+                  max={5000}
+                  value={geoLimit}
+                  onChange={(e) => setGeoLimit(Number(e.target.value))}
+                  className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm"
+                />
+              </label>
+            </>
+          )}
         </div>
 
         <div className="rounded-lg border border-indigo-100 bg-indigo-50/50 p-4 space-y-3">
@@ -485,7 +602,62 @@ export function PageFactoryUniverseGeneratorTab({ projects, defaultProjectId }: 
               <span className="text-gray-500">Duplicate:</span>{" "}
               <strong>{preview.duplicateCount}</strong>
             </div>
+            {preview.geoNodesPerProduct != null && (
+              <div>
+                <span className="text-gray-500">GEO/Ürün:</span>{" "}
+                <strong>{preview.geoNodesPerProduct}</strong>
+              </div>
+            )}
+            {preview.variantsPerProduct != null && (
+              <div>
+                <span className="text-gray-500">Varyant/Ürün:</span>{" "}
+                <strong>{preview.variantsPerProduct}</strong>
+              </div>
+            )}
           </div>
+          {preview.geoCatalog && (
+            <p className="text-xs text-emerald-800">
+              DB GEO: {preview.geoCatalog.provinces} il · {preview.geoCatalog.districts} ilçe ·{" "}
+              {preview.geoCatalog.neighborhoods} mahalle · {preview.geoCatalog.villages} köy ·{" "}
+              {preview.geoCatalog.streets} cadde
+            </p>
+          )}
+          {preview.warnings?.length > 0 && (
+            <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
+              {preview.warnings.map((w) => (
+                <p key={w}>{w}</p>
+              ))}
+            </div>
+          )}
+          {preview.sampleProducts?.length > 0 && (
+            <div>
+              <p className="text-xs font-semibold text-gray-700 mb-2">Örnek Ürünler (max 10)</p>
+              <div className="overflow-x-auto">
+                <table className="w-full text-xs">
+                  <thead>
+                    <tr className="border-b text-left text-gray-500">
+                      <th className="py-2 pr-3">Ürün</th>
+                      <th className="py-2 pr-3">Marka</th>
+                      <th className="py-2 pr-3">Kaynak</th>
+                      <th className="py-2 pr-3">Kalite</th>
+                      <th className="py-2">Görsel</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {preview.sampleProducts.map((p) => (
+                      <tr key={p.id} className="border-b border-gray-50">
+                        <td className="py-2 pr-3 max-w-[160px] truncate">{p.name}</td>
+                        <td className="py-2 pr-3">{p.brand || "—"}</td>
+                        <td className="py-2 pr-3 font-mono text-violet-600">{p.sourceType}</td>
+                        <td className="py-2 pr-3">{p.qualityScore}</td>
+                        <td className="py-2">{p.imageCount}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
           {preview.sampleBlueprints.length > 0 && (
             <div className="overflow-x-auto">
               <table className="w-full text-xs">

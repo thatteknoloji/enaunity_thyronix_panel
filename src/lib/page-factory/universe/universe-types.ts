@@ -1,6 +1,8 @@
-export const UNIVERSE_GENERATION_SOURCE = "UNIVERSE_GENERATOR_V1" as const;
+export const UNIVERSE_BRIDGE_GENERATION_SOURCE = "PRODUCT_UNIVERSE_BRIDGE_V2" as const;
+export const UNIVERSE_GENERATION_SOURCE = UNIVERSE_BRIDGE_GENERATION_SOURCE;
 export const UNIVERSE_LEGACY_GENERATION_SOURCE = "PAGE_FACTORY_UNIVERSE_GENERATOR_V1" as const;
-export const UNIVERSE_VERSION = "PAGE_FACTORY_UNIVERSE_TO_PIPELINE_AUTORUN_V1" as const;
+export const UNIVERSE_PRE_BRIDGE_SOURCE = "UNIVERSE_GENERATOR_V1" as const;
+export const UNIVERSE_VERSION = "PRODUCT_UNIVERSE_BRIDGE_V2" as const;
 
 export const UNIVERSE_LIMITS = {
   defaultBatch: 100,
@@ -16,6 +18,7 @@ export type UniverseSourceType =
   | "PRODUCT_UNIVERSE"
   | "PRODUCT_LIBRARY"
   | "THYRONIX"
+  | "TRENDYOL"
   | "XLSX"
   | "XML"
   | "CSV";
@@ -23,11 +26,10 @@ export type UniverseSourceType =
 export const UNIVERSE_SOURCE_OPTIONS: Array<{ value: UniverseSourceType; label: string }> = [
   { value: "ALL", label: "Tüm Kaynaklar" },
   { value: "PRODUCT_UNIVERSE", label: "Product Universe" },
-  { value: "PRODUCT_LIBRARY", label: "Product Library" },
-  { value: "THYRONIX", label: "Thyronix Product" },
-  { value: "XLSX", label: "Excel Import" },
-  { value: "XML", label: "XML Import" },
-  { value: "CSV", label: "CSV Import" },
+  { value: "XLSX", label: "XLSX" },
+  { value: "CSV", label: "CSV" },
+  { value: "TRENDYOL", label: "Trendyol" },
+  { value: "XML", label: "XML" },
 ];
 
 export type UniverseGenerationMode =
@@ -46,22 +48,58 @@ export type UniverseAutoPipelineOptions = {
   dryRun?: boolean;
 };
 
-export type UniverseGeneratorFilters = UniverseAutoPipelineOptions & {
-  projectId: string;
+import type { UniverseGeoLevel } from "@/lib/page-factory/types";
+
+export type UniverseProductSourceFilters = {
+  projectId?: string;
+  dealerId?: string | null;
   sourceType?: UniverseSourceType;
-  productIds?: string[];
   minQualityScore?: number;
+  category?: string;
+  brand?: string;
+  hasImage?: boolean;
+  status?: string;
   limit?: number;
+  productIds?: string[];
   includeGeo?: boolean;
   mode?: UniverseGenerationMode;
-  dryRun?: boolean;
+  geoLevel?: UniverseGeoLevel | "street";
+  geoLimit?: number;
+  provinceIds?: string[];
+  districtIds?: string[];
+  neighborhoodIds?: string[];
+  villageIds?: string[];
 };
 
+export type UniverseGeneratorFilters = UniverseAutoPipelineOptions &
+  UniverseProductSourceFilters & {
+    projectId: string;
+    includeGeo?: boolean;
+    mode?: UniverseGenerationMode;
+    dryRun?: boolean;
+    /** DB GEO katmanı — varsayılan: tüm 81 il */
+    geoLevel?: UniverseGeoLevel | "street";
+    geoLimit?: number;
+    provinceIds?: string[];
+    districtIds?: string[];
+    neighborhoodIds?: string[];
+    villageIds?: string[];
+  };
+
+/** @deprecated TOP_20_CITIES — artık DB GEO kullanılıyor; geri uyumluluk için tutuldu */
 export type UniverseCity = {
   slug: string;
   name: string;
   region: string;
 };
+
+export const UNIVERSE_GEO_LEVEL_OPTIONS: Array<{ value: UniverseGeoLevel | "street"; label: string }> = [
+  { value: "province", label: "İl (81)" },
+  { value: "district", label: "İlçe (973)" },
+  { value: "neighborhood", label: "Mahalle" },
+  { value: "village", label: "Köy" },
+  { value: "street", label: "Cadde / Sokak" },
+];
 
 export const TOP_20_CITIES: UniverseCity[] = [
   { slug: "istanbul", name: "İstanbul", region: "Marmara" },
@@ -95,6 +133,7 @@ export type UniversePageType =
   | "product_problem"
   | "product_comparison"
   | "product_alternative"
+  | "product_category"
   | "product_geo";
 
 export type UniverseBlueprintKind =
@@ -106,6 +145,7 @@ export type UniverseBlueprintKind =
   | "PRODUCT_PROBLEM"
   | "PRODUCT_COMPARISON"
   | "PRODUCT_ALTERNATIVE"
+  | "PRODUCT_CATEGORY"
   | "PRODUCT_GEO";
 
 export type UniverseBlueprintDraft = {
@@ -131,12 +171,32 @@ export type UniverseEstimateResult = {
   geoCount: number;
   intentCount: number;
   faqCount: number;
+  categoryCount: number;
+  variantsPerProduct: number;
+  geoNodesPerProduct: number;
+  geoCatalog?: {
+    provinces: number;
+    districts: number;
+    neighborhoods: number;
+    villages: number;
+    streets: number;
+  };
   byPageType: Record<string, number>;
   warnings: string[];
 };
 
 export type UniversePreviewResult = UniverseEstimateResult & {
   sampleBlueprints: UniverseBlueprintDraft[];
+  sampleProducts: Array<{
+    id: string;
+    name: string;
+    brand: string;
+    category: string;
+    sourceType: string;
+    qualityScore: number;
+    status: string;
+    imageCount: number;
+  }>;
   duplicateCount: number;
 };
 

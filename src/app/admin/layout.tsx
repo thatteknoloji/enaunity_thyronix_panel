@@ -5,7 +5,7 @@ import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import {
   LayoutDashboard, Package, ShoppingCart, Users, LogOut, ChevronLeft, ChevronRight, ChevronDown,
-  ClipboardList, Store, DollarSign, Eye, Banknote, RotateCcw, Warehouse, FileText, Tag, Layers, Building2, Percent, Key, MessageSquare, ScrollText, Layout, PackagePlus, Truck, Shield, BarChart3, ClipboardCheck, Barcode, Bell, Megaphone, Webhook, Clock, CalendarClock, Upload, Link2, Plug, Zap, Sparkles, CreditCard, Globe, Smartphone, Handshake, Brain, Shirt
+  ClipboardList, Store, DollarSign, Eye, Banknote, RotateCcw, Warehouse, FileText, Tag, Layers, Building2, Percent, Key, MessageSquare, ScrollText, Layout, PackagePlus, Truck, Shield, BarChart3, ClipboardCheck, Barcode, Bell, Megaphone, Webhook, Clock, CalendarClock, Upload, Link2, Plug, Zap, Sparkles,   CreditCard, Globe, Smartphone, Handshake, Brain, Shirt, ShoppingBag
 } from "lucide-react";
 import { getNavPermissionMap, hasAnyPermission } from "@/lib/permissions";
 import { getAdminLoginPath, isAdminLoginPath, isAdminRole, isSuperAdmin, toAdminUrl } from "@/lib/auth/admin-access";
@@ -36,6 +36,7 @@ function buildNavGroups(t: (key: string) => string) {
         { href: "/admin/homepage", label: "Ana Sayfa", icon: LayoutDashboard },
         { href: "/admin/ecosystem", label: "Ekosistem Vitrini", icon: Sparkles },
         { href: "/admin/contracts", label: t("admin.contracts"), icon: ScrollText },
+        { href: "/admin/blog-engine", label: "Blog Engine", icon: FileText },
         { href: "/admin/legal-audit", label: "Hukuki Denetim", icon: Shield },
       ],
     },
@@ -133,6 +134,7 @@ function buildNavGroups(t: (key: string) => string) {
         { href: "/admin/integrations/thyronix", label: "THYRONIX Entegrasyon", icon: Plug },
         { href: "/admin/integrations/hive", label: "HIVE Entegrasyon", icon: Plug },
         { href: "/admin/customer-products", label: "Müşteri Ürünleri", icon: Package },
+        { href: "/admin/dropship", label: "AI Dropship Store", icon: ShoppingBag },
         ...(legacyMarketplaceEnabled
           ? [{ href: "/admin/marketplace", label: "Pazar Yeri (Legacy)", icon: Store }]
           : []),

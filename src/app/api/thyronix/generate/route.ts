@@ -6,8 +6,8 @@ import {
   thyronixErrorResponse,
   withTenantFilter,
 } from "@/lib/thyronix/access";
-import { mergeProducts } from "@/lib/thyronix/merge-engine";
-import type { MergeStrategy } from "@/lib/thyronix/merge-engine";
+import { buildFeedOutputUrls, planFeedChunks } from "@/lib/thyronix/feed-chunk";
+import { loadActiveSourceIds, loadMergedFeedProducts } from "@/lib/thyronix/feed-output-service";
 
 export async function POST(req: Request) {
   try {
@@ -23,34 +23,27 @@ export async function POST(req: Request) {
     const startTime = Date.now();
     const sources = await prisma.thyronixSource.findMany({
       where: withTenantFilter(user, { status: "active" }),
+      select: { id: true },
     });
-    let totalProducts = 0;
-
-    for (const source of sources) {
-      const products = await prisma.thyronixProduct.findMany({
-        where: withTenantFilter(user, { sourceId: source.id, status: "active" }),
-      });
-      const strategy = ((feed as any).mergeStrategy || "lowest_price") as MergeStrategy;
-      const sourceIdList = sources.map((s) => s.id);
-      const merged = mergeProducts(
-        products as any,
-        strategy,
-        strategy === "source_priority" ? sourceIdList : [],
-      );
-      totalProducts += merged.length;
-    }
+    const sourceIds = sources.map((s) => s.id);
+    const merged = await loadMergedFeedProducts(feed, sourceIds);
+    const totalProducts = merged.length;
+    const chunkPlan = planFeedChunks(totalProducts);
+    const outputUrls = buildFeedOutputUrls(feedId, chunkPlan);
 
     const duration = Date.now() - startTime;
     await prisma.thyronixFeed.update({
       where: { id: feedId },
-      data: { productCount: totalProducts, lastPublished: new Date() } as any,
+      data: { productCount: totalProducts, lastPublished: new Date() },
     });
     await prisma.thyronixSyncLog.create({
       data: {
         type: "feed",
         referenceId: feedId,
         status: totalProducts > 0 ? "success" : "warning",
-        message: `${totalProducts} ürün ile feed oluşturuldu`,
+        message: chunkPlan.needsSplit
+          ? `${totalProducts} ürün — ${chunkPlan.partCount} parçaya bölündü`
+          : `${totalProducts} ürün ile feed oluşturuldu`,
         productCount: totalProducts,
         duration,
       },
@@ -58,7 +51,15 @@ export async function POST(req: Request) {
 
     return NextResponse.json({
       success: true,
-      data: { productCount: totalProducts, duration, url: `/api/thyronix/feed/${feedId}/output.xml` },
+      data: {
+        productCount: totalProducts,
+        duration,
+        chunkPlan,
+        outputUrls: outputUrls.default,
+        outputParts: outputUrls.parts,
+        url: outputUrls.default.xml,
+        summary: chunkPlan.summaryTr,
+      },
     });
   } catch (e) {
     return thyronixErrorResponse(e);

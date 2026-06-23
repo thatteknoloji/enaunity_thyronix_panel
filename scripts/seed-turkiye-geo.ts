@@ -122,6 +122,17 @@ async function seedReferenceData() {
     "Fiyat Araştırması",
     "İnceleme",
     "Yorum",
+    "Nasıl Seçilir",
+    "En İyi Mi",
+    "Kime Uygun",
+    "Nasıl Kullanılır",
+    "Bakım İpuçları",
+    "Neden Tercih Edilmeli",
+    "Sorun Çözümü",
+    "Dikkat Edilecekler",
+    "Nereden Alınır",
+    "Kaç TL",
+    "Kimler İçin Uygundur",
   ];
 
   for (const name of intents) {

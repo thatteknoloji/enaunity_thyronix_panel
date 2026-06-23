@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/db";
 import { isSuperAdmin } from "@/lib/auth/admin-access";
 
-export const MODULE_KEYS = ["ENA_COMMERCE", "THYRONIX", "HIVE", "HIVE_PRO", "LINKSLASH", "POD_CREATOR", "AI_PAGE_FACTORY"] as const;
+export const MODULE_KEYS = ["ENA_COMMERCE", "THYRONIX", "HIVE", "HIVE_PRO", "LINKSLASH", "POD_CREATOR", "AI_PAGE_FACTORY", "AI_DROPSHIP"] as const;
 export type ModuleKey = typeof MODULE_KEYS[number];
 
 export async function getDealerModuleLicense(dealerId: string, moduleKey: string) {
@@ -99,6 +99,7 @@ export function getModuleLabel(key: string): string {
     LINKSLASH: "LinkSlash",
     POD_CREATOR: "POD Creator",
     AI_PAGE_FACTORY: "AI Page Factory",
+    AI_DROPSHIP: "AI Dropship Store",
     PRODUCT_LIBRARY: "Hazır Ürün Deposu",
   };
   return labels[key] || key;

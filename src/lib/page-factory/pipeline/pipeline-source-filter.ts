@@ -32,6 +32,7 @@ const PRODUCT_UNIVERSE_MARKERS = [
   "PRODUCT_UNIVERSE",
   "PRODUCT_UNIVERSE_V2",
   "PRODUCT_UNIVERSE_BATCH_V1",
+  "PRODUCT_UNIVERSE_BRIDGE_V2",
   "UNIVERSE_GENERATOR_V1",
   "PAGE_FACTORY_UNIVERSE_GENERATOR_V1",
   "THYRONIX_BRIDGE",
@@ -41,7 +42,7 @@ export function resolveGenerationSourceFilter(raw?: string | null): PipelineGene
   const v = String(raw || "ALL").toUpperCase();
   if (v === "ALL" || v === "") return "ALL";
   if (v === "PRODUCT_UNIVERSE_V2" || v === "PRODUCT_UNIVERSE_BATCH_V1") return "PRODUCT_UNIVERSE_V2";
-  if (v === "UNIVERSE_GENERATOR_V1" || v === "PAGE_FACTORY_UNIVERSE_GENERATOR_V1") return "PRODUCT_UNIVERSE_V2";
+  if (v === "PRODUCT_UNIVERSE_BRIDGE_V2" || v === "UNIVERSE_GENERATOR_V1" || v === "PAGE_FACTORY_UNIVERSE_GENERATOR_V1") return "PRODUCT_UNIVERSE_V2";
   if (v === "GEO_UNIVERSE" || v === "BLUEPRINT_UNIVERSE_V2") return "GEO_UNIVERSE";
   if (v === "MANUAL") return "MANUAL";
   if (v === "LEGACY") return "LEGACY";

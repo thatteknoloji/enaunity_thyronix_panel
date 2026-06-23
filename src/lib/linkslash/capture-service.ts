@@ -133,6 +133,7 @@ export async function createLinkSlashCapture(
     captureId: record.id,
     cloudLinkId,
     userId,
+    dealerId,
     url,
     title: record.title,
     description: record.description,
@@ -156,6 +157,7 @@ async function enrichCaptureWithAi(input: {
   captureId: string;
   cloudLinkId?: string;
   userId: string;
+  dealerId?: string | null;
   url: string;
   title: string;
   description: string;
@@ -170,6 +172,7 @@ async function enrichCaptureWithAi(input: {
       description: input.description,
       sourceType: input.sourceType,
       userId: input.userId,
+      dealerId: input.dealerId,
       save: !!input.cloudLinkId,
     });
 

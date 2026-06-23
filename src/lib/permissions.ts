@@ -185,5 +185,6 @@ export function getNavPermissionMap(): Record<string, PermissionKey[]> {
     "/admin/page-factory/data/import": ["partners_view", "partners_manage"],
     "/admin/linkslash": ["partners_view", "partners_manage"],
     "/admin/linkslash/android": ["partners_view", "partners_manage"],
+    "/admin/dropship": ["partners_view", "partners_manage"],
   };
 }

@@ -9,8 +9,10 @@ const ROOT = process.cwd();
 const API_ROOT = path.join(ROOT, "src/app/api");
 
 const FETCH_PATTERNS = [
-  /fetch\(\s*[`'"](\/api\/(?:page-factory|product-universe|internal-sitemap)[^`'"]*)[`'"]/g,
-  /fetch\(\s*`(\/api\/(?:page-factory|product-universe)[^`$]*)`/g,
+  /fetch\(\s*[`'"](\/api\/(?:page-factory|product-universe|internal-sitemap|aeo|admin\/page-factory)[^`'"]*)[`'"]/g,
+  /fetch\(\s*`(\/api\/(?:page-factory|product-universe|aeo)[^`$]*)`/g,
+  /fetchPageFactoryJson(?:<[^>]*>)?\(\s*[`'"](\/api\/[^`'"]+)[`'"]/g,
+  /fetchPageFactoryJson(?:<[^>]*>)?\(\s*`(\/api\/[^`$]+)`/g,
 ];
 
 function collectFetchUrls(): string[] {
@@ -18,6 +20,9 @@ function collectFetchUrls(): string[] {
     path.join(ROOT, "src/components/page-factory"),
     path.join(ROOT, "src/components/product-universe"),
     path.join(ROOT, "src/app/admin/page-factory"),
+    path.join(ROOT, "src/app/gateway/page-factory"),
+    path.join(ROOT, "src/app/dealer/page-factory"),
+    path.join(ROOT, "src/app/dealer/product-universe"),
   ];
   const urls = new Set<string>();
   for (const dir of dirs) {

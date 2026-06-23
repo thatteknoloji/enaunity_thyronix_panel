@@ -20,7 +20,8 @@ const TABS = [
 
 const PROVIDERS = [
   { v: "openai", l: "OpenAI" }, { v: "claude", l: "Claude" }, { v: "gemini", l: "Gemini" },
-  { v: "deepseek", l: "DeepSeek" }, { v: "openrouter", l: "OpenRouter" }, { v: "custom", l: "Custom" }, { v: "ollama", l: "Ollama" },
+  { v: "deepseek", l: "DeepSeek" }, { v: "grok", l: "Grok (xAI)" }, { v: "openrouter", l: "OpenRouter" },
+  { v: "custom", l: "Custom" }, { v: "ollama", l: "Ollama" },
 ];
 
 export default function ThyronixAiToolsPage() {

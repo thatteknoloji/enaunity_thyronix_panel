@@ -7,9 +7,10 @@ import toast from "react-hot-toast";
 const PROVIDERS = [
   { v: "openai", l: "OpenAI (ChatGPT)", models: ["gpt-4o", "gpt-4o-mini", "gpt-4-turbo"] },
   { v: "deepseek", l: "DeepSeek", models: ["deepseek-chat", "deepseek-reasoner"] },
+  { v: "grok", l: "Grok (xAI)", models: ["grok-2-latest", "grok-2-1212", "grok-beta"] },
   { v: "claude", l: "Claude (Anthropic)", models: ["claude-3-sonnet-20240229", "claude-3-haiku-20240307"] },
   { v: "gemini", l: "Gemini (Google)", models: ["gemini-1.5-pro", "gemini-1.5-flash"] },
-  { v: "openrouter", l: "OpenRouter", models: ["openai/gpt-4o", "deepseek/deepseek-chat"] },
+  { v: "openrouter", l: "OpenRouter", models: ["openai/gpt-4o", "deepseek/deepseek-chat", "x-ai/grok-2"] },
   { v: "custom", l: "Özel OpenAI-Compatible API", models: [] },
   { v: "ollama", l: "Ollama (Yerel)", models: ["llama3", "mistral"] },
 ];
@@ -96,7 +97,7 @@ export function ThyronixMyAiProviderPanel() {
           Yapay Zeka API (BYOK)
         </h2>
         <p className="text-xs text-nexa-text-secondary mt-1">
-          Kendi OpenAI, DeepSeek veya uyumlu API anahtarınızı girin — başlık optimizasyonu, açıklama üretimi, bulk AI ve tüm Thyronix AI işleri bu anahtar üzerinden çalışır.
+          Kendi OpenAI, DeepSeek, Grok veya uyumlu API anahtarınızı girin — başlık optimizasyonu, açıklama üretimi, bulk AI ve tüm Thyronix AI işleri bu anahtar üzerinden çalışır.
         </p>
       </div>
 

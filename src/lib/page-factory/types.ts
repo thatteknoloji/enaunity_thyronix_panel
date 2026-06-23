@@ -78,7 +78,7 @@ export type CreateProjectInput = {
   dealerId?: string | null;
 };
 
-export type UniverseGeoLevel = "province" | "district" | "neighborhood" | "village";
+export type UniverseGeoLevel = "province" | "district" | "neighborhood" | "village" | "street";
 
 export type UniverseConfig = {
   selectedIndustryId?: string;

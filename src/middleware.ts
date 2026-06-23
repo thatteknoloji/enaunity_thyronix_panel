@@ -305,6 +305,33 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
+  // ── AI Dropship Store dealer route ──
+  if (pathname.startsWith("/dealer/dropship")) {
+    if (!token) {
+      const loginUrl = new URL("/auth/login", request.url);
+      loginUrl.searchParams.set("redirect", pathname);
+      return NextResponse.redirect(loginUrl);
+    }
+    const payloadDs = await verifyJWT(token);
+    if (!payloadDs) return NextResponse.redirect(new URL("/auth/login", request.url));
+    if (isAdminRole((payloadDs.role as string) || "")) return NextResponse.next();
+    const dealerIdDs = (payloadDs as { dealerId?: string }).dealerId;
+    if (dealerIdDs) {
+      try {
+        const checkRes = await fetch(
+          `${request.nextUrl.origin}/api/internal/check-module-access?dealerId=${dealerIdDs}&moduleKey=AI_DROPSHIP`
+        );
+        const checkData = await checkRes.json();
+        if (!checkData.access) {
+          return NextResponse.redirect(new URL("/gateway/dropship", request.url));
+        }
+      } catch {
+        return NextResponse.redirect(new URL("/gateway/dropship", request.url));
+      }
+    }
+    return NextResponse.next();
+  }
+
   // ── Product Gateway (ENA session required) ──
   if (pathname.startsWith("/gateway")) {
     if (!token) {
@@ -460,7 +487,6 @@ export async function middleware(request: NextRequest) {
     "/api/thyronix/rollback",
     "/api/thyronix/demo-seed",
     "/api/thyronix/dashboard/history",
-    "/api/thyronix/ai/",
   ];
 
   if (isThyronixApi) {
@@ -507,6 +533,19 @@ export async function middleware(request: NextRequest) {
       if (pathname === "/api/product-library/packages" && request.method !== "GET") return jsonError(403, "Yetkisiz erişim");
       if (!dealerAllowed.includes(pathname) && !isPackageRoute) return jsonError(403, "Yetkisiz erişim");
     }
+    return NextResponse.next();
+  }
+
+  const isDropshipApi = pathname.startsWith("/api/dropship/");
+  const isDealerDropshipApi = pathname.startsWith("/api/dealer/dropship/");
+
+  if (isDropshipApi) {
+    if (!isAdminRole(role) && role !== "admin") return jsonError(403, "Yetkisiz erişim");
+    return NextResponse.next();
+  }
+
+  if (isDealerDropshipApi) {
+    if (role !== "dealer" && !isAdminRole(role)) return jsonError(403, "Yetkisiz erişim");
     return NextResponse.next();
   }
 
@@ -595,5 +634,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/admin", "/admin/:path*", "/thyronix", "/thyronix/:path*", "/hive", "/hive/:path*", "/gateway", "/gateway/:path*", "/linkslash", "/linkslash/:path*", "/nexa", "/nexa/:path*", "/x-control-eu-7294", "/x-control-eu-7294/:path*", "/account", "/account/:path*", "/dealer", "/dealer/:path*", "/product-library", "/product-library/:path*", "/api/dealer/:path*", "/api/admin/:path*", "/api/page-factory", "/api/page-factory/:path*", "/api/product-universe", "/api/product-universe/:path*", "/api/aeo", "/api/aeo/:path*", "/api/ai-partner/:path*", "/api/thyronix/:path*", "/api/nexa/:path*", "/api/product-library", "/api/product-library/:path*", "/api/fulfillment", "/api/fulfillment/:path*", "/api/my", "/api/my/:path*", "/api/marketplace-hub", "/api/marketplace-hub/:path*", "/api/product-links", "/api/product-links/:path*", "/api/product-auth/:path*", "/api/gateway/:path*", "/api/linkslash/:path*", "/login", "/giris", "/r/:path*", "/", "/platform/:path*", "/products/:path*"],
+  matcher: ["/admin", "/admin/:path*", "/thyronix", "/thyronix/:path*", "/hive", "/hive/:path*", "/gateway", "/gateway/:path*", "/linkslash", "/linkslash/:path*", "/nexa", "/nexa/:path*", "/x-control-eu-7294", "/x-control-eu-7294/:path*", "/account", "/account/:path*", "/dealer", "/dealer/:path*", "/product-library", "/product-library/:path*", "/api/dealer/:path*", "/api/admin/:path*", "/api/page-factory", "/api/page-factory/:path*", "/api/product-universe", "/api/product-universe/:path*", "/api/aeo", "/api/aeo/:path*", "/api/ai-partner/:path*", "/api/thyronix/:path*", "/api/nexa/:path*", "/api/product-library", "/api/product-library/:path*", "/api/fulfillment", "/api/fulfillment/:path*", "/api/my", "/api/my/:path*", "/api/marketplace-hub", "/api/marketplace-hub/:path*", "/api/product-links", "/api/product-links/:path*", "/api/product-auth/:path*", "/api/gateway/:path*", "/api/linkslash/:path*", "/api/dropship", "/api/dropship/:path*", "/login", "/giris", "/r/:path*", "/", "/platform/:path*", "/products/:path*"],
 };

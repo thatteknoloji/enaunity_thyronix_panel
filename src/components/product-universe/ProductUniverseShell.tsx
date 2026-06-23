@@ -73,6 +73,8 @@ export function ProductUniverseShell({ mode }: Props) {
   const [bulkResult, setBulkResult] = useState<Record<string, unknown> | null>(null);
   const [bulkProjectId, setBulkProjectId] = useState("");
   const [bulkDryRun, setBulkDryRun] = useState(true);
+  const [universeLoading, setUniverseLoading] = useState(false);
+  const [universeResult, setUniverseResult] = useState<Record<string, unknown> | null>(null);
   const [shellTab, setShellTab] = useState<"main" | "excel-import" | "thyronix" | "blueprint-batch">("main");
   const [selectedJobId, setSelectedJobId] = useState<string | null>(null);
   const [jobDetail, setJobDetail] = useState<Record<string, unknown> | null>(null);
@@ -177,6 +179,40 @@ export function ProductUniverseShell({ mode }: Props) {
       setError(e instanceof Error ? e.message : "Bulk generate başarısız");
     } finally {
       setBulkLoading(false);
+    }
+  };
+
+  const handleSendToUniverse = async () => {
+    if (!bulkProjectId || selectedIds.size === 0) {
+      setError("Universe için proje ve en az bir ürün seçin");
+      return;
+    }
+    setUniverseLoading(true);
+    setError(null);
+    setUniverseResult(null);
+    try {
+      const d = await fetchPageFactoryJson("/api/page-factory/universe/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          projectId: bulkProjectId,
+          productIds: [...selectedIds],
+          sourceType: "ALL",
+          mode: "selected",
+          minQualityScore: 0,
+          limit: selectedIds.size,
+          includeGeo: false,
+          autoRunPipeline: false,
+          autoPublishInternal: false,
+        }),
+      });
+      if (!d.success) throw new Error(d.error || "Universe generate başarısız");
+      setUniverseResult(d.data as Record<string, unknown>);
+      await loadData();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Universe generate başarısız");
+    } finally {
+      setUniverseLoading(false);
     }
   };
 
@@ -397,6 +433,14 @@ export function ProductUniverseShell({ mode }: Props) {
                 </select>
                 <button
                   type="button"
+                  disabled={bulkLoading || universeLoading || !bulkProjectId}
+                  onClick={handleSendToUniverse}
+                  className="text-xs rounded-lg bg-indigo-600 text-white px-2 py-1 disabled:opacity-50"
+                >
+                  {universeLoading ? "Gönderiliyor…" : `Universe'e Gönder (${selectedIds.size})`}
+                </button>
+                <button
+                  type="button"
                   disabled={bulkLoading}
                   onClick={() => handleBulkGenerate(true)}
                   className="text-xs rounded-lg bg-violet-100 text-violet-700 px-2 py-1"
@@ -424,6 +468,12 @@ export function ProductUniverseShell({ mode }: Props) {
             </button>
           </div>
         </div>
+        {universeResult && (
+          <div className="mb-4 rounded-lg border border-indigo-200 bg-indigo-50/50 px-3 py-2 text-xs text-indigo-900">
+            Universe: {String(universeResult.generatedBlueprints ?? 0)} blueprint · job{" "}
+            <code>{String(universeResult.jobId ?? "")}</code>
+          </div>
+        )}
         {bulkResult && (
           <div className="mb-4 rounded-lg border border-emerald-200 bg-emerald-50/50 px-3 py-2 text-xs text-emerald-800">
             Bulk: {bulkResult.processed as number} ürün · +{bulkResult.inserted as number} / ~{bulkResult.updated as number} / skip {bulkResult.skipped as number}

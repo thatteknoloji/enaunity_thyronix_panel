@@ -9,7 +9,8 @@ const PROVIDERS = [
   { v: "claude", l: "Claude (Anthropic)", models: ["claude-3-opus-20240229", "claude-3-sonnet-20240229", "claude-3-haiku-20240307"] },
   { v: "gemini", l: "Gemini (Google)", models: ["gemini-1.5-pro", "gemini-1.5-flash", "gemini-2.0-flash"] },
   { v: "deepseek", l: "DeepSeek", models: ["deepseek-chat", "deepseek-reasoner"] },
-  { v: "openrouter", l: "OpenRouter", models: ["openai/gpt-4o", "anthropic/claude-3-sonnet", "google/gemini-pro"] },
+  { v: "grok", l: "Grok (xAI)", models: ["grok-2-latest", "grok-2-1212", "grok-beta"] },
+  { v: "openrouter", l: "OpenRouter", models: ["openai/gpt-4o", "anthropic/claude-3-sonnet", "x-ai/grok-2"] },
   { v: "custom", l: "Custom OpenAI-Compatible", models: [] },
   { v: "ollama", l: "Ollama (Local)", models: ["llama3", "mistral", "gemma2", "phi3"] },
 ];

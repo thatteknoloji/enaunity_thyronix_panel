@@ -1,57 +1,51 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { mergeProducts } from "@/lib/thyronix/merge-engine";
-import type { MergeStrategy } from "@/lib/thyronix/merge-engine";
+import { buildFeedOutputUrls, planFeedChunks, parseFeedPartParam } from "@/lib/thyronix/feed-chunk";
+import { loadActiveSourceIds, loadMergedFeedProducts } from "@/lib/thyronix/feed-output-service";
 
 export const dynamic = "force-dynamic";
 
-export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
+  const part = parseFeedPartParam(new URL(req.url).searchParams);
+
   try {
     const feed = await prisma.thyronixFeed.findUnique({ where: { id } });
     if (!feed) return NextResponse.json({ error: "Feed bulunamadı" }, { status: 404 });
 
-    const sources = await prisma.thyronixSource.findMany({ where: { status: "active" } });
-    const CHUNK = 2000;
-    const sourceIds = sources.map(s => s.id);
-    const allProducts: any[] = [];
-    let cursor: string | undefined;
-
-    while (true) {
-      const chunk = await prisma.thyronixProduct.findMany({
-        where: { sourceId: { in: sourceIds }, ...(cursor ? { id: { gt: cursor } } : {}) },
-        orderBy: { id: "asc" },
-        take: CHUNK,
-      });
-      if (chunk.length === 0) break;
-      allProducts.push(...chunk);
-      cursor = chunk[chunk.length - 1].id;
-    }
-
-    const strategy = ((feed as any).mergeStrategy || "lowest_price") as MergeStrategy;
-    const merged = mergeProducts(allProducts as any, strategy, strategy === "source_priority" ? sourceIds : []);
+    const sourceIds = await loadActiveSourceIds({ dealerId: feed.dealerId });
+    const merged = await loadMergedFeedProducts(feed, sourceIds);
+    const plan = planFeedChunks(merged.length);
+    const partIndex = Math.min(Math.max(part, 1), Math.max(plan.partCount, 1)) - 1;
+    const chunk = plan.parts[partIndex] || plan.parts[0];
+    const slice = chunk ? merged.slice(chunk.offset, chunk.offset + chunk.limit) : [];
 
     return NextResponse.json({
       feedId: id,
       feedName: feed.name,
       generatedAt: new Date().toISOString(),
-      productCount: merged.length,
-      products: merged.map(p => ({
-        name: (p as any).name,
-        description: (p as any).description || null,
-        brand: (p as any).brand || null,
-        category: (p as any).category || null,
-        barcode: (p as any).barcode || null,
-        stockCode: (p as any).stockCode || null,
-        modelCode: (p as any).modelCode || null,
-        price: (p as any).price || 0,
-        stock: (p as any).stock || 0,
-        currency: (p as any).currency || "TRY",
-        status: (p as any).status || "active",
-        images: (p as any).images || null,
+      productCount: slice.length,
+      totalProducts: plan.totalProducts,
+      part: chunk?.part || 1,
+      totalParts: plan.partCount,
+      maxPerFile: plan.maxPerFile,
+      products: slice.map((p) => ({
+        name: p.name,
+        description: p.description || null,
+        brand: p.brand || null,
+        category: p.category || null,
+        barcode: p.barcode || null,
+        stockCode: p.stockCode || null,
+        modelCode: p.modelCode || null,
+        price: p.price || 0,
+        stock: p.stock || 0,
+        currency: p.currency || "TRY",
+        status: p.status || "active",
+        images: p.images || null,
       })),
     });
-  } catch (e: any) {
-    return NextResponse.json({ error: e.message || "Sunucu hatası" }, { status: 500 });
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : "Sunucu hatası";
+    return NextResponse.json({ error: msg }, { status: 500 });
   }
 }

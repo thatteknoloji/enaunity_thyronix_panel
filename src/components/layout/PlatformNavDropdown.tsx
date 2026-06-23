@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { ChevronDown, Layers, Link2, Package, Shirt, Sparkles } from "lucide-react";
+import { ChevronDown, Layers, Link2, Package, Shirt, Sparkles, Store } from "lucide-react";
 import { canSeeAdminEntry, getAdminSecretPath, isSuperAdmin } from "@/lib/auth/admin-access";
 import { MARKETPLACE_MODULES, type MarketplaceModuleKey } from "@/lib/modules/marketplace";
 
@@ -17,6 +17,7 @@ type NavItem = {
 
 const MODULE_ORDER: MarketplaceModuleKey[] = [
   "AI_PAGE_FACTORY",
+  "AI_DROPSHIP",
   "THYRONIX",
   "HIVE",
   "LINKSLASH",
@@ -25,6 +26,7 @@ const MODULE_ORDER: MarketplaceModuleKey[] = [
 
 const MODULE_COLOR: Record<MarketplaceModuleKey, string> = {
   AI_PAGE_FACTORY: "text-violet-400",
+  AI_DROPSHIP: "text-orange-400",
   THYRONIX: "text-blue-400",
   HIVE: "text-violet-400",
   LINKSLASH: "text-cyan-400",
@@ -33,6 +35,7 @@ const MODULE_COLOR: Record<MarketplaceModuleKey, string> = {
 
 const MODULE_ICON: Record<MarketplaceModuleKey, NavItem["icon"]> = {
   AI_PAGE_FACTORY: Layers,
+  AI_DROPSHIP: Store,
   THYRONIX: Package,
   HIVE: Sparkles,
   LINKSLASH: Link2,

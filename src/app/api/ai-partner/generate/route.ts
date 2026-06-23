@@ -19,7 +19,7 @@ export async function POST(req: Request) {
       );
     }
 
-    const result = await generateAiPartnerContent(task, body.context || {});
+    const result = await generateAiPartnerContent(task, body.context || {}, { dealerId: user.dealerId });
     return NextResponse.json({ success: true, data: result });
   } catch (e) {
     const msg = e instanceof Error ? e.message : "Üretim başarısız";

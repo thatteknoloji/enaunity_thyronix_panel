@@ -98,7 +98,13 @@ export async function resolveAiProviderId(opts: {
 }): Promise<string | null> {
   if (opts.providerId) {
     const explicit = await prisma.thyronixAiProvider.findUnique({ where: { id: opts.providerId } });
-    if (explicit?.status === "active") return explicit.id;
+    if (explicit?.status === "active") {
+      if (opts.dealerId) {
+        if (!explicit.dealerId || explicit.dealerId === opts.dealerId) return explicit.id;
+      } else {
+        return explicit.id;
+      }
+    }
   }
 
   if (opts.dealerId) {

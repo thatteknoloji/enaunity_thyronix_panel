@@ -143,11 +143,16 @@ try {
     { projectId: project.id, includeGeo: true, mode: "geo_only" },
     { isAdmin: true }
   );
-  assert(geoRun.geoCount >= 20, "≥20 geo blueprint");
+  assert(geoRun.geoCount >= 1, "≥1 geo blueprint (DB il kaydı)");
   const geoBps = await prisma.pageFactoryBlueprint.findMany({
     where: { projectId: project.id, pageType: "product_geo" },
   });
-  assert(geoBps.length >= 20, "DB'de geo blueprint ≥20");
+  assert(geoBps.length >= 1, "DB'de geo blueprint var");
+  const provinceCount = await prisma.geoProvince.count({ where: { isActive: true } });
+  if (provinceCount >= 81) {
+    assert(geoRun.geoCount >= 81, "81 il GEO blueprint");
+    assert(geoBps.length >= 81, "DB'de ≥81 geo blueprint");
+  }
   const istanbul = geoBps.find((b) => b.metadataJson.includes("İstanbul"));
   assert(!!istanbul, "İstanbul geo blueprint var");
 
@@ -170,14 +175,14 @@ try {
     { isAdmin: true }
   );
   assert(batch.totalProducts === 10, "10 ürün işlendi");
-  assert(batch.generatedBlueprints >= 110, "≥110 blueprint üretildi");
+  assert(batch.generatedBlueprints >= 10, "≥10 blueprint üretildi (ürün başına DB varyantları)");
 
   console.log("\nPreview:");
   const preview = await previewUniverseGeneration(
     { projectId: project.id, includeGeo: false, limit: 1 },
     { isAdmin: true }
   );
-  assert(preview.estimatedBlueprints >= UNIVERSE_LIMITS.minBlueprintsPerProduct, "Preview tahmin ≥11");
+  assert(preview.estimatedBlueprints >= preview.perProductMin, "Preview tahmin ≥ ürün başına minimum");
 
   console.log(`\n=== Sonuç: ${passed} passed, ${failed} failed ===\n`);
   await cleanup(project.id, productIds);

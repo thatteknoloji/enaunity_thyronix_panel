@@ -27,6 +27,7 @@ const PROVIDER_ENDPOINTS: Record<string, string> = {
   claude: "https://api.anthropic.com/v1/messages",
   gemini: "https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent",
   deepseek: "https://api.deepseek.com/v1/chat/completions",
+  grok: "https://api.x.ai/v1/chat/completions",
   openrouter: "https://openrouter.ai/api/v1/chat/completions",
   custom: "",
   ollama: "http://localhost:11434/api/generate",
@@ -42,6 +43,9 @@ const MODEL_PRICING: Record<string, { input: number; output: number }> = {
   "gemini-1.5-pro": { input: 3.5, output: 10.5 },
   "gemini-1.5-flash": { input: 0.075, output: 0.3 },
   "deepseek-chat": { input: 0.14, output: 0.28 },
+  "grok-2": { input: 2, output: 10 },
+  "grok-2-latest": { input: 2, output: 10 },
+  "grok-beta": { input: 5, output: 15 },
 };
 
 function estimateCost(model: string, promptTokens: number, completionTokens: number): number {

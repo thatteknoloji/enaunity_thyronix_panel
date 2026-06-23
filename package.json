@@ -59,6 +59,8 @@
     "test:publish-engine": "tsx scripts/test-publish-engine.ts",
     "test:page-index": "tsx scripts/test-page-index.ts",
     "test:universe-generator": "tsx scripts/test-universe-generator.ts",
+    "test:universe-bridge-v2": "tsx scripts/test-universe-bridge-v2.ts",
+    "test:blog-engine": "tsx scripts/test-blog-engine.ts",
     "test:universe-pipeline-autorun": "tsx scripts/test-universe-pipeline-autorun.ts",
     "test:pod-designer": "tsx scripts/test-pod-designer.ts",
     "test:product-library": "tsx scripts/test-product-library.ts",

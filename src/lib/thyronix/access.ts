@@ -16,7 +16,6 @@ export const THYRONIX_ADMIN_ONLY_PREFIXES = [
   "/api/thyronix/rollback",
   "/api/thyronix/demo-seed",
   "/api/thyronix/dashboard/history",
-  "/api/thyronix/ai/",
 ] as const;
 
 export function isThyronixAdminOnlyPath(pathname: string): boolean {

@@ -1,11 +1,11 @@
 import type { LucideIcon } from "lucide-react";
-import { Package, Sparkles, Link2, Shirt, Layers } from "lucide-react";
+import { Package, Sparkles, Link2, Shirt, Layers, Store } from "lucide-react";
 import type { UnifiedStatus } from "@/lib/customer-products/types";
 import { PRODUCT_META, type CustomerProductKey } from "@/lib/customer-products/types";
 import { getModuleLicenseState, getDealerModuleLicense } from "./access";
 
 /** Modül Pazarı'nda listelenen premium modüller */
-export const MARKETPLACE_MODULE_KEYS = ["LINKSLASH", "HIVE", "THYRONIX", "POD_CREATOR", "AI_PAGE_FACTORY"] as const;
+export const MARKETPLACE_MODULE_KEYS = ["LINKSLASH", "HIVE", "THYRONIX", "POD_CREATOR", "AI_PAGE_FACTORY", "AI_DROPSHIP"] as const;
 export type MarketplaceModuleKey = (typeof MARKETPLACE_MODULE_KEYS)[number];
 
 export type MarketplaceModuleMeta = {
@@ -76,6 +76,17 @@ export const MARKETPLACE_MODULES: Record<MarketplaceModuleKey, MarketplaceModule
     marketingPath: "/platform/page-factory",
     checkoutPath: "/payment/checkout?type=module&moduleKey=AI_PAGE_FACTORY&planKey=starter",
     icon: Layers,
+  },
+  AI_DROPSHIP: {
+    moduleKey: "AI_DROPSHIP",
+    label: "AI Dropship Store",
+    description: "Kendi mağazanı aç, ürünleri seç ve satmaya başla — subdomain, sepet, ödeme dahil",
+    color: "orange",
+    appPath: "/dealer/dropship",
+    gatewayPath: "/gateway/dropship",
+    marketingPath: "/platform/dropship",
+    checkoutPath: "/payment/checkout?type=module&moduleKey=AI_DROPSHIP&planKey=starter",
+    icon: Store,
   },
 };
 
@@ -252,6 +263,7 @@ export function resolveModuleNavHref(card: Pick<MarketplaceCard, "moduleKey" | "
   if (card.displayStatus === "PENDING") {
     if (card.moduleKey === "THYRONIX") return "/thyronix/pending";
     if (card.moduleKey === "HIVE") return "/hive/pending";
+    if (card.moduleKey === "AI_DROPSHIP") return "/gateway/dropship";
     return meta.gatewayPath;
   }
   return meta.marketingPath;

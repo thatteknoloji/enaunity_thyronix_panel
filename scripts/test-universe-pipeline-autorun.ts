@@ -135,7 +135,7 @@ try {
   assert(bps.length >= 11, "blueprint kayıtları var");
   for (const bp of bps) {
     const m = blueprintMeta(bp);
-    assert(m.generationSource === UNIVERSE_GENERATION_SOURCE, "generationSource UNIVERSE_GENERATOR_V1");
+    assert(m.generationSource === UNIVERSE_GENERATION_SOURCE, "generationSource PRODUCT_UNIVERSE_BRIDGE_V2");
     assert(m.universeJobId === noAuto.jobId, "universeJobId job ile eşleşir");
     assert(m.autoPipelineEligible === true, "autoPipelineEligible true");
   }

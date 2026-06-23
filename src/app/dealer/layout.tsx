@@ -108,7 +108,8 @@ export default function DealerLayout({ children }: { children: React.ReactNode }
     pathname.startsWith("/dealer/linkslash") ||
     pathname.startsWith("/dealer/pod") ||
     pathname.startsWith("/dealer/page-factory") ||
-    pathname.startsWith("/dealer/product-universe");
+    pathname.startsWith("/dealer/product-universe") ||
+    pathname.startsWith("/dealer/dropship");
 
   useEffect(() => {
     fetch("/api/auth/me")
@@ -169,7 +170,8 @@ export default function DealerLayout({ children }: { children: React.ReactNode }
     pathname.startsWith("/dealer/linkslash") ||
     pathname.startsWith("/dealer/pod") ||
     pathname.startsWith("/dealer/page-factory") ||
-    pathname.startsWith("/dealer/product-universe")
+    pathname.startsWith("/dealer/product-universe") ||
+    pathname.startsWith("/dealer/dropship")
   ) {
     return <>{children}</>;
   }

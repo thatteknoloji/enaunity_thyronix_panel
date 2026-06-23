@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
-import { Radio, Heart, FileDown, CheckCircle, Clock, Play, Copy, Trash2, Plus, Save, X, ExternalLink } from "lucide-react";
+import { useState, useEffect, useCallback, useMemo } from "react";
+import { Radio, Heart, FileDown, CheckCircle, Clock, Play, Copy, Trash2, Plus, Save, X, ExternalLink, Layers } from "lucide-react";
 import toast from "react-hot-toast";
+import { FEED_MAX_PRODUCTS_PER_FILE, planFeedChunks } from "@/lib/thyronix/feed-chunk";
 import HealthPage from "../health/page";
 import ImportExportPage from "../import-export/page";
 import SyncPage from "../sync/page";
@@ -36,16 +37,24 @@ export default function FeedCenterPage() {
   const [editing, setEditing] = useState<Feed | null>(null);
   const [form, setForm] = useState({ name: "", channel: "trendyol", outputFormat: "jetteknoloji" });
   const [plan, setPlan] = useState<{ key: string; limits: { maxFeeds: number } } | null>(null);
+  const [activeProducts, setActiveProducts] = useState(0);
+
+  const catalogChunkPlan = useMemo(
+    () => planFeedChunks(activeProducts),
+    [activeProducts]
+  );
 
   const load = useCallback(() => {
     setLoading(true);
     Promise.all([
       fetch("/api/thyronix/feeds").then((r) => r.json()),
       fetch("/api/thyronix/workspace").then((r) => r.json()),
+      fetch("/api/thyronix/reports").then((r) => r.json()),
     ])
-      .then(([fd, ws]) => {
+      .then(([fd, ws, rep]) => {
         if (fd.success) setFeeds(fd.data || []);
         if (ws.success) setPlan({ key: ws.data.planKey, limits: ws.data.limits });
+        if (rep.success) setActiveProducts(rep.data?.activeProducts || rep.data?.totalProducts || 0);
       })
       .finally(() => setLoading(false));
   }, []);
@@ -84,8 +93,16 @@ export default function FeedCenterPage() {
       body: JSON.stringify({ feedId: id }),
     });
     const d = await res.json();
-    if (d.success) { toast.success(`${d.data.productCount} ürün ile yayınlandı`); load(); }
-    else toast.error(d.error || "Yayın hatası");
+    if (d.success) {
+      const cp = d.data?.chunkPlan;
+      if (cp?.needsSplit) {
+        toast.success(`${d.data.productCount.toLocaleString("tr-TR")} ürün — ${cp.partCount} feed parçası`, { duration: 6000 });
+        toast(cp.summaryTr, { icon: "📦", duration: 8000 });
+      } else {
+        toast.success(`${d.data.productCount.toLocaleString("tr-TR")} ürün ile yayınlandı`);
+      }
+      load();
+    } else toast.error(d.error || "Yayın hatası");
   };
 
   return (
@@ -123,6 +140,20 @@ export default function FeedCenterPage() {
           ))}
         </div>
       </div>
+
+      {activeProducts > FEED_MAX_PRODUCTS_PER_FILE && (
+        <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-4 flex gap-3">
+          <Layers className="text-amber-400 shrink-0 mt-0.5" size={20} />
+          <div className="text-sm">
+            <p className="font-semibold text-amber-100">Büyük katalog — feed parçalama aktif</p>
+            <p className="text-amber-200/80 mt-1">{catalogChunkPlan.summaryTr}</p>
+            <p className="text-xs text-amber-200/60 mt-2">
+              Ham kayıt: {activeProducts.toLocaleString("tr-TR")} ürün · Parça başına max{" "}
+              {FEED_MAX_PRODUCTS_PER_FILE.toLocaleString("tr-TR")} · Merge sonrası parça sayısı değişebilir.
+            </p>
+          </div>
+        </div>
+      )}
 
       {showForm && (
         <div className="rounded-xl border border-nexa-border bg-nexa-card p-5 space-y-3">
@@ -165,23 +196,51 @@ export default function FeedCenterPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-nexa-border">
-                  {feeds.map((f) => (
+                  {feeds.map((f) => {
+                    const feedParts = planFeedChunks(f.productCount || 0);
+                    return (
                     <tr key={f.id} className="hover:bg-nexa-hover">
-                      <td className="px-4 py-3 font-medium text-nexa-text">{f.name}<div className="text-xs text-nexa-text-secondary">{f.productCount} ürün</div></td>
+                      <td className="px-4 py-3 font-medium text-nexa-text">
+                        {f.name}
+                        <div className="text-xs text-nexa-text-secondary">
+                          {(f.productCount || 0).toLocaleString("tr-TR")} ürün
+                          {feedParts.needsSplit && (
+                            <span className="ml-2 text-amber-400">· {feedParts.partCount} parça</span>
+                          )}
+                        </div>
+                      </td>
                       <td className="px-4 py-3 text-nexa-text-secondary">{f.outputFormat}</td>
                       <td className="px-4 py-3 text-nexa-text-secondary">{f.channel}</td>
                       <td className="px-4 py-3 text-nexa-text-secondary text-xs">{f.lastPublished ? new Date(f.lastPublished).toLocaleString("tr-TR") : "—"}</td>
                       <td className="px-4 py-3"><span className={`text-xs ${f.status === "active" ? "text-nexa-success" : "text-nexa-warning"}`}>{f.status}</span></td>
                       <td className="px-4 py-3">
-                        <div className="flex justify-end gap-1">
+                        <div className="flex justify-end gap-1 flex-wrap">
                           <button onClick={() => publishFeed(f.id)} className="p-2 rounded-lg hover:bg-nexa-primary/10 text-nexa-primary" title="Yayınla"><Play size={14} /></button>
-                          <a href={`/api/thyronix/feed/${f.id}/output.xml`} target="_blank" className="p-2 rounded-lg hover:bg-nexa-hover text-nexa-text-secondary" title="URL"><ExternalLink size={14} /></a>
+                          {feedParts.partCount <= 1 ? (
+                            <a href={`/api/thyronix/feed/${f.id}/output.xml`} target="_blank" className="p-2 rounded-lg hover:bg-nexa-hover text-nexa-text-secondary" title="XML"><ExternalLink size={14} /></a>
+                          ) : (
+                            feedParts.parts.slice(0, 3).map((p) => (
+                              <a
+                                key={p.part}
+                                href={`/api/thyronix/feed/${f.id}/output.xml?part=${p.part}`}
+                                target="_blank"
+                                className="px-2 py-1 rounded text-[10px] bg-nexa-bg border border-nexa-border text-nexa-text-secondary hover:text-nexa-primary"
+                                title={`${p.label} — ${p.productCount.toLocaleString("tr-TR")} ürün`}
+                              >
+                                P{p.part}
+                              </a>
+                            ))
+                          )}
+                          {feedParts.partCount > 3 && (
+                            <a href={`/api/thyronix/feed/${f.id}/status`} target="_blank" className="px-2 py-1 text-[10px] text-nexa-primary">+{feedParts.partCount - 3}</a>
+                          )}
                           <button onClick={() => { setEditing(f); setForm({ name: f.name, channel: f.channel, outputFormat: f.outputFormat }); setShowForm(true); }} className="p-2 rounded-lg hover:bg-nexa-hover text-nexa-text-secondary"><Copy size={14} /></button>
                           <button onClick={() => deleteFeed(f.id)} className="p-2 rounded-lg hover:bg-nexa-danger/10 text-nexa-danger"><Trash2 size={14} /></button>
                         </div>
                       </td>
                     </tr>
-                  ))}
+                    );
+                  })}
                 </tbody>
               </table>
             </div>

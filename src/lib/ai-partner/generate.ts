@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/db";
+import { resolveAiProviderId } from "@/lib/thyronix/ai-provider-resolve";
 
 type GenerateTask =
   | "product_description"
@@ -51,22 +51,22 @@ const FALLBACK: Record<GenerateTask, (ctx: Record<string, string>) => string> = 
     JSON.stringify({ concept: "Minimal geometrik", colors: ["#0b0d14", "#22d3ee"], placement: "center", tags: ["minimal", "modern"] }),
 };
 
-export async function generateAiPartnerContent(task: GenerateTask, context: Record<string, string> = {}) {
+export async function generateAiPartnerContent(
+  task: GenerateTask,
+  context: Record<string, string> = {},
+  opts?: { dealerId?: string | null }
+) {
   const prompt = TASK_PROMPTS[task];
   if (!prompt) {
     return { success: false as const, content: "", source: "error", error: "Geçersiz görev" };
   }
 
   try {
-    const provider = await prisma.thyronixAiProvider.findFirst({
-      where: { status: "active" },
-      orderBy: [{ isDefault: "desc" }, { createdAt: "asc" }],
-    });
-
-    if (provider) {
+    const providerId = await resolveAiProviderId({ dealerId: opts?.dealerId });
+    if (providerId) {
       const { aiCall } = await import("@/lib/thyronix/ai-service");
       const result = await aiCall({
-        providerId: provider.id,
+        providerId,
         systemPrompt: prompt.system,
         userPrompt: prompt.user(context),
         task: `ai_partner_${task}`,

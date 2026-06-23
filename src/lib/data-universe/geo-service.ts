@@ -194,6 +194,54 @@ export async function listGeoVillages(searchParams: URLSearchParams) {
   return { items, total, page, limit, totalPages: Math.max(1, Math.ceil(total / limit)) };
 }
 
+async function resolveNeighborhoodFromParams(searchParams: URLSearchParams) {
+  const neighborhoodId = searchParams.get("neighborhoodId") || "";
+  if (neighborhoodId) {
+    return prisma.geoNeighborhood.findUnique({ where: { id: neighborhoodId } });
+  }
+  const neighborhoodParam = searchParams.get("neighborhood") || searchParams.get("neighborhoodSlug") || "";
+  if (!neighborhoodParam) return null;
+  const district = await resolveDistrictFromParams(searchParams);
+  if (!district) return null;
+  const v = neighborhoodParam.trim();
+  if (v.length > 10 && /^c[a-z0-9]+$/i.test(v)) {
+    const byId = await prisma.geoNeighborhood.findFirst({ where: { id: v, districtId: district.id } });
+    if (byId) return byId;
+  }
+  const bySlug = await prisma.geoNeighborhood.findFirst({ where: { districtId: district.id, slug: toSlug(v) } });
+  if (bySlug) return bySlug;
+  return prisma.geoNeighborhood.findFirst({ where: { districtId: district.id, name: v } });
+}
+
+export async function listGeoStreets(searchParams: URLSearchParams) {
+  const { page, limit, search, activeOnly } = parsePagination(searchParams);
+  const neighborhood = await resolveNeighborhoodFromParams(searchParams);
+  const where = {
+    ...(neighborhood ? { neighborhoodId: neighborhood.id } : {}),
+    ...(activeOnly ? { isActive: true } : {}),
+    ...(search ? { name: { contains: search } } : {}),
+  };
+  const [items, total] = await Promise.all([
+    prisma.geoStreet.findMany({
+      where,
+      orderBy: { name: "asc" },
+      skip: (page - 1) * limit,
+      take: limit,
+      include: {
+        neighborhood: {
+          select: {
+            name: true,
+            slug: true,
+            district: { select: { name: true, slug: true, province: { select: { name: true } } } },
+          },
+        },
+      },
+    }),
+    prisma.geoStreet.count({ where }),
+  ]);
+  return { items, total, page, limit, totalPages: Math.max(1, Math.ceil(total / limit)) };
+}
+
 /** Birleşik GEO API — level parametresi ile katman seçimi */
 function normalizeGeoLevel(raw: string): string {
   const level = raw.toLowerCase();
@@ -212,6 +260,10 @@ function normalizeGeoLevel(raw: string): string {
     village: "villages",
     villages: "villages",
     koy: "villages",
+    street: "streets",
+    streets: "streets",
+    cadde: "streets",
+    sokak: "streets",
   };
   return map[level] || "countries";
 }
@@ -237,6 +289,9 @@ export async function queryGeoTree(searchParams: URLSearchParams) {
     case "villages":
       result = { level: "village", ...(await listGeoVillages(searchParams)) };
       break;
+    case "streets":
+      result = { level: "street", ...(await listGeoStreets(searchParams)) };
+      break;
     default:
       result = { level: "country", ...(await listGeoCountries(searchParams)) };
   }
@@ -258,6 +313,7 @@ export async function queryGeoTree(searchParams: URLSearchParams) {
       districts: counts.districts,
       neighborhoods: counts.neighborhoods,
       villages: counts.villages,
+      streets: counts.streets,
     },
     filters,
   };

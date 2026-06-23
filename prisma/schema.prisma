@@ -1021,6 +1021,63 @@ model Page {
   updatedAt DateTime @updatedAt
 }
 
+// ── ENA Blog Engine V1 ──────────────────────────────────────────────
+
+enum BlogPostStatus {
+  DRAFT
+  REVIEW
+  PUBLISHED
+  ARCHIVED
+}
+
+enum BlogSourceType {
+  KEYWORD
+  KEYWORD_GROUP
+  PRODUCT
+  CATEGORY
+  GEO
+  COMPETITOR_STRUCTURE
+}
+
+model BlogPost {
+  id                String         @id @default(cuid())
+  projectId         String?
+  dealerId          String?
+  sourceType        BlogSourceType
+  sourceReferenceId String?
+  title             String
+  slug              String         @unique
+  keyword           String         @default("")
+  keywordGroup      String?
+  province          String?
+  district          String?
+  category          String?
+  tagsJson          String         @default("[]")
+  excerpt           String         @default("")
+  contentJson       String         @default("{}")
+  faqJson           String         @default("[]")
+  schemaJson        String         @default("{}")
+  internalLinksJson String         @default("[]")
+  seoTitle          String         @default("")
+  seoDescription    String         @default("")
+  status            BlogPostStatus @default(DRAFT)
+  originalityScore  Int            @default(0)
+  seoScore          Int            @default(0)
+  geoScore          Int            @default(0)
+  qualityScore      Int            @default(0)
+  sourceJson        String         @default("{}")
+  metadataJson      String         @default("{}")
+  publishedAt       DateTime?
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+
+  @@index([status, publishedAt])
+  @@index([sourceType])
+  @@index([keyword, province, district, sourceReferenceId])
+  @@index([dealerId])
+  @@index([projectId])
+}
+
 model OrderAttachment {
   id        String   @id @default(cuid())
   orderId   String
@@ -1661,7 +1718,7 @@ model MarketplaceOrderItem {
 model ThyronixAiProvider {
   id              String   @id @default(cuid())
   name            String
-  provider        String   // openai, claude, gemini, deepseek, openrouter, custom, ollama
+  provider        String   // openai, claude, gemini, deepseek, grok, openrouter, custom, ollama
   apiKeyEncrypted String   // AES encrypted
   endpoint        String   @default("")
   model           String   @default("gpt-4o")
@@ -3751,6 +3808,81 @@ model ProductUniverseImportTemplate {
 
   @@index([dealerId])
   @@index([sourceType])
+}
+
+model DealerStore {
+  id                  String   @id @default(cuid())
+  dealerId            String   @unique
+  name                String
+  slug                String   @unique
+  customDomain        String   @default("")
+  customDomainVerified Boolean @default(false)
+  logo                String   @default("")
+  coverImage          String   @default("")
+  aboutText           String   @default("")
+  contactEmail        String   @default("")
+  contactPhone        String   @default("")
+  themeJson           String   @default("{}")
+  paymentModel        String   @default("PLATFORM")
+  merchantId          String?
+  merchantApiKey      String?
+  taxNumber           String?
+  taxOffice           String?
+  status              String   @default("DRAFT")
+  orderCount          Int      @default(0)
+  totalRevenue        Float    @default(0)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  products            StoreProduct[]
+  orders              StoreOrder[]
+
+  @@index([dealerId])
+  @@index([slug])
+  @@index([status])
+}
+
+model StoreProduct {
+  id                   String   @id @default(cuid())
+  storeId              String
+  productCatalogItemId String
+  dealerPrice          Float    @default(0)
+  isActive             Boolean  @default(true)
+  sortOrder            Int      @default(0)
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  store                DealerStore @relation(fields: [storeId], references: [id], onDelete: Cascade)
+
+  @@unique([storeId, productCatalogItemId])
+  @@index([storeId])
+  @@index([productCatalogItemId])
+  @@index([isActive])
+}
+
+model StoreOrder {
+  id                 String   @id @default(cuid())
+  storeId            String
+  customerName       String
+  customerEmail      String
+  customerPhone      String   @default("")
+  shippingAddress    String
+  city               String   @default("")
+  district           String   @default("")
+  zipCode            String   @default("")
+  itemsJson          String   @default("[]")
+  totalAmount        Float    @default(0)
+  status             String   @default("PENDING")
+  notes              String   @default("")
+  fulfillmentOrderId String?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  store              DealerStore @relation(fields: [storeId], references: [id], onDelete: Cascade)
+
+  @@index([storeId])
+  @@index([status])
+  @@index([createdAt])
 }
 
 enum ProductUniverseBlueprintJobStatus {
