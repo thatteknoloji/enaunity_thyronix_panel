@@ -8,6 +8,11 @@ const SCHEMA_MAP: Record<BlueprintKind, string[]> = {
   PRODUCT_GEO: ["Product", "FAQPage"],
   PRODUCT_INTENT: ["Article", "FAQPage", "Product"],
   PRODUCT_CATEGORY: ["CollectionPage", "ItemList", "FAQPage"],
+  PRODUCT_GUIDE: ["Article", "HowTo", "Product"],
+  PRODUCT_BENEFIT: ["Article", "Product"],
+  PRODUCT_PROBLEM: ["Article", "Product", "FAQPage"],
+  PRODUCT_COMPARISON: ["Product", "ItemList"],
+  PRODUCT_ALTERNATIVE: ["Product", "ItemList"],
 };
 
 const REQUIRED_FIELDS: Record<string, string[]> = {
@@ -17,6 +22,7 @@ const REQUIRED_FIELDS: Record<string, string[]> = {
   Article: ["headline", "author", "datePublished"],
   CollectionPage: ["name", "description"],
   ItemList: ["itemListElement"],
+  HowTo: ["name", "step", "totalTime"],
   LocalBusiness: ["name", "address"],
   Place: ["name", "geo"],
 };

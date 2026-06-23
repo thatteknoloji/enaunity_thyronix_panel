@@ -75,7 +75,11 @@ export function makeId(prefix: string, index: number): string {
 
 export function resolveBlueprintKind(metadata: Record<string, unknown>, pageType: string): BlueprintKind {
   const kind = metadata.blueprintKind as string | undefined;
-  if (kind && ["PRODUCT_DETAIL", "PRODUCT_CATEGORY", "PRODUCT_INTENT", "PRODUCT_GEO", "PRODUCT_FAQ"].includes(kind)) {
+  const knownKinds = [
+    "PRODUCT_DETAIL", "PRODUCT_CATEGORY", "PRODUCT_INTENT", "PRODUCT_GEO", "PRODUCT_FAQ",
+    "PRODUCT_GUIDE", "PRODUCT_BENEFIT", "PRODUCT_PROBLEM", "PRODUCT_COMPARISON", "PRODUCT_ALTERNATIVE",
+  ];
+  if (kind && knownKinds.includes(kind)) {
     return kind as BlueprintKind;
   }
   const map: Record<string, BlueprintKind> = {
@@ -84,6 +88,11 @@ export function resolveBlueprintKind(metadata: Record<string, unknown>, pageType
     product_intent: "PRODUCT_INTENT",
     product_geo: "PRODUCT_GEO",
     product_faq: "PRODUCT_FAQ",
+    product_guide: "PRODUCT_GUIDE",
+    product_benefit: "PRODUCT_BENEFIT",
+    product_problem: "PRODUCT_PROBLEM",
+    product_comparison: "PRODUCT_COMPARISON",
+    product_alternative: "PRODUCT_ALTERNATIVE",
   };
   return map[pageType] || "PRODUCT_DETAIL";
 }
