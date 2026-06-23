@@ -19,7 +19,12 @@ export type BlueprintKind =
   | "PRODUCT_CATEGORY"
   | "PRODUCT_INTENT"
   | "PRODUCT_GEO"
-  | "PRODUCT_FAQ";
+  | "PRODUCT_FAQ"
+  | "PRODUCT_GUIDE"
+  | "PRODUCT_BENEFIT"
+  | "PRODUCT_PROBLEM"
+  | "PRODUCT_COMPARISON"
+  | "PRODUCT_ALTERNATIVE";
 
 export type ProductBlueprintBridgeOptions = {
   projectId: string;
@@ -104,11 +109,6 @@ const HIERARCHY: Record<BlueprintKind, number> = {
   PRODUCT_GEO: 1,
   PRODUCT_INTENT: 2,
   PRODUCT_FAQ: 2,
-  PRODUCT_GUIDE: 2,
-  PRODUCT_BENEFIT: 2,
-  PRODUCT_PROBLEM: 2,
-  PRODUCT_COMPARISON: 2,
-  PRODUCT_ALTERNATIVE: 2,
   PRODUCT_CATEGORY: 3,
   PRODUCT_DETAIL: 4,
 };
@@ -119,11 +119,6 @@ const PAGE_TYPE_MAP: Record<BlueprintKind, string> = {
   PRODUCT_INTENT: "product_intent",
   PRODUCT_GEO: "product_geo",
   PRODUCT_FAQ: "product_faq",
-  PRODUCT_GUIDE: "product_guide",
-  PRODUCT_BENEFIT: "product_benefit",
-  PRODUCT_PROBLEM: "product_problem",
-  PRODUCT_COMPARISON: "product_comparison",
-  PRODUCT_ALTERNATIVE: "product_alternative",
 };
 
 const SAMPLE_PROVINCE_NAMES = ["İstanbul", "Ankara", "İzmir"];
