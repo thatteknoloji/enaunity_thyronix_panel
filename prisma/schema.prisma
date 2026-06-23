@@ -3214,6 +3214,34 @@ model PageFactoryPipelineJob {
   @@index([createdAt])
 }
 
+enum PageFactoryUniverseJobStatus {
+  PENDING
+  RUNNING
+  COMPLETED
+  FAILED
+}
+
+model PageFactoryUniverseJob {
+  id                  String                       @id @default(cuid())
+  dealerId            String?
+  projectId           String?
+  sourceType          String                       @default("ALL")
+  status              PageFactoryUniverseJobStatus @default(PENDING)
+  totalProducts       Int                          @default(0)
+  totalBlueprints     Int                          @default(0)
+  generatedBlueprints Int                          @default(0)
+  metadataJson        String                       @default("{}")
+  startedAt           DateTime?
+  completedAt         DateTime?
+  createdAt           DateTime                     @default(now())
+  updatedAt           DateTime                     @updatedAt
+
+  @@index([dealerId])
+  @@index([projectId])
+  @@index([status])
+  @@index([createdAt])
+}
+
 enum PageFactoryPublishedPageStatus {
   STAGED
   PUBLISHED_INTERNAL

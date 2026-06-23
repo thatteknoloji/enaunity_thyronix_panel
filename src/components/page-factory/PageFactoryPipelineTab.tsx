@@ -28,6 +28,7 @@ type PreviewResult = {
   gatePassedEstimate: number;
   gateWarningEstimate: number;
   gateBlockedEstimate: number;
+  publishEstimate?: number;
   sampleBlueprintIds: string[];
   warnings: string[];
   planOnly?: boolean;
@@ -44,6 +45,9 @@ type RunResult = {
   gatePassed: number;
   gateWarning: number;
   gateBlocked: number;
+  pagesPublished?: number;
+  pagesUpdated?: number;
+  publishSkipped?: number;
   errorCount: number;
   dryRun: boolean;
   warnings: string[];
@@ -60,6 +64,7 @@ type PipelineJob = {
   gatePassed: number;
   gateWarning: number;
   gateBlocked: number;
+  pagesPublished: number;
   errorCount: number;
   createdAt: string;
 };
@@ -67,6 +72,7 @@ type PipelineJob = {
 type Props = {
   projects: Project[];
   mode: "admin" | "dealer";
+  defaultProjectId?: string;
 };
 
 const BLUEPRINT_KINDS = [
@@ -77,8 +83,8 @@ const BLUEPRINT_KINDS = [
   "PRODUCT_FAQ",
 ];
 
-export function PageFactoryPipelineTab({ projects, mode }: Props) {
-  const [projectId, setProjectId] = useState("");
+export function PageFactoryPipelineTab({ projects, mode, defaultProjectId }: Props) {
+  const [projectId, setProjectId] = useState(defaultProjectId || "");
   const [generationSource, setGenerationSource] = useState<string>("ALL");
   const [blueprintType, setBlueprintType] = useState("");
   const [minQualityScore, setMinQualityScore] = useState(0);
@@ -97,7 +103,7 @@ export function PageFactoryPipelineTab({ projects, mode }: Props) {
     projectId: projectId || undefined,
     generationSource: generationSource || "ALL",
     blueprintType: blueprintType || undefined,
-    minQualityScore,
+    minQualityScore: minQualityScore > 0 ? minQualityScore : undefined,
     minAeoScore: minAeoScore || undefined,
     onlyWithoutAeo,
     onlyWithoutDraft,
@@ -119,6 +125,10 @@ export function PageFactoryPipelineTab({ projects, mode }: Props) {
   useEffect(() => {
     loadJobs();
   }, [loadJobs]);
+
+  useEffect(() => {
+    if (defaultProjectId) setProjectId(defaultProjectId);
+  }, [defaultProjectId]);
 
   const runPreview = async () => {
     if (!projectId) {
@@ -178,7 +188,7 @@ export function PageFactoryPipelineTab({ projects, mode }: Props) {
             AEO Bulk + Draft Pipeline V1
           </h2>
           <p className="text-xs text-gray-500 mt-0.5">
-            Blueprint → AEO Layer → Content Draft → Publish Gate toplu hattı
+            AEO → Draft → Gate → Published Page tam zincir
           </p>
         </div>
 
@@ -302,10 +312,11 @@ export function PageFactoryPipelineTab({ projects, mode }: Props) {
             <StatCard label="AEO üretilecek" value={preview.needsAeo} color="text-violet-600" />
             <StatCard label="Draft üretilecek" value={preview.needsDraft} color="text-blue-600" />
             <StatCard label="Gate çalışacak" value={preview.needsGate} color="text-emerald-600" />
-            <StatCard label="Ready to publish (tahmini)" value={preview.readyToPublishEstimate} color="text-green-600" />
+            <StatCard label="Publish tahmini" value={preview.publishEstimate ?? 0} color="text-emerald-700" />
             <StatCard label="Gate passed (tahmini)" value={preview.gatePassedEstimate} />
             <StatCard label="Gate warning (tahmini)" value={preview.gateWarningEstimate} color="text-amber-600" />
             <StatCard label="Gate blocked (tahmini)" value={preview.gateBlockedEstimate} color="text-red-600" />
+            <StatCard label="Ready to publish (tahmini)" value={preview.readyToPublishEstimate} color="text-green-600" />
           </div>
         </div>
       )}
@@ -324,6 +335,9 @@ export function PageFactoryPipelineTab({ projects, mode }: Props) {
             <StatCard label="Gate passed" value={result.gatePassed} color="text-green-600" />
             <StatCard label="Gate warning" value={result.gateWarning} color="text-amber-600" />
             <StatCard label="Gate blocked" value={result.gateBlocked} color="text-red-600" />
+            <StatCard label="Published" value={result.pagesPublished ?? 0} color="text-emerald-700" />
+            <StatCard label="Publish güncelleme" value={result.pagesUpdated ?? 0} />
+            <StatCard label="Publish atlandı" value={result.publishSkipped ?? 0} color="text-gray-500" />
             <StatCard label="Hata" value={result.errorCount} color="text-red-600" />
           </div>
           {result.errors.length > 0 && (
@@ -353,12 +367,13 @@ export function PageFactoryPipelineTab({ projects, mode }: Props) {
                 <th className="px-4 py-2 text-right">AEO</th>
                 <th className="px-4 py-2 text-right">Draft</th>
                 <th className="px-4 py-2 text-right">Gate ✓</th>
+                <th className="px-4 py-2 text-right">Published</th>
                 <th className="px-4 py-2 text-right">Hata</th>
               </tr>
             </thead>
             <tbody>
               {jobs.length === 0 ? (
-                <tr><td colSpan={7} className="px-4 py-6 text-center text-gray-400">Henüz job yok</td></tr>
+                <tr><td colSpan={8} className="px-4 py-6 text-center text-gray-400">Henüz job yok</td></tr>
               ) : (
                 jobs.map((j) => (
                   <tr key={j.id} className="border-t border-gray-100 hover:bg-gray-50">
@@ -370,6 +385,7 @@ export function PageFactoryPipelineTab({ projects, mode }: Props) {
                     <td className="px-4 py-2 text-right">{j.aeoGenerated}</td>
                     <td className="px-4 py-2 text-right">{j.draftsGenerated}</td>
                     <td className="px-4 py-2 text-right">{j.gatePassed}</td>
+                    <td className="px-4 py-2 text-right">{j.pagesPublished ?? 0}</td>
                     <td className="px-4 py-2 text-right">{j.errorCount}</td>
                   </tr>
                 ))

@@ -10,7 +10,7 @@ function parseFilters(body: Record<string, unknown>): PipelineFilters {
     projectId: body.projectId ? String(body.projectId) : undefined,
     generationSource: body.generationSource ? String(body.generationSource) : "ALL",
     blueprintType: body.blueprintType ? String(body.blueprintType) : undefined,
-    minQualityScore: body.minQualityScore != null ? Number(body.minQualityScore) : undefined,
+    minQualityScore: body.minQualityScore != null && Number(body.minQualityScore) > 0 ? Number(body.minQualityScore) : undefined,
     minAeoScore: body.minAeoScore != null ? Number(body.minAeoScore) : undefined,
     onlyWithoutAeo: body.onlyWithoutAeo === true,
     onlyWithoutDraft: body.onlyWithoutDraft === true,

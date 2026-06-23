@@ -192,8 +192,8 @@ export function PublishGateReviewTab({ projectId }: { projectId?: string }) {
         <div className="max-h-96 overflow-y-auto divide-y divide-gray-50">
           {items.length === 0 && <p className="p-4 text-xs text-gray-500">Kuyruk boş — pipeline çalıştırın veya gate oluşturun.</p>}
           {items.map((g) => {
-            const blockers = JSON.parse(g.blockersJson || "[]").length;
-            const warnings = JSON.parse(g.warningsJson || "[]").length;
+            const blockerList: Array<{ label?: string; message?: string }> = JSON.parse(g.blockersJson || "[]");
+            const warningList: Array<{ label?: string; message?: string }> = JSON.parse(g.warningsJson || "[]");
             const canPublish =
               g.draft.status === "READY_TO_PUBLISH" &&
               (g.status === "PASSED" || g.status === "WARNING");
@@ -204,8 +204,15 @@ export function PublishGateReviewTab({ projectId }: { projectId?: string }) {
                     <p className="font-medium text-gray-900">{g.draft.title}</p>
                     <p className="text-gray-500">
                       Gate: <span className="font-medium">{g.status}</span> · Score {g.score} · Publish {g.draft.publishScore}
-                      · Blockers {blockers} · Warnings {warnings}
+                      · Blockers {blockerList.length} · Warnings {warningList.length}
                     </p>
+                    {g.status === "BLOCKED" && blockerList.length > 0 && (
+                      <div className="mt-1 text-red-700">
+                        {blockerList.map((b, i) => (
+                          <p key={i}>⛔ {b.label || "Blocker"}: {b.message || JSON.stringify(b)}</p>
+                        ))}
+                      </div>
+                    )}
                   </div>
                   {g.draft.status === "READY_TO_PUBLISH" && (
                     <span className="shrink-0 rounded bg-emerald-100 text-emerald-700 px-2 py-0.5 text-[10px] font-medium">Ready</span>

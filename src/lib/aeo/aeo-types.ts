@@ -87,7 +87,12 @@ export type BlueprintKind =
   | "PRODUCT_CATEGORY"
   | "PRODUCT_INTENT"
   | "PRODUCT_GEO"
-  | "PRODUCT_FAQ";
+  | "PRODUCT_FAQ"
+  | "PRODUCT_GUIDE"
+  | "PRODUCT_BENEFIT"
+  | "PRODUCT_PROBLEM"
+  | "PRODUCT_COMPARISON"
+  | "PRODUCT_ALTERNATIVE";
 
 export type AeoBulkFilters = {
   generationSource?: string;

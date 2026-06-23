@@ -45,6 +45,16 @@ export function buildPublishedPath(
   if (kind === "PRODUCT_INTENT" || pt === "INTENT") {
     return `/rehber/${cleanSlug}`;
   }
+  if (
+    kind === "PRODUCT_GUIDE" ||
+    kind === "PRODUCT_BENEFIT" ||
+    kind === "PRODUCT_PROBLEM" ||
+    kind === "PRODUCT_COMPARISON" ||
+    kind === "PRODUCT_ALTERNATIVE" ||
+    pt === "GUIDE"
+  ) {
+    return `/rehber/${cleanSlug}`;
+  }
   if (kind === "PRODUCT_GEO" || pt === "GEO" || pt === "LOCATION") {
     const geoPath = (metadata.geoPath as string) || null;
     const geoHints = aeo?.geoHints as { province?: string; district?: string } | undefined;

@@ -142,6 +142,11 @@ const KIND_PRIORITY: Record<BlueprintKind, string[]> = {
   PRODUCT_GEO: ["nedir", "nerede", "kimler", "dikkat", "fiyat", "olcu_malzeme", "ne_is", "fark"],
   PRODUCT_INTENT: ["nedir", "ne_is", "dikkat", "kimler", "fark", "olcu_malzeme", "nerede", "fiyat"],
   PRODUCT_CATEGORY: ["nedir", "ne_is", "kimler", "fark", "dikkat", "olcu_malzeme", "nerede", "fiyat"],
+  PRODUCT_GUIDE: ["nedir", "ne_is", "dikkat", "kimler", "olcu_malzeme", "nerede", "fark", "fiyat"],
+  PRODUCT_BENEFIT: ["nedir", "ne_is", "fark", "kimler", "dikkat", "olcu_malzeme", "nerede", "fiyat"],
+  PRODUCT_PROBLEM: ["nedir", "dikkat", "ne_is", "kimler", "fark", "olcu_malzeme", "nerede", "fiyat"],
+  PRODUCT_COMPARISON: ["nedir", "fark", "ne_is", "kimler", "dikkat", "olcu_malzeme", "nerede", "fiyat"],
+  PRODUCT_ALTERNATIVE: ["nedir", "fark", "ne_is", "kimler", "dikkat", "olcu_malzeme", "nerede", "fiyat"],
 };
 
 export function generateFaqBlocks(

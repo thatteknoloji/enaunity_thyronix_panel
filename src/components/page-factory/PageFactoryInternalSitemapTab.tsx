@@ -28,10 +28,11 @@ type SitemapItem = {
 type Props = {
   projects: Project[];
   mode: "admin" | "dealer";
+  defaultProjectId?: string;
 };
 
-export function PageFactoryInternalSitemapTab({ projects, mode }: Props) {
-  const [projectId, setProjectId] = useState("");
+export function PageFactoryInternalSitemapTab({ projects, mode, defaultProjectId }: Props) {
+  const [projectId, setProjectId] = useState(defaultProjectId || "");
   const [stats, setStats] = useState<Stats | null>(null);
   const [items, setItems] = useState<SitemapItem[]>([]);
   const [loading, setLoading] = useState(false);
@@ -59,6 +60,10 @@ export function PageFactoryInternalSitemapTab({ projects, mode }: Props) {
   useEffect(() => {
     load();
   }, [load]);
+
+  useEffect(() => {
+    if (defaultProjectId) setProjectId(defaultProjectId);
+  }, [defaultProjectId]);
 
   const generate = async (all = false) => {
     setLoading(true);

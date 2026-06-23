@@ -186,7 +186,7 @@ export default function LoginForm() {
 
         <a
           href="/api/auth/oauth/google/start"
-          className="flex w-full items-center justify-center gap-3 rounded-xl border border-ena-border bg-white px-4 py-2.5 text-sm font-medium text-ena-text transition-colors hover:bg-gray-50"
+          className="flex w-full items-center justify-center gap-3 rounded-xl border border-ena-border bg-white px-4 py-2.5 text-sm font-medium text-gray-800 transition-colors hover:bg-gray-50"
         >
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/>

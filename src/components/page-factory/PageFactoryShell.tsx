@@ -22,6 +22,8 @@ import { PublishGateReviewTab } from "@/components/page-factory/PublishGateRevie
 import { PageFactoryPipelineTab } from "@/components/page-factory/PageFactoryPipelineTab";
 import { PageFactoryPublishedPagesTab } from "@/components/page-factory/PageFactoryPublishedPagesTab";
 import { PageFactoryInternalSitemapTab } from "@/components/page-factory/PageFactoryInternalSitemapTab";
+import { PageFactoryProjectBar } from "@/components/page-factory/PageFactoryProjectBar";
+import { PageFactoryUniverseGeneratorTab } from "@/components/page-factory/PageFactoryUniverseGeneratorTab";
 import { ContentDraftPreviewModal } from "@/components/page-factory/ContentDraftPreviewModal";
 
 type Dashboard = {
@@ -96,7 +98,8 @@ export function PageFactoryShell({ showLicensePanel = false }: Props) {
     data: null,
     title: "",
   });
-  const [shellView, setShellView] = useState<"projects" | "review" | "pipeline" | "published" | "sitemap">("projects");
+  const [shellView, setShellView] = useState<"projects" | "universe" | "universe-generator" | "review" | "pipeline" | "published" | "sitemap">("projects");
+  const [activeProjectId, setActiveProjectId] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [form, setForm] = useState({
     name: "",
@@ -130,6 +133,7 @@ export function PageFactoryShell({ showLicensePanel = false }: Props) {
     const d = await r.json();
     if (d.success) {
       setSelected(d.data);
+      setActiveProjectId(id);
       setEditing(false);
       setProjectTab("overview");
       setEditForm({
@@ -246,6 +250,20 @@ export function PageFactoryShell({ showLicensePanel = false }: Props) {
         </button>
         <button
           type="button"
+          onClick={() => setShellView("universe")}
+          className={`px-4 py-1.5 text-xs font-medium rounded-md ${shellView === "universe" ? "bg-amber-600 text-white" : "text-gray-600 hover:bg-gray-100"}`}
+        >
+          Blueprint Evreni
+        </button>
+        <button
+          type="button"
+          onClick={() => setShellView("universe-generator")}
+          className={`px-4 py-1.5 text-xs font-medium rounded-md ${shellView === "universe-generator" ? "bg-violet-600 text-white" : "text-gray-600 hover:bg-gray-100"}`}
+        >
+          Universe Generator
+        </button>
+        <button
+          type="button"
           onClick={() => setShellView("review")}
           className={`px-4 py-1.5 text-xs font-medium rounded-md ${shellView === "review" ? "bg-emerald-600 text-white" : "text-gray-600 hover:bg-gray-100"}`}
         >
@@ -274,8 +292,45 @@ export function PageFactoryShell({ showLicensePanel = false }: Props) {
         </button>
       </div>
 
+      {shellView !== "projects" && dashboard && (
+        <PageFactoryProjectBar
+          projects={dashboard.projects.map((p) => ({ id: p.id, name: p.name }))}
+          value={activeProjectId || selected?.id || ""}
+          onChange={setActiveProjectId}
+        />
+      )}
+
       {shellView === "review" ? (
-        <PublishGateReviewTab projectId={selected?.id} />
+        <PublishGateReviewTab projectId={activeProjectId || selected?.id} />
+      ) : shellView === "universe" ? (
+        loading ? (
+          <div className="flex justify-center py-16">
+            <Loader2 className="animate-spin text-violet-500" size={28} />
+          </div>
+        ) : dashboard ? (
+          <div className="space-y-4">
+            {(activeProjectId || selected?.id) ? (
+              <BlueprintUniverseTab
+                projectId={activeProjectId || selected!.id}
+                sector={dashboard.projects.find((p) => p.id === (activeProjectId || selected?.id))?.sector || ""}
+                onGenerated={() => loadDashboard()}
+              />
+            ) : (
+              <p className="text-sm text-gray-500">Blueprint evreni için üstten proje seçin.</p>
+            )}
+          </div>
+        ) : null
+      ) : shellView === "universe-generator" ? (
+        loading ? (
+          <div className="flex justify-center py-16">
+            <Loader2 className="animate-spin text-violet-500" size={28} />
+          </div>
+        ) : dashboard ? (
+          <PageFactoryUniverseGeneratorTab
+            projects={dashboard.projects.map((p) => ({ id: p.id, name: p.name }))}
+            defaultProjectId={activeProjectId || selected?.id}
+          />
+        ) : null
       ) : shellView === "pipeline" ? (
         loading ? (
           <div className="flex justify-center py-16">
@@ -285,6 +340,7 @@ export function PageFactoryShell({ showLicensePanel = false }: Props) {
           <PageFactoryPipelineTab
             projects={dashboard.projects.map((p) => ({ id: p.id, name: p.name }))}
             mode={showLicensePanel ? "admin" : "dealer"}
+            defaultProjectId={activeProjectId || selected?.id}
           />
         ) : null
       ) : shellView === "published" ? (
@@ -296,6 +352,7 @@ export function PageFactoryShell({ showLicensePanel = false }: Props) {
           <PageFactoryPublishedPagesTab
             projects={dashboard.projects.map((p) => ({ id: p.id, name: p.name }))}
             mode={showLicensePanel ? "admin" : "dealer"}
+            defaultProjectId={activeProjectId || selected?.id}
           />
         ) : null
       ) : shellView === "sitemap" ? (
@@ -307,6 +364,7 @@ export function PageFactoryShell({ showLicensePanel = false }: Props) {
           <PageFactoryInternalSitemapTab
             projects={dashboard.projects.map((p) => ({ id: p.id, name: p.name }))}
             mode={showLicensePanel ? "admin" : "dealer"}
+            defaultProjectId={activeProjectId || selected?.id}
           />
         ) : null
       ) : loading ? (

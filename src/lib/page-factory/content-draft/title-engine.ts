@@ -31,6 +31,26 @@ export function generateTitles(ctx: DraftContext): TitleResult {
       h1 = `${name} Alırken Nelere Dikkat Edilmeli?`;
       metaTitle = `${name} Satın Alma Rehberi | İpuçları`;
       break;
+    case "PRODUCT_GUIDE":
+      h1 = `${name} Kullanım Rehberi`;
+      metaTitle = `${name} | Nasıl Kullanılır ve Bakım`;
+      break;
+    case "PRODUCT_BENEFIT":
+      h1 = `${name} Avantajları ve Faydaları`;
+      metaTitle = `${name} | Neden Tercih Edilmeli?`;
+      break;
+    case "PRODUCT_PROBLEM":
+      h1 = `${name} Sorun Çözümü ve Dikkat Noktaları`;
+      metaTitle = `${name} | Sorunlar ve Çözümler`;
+      break;
+    case "PRODUCT_COMPARISON":
+      h1 = `${name} Karşılaştırma Rehberi`;
+      metaTitle = `${name} | Alternatifler ve Karşılaştırma`;
+      break;
+    case "PRODUCT_ALTERNATIVE":
+      h1 = `${name} Alternatifleri`;
+      metaTitle = `${name} | Benzer Ürünler ve Alternatifler`;
+      break;
     case "PRODUCT_CATEGORY":
       h1 = cat ? `${cat} Modelleri ve Seçim Rehberi` : `${name} Kategori Rehberi`;
       metaTitle = cat ? `${cat} | Modeller, Özellikler ve SSS` : `${name} | Kategori Rehberi`;

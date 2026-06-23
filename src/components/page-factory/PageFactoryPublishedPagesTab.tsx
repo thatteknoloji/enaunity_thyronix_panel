@@ -61,10 +61,11 @@ type PublishPreview = {
 type Props = {
   projects: Project[];
   mode: "admin" | "dealer";
+  defaultProjectId?: string;
 };
 
-export function PageFactoryPublishedPagesTab({ projects, mode }: Props) {
-  const [projectId, setProjectId] = useState("");
+export function PageFactoryPublishedPagesTab({ projects, mode, defaultProjectId }: Props) {
+  const [projectId, setProjectId] = useState(defaultProjectId || "");
   const [statusFilter, setStatusFilter] = useState("");
   const [draftIdInput, setDraftIdInput] = useState("");
   const [stats, setStats] = useState<Stats | null>(null);
@@ -97,6 +98,10 @@ export function PageFactoryPublishedPagesTab({ projects, mode }: Props) {
   useEffect(() => {
     load();
   }, [load]);
+
+  useEffect(() => {
+    if (defaultProjectId) setProjectId(defaultProjectId);
+  }, [defaultProjectId]);
 
   const runPreview = async () => {
     if (!draftIdInput.trim()) {

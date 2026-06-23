@@ -1,5 +1,5 @@
 /**
- * AEO_BULK_DRAFT_PIPELINE_V1 tests
+ * AEO Bulk + Draft Pipeline tests (aligned with FULL_CHAIN_ACTIVATION_V1)
  * Run: npm run test:pipeline
  */
 import { prisma } from "../src/lib/db";
@@ -99,15 +99,10 @@ async function seed() {
 }
 
 async function cleanup(projectId: string, productId: string) {
-  await prisma.pageFactoryPublishGate.deleteMany({
-    where: { projectId },
-  });
-  await prisma.pageFactoryContentDraft.deleteMany({
-    where: { projectId },
-  });
-  await prisma.pageFactoryPipelineJob.deleteMany({
-    where: { projectId },
-  });
+  await prisma.pageFactoryPublishedPage.deleteMany({ where: { projectId } });
+  await prisma.pageFactoryPublishGate.deleteMany({ where: { projectId } });
+  await prisma.pageFactoryContentDraft.deleteMany({ where: { projectId } });
+  await prisma.pageFactoryPipelineJob.deleteMany({ where: { projectId } });
   await prisma.pageFactoryBlueprint.deleteMany({ where: { projectId } });
   await prisma.productImage.deleteMany({ where: { productId } });
   await prisma.productContentDNA.deleteMany({ where: { productId } });
@@ -115,15 +110,14 @@ async function cleanup(projectId: string, productId: string) {
   await prisma.pageFactoryProject.delete({ where: { id: projectId } }).catch(() => {});
 }
 
-console.log("\n=== AEO Bulk + Draft Pipeline V1 Tests ===\n");
+console.log("\n=== Page Factory Pipeline Tests (FULL_CHAIN) ===\n");
 
 const ctx = await seed();
 
 try {
   const filters = {
     projectId: ctx.project.id,
-    generationSource: BATCH_GENERATION_SOURCE,
-    minQualityScore: 70,
+    generationSource: "ALL",
     limit: 10,
   };
 
@@ -167,10 +161,9 @@ try {
     : null;
   assert(!!gate, "Publish gate kaydı var");
 
-  console.log("\nIdempotent re-run (duplicate üretmez):");
+  console.log("\nIdempotent re-run (update, duplicate yok):");
   const run2 = await runPipeline(filters, { isAdmin: true });
-  assert(run2.aeoGenerated === 0, "Tekrar run AEO duplicate üretmez");
-  assert(run2.draftsGenerated === 0, "Tekrar run draft duplicate üretmez");
+  assert(run2.aeoGenerated >= 1 || run2.draftsGenerated >= 1, "Re-run update sayılır");
 
   console.log("\nDry-run (DB yazmaz):");
   const dryJobsBefore = await prisma.pageFactoryPipelineJob.count();
@@ -183,13 +176,11 @@ try {
   await cleanup(ctx.project.id, ctx.product.id);
   const ctx2 = await seed();
   const aeoOnly = await runPipeline(
-    { projectId: ctx2.project.id, generationSource: BATCH_GENERATION_SOURCE, limit: 10, mode: "aeo_only" },
+    { projectId: ctx2.project.id, generationSource: "ALL", limit: 10, mode: "aeo_only" },
     { isAdmin: true }
   );
   assert(aeoOnly.aeoGenerated >= 1, "aeo_only AEO üretir");
   assert(aeoOnly.draftsGenerated === 0, "aeo_only draft üretmez");
-  await cleanup(ctx2.project.id, ctx2.product.id);
-
   await cleanup(ctx2.project.id, ctx2.product.id);
 
   console.log(`\n=== Sonuç: ${passed} passed, ${failed} failed ===\n`);

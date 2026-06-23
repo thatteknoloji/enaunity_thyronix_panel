@@ -261,6 +261,11 @@ const KIND_BLOCKS: Record<BlueprintKind, AeoAnswerBlock["type"][]> = {
   PRODUCT_GEO: ["QUICK_ANSWER"],
   PRODUCT_INTENT: ["QUICK_ANSWER", "AI_OVERVIEW", "HOW_TO"],
   PRODUCT_CATEGORY: ["DEFINITION", "AI_OVERVIEW", "PRODUCT_RECOMMENDATION"],
+  PRODUCT_GUIDE: ["QUICK_ANSWER", "HOW_TO", "AI_OVERVIEW"],
+  PRODUCT_BENEFIT: ["QUICK_ANSWER", "AI_OVERVIEW", "PRODUCT_RECOMMENDATION"],
+  PRODUCT_PROBLEM: ["QUICK_ANSWER", "AI_OVERVIEW"],
+  PRODUCT_COMPARISON: ["QUICK_ANSWER", "COMPARISON", "AI_OVERVIEW"],
+  PRODUCT_ALTERNATIVE: ["QUICK_ANSWER", "COMPARISON", "PRODUCT_RECOMMENDATION"],
 };
 
 export function generateAnswerBlocks(
@@ -272,7 +277,14 @@ export function generateAnswerBlocks(
 ): AeoAnswerBlock[] {
   const types = [...KIND_BLOCKS[blueprintKind]];
 
-  if (blueprintKind === "PRODUCT_DETAIL" || blueprintKind === "PRODUCT_FAQ" || blueprintKind === "PRODUCT_CATEGORY") {
+  if (
+    blueprintKind === "PRODUCT_DETAIL" ||
+    blueprintKind === "PRODUCT_FAQ" ||
+    blueprintKind === "PRODUCT_CATEGORY" ||
+    blueprintKind === "PRODUCT_GUIDE" ||
+    blueprintKind === "PRODUCT_BENEFIT" ||
+    blueprintKind === "PRODUCT_PROBLEM"
+  ) {
     types.push("FAQ");
   }
   if (blueprintKind === "PRODUCT_GEO") {

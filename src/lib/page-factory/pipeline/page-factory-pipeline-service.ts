@@ -39,10 +39,6 @@ function hasAeo(metadata: Record<string, unknown>): boolean {
   return aeo?.version === "AEO_LAYER_V1";
 }
 
-function hasProductForAeo(metadata: Record<string, unknown>): boolean {
-  return !!(metadata.productId || metadata.productUniverseId);
-}
-
 function matchesBlueprintFilters(
   bp: BlueprintRow,
   metadata: Record<string, unknown>,
@@ -169,7 +165,6 @@ function resolveMode(filters: PipelineFilters): PipelineMode {
 
 function shouldRunAeo(mode: PipelineMode, metadata: Record<string, unknown>, filters: PipelineFilters): boolean {
   if (mode === "draft_only" || mode === "gate_only") return false;
-  if (!hasProductForAeo(metadata)) return false;
   if (filters.onlyWithoutAeo && hasAeo(metadata)) return false;
   return true;
 }
@@ -348,14 +343,24 @@ export async function runPipeline(
           where: { id: draftId },
           include: { publishGate: true },
         });
-        if (draft?.status === "READY_TO_PUBLISH" && draft.publishGate) {
+        if (draft?.publishGate) {
           const gs = draft.publishGate.status;
           if (gs === "PASSED" || gs === "WARNING") {
-            try {
-              const pub = await publishDraftInternal(draftId);
-              if (pub.created) pagesPublished++;
-              else if (pub.updated) pagesUpdated++;
-            } catch {
+            if (draft.status !== "READY_TO_PUBLISH" && draft.publishScore >= 70) {
+              await prisma.pageFactoryContentDraft.update({
+                where: { id: draftId },
+                data: { status: "READY_TO_PUBLISH" },
+              });
+            }
+            if (draft.publishScore >= 70) {
+              try {
+                const pub = await publishDraftInternal(draftId);
+                if (pub.created) pagesPublished++;
+                else if (pub.updated) pagesUpdated++;
+              } catch {
+                publishSkipped++;
+              }
+            } else {
               publishSkipped++;
             }
           } else {

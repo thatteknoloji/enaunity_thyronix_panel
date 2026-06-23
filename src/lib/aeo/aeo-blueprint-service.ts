@@ -11,6 +11,7 @@ import {
   isSensitiveCategory,
   parseMetadata,
   resolveBlueprintKind,
+  makeId,
   type AeoProductContext,
 } from "./aeo-utils";
 
@@ -30,14 +31,18 @@ export type AeoBulkResult = {
   errors: Array<{ blueprintId: string; message: string }>;
 };
 
-async function loadBlueprintContext(blueprintId: string) {
+async function loadBlueprintBase(blueprintId: string) {
   const blueprint = await prisma.pageFactoryBlueprint.findUnique({
     where: { id: blueprintId },
     include: { project: true },
   });
   if (!blueprint) throw new Error("Blueprint bulunamadı");
-
   const metadata = parseMetadata(blueprint.metadataJson);
+  return { blueprint, metadata, project: blueprint.project };
+}
+
+async function loadBlueprintContext(blueprintId: string) {
+  const { blueprint, metadata, project } = await loadBlueprintBase(blueprintId);
   const productId = metadata.productId as string | undefined;
   if (!productId) throw new Error("Blueprint productId içermiyor — Product Universe blueprinti değil");
 
@@ -52,7 +57,7 @@ async function loadBlueprintContext(blueprintId: string) {
   });
   if (!product) throw new Error("Ürün bulunamadı");
 
-  return { blueprint, metadata, product, project: blueprint.project };
+  return { blueprint, metadata, product, project };
 }
 
 function buildProductContext(product: Awaited<ReturnType<typeof loadBlueprintContext>>["product"]): AeoProductContext {
@@ -125,16 +130,123 @@ export function buildAeoPayload(
   };
 }
 
+export function buildGeoBlueprintAeoPayload(
+  blueprint: { id: string; pageType: string; title: string },
+  metadata: Record<string, unknown>,
+  projectCountry?: string | null
+): AeoBlueprintPayload {
+  const blueprintKind = resolveBlueprintKind(metadata, blueprint.pageType);
+  const title = blueprint.title || String(metadata.title || "Sayfa");
+  const geoPath = String(metadata.geoPath || "");
+  const targetQuery = String(metadata.targetKeyword || metadata.intent || title).toLowerCase();
+  const geoParts = geoPath.split(/[>]/).map((p) => p.trim()).filter(Boolean);
+  const province = geoParts[0] || null;
+  const district = geoParts[1] || null;
+
+  const faqAnswer = `${title} — ${province ? `${province} bölgesi` : "hedef bölge"} için hazırlanan bilgilendirici içeriktir.`;
+  const faqBlocks = [
+    {
+      id: makeId("geo-faq", 0),
+      question: `${title} nedir?`,
+      answer: faqAnswer,
+      shortAnswer: faqAnswer.slice(0, 140),
+      category: "geo",
+      confidenceScore: 0.7,
+      sourceHints: [],
+    },
+  ];
+
+  const quickAnswer = `${title} hakkında ${province || "bölgesel"} odaklı rehber ve bilgi içeriği.`;
+  const answerBlocks = [
+    {
+      id: makeId("geo-a", 0),
+      type: "QUICK_ANSWER" as const,
+      title,
+      question: targetQuery,
+      answer: quickAnswer,
+      shortAnswer: quickAnswer.slice(0, 160),
+      entities: [title, province].filter(Boolean) as string[],
+      intents: ["local", "geo"],
+      confidenceScore: province ? 0.75 : 0.5,
+      sourceHints: [],
+      schemaType: "WebPage",
+      metadata: { province, district },
+    },
+  ];
+
+  const geoHints = {
+    country: projectCountry === "TR" ? "Türkiye" : projectCountry || null,
+    province,
+    district,
+    locationIntent: province ? `${province} odaklı yerel arama` : null,
+    localQueryVariants: province ? [`${title} ${province}`] : [title],
+    geoAnswerBlocks: answerBlocks,
+  };
+
+  const schemaHints = [
+    {
+      type: "WebPage",
+      priority: 1,
+      requiredFields: ["name"],
+      availableFields: ["name", "description"],
+      missingFields: [],
+      jsonLdDraft: { "@type": "WebPage", name: title },
+    },
+  ];
+  const aeoQualityScore = Math.min(
+    85,
+    45 + (title.length > 5 ? 10 : 0) + (geoPath ? 15 : 0) + faqBlocks.length * 5 + answerBlocks.length * 5
+  );
+
+  return {
+    version: "AEO_LAYER_V1",
+    productId: "",
+    productName: title,
+    blueprintType: blueprintKind,
+    primaryIntent: String(metadata.intent || "informational"),
+    targetQuery,
+    answerBlocks,
+    faqBlocks,
+    schemaHints,
+    geoHints,
+    citationHints: [],
+    internalLinkHints: parseInternalLinks(metadata),
+    aeoQualityScore,
+    noindexRecommended: metadata.noindexRecommended === true,
+    sensitiveCategoryWarning: false,
+    generatedAt: new Date().toISOString(),
+  };
+}
+
 export async function previewAeoForBlueprint(blueprintId: string): Promise<AeoBlueprintPayload> {
-  const { blueprint, metadata, product, project } = await loadBlueprintContext(blueprintId);
-  const ctx = buildProductContext(product);
-  return buildAeoPayload(ctx, blueprint, metadata, project.country);
+  const { blueprint, metadata, project } = await loadBlueprintBase(blueprintId);
+  const productId = metadata.productId as string | undefined;
+  if (productId) {
+    const product = await prisma.productUniverse.findUnique({
+      where: { id: productId },
+      include: { entities: true, attributes: true, images: true, contentDNA: true },
+    });
+    if (!product) throw new Error("Ürün bulunamadı");
+    return buildAeoPayload(buildProductContext(product), blueprint, metadata, project.country);
+  }
+  return buildGeoBlueprintAeoPayload(blueprint, metadata, project.country);
 }
 
 export async function generateAeoForBlueprint(blueprintId: string, dryRun = false): Promise<AeoGenerateResult> {
-  const { blueprint, metadata, product, project } = await loadBlueprintContext(blueprintId);
-  const ctx = buildProductContext(product);
-  const payload = buildAeoPayload(ctx, blueprint, metadata, project.country);
+  const { blueprint, metadata, project } = await loadBlueprintBase(blueprintId);
+  const productId = metadata.productId as string | undefined;
+
+  let payload: AeoBlueprintPayload;
+  if (productId) {
+    const product = await prisma.productUniverse.findUnique({
+      where: { id: productId },
+      include: { entities: true, attributes: true, images: true, contentDNA: true },
+    });
+    if (!product) throw new Error("Ürün bulunamadı");
+    payload = buildAeoPayload(buildProductContext(product), blueprint, metadata, project.country);
+  } else {
+    payload = buildGeoBlueprintAeoPayload(blueprint, metadata, project.country);
+  }
 
   if (dryRun) {
     return { blueprintId, dryRun: true, payload, written: false };
@@ -157,7 +269,7 @@ export async function generateAeoForBlueprint(blueprintId: string, dryRun = fals
 }
 
 export async function getAeoForBlueprint(blueprintId: string): Promise<AeoBlueprintPayload | null> {
-  const { metadata } = await loadBlueprintContext(blueprintId);
+  const { metadata } = await loadBlueprintBase(blueprintId);
   const aeo = metadata.aeo as AeoBlueprintPayload | undefined;
   return aeo?.version === "AEO_LAYER_V1" ? aeo : null;
 }
@@ -208,7 +320,7 @@ export async function generateBulkAeoForBlueprints(
       if (qs < filters.minQualityScore) return false;
     }
     if (!matchesAeoFilter(metadata, filters)) return false;
-    return !!metadata.productId;
+    return true;
   }).slice(0, limit);
 
   const result: AeoBulkResult = {
