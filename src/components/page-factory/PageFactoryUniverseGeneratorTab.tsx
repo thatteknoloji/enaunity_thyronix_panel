@@ -164,14 +164,13 @@ export function PageFactoryUniverseGeneratorTab({ projects, defaultProjectId }: 
     setError(null);
     setResult(null);
     try {
-      const r = await fetch("/api/page-factory/universe/generate", {
+      const d = await fetchPageFactoryJson("/api/page-factory/universe/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(buildBody(mode)),
       });
-      const d = await r.json();
       if (!d.success) throw new Error(d.error || "Generate başarısız");
-      setResult(d.data);
+      setResult(d.data as GenerateResult);
       await loadStats();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Generate başarısız");
@@ -184,7 +183,7 @@ export function PageFactoryUniverseGeneratorTab({ projects, defaultProjectId }: 
     setPipelineLoading(true);
     setError(null);
     try {
-      const r = await fetch(`/api/page-factory/universe/jobs/${jobId}/run-pipeline`, {
+      const d = await fetchPageFactoryJson(`/api/page-factory/universe/jobs/${jobId}/run-pipeline`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -194,20 +193,28 @@ export function PageFactoryUniverseGeneratorTab({ projects, defaultProjectId }: 
           stopOnError: false,
         }),
       });
-      const d = await r.json();
       if (!d.success) throw new Error(d.error || "Pipeline başarısız");
+      const pdata = d.data as {
+        jobId: string;
+        processedBlueprints: number;
+        aeoGenerated: number;
+        draftsGenerated: number;
+        gatesGenerated: number;
+        pagesPublished: number;
+        pagesUpdated: number;
+      };
       setResult((prev) =>
         prev
           ? {
               ...prev,
-              pipelineJobId: d.data.jobId,
+              pipelineJobId: pdata.jobId,
               pipelineResult: {
-                processedBlueprints: d.data.processedBlueprints,
-                aeoGenerated: d.data.aeoGenerated,
-                draftsGenerated: d.data.draftsGenerated,
-                gatesGenerated: d.data.gatesGenerated,
-                pagesPublished: d.data.pagesPublished,
-                pagesUpdated: d.data.pagesUpdated,
+                processedBlueprints: pdata.processedBlueprints,
+                aeoGenerated: pdata.aeoGenerated,
+                draftsGenerated: pdata.draftsGenerated,
+                gatesGenerated: pdata.gatesGenerated,
+                pagesPublished: pdata.pagesPublished,
+                pagesUpdated: pdata.pagesUpdated,
               },
             }
           : prev
@@ -221,11 +228,10 @@ export function PageFactoryUniverseGeneratorTab({ projects, defaultProjectId }: 
 
   const loadPublishedForJob = async (jobId: string) => {
     try {
-      const r = await fetch(`/api/page-factory/universe/jobs/${jobId}/run-pipeline`);
-      const d = await r.json();
+      const d = await fetchPageFactoryJson(`/api/page-factory/universe/jobs/${jobId}/run-pipeline`);
       if (d.success) {
         setPublishedPages(
-          (d.data.publishedPages || []).map((p: { path: string; title: string }) => ({
+          ((d.data as { publishedPages?: Array<{ path: string; title: string }> }).publishedPages || []).map((p) => ({
             path: p.path,
             title: p.title,
           }))

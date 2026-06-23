@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { Loader2, RefreshCw, Search } from "lucide-react";
+import { fetchPageFactoryJson } from "@/lib/page-factory/fetch-json";
 
 type IndexItem = {
   id: string;
@@ -37,11 +38,11 @@ export function PageFactoryPfIndex({ mode }: Props) {
       if (query) q.set("query", query);
       if (status) q.set("status", status);
       if (robots) q.set("robots", robots);
-      const r = await fetch(`/api/page-factory/published-pages?${q}`);
-      const d = await r.json();
+      const d = await fetchPageFactoryJson(`/api/page-factory/published-pages?${q}`);
       if (!d.success) throw new Error(d.error);
-      setItems(d.data.items || []);
-      setTotal(d.data.total || 0);
+      const data = d.data as { items: IndexItem[]; total: number };
+      setItems(data.items || []);
+      setTotal(data.total || 0);
     } catch {
       setItems([]);
       setTotal(0);

@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { PIPELINE_GENERATION_SOURCE_OPTIONS } from "@/lib/page-factory/pipeline/pipeline-source-filter";
 import type { PipelineMode } from "@/lib/page-factory/pipeline/pipeline-types";
+import { fetchPageFactoryJson } from "@/lib/page-factory/fetch-json";
 
 type Project = { id: string; name: string };
 
@@ -114,9 +115,8 @@ export function PageFactoryPipelineTab({ projects, mode, defaultProjectId }: Pro
 
   const loadJobs = useCallback(async () => {
     try {
-      const r = await fetch("/api/page-factory/pipeline/jobs?limit=10");
-      const d = await r.json();
-      if (d.success) setJobs(d.data.items || []);
+      const d = await fetchPageFactoryJson("/api/page-factory/pipeline/jobs?limit=10");
+      if (d.success) setJobs((d.data as { items: PipelineJob[] }).items || []);
     } catch {
       /* ignore */
     }
@@ -140,14 +140,13 @@ export function PageFactoryPipelineTab({ projects, mode, defaultProjectId }: Pro
     setPreview(null);
     setResult(null);
     try {
-      const r = await fetch("/api/page-factory/pipeline/preview", {
+      const d = await fetchPageFactoryJson("/api/page-factory/pipeline/preview", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(buildBody("full")),
       });
-      const d = await r.json();
       if (!d.success) throw new Error(d.error || "Önizleme başarısız");
-      setPreview(d.data);
+      setPreview(d.data as PreviewResult);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Önizleme başarısız");
     } finally {
@@ -163,14 +162,13 @@ export function PageFactoryPipelineTab({ projects, mode, defaultProjectId }: Pro
     setLoading(true);
     setError(null);
     try {
-      const r = await fetch("/api/page-factory/pipeline/run", {
+      const d = await fetchPageFactoryJson("/api/page-factory/pipeline/run", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(buildBody(pipelineMode)),
       });
-      const d = await r.json();
       if (!d.success) throw new Error(d.error || "Pipeline başarısız");
-      setResult(d.data);
+      setResult(d.data as RunResult);
       await loadJobs();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Pipeline başarısız");

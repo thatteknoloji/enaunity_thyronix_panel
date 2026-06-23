@@ -84,11 +84,11 @@ export function PageFactoryPublishedPagesTab({ projects, mode, defaultProjectId 
       const q = new URLSearchParams({ stats: "true", limit: "30" });
       if (projectId) q.set("projectId", projectId);
       if (statusFilter) q.set("status", statusFilter);
-      const r = await fetch(`/api/page-factory/published-pages?${q}`);
-      const d = await r.json();
+      const d = await fetchPageFactoryJson(`/api/page-factory/published-pages?${q}`);
       if (!d.success) throw new Error(d.error || "Yüklenemedi");
-      setStats(d.data.stats);
-      setPages(d.data.items || []);
+      const data = d.data as { stats: Stats; items: PublishedPage[] };
+      setStats(data.stats);
+      setPages(data.items || []);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Yüklenemedi");
     } finally {
@@ -113,12 +113,11 @@ export function PageFactoryPublishedPagesTab({ projects, mode, defaultProjectId 
     setError(null);
     setPreview(null);
     try {
-      const r = await fetch(`/api/page-factory/drafts/${draftIdInput.trim()}/publish/preview`, {
+      const d = await fetchPageFactoryJson(`/api/page-factory/drafts/${draftIdInput.trim()}/publish/preview`, {
         method: "POST",
       });
-      const d = await r.json();
       if (!d.success) throw new Error(d.error || "Önizleme başarısız");
-      setPreview(d.data);
+      setPreview(d.data as PublishPreview);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Önizleme başarısız");
     } finally {
@@ -131,10 +130,9 @@ export function PageFactoryPublishedPagesTab({ projects, mode, defaultProjectId 
     setError(null);
     setMessage(null);
     try {
-      const r = await fetch(`/api/page-factory/drafts/${draftId}/publish/internal`, { method: "POST" });
-      const d = await r.json();
+      const d = await fetchPageFactoryJson(`/api/page-factory/drafts/${draftId}/publish/internal`, { method: "POST" });
       if (!d.success) throw new Error(d.error || "Yayın başarısız");
-      setMessage(`Yayınlandı: ${d.data.path}`);
+      setMessage(`Yayınlandı: ${(d.data as { path: string }).path}`);
       await load();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Yayın başarısız");
@@ -152,14 +150,14 @@ export function PageFactoryPublishedPagesTab({ projects, mode, defaultProjectId 
     setError(null);
     setMessage(null);
     try {
-      const r = await fetch("/api/page-factory/publish/bulk", {
+      const d = await fetchPageFactoryJson("/api/page-factory/publish/bulk", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ projectId, limit: mode === "admin" ? 100 : 50 }),
       });
-      const d = await r.json();
       if (!d.success) throw new Error(d.error || "Toplu yayın başarısız");
-      setMessage(`${d.data.published} yeni, ${d.data.updated} güncelleme, ${d.data.skipped} atlandı`);
+      const bulk = d.data as { published: number; updated: number; skipped: number };
+      setMessage(`${bulk.published} yeni, ${bulk.updated} güncelleme, ${bulk.skipped} atlandı`);
       await load();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Toplu yayın başarısız");
@@ -171,12 +169,11 @@ export function PageFactoryPublishedPagesTab({ projects, mode, defaultProjectId 
   const setRobots = async (pageId: string, robots: "index,follow" | "noindex,follow") => {
     setLoading(true);
     try {
-      const r = await fetch(`/api/page-factory/published-pages/${pageId}/actions`, {
+      const d = await fetchPageFactoryJson(`/api/page-factory/published-pages/${pageId}/actions`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action: "set-robots", robots }),
       });
-      const d = await r.json();
       if (!d.success) throw new Error(d.error);
       await load();
     } catch (e) {
@@ -189,14 +186,13 @@ export function PageFactoryPublishedPagesTab({ projects, mode, defaultProjectId 
   const republish = async (pageId: string) => {
     setLoading(true);
     try {
-      const r = await fetch(`/api/page-factory/published-pages/${pageId}/actions`, {
+      const d = await fetchPageFactoryJson(`/api/page-factory/published-pages/${pageId}/actions`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action: "republish" }),
       });
-      const d = await r.json();
       if (!d.success) throw new Error(d.error);
-      setMessage(`Güncellendi: ${d.data.path}`);
+      setMessage(`Güncellendi: ${(d.data as { path: string }).path}`);
       await load();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Re-publish başarısız");
@@ -209,8 +205,7 @@ export function PageFactoryPublishedPagesTab({ projects, mode, defaultProjectId 
     if (!confirm("Bu sayfa yayından kaldırılacak. Emin misiniz?")) return;
     setLoading(true);
     try {
-      const r = await fetch(`/api/page-factory/published-pages/${pageId}/unpublish`, { method: "POST" });
-      const d = await r.json();
+      const d = await fetchPageFactoryJson(`/api/page-factory/published-pages/${pageId}/unpublish`, { method: "POST" });
       if (!d.success) throw new Error(d.error || "Başarısız");
       await load();
     } catch (e) {
@@ -223,10 +218,9 @@ export function PageFactoryPublishedPagesTab({ projects, mode, defaultProjectId 
   const viewDetail = async (pageId: string) => {
     setLoading(true);
     try {
-      const r = await fetch(`/api/page-factory/published-pages/${pageId}`);
-      const d = await r.json();
+      const d = await fetchPageFactoryJson(`/api/page-factory/published-pages/${pageId}`);
       if (!d.success) throw new Error(d.error);
-      setDetail(d.data);
+      setDetail(d.data as Record<string, unknown>);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Detay alınamadı");
     } finally {

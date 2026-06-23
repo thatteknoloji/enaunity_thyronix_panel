@@ -11,6 +11,7 @@ import {
   Save,
 } from "lucide-react";
 import { DEFAULT_UNIVERSE_CONFIG, type UniverseConfig, type UniverseGeoLevel } from "@/lib/page-factory/types";
+import { fetchPageFactoryJson } from "@/lib/page-factory/fetch-json";
 
 type Industry = { id: string; name: string };
 type Category = { id: string; name: string; industryId: string };
@@ -73,18 +74,21 @@ export function BlueprintUniverseTab({ projectId, sector, onGenerated }: Props) 
   const [success, setSuccess] = useState<string | null>(null);
 
   const loadRefs = useCallback(async () => {
-    const [indR, intR, geoR] = await Promise.all([
-      fetch("/api/page-factory/industries?limit=50"),
-      fetch("/api/page-factory/intents?limit=50"),
-      fetch("/api/page-factory/geo?level=province&country=TR&limit=100"),
-    ]);
-    const indD = await indR.json();
-    const intD = await intR.json();
-    const geoD = await geoR.json();
-    if (indD.success) setIndustries(indD.data.items || []);
-    if (intD.success) setIntents(intD.data.items || []);
-    if (geoD.success) setSavedBlueprints([]);
-    if (geoD.success) setProvinces(geoD.data.items || []);
+    try {
+      const [indD, intD, geoD] = await Promise.all([
+        fetchPageFactoryJson<{ items: Industry[] }>("/api/page-factory/industries?limit=50"),
+        fetchPageFactoryJson<{ items: Intent[] }>("/api/page-factory/intents?limit=50"),
+        fetchPageFactoryJson<{ items: Province[] }>("/api/page-factory/geo?level=province&country=TR&limit=100"),
+      ]);
+      if (indD.success) setIndustries(indD.data?.items || []);
+      if (intD.success) setIntents(intD.data?.items || []);
+      if (geoD.success) {
+        setSavedBlueprints([]);
+        setProvinces(geoD.data?.items || []);
+      }
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Referans verileri yüklenemedi");
+    }
   }, []);
 
   const loadCategories = useCallback(async (industryId: string) => {
@@ -92,19 +96,19 @@ export function BlueprintUniverseTab({ projectId, sector, onGenerated }: Props) 
       setCategories([]);
       return;
     }
-    const r = await fetch(`/api/page-factory/industries?includeCategories=true&industryId=${industryId}&limit=100`);
-    const d = await r.json();
-    if (d.success?.data?.categories?.items) {
+    const d = await fetchPageFactoryJson<{ categories: { items: Category[] } }>(
+      `/api/page-factory/industries?includeCategories=true&industryId=${industryId}&limit=100`
+    );
+    if (d.success && d.data?.categories?.items) {
       setCategories(d.data.categories.items);
-    } else if (d.success?.categories?.items) {
-      setCategories(d.categories.items);
     }
   }, []);
 
   const loadSavedBlueprints = useCallback(async () => {
-    const r = await fetch(`/api/page-factory/projects/${projectId}/blueprints?limit=20`);
-    const d = await r.json();
-    if (d.success) setSavedBlueprints(d.data.items || []);
+    const d = await fetchPageFactoryJson<{ items: BlueprintRow[] }>(
+      `/api/page-factory/projects/${projectId}/blueprints?limit=20`
+    );
+    if (d.success) setSavedBlueprints(d.data?.items || []);
   }, [projectId]);
 
   useEffect(() => {
@@ -139,14 +143,13 @@ export function BlueprintUniverseTab({ projectId, sector, onGenerated }: Props) 
     setError(null);
     setSuccess(null);
     try {
-      const r = await fetch(`/api/page-factory/projects/${projectId}/universe/estimate`, {
+      const d = await fetchPageFactoryJson(`/api/page-factory/projects/${projectId}/universe/estimate`, {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify(config),
       });
-      const d = await r.json();
       if (!d.success) throw new Error(d.error || "Tahmin başarısız");
-      setEstimate(d.data);
+      setEstimate(d.data as EstimateData);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Tahmin başarısız");
     } finally {
@@ -160,14 +163,13 @@ export function BlueprintUniverseTab({ projectId, sector, onGenerated }: Props) 
     setError(null);
     setSuccess(null);
     try {
-      const r = await fetch(`/api/page-factory/projects/${projectId}/universe/generate`, {
+      const d = await fetchPageFactoryJson(`/api/page-factory/projects/${projectId}/universe/generate`, {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify(config),
       });
-      const d = await r.json();
       if (!d.success) throw new Error(d.error || "Generate başarısız");
-      setSuccess(`${d.data.generated.toLocaleString("tr-TR")} blueprint kaydedildi`);
+      setSuccess(`${(d.data as { generated: number }).generated.toLocaleString("tr-TR")} blueprint kaydedildi`);
       await loadSavedBlueprints();
       onGenerated?.();
     } catch (e) {
@@ -182,11 +184,10 @@ export function BlueprintUniverseTab({ projectId, sector, onGenerated }: Props) 
     setLoading(true);
     setError(null);
     try {
-      const r = await fetch(`/api/page-factory/projects/${projectId}/blueprints`, { method: "DELETE" });
-      const d = await r.json();
+      const d = await fetchPageFactoryJson(`/api/page-factory/projects/${projectId}/blueprints`, { method: "DELETE" });
       if (!d.success) throw new Error(d.error || "Silinemedi");
       setSavedBlueprints([]);
-      setSuccess(`${d.data.deleted} blueprint silindi`);
+      setSuccess(`${(d.data as { deleted: number }).deleted} blueprint silindi`);
       onGenerated?.();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Silinemedi");

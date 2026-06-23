@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { CheckCircle2, Loader2, Map, Play, RefreshCw, ShieldAlert } from "lucide-react";
+import { fetchPageFactoryJson } from "@/lib/page-factory/fetch-json";
 
 type Project = { id: string; name: string };
 
@@ -45,11 +46,11 @@ export function PageFactoryInternalSitemapTab({ projects, mode, defaultProjectId
     try {
       const q = new URLSearchParams({ stats: "true", limit: "30" });
       if (projectId) q.set("projectId", projectId);
-      const r = await fetch(`/api/page-factory/internal-sitemaps?${q}`);
-      const d = await r.json();
+      const d = await fetchPageFactoryJson(`/api/page-factory/internal-sitemaps?${q}`);
       if (!d.success) throw new Error(d.error);
-      setStats(d.data.stats);
-      setItems(d.data.items || []);
+      const data = d.data as { stats: Stats; items: SitemapItem[] };
+      setStats(data.stats);
+      setItems(data.items || []);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Yüklenemedi");
     } finally {
@@ -70,7 +71,7 @@ export function PageFactoryInternalSitemapTab({ projects, mode, defaultProjectId
     setMessage(null);
     setError(null);
     try {
-      const r = await fetch("/api/page-factory/internal-sitemaps", {
+      const d = await fetchPageFactoryJson("/api/page-factory/internal-sitemaps", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -78,9 +79,8 @@ export function PageFactoryInternalSitemapTab({ projects, mode, defaultProjectId
           projectId: projectId || undefined,
         }),
       });
-      const d = await r.json();
       if (!d.success) throw new Error(d.error);
-      setMessage(all ? "Tüm sitemapler üretildi" : `Sitemap üretildi — ${d.data.totalUrls} URL`);
+      setMessage(all ? "Tüm sitemapler üretildi" : `Sitemap üretildi — ${(d.data as { totalUrls: number }).totalUrls} URL`);
       await load();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Üretim başarısız");
@@ -92,14 +92,13 @@ export function PageFactoryInternalSitemapTab({ projects, mode, defaultProjectId
   const markStale = async () => {
     setLoading(true);
     try {
-      const r = await fetch("/api/page-factory/internal-sitemaps", {
+      const d = await fetchPageFactoryJson("/api/page-factory/internal-sitemaps", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action: "mark-stale", projectId: projectId || undefined }),
       });
-      const d = await r.json();
       if (!d.success) throw new Error(d.error);
-      setMessage(`${d.data.updated} sitemap stale işaretlendi`);
+      setMessage(`${(d.data as { updated: number }).updated} sitemap stale işaretlendi`);
       await load();
     } catch (e) {
       setError(e instanceof Error ? e.message : "İşlem başarısız");
@@ -111,10 +110,10 @@ export function PageFactoryInternalSitemapTab({ projects, mode, defaultProjectId
   const validate = async (id: string) => {
     setLoading(true);
     try {
-      const r = await fetch(`/api/page-factory/internal-sitemaps/${id}/validate`, { method: "POST" });
-      const d = await r.json();
+      const d = await fetchPageFactoryJson(`/api/page-factory/internal-sitemaps/${id}/validate`, { method: "POST" });
       if (!d.success) throw new Error(d.error);
-      setMessage(d.data.valid ? "Sitemap geçerli" : `Sorunlar: ${d.data.issues.join(", ")}`);
+      const v = d.data as { valid: boolean; issues: string[] };
+      setMessage(v.valid ? "Sitemap geçerli" : `Sorunlar: ${v.issues.join(", ")}`);
       await load();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Validate başarısız");
