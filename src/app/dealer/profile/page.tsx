@@ -216,9 +216,12 @@ export default function DealerProfilePage() {
       </div>
 
       {/* Fatura & Kargo Bilgileri */}
-      <div className="mt-6">
+      <div id="addresses" className="mt-6 scroll-mt-24">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold text-ena-text">Fatura &amp; Kargo Bilgileri</h2>
+          <div>
+            <h2 className="text-lg font-semibold text-ena-text">Fatura &amp; Kargo Bilgileri</h2>
+            <p className="text-xs text-ena-light/50 mt-1">Checkout sayfası bu alanları otomatik kullanır.</p>
+          </div>
           {!editing ? (
             <Button size="sm" variant="outline" onClick={() => setEditing(true)}>
               <Pencil size={14} className="mr-1" /> Düzenle

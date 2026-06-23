@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { formatPrice } from "@/lib/utils";
 import { useCartStore } from "@/lib/cart-store";
 import type { User } from "@/types";
-import { ChevronLeft, Building2, Tag, AlertTriangle, Clock, Paperclip, X, FileText, ImageIcon } from "lucide-react";
+import { ChevronLeft, Building2, Tag, AlertTriangle, Clock, Paperclip, X, FileText, ImageIcon, ArrowRight, MapPinned, Sparkles, BadgeCheck, CreditCard } from "lucide-react";
 import Link from "next/link";
 import { PaymentCheckoutPanel } from "@/components/payments/PaymentCheckoutPanel";
 
@@ -17,13 +17,17 @@ interface DealerInfo {
   creditLimit: number;
   openingBalance: number;
   group: string;
+  allowNegative?: boolean;
+  billingAddress?: string;
+  shippingAddress?: string;
+  taxNumber?: string;
+  company?: string;
 }
 
 export default function CheckoutPage() {
   const router = useRouter();
   const { items, fetchCart, clearCart } = useCartStore();
   const [user, setUser] = useState<User | null>(null);
-  const [address, setAddress] = useState("");
   const [company, setCompany] = useState("");
   const [taxId, setTaxId] = useState("");
   const [loading, setLoading] = useState(true);
@@ -63,6 +67,7 @@ export default function CheckoutPage() {
   const [paymentDealerId, setPaymentDealerId] = useState<string | null>(null);
   const [paymentAlternatives, setPaymentAlternatives] = useState<string[]>([]);
   const [showOnlineSuggestion, setShowOnlineSuggestion] = useState(false);
+  const [addressSyncing, setAddressSyncing] = useState(false);
 
   const isDealer = !!dealer;
   const canUseDealerPayment = !!paymentDealerId;
@@ -73,11 +78,24 @@ export default function CheckoutPage() {
     fetch("/api/auth/me").then((r) => r.json()).then((d) => {
       if (!d.data) { router.push("/auth/login?redirect=/checkout"); return; }
       setUser(d.data);
+      setCompany((current) => current || d.data.company || "");
+      setTaxId((current) => current || d.data.taxNumber || "");
       if (d.data.dealerId) {
         setPaymentDealerId(d.data.dealerId);
         fetch("/api/dealer/profile").then((r) => r.json()).then((p) => {
           if (p.success) {
             setDealer(p.data);
+            const billingAddress = String(p.data.billingAddress || "").trim();
+            const shippingAddress = String(p.data.shippingAddress || "").trim();
+            if (billingAddress) setInvoiceAddress((current) => current || billingAddress);
+            if (shippingAddress) setDeliveryAddress((current) => current || shippingAddress);
+            if (billingAddress && shippingAddress) {
+              setSameAddress(billingAddress === shippingAddress);
+            } else if (billingAddress && !shippingAddress) {
+              setSameAddress(true);
+            }
+            setCompany((current) => current || p.data.company || d.data.company || "");
+            setTaxId((current) => current || p.data.taxNumber || d.data.taxNumber || "");
             if (p.data.paymentTerm) {
               setPaymentTerm({ days: p.data.paymentTerm.days, rate: p.data.paymentTerm.rate });
             }
@@ -124,6 +142,21 @@ export default function CheckoutPage() {
   const isOwnSite = platform === "own";
   const effectiveShipping = campaignFreeShip ? 0 : (isOwnSite ? shippingCost : 0);
   const total = rawTotal - couponDiscount - campaignDiscount + termFeeAmount + effectiveShipping;
+  const dealerCreditLimit = dealer?.creditLimit || 0;
+  const dealerOpeningBalance = dealer?.openingBalance || 0;
+  const dealerCreditEnabled = Boolean(dealer && (dealerCreditLimit > 0 || dealer.allowNegative));
+  const dealerCreditCapacity = dealerCreditLimit + dealerOpeningBalance;
+  const dealerCreditExceeded = dealerCreditEnabled && !dealer?.allowNegative && dealerCreditLimit > 0 && total > dealerCreditCapacity;
+  const dealerAddressesReady = Boolean(invoiceAddress.trim() && (sameAddress ? invoiceAddress.trim() : deliveryAddress.trim()));
+  const shouldPersistDealerAddresses = Boolean(
+    isDealer &&
+      dealerAddressesReady &&
+      (
+        invoiceAddress.trim() !== String(dealer?.billingAddress || "").trim() ||
+        (sameAddress ? invoiceAddress.trim() : deliveryAddress.trim()) !== String(dealer?.shippingAddress || "").trim() ||
+        taxId.trim() !== String(dealer?.taxNumber || "").trim()
+      )
+  );
 
   const applyCoupon = async () => {
     if (!couponCode.trim()) return;
@@ -155,6 +188,40 @@ export default function CheckoutPage() {
     window.sessionStorage.removeItem("couponData");
   };
 
+  const persistDealerDetails = async () => {
+    if (!isDealer || !shouldPersistDealerAddresses) return true;
+    setAddressSyncing(true);
+    try {
+      const res = await fetch("/api/dealer/profile", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          billingAddress: invoiceAddress.trim(),
+          shippingAddress: sameAddress ? invoiceAddress.trim() : deliveryAddress.trim(),
+          taxNumber: taxId.trim(),
+        }),
+      });
+      if (!res.ok) {
+        setError("Adresler profilinize kaydedilemedi. Lütfen tekrar deneyin.");
+        return false;
+      }
+      const data = await res.json().catch(() => null);
+      if (data?.success) {
+        setDealer((current) => current ? ({
+          ...current,
+          billingAddress: invoiceAddress.trim(),
+          shippingAddress: sameAddress ? invoiceAddress.trim() : deliveryAddress.trim(),
+          taxNumber: taxId.trim(),
+        }) : current);
+        return true;
+      }
+      setError("Adresler profilinize kaydedilemedi. Lütfen tekrar deneyin.");
+      return false;
+    } finally {
+      setAddressSyncing(false);
+    }
+  };
+
   const submitOrder = async (paymentMethod?: string, installmentCount = 1) => {
     setSubmitting(true);
     setError("");
@@ -182,6 +249,11 @@ export default function CheckoutPage() {
       if (qtyErrors.length > 0) {
         setError(`Minimum sipariş adetleri karşılanmadı:\n${qtyErrors.join("\n")}`);
         return false;
+      }
+
+      if (isDealer && shouldPersistDealerAddresses) {
+        const persisted = await persistDealerDetails();
+        if (!persisted) return false;
       }
 
       const fullAddress = sameAddress
@@ -306,23 +378,59 @@ export default function CheckoutPage() {
   if (loading) return <div className="mx-auto max-w-2xl px-4 py-12 animate-pulse space-y-4"><div className="h-8 w-1/3 rounded bg-ena-gray" /><div className="h-64 rounded bg-ena-gray" /></div>;
 
   return (
-    <div className="mx-auto max-w-2xl px-4 py-8">
-      <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }}>
-        <Link href="/cart" className="inline-flex items-center gap-1 text-sm text-ena-light hover:text-ena-text transition-colors mb-6">
-          <ChevronLeft size={16} /> Alışverişe Devam Et
-        </Link>
-      </motion.div>
+    <div className="mx-auto max-w-3xl px-4 py-8">
+      <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
+        <div className="absolute left-1/2 top-[-12rem] h-[30rem] w-[30rem] -translate-x-1/2 rounded-full bg-ena-primary/10 blur-3xl" />
+        <div className="absolute right-[-6rem] top-[10rem] h-72 w-72 rounded-full bg-cyan-500/10 blur-3xl" />
+      </div>
 
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
+        initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.1 }}
+        transition={{ duration: 0.45 }}
+        className="relative overflow-hidden rounded-[28px] border border-ena-border bg-ena-card/55 p-6 md:p-8 mb-6 shadow-[0_24px_80px_rgba(0,0,0,0.18)]"
       >
-        <div className="flex items-center gap-2 text-ena-primary mb-2">
-          <Building2 size={16} />
-          <span className="text-xs font-semibold uppercase tracking-widest">B4B Sipariş</span>
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(229,9,20,0.12),transparent_35%),radial-gradient(circle_at_bottom_right,rgba(6,182,212,0.08),transparent_30%)]" />
+        <div className="relative flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+          <div className="max-w-2xl">
+            <Link href="/cart" className="inline-flex items-center gap-1 text-sm text-ena-light hover:text-ena-text transition-colors mb-5">
+              <ChevronLeft size={16} /> Alışverişe Devam Et
+            </Link>
+            <div className="flex flex-wrap items-center gap-2 mb-3">
+              <span className="inline-flex items-center gap-1 rounded-full border border-ena-primary/20 bg-ena-primary/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-ena-primary">
+                <Sparkles size={12} /> B4B Sipariş
+              </span>
+              {selectedPlatform && (
+                <span className="inline-flex items-center gap-1 rounded-full border border-ena-border bg-black/20 px-3 py-1 text-xs text-ena-light">
+                  {selectedPlatform.label}
+                </span>
+              )}
+            </div>
+            <h1 className="text-3xl md:text-5xl font-black tracking-tight text-ena-text leading-[0.95]">
+              Sipariş Onayı
+            </h1>
+            <p className="mt-3 max-w-2xl text-sm md:text-base text-ena-light/80 leading-relaxed">
+              Adresler profilinden gelir. Eksikse ilk siparişte kaydederiz. Ödeme yöntemi, platform ve belge ekleri aynı ekranda ilerler.
+            </p>
+          </div>
+
+          <div className="grid w-full gap-2 sm:grid-cols-3 lg:w-[420px]">
+            <div className="rounded-2xl border border-ena-border bg-black/20 p-3">
+              <p className="text-[11px] uppercase tracking-[0.18em] text-ena-light/50">Adres</p>
+              <p className="mt-1 text-sm font-semibold text-ena-text">
+                {isDealer ? (dealer?.billingAddress ? "Profilden çekildi" : "İlk siparişte kaydedilecek") : "Manuel giriş"}
+              </p>
+            </div>
+            <div className="rounded-2xl border border-ena-border bg-black/20 p-3">
+              <p className="text-[11px] uppercase tracking-[0.18em] text-ena-light/50">Ödeme</p>
+              <p className="mt-1 text-sm font-semibold text-ena-text">Seçip devam edin</p>
+            </div>
+            <div className="rounded-2xl border border-ena-border bg-black/20 p-3">
+              <p className="text-[11px] uppercase tracking-[0.18em] text-ena-light/50">Akış</p>
+              <p className="mt-1 text-sm font-semibold text-ena-text">Tek form, tek onay</p>
+            </div>
+          </div>
         </div>
-        <h1 className="text-3xl font-black text-ena-text mb-8">Sipariş Onayı</h1>
       </motion.div>
 
       {isDealer && dealer && (
@@ -330,27 +438,56 @@ export default function CheckoutPage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.15 }}
-          className="rounded border border-blue-500/30 bg-blue-500/10 p-4 mb-6 text-sm"
+          className="mb-6 rounded-[26px] border border-ena-border bg-ena-card/50 p-5 md:p-6 shadow-[0_20px_50px_rgba(0,0,0,0.14)]"
         >
-          <div className="flex items-center justify-between">
-            <span className="text-ena-light">Kredi Limiti</span>
-            <span className="font-bold text-ena-text">{formatPrice(dealer.creditLimit + dealer.openingBalance)}</span>
+          <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+            <div>
+              <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-ena-light/50">
+                <CreditCard size={14} /> Cari hesap
+              </div>
+              <h2 className="mt-2 text-lg md:text-xl font-bold text-ena-text">
+                {dealerCreditEnabled ? "Kredi kullanımı hazır" : "Cari hesap bu hesapta kapalı"}
+              </h2>
+              <p className="mt-2 text-sm text-ena-light/75 max-w-2xl">
+                {dealerCreditEnabled
+                  ? "Bu kutu yalnızca cari hesapla sipariş verirken limit durumunu gösterir. Kart veya havale ile devam ediyorsanız bir engel değildir."
+                  : "Kredi limiti tanımlı değil. Siparişi kart veya havale ile tamamlarsanız bu alan sizi etkilemez."}
+              </p>
+            </div>
+            <div className="grid grid-cols-2 gap-2 w-full md:w-[340px]">
+              <div className="rounded-2xl border border-ena-border bg-black/20 p-3">
+                <p className="text-[11px] uppercase tracking-[0.18em] text-ena-light/50">Kredi limiti</p>
+                <p className="mt-1 text-base font-semibold text-ena-text">
+                  {dealerCreditLimit > 0 ? formatPrice(dealerCreditLimit) : "Yok"}
+                </p>
+              </div>
+              <div className="rounded-2xl border border-ena-border bg-black/20 p-3">
+                <p className="text-[11px] uppercase tracking-[0.18em] text-ena-light/50">Bu sipariş</p>
+                <p className="mt-1 text-base font-semibold text-ena-primary">{formatPrice(total)}</p>
+              </div>
+              <div className="rounded-2xl border border-ena-border bg-black/20 p-3">
+                <p className="text-[11px] uppercase tracking-[0.18em] text-ena-light/50">Grup</p>
+                <p className="mt-1 text-base font-semibold text-ena-text uppercase">{dealer.group}</p>
+              </div>
+              <div className="rounded-2xl border border-ena-border bg-black/20 p-3">
+                <p className="text-[11px] uppercase tracking-[0.18em] text-ena-light/50">Durum</p>
+                <p className={`mt-1 text-base font-semibold ${dealerCreditExceeded ? "text-amber-400" : "text-emerald-400"}`}>
+                  {dealerCreditExceeded ? "Limit aşılıyor" : dealerCreditEnabled ? "Uygun" : "Cari kapalı"}
+                </p>
+              </div>
+            </div>
           </div>
-          <div className="flex items-center justify-between mt-1">
-            <span className="text-ena-light">Bu Sipariş</span>
-            <span className="font-bold text-ena-primary">{formatPrice(total)}</span>
-          </div>
-          <div className="flex items-center justify-between mt-1">
-            <span className="text-ena-light">Grup</span>
-            <span className="font-semibold text-ena-text uppercase">{dealer.group}</span>
-          </div>
-          {total > dealer.creditLimit + dealer.openingBalance && (
-            <div className="flex items-center gap-2 mt-2 text-ena-primary font-semibold">
-              <AlertTriangle size={16} /> Kredi limitiniz aşıldı!
+          {dealerCreditExceeded && (
+            <div className="mt-4 flex items-start gap-2 rounded-2xl border border-amber-400/20 bg-amber-400/10 px-4 py-3 text-sm text-amber-300">
+              <AlertTriangle size={16} className="mt-0.5 shrink-0" />
+              <div>
+                <p className="font-semibold">Cari hesap limiti aşılacak.</p>
+                <p className="text-amber-300/80">Bu sipariş için bakiye yerine havale veya kart seçmeniz daha doğru olur.</p>
+              </div>
             </div>
           )}
           {minOrderAmount > 0 && (
-            <div className={`flex items-center gap-2 mt-2 ${total < minOrderAmount ? "text-amber-400" : "text-emerald-400"} font-semibold`}>
+            <div className={`mt-4 flex items-center gap-2 rounded-2xl border px-4 py-3 text-sm font-semibold ${total < minOrderAmount ? "border-amber-400/20 bg-amber-400/10 text-amber-300" : "border-emerald-400/20 bg-emerald-400/10 text-emerald-300"}`}>
               <AlertTriangle size={16} />
               {total < minOrderAmount
                 ? `Minimum sipariş tutarı: ${formatPrice(minOrderAmount)} (${formatPrice(total - minOrderAmount)} eksik)`
@@ -364,9 +501,12 @@ export default function CheckoutPage() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.2 }}
-        className="rounded border border-ena-border bg-ena-card/40 p-6 mb-8"
+        className="rounded-[26px] border border-ena-border bg-ena-card/50 p-6 mb-8 shadow-[0_20px_50px_rgba(0,0,0,0.12)]"
       >
-        <h2 className="font-bold text-ena-text mb-4">Sipariş Özeti</h2>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="font-bold text-ena-text">Sipariş Özeti</h2>
+          <span className="text-xs text-ena-light/50">{items.length} satır</span>
+        </div>
         <div className="space-y-3">
           {items.map((item) => {
             const itemPrice = item.effectivePrice ?? item.product.price;
@@ -389,7 +529,7 @@ export default function CheckoutPage() {
         {/* Coupon */}
         <div className="mt-4">
           {couponName ? (
-            <div className="flex items-center justify-between bg-emerald-500/10 border border-emerald-500/30 rounded p-3 text-sm">
+            <div className="flex items-center justify-between bg-emerald-500/10 border border-emerald-500/30 rounded-2xl p-3 text-sm">
               <div className="flex items-center gap-2">
                 <Tag size={14} className="text-emerald-400" />
                 <span className="text-emerald-400 font-medium">{couponName}</span>
@@ -480,13 +620,13 @@ export default function CheckoutPage() {
         noValidate
       >
         <h2 className="font-bold text-ena-text">Satış Platformu</h2>
-        <div className="rounded border border-ena-border bg-ena-card/40 p-4">
+        <div className="rounded-[26px] border border-ena-border bg-ena-card/50 p-5 shadow-[0_20px_50px_rgba(0,0,0,0.12)]">
           <select value={platform} onChange={e => { setPlatform(e.target.value); setShippingCost(PLATFORMS.find(p => p.value === e.target.value)?.shipping || 0); }}
-            className="w-full rounded-lg border border-ena-border bg-ena-card/60 px-3 py-2.5 text-sm text-ena-text focus:outline-none focus:border-ena-primary">
+            className="w-full rounded-2xl border border-ena-border bg-ena-card/60 px-3 py-3 text-sm text-ena-text focus:outline-none focus:border-ena-primary">
             {PLATFORMS.map(p => <option key={p.value} value={p.value}>{p.label}{p.hasFree ? " (Ücretsiz Kargo)" : p.shipping > 0 ? ` (Kargo: ${formatPrice(p.shipping)})` : ""}</option>)}
           </select>
           {platform && (
-            <div className="mt-3 text-xs text-ena-light leading-relaxed bg-ena-dark/30 rounded p-3">
+            <div className="mt-3 text-xs text-ena-light leading-relaxed bg-ena-dark/30 rounded-2xl p-3">
               {isOwnSite ? (
                 <span>Kendi sitenizden gelen siparişlerde <strong className="text-ena-text">kargo ücreti {formatPrice(effectiveShipping)}</strong> sepete yansıtılır. Fatura ve teslimat adreslerini ayrı ayrı girebilirsiniz.</span>
               ) : (
@@ -496,32 +636,63 @@ export default function CheckoutPage() {
           )}
         </div>
 
-        <h2 className="font-bold text-ena-text">Firma Bilgileri</h2>
-        <Input id="company" label="Firma Adı" placeholder="Firma adınız" value={company} onChange={(e) => setCompany(e.target.value)} required />
-        <Input id="taxId" label="Vergi Numarası" placeholder="VKN / TCKN" value={taxId} onChange={(e) => setTaxId(e.target.value)} required />
+        <div className="grid gap-5 lg:grid-cols-2">
+          <div className="rounded-[26px] border border-ena-border bg-ena-card/50 p-5 shadow-[0_20px_50px_rgba(0,0,0,0.12)]">
+            <div className="flex items-center gap-2 mb-4">
+              <BadgeCheck size={16} className="text-emerald-400" />
+              <h2 className="font-bold text-ena-text">Firma Bilgileri</h2>
+            </div>
+            <div className="space-y-4">
+              <Input id="company" label="Firma Adı" placeholder="Firma adınız" value={company} onChange={(e) => setCompany(e.target.value)} required />
+              <Input id="taxId" label="Vergi Numarası" placeholder="VKN / TCKN" value={taxId} onChange={(e) => setTaxId(e.target.value)} required />
+            </div>
+          </div>
 
-        <h2 className="font-bold text-ena-text">Fatura Adresi</h2>
-        <Input id="invoiceAddress" label="" placeholder="Mahalle, Sokak, Apartman, Daire, Şehir..." value={invoiceAddress} onChange={(e) => setInvoiceAddress(e.target.value)} required />
+          <div className="rounded-[26px] border border-ena-border bg-ena-card/50 p-5 shadow-[0_20px_50px_rgba(0,0,0,0.12)]">
+            <div className="flex items-center justify-between gap-3 mb-4">
+              <div className="flex items-center gap-2">
+                <MapPinned size={16} className="text-ena-primary" />
+                <h2 className="font-bold text-ena-text">Adres Defteri</h2>
+              </div>
+              {isDealer && (
+                <Link href="/dealer/profile#addresses" className="text-xs text-ena-light hover:text-ena-text inline-flex items-center gap-1">
+                  Profilden düzenle <ArrowRight size={12} />
+                </Link>
+              )}
+            </div>
+            {isDealer && (
+              <div className="mb-4 rounded-2xl border border-ena-border bg-black/20 p-3 text-xs text-ena-light/75">
+                {dealer?.billingAddress || dealer?.shippingAddress ? (
+                  <span>Adresler profilinden çekildi. Burada yaptığın değişiklikler ilk onayda profile yazılır.</span>
+                ) : (
+                  <span>Profilde kayıt yok. İlk siparişte adresleri kaydedeceğiz, sonra hep buradan otomatik gelecek.</span>
+                )}
+              </div>
+            )}
+            <div className="space-y-4">
+              <Input id="invoiceAddress" label="Fatura Adresi" placeholder="Mahalle, Sokak, Apartman, Daire, Şehir..." value={invoiceAddress} onChange={(e) => setInvoiceAddress(e.target.value)} required />
 
-        <div className="flex items-center gap-2">
-          <input type="checkbox" id="sameAddress" checked={sameAddress} onChange={e => setSameAddress(e.target.checked)} className="rounded border-ena-border bg-ena-card/60" />
-          <label htmlFor="sameAddress" className="text-sm text-ena-light">Teslimat adresi fatura adresi ile aynı</label>
+              <div className="flex items-center gap-2">
+                <input type="checkbox" id="sameAddress" checked={sameAddress} onChange={e => setSameAddress(e.target.checked)} className="rounded border-ena-border bg-ena-card/60" />
+                <label htmlFor="sameAddress" className="text-sm text-ena-light">Teslimat adresi fatura adresi ile aynı</label>
+              </div>
+
+              {!sameAddress && (
+                <div>
+                  <Input id="deliveryAddress" label="Teslimat Adresi" placeholder="Mahalle, Sokak, Apartman, Daire, Şehir..." value={deliveryAddress} onChange={(e) => setDeliveryAddress(e.target.value)} required />
+                  {isOwnSite && <p className="text-xs text-amber-400 mt-1">Kendi sitem siparişlerinde teslimat adresi fatura adresinden farklıysa mutlaka eksiksiz doldurulmalıdır.</p>}
+                </div>
+              )}
+
+              {platform && !isOwnSite && (
+                <div className="text-xs text-ena-light bg-ena-dark/30 rounded-2xl p-3 leading-relaxed border border-ena-border">
+                  <strong className="text-ena-text">Pazaryeri siparişlerinde adres akışı</strong><br />
+                  Fatura adresi olarak bayi adresiniz kullanılır. Teslimat ise pazaryeri kargo şablonundaki kayıtlı adrese göre ilerler.
+                </div>
+              )}
+            </div>
+          </div>
         </div>
-
-        {!sameAddress && (
-          <div>
-            <h2 className="font-bold text-ena-text">Teslimat Adresi</h2>
-            <Input id="deliveryAddress" label="" placeholder="Mahalle, Sokak, Apartman, Daire, Şehir..." value={deliveryAddress} onChange={(e) => setDeliveryAddress(e.target.value)} required />
-            {isOwnSite && <p className="text-xs text-amber-400 mt-1">Kendi sitem siparişlerinde teslimat adresi fatura adresinden farklıysa mutlaka eksiksiz doldurulmalıdır.</p>}
-          </div>
-        )}
-
-        {platform && !isOwnSite && (
-          <div className="text-xs text-ena-light bg-ena-card/40 rounded-lg p-3 leading-relaxed border border-ena-border">
-            <strong className="text-ena-text">ℹ️ Pazaryeri Siparişlerinde Adres Bilgisi:</strong><br/>
-            Fatura adresi olarak bayi adresiniz (firma bilgileriniz) kullanılır. Teslimat ise siparişin geldiği pazaryerindeki kargo şablonunda kayıtlı adrese göre yapılır. Bu nedenle teslimat adresi girmenize gerek yoktur.
-          </div>
-        )}
 
         {isOwnSite && shippingCost > 0 && (
           <div className="flex justify-between text-sm text-ena-light border-t border-ena-border pt-2">
@@ -531,7 +702,7 @@ export default function CheckoutPage() {
         )}
 
         {/* Dosya Ekleme */}
-        <div className="rounded border border-dashed border-ena-border p-4 space-y-3">
+        <div className="rounded-[26px] border border-dashed border-ena-border p-4 space-y-3 bg-ena-card/30">
           <div className="flex items-center gap-2 text-sm text-ena-light">
             <Paperclip size={16} /> <span>Belge/Görsel Ekle (opsiyonel)</span>
           </div>
@@ -546,15 +717,15 @@ export default function CheckoutPage() {
               ))}
             </div>
           )}
-          <label className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-ena-card/50 border border-ena-border text-sm text-ena-light hover:text-ena-text hover:border-ena-text/30 cursor-pointer transition-colors">
+          <label className="inline-flex items-center gap-2 px-4 py-2 rounded-2xl bg-ena-card/50 border border-ena-border text-sm text-ena-light hover:text-ena-text hover:border-ena-text/30 cursor-pointer transition-colors">
             <Paperclip size={14} /> {uploading ? "Yükleniyor..." : "Dosya Seç (PDF, JPG, PNG)"}
             <input type="file" multiple accept=".pdf,.jpg,.jpeg,.png,.webp" onChange={handleFileUpload} className="hidden" disabled={uploading} />
           </label>
         </div>
 
         {!showGatewayPaymentPanel && !isDealer && (
-          <Button type="submit" className="w-full" disabled={submitting || items.length === 0}>
-            {submitting ? "Sipariş oluşturuluyor..." : "Siparişi Tamamla"}
+          <Button type="submit" className="w-full" disabled={submitting || addressSyncing || items.length === 0}>
+            {submitting || addressSyncing ? "Sipariş oluşturuluyor..." : "Siparişi Tamamla"}
           </Button>
         )}
       </motion.form>
@@ -569,7 +740,7 @@ export default function CheckoutPage() {
           <PaymentCheckoutPanel
             amount={total}
             title="B2B Online Ödeme"
-            loading={submitting}
+            loading={submitting || addressSyncing}
             dealerId={paymentDealerId || undefined}
             onConfirm={handleOnlinePayment}
           />
