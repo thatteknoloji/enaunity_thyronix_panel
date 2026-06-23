@@ -71,7 +71,7 @@ export default function CheckoutPage() {
     fetch("/api/auth/me").then((r) => r.json()).then((d) => {
       if (!d.data) { router.push("/auth/login?redirect=/checkout"); return; }
       setUser(d.data);
-      if (d.data.role === "dealer" && d.data.dealerId) {
+      if (d.data.dealerId) {
         fetch("/api/dealer/profile").then((r) => r.json()).then((p) => {
           if (p.success) {
             setDealer(p.data);
@@ -120,7 +120,7 @@ export default function CheckoutPage() {
   const termFeeAmount = paymentTerm?.rate ? Math.round(rawTotal * (paymentTerm.rate / 100) * 100) / 100 : 0;
   const selectedPlatform = PLATFORMS.find(p => p.value === platform);
   const isOwnSite = platform === "own";
-  const effectiveShipping = isOwnSite ? shippingCost : 0;
+  const effectiveShipping = campaignFreeShip ? 0 : (isOwnSite ? shippingCost : 0);
   const total = rawTotal - couponDiscount - campaignDiscount + termFeeAmount + effectiveShipping;
 
   const applyCoupon = async () => {
@@ -189,9 +189,16 @@ export default function CheckoutPage() {
     const body: Record<string, unknown> = {
       address: fullAddress,
       platform: platform || "own",
+      company,
+      taxId,
       invoiceAddress,
       deliveryAddress: sameAddress ? invoiceAddress : deliveryAddress,
-      shippingCost: isOwnSite ? effectiveShipping : 0,
+      sameAddress,
+      couponDiscount,
+      campaignDiscount,
+      campaignLabel,
+      campaignFreeShip,
+      shippingCost: effectiveShipping,
     };
     if (paymentTerm) { body.paymentTermDays = paymentTerm.days; body.paymentTermRate = paymentTerm.rate; }
     if (attachments.length > 0) body.attachments = attachments;
@@ -224,7 +231,10 @@ export default function CheckoutPage() {
         router.push(`/payment/pending?module=B2B_ORDER&plan=${data.data.order?.id || ""}&paymentId=${data.data.paymentId}`);
         return true;
       }
-      if (isDealer) {
+      if (user?.role === "admin") {
+        const orderId = data.data.order?.id;
+        router.push(orderId ? `/admin/orders/${orderId}` : "/admin/orders");
+      } else if (isDealer) {
         const orderId = data.data.order?.id;
         router.push(orderId ? `/dealer/orders/${orderId}` : "/dealer/orders");
       } else {

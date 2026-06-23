@@ -41,6 +41,11 @@ export function PaymentCheckoutPanel({ amount, currency = "TRY", dealerId, onCon
   const [installment, setInstallment] = useState(1);
   const [fetching, setFetching] = useState(true);
 
+  function pickPreferredMethod(methods: string[]) {
+    const preferredOrder = ["ESNEKPOS", "IYZICO", "BANK_TRANSFER", "DEALER_ACCOUNT"];
+    return preferredOrder.find((m) => methods.includes(m)) || methods[0] || "BANK_TRANSFER";
+  }
+
   const availableMethods = useMemo(() => {
     if (!settings) return [];
     const methods = [...settings.methods];
@@ -61,7 +66,7 @@ export function PaymentCheckoutPanel({ amount, currency = "TRY", dealerId, onCon
           if (dealerId && d.data.balanceEnabled) {
             methods.unshift("DEALER_ACCOUNT");
           }
-          setMethod(Array.from(new Set(methods))[0] || "BANK_TRANSFER");
+          setMethod(pickPreferredMethod(Array.from(new Set(methods))));
         }
       })
       .finally(() => setFetching(false));

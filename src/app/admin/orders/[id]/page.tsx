@@ -74,6 +74,27 @@ type DetailOrder = {
   } | null;
 };
 
+type OrderMetadata = {
+  platform?: string;
+  company?: string;
+  taxId?: string;
+  invoiceAddress?: string;
+  deliveryAddress?: string;
+  sameAddress?: boolean;
+  couponId?: string | null;
+  couponDiscount?: number;
+  campaignDiscount?: number;
+  campaignLabel?: string;
+  campaignFreeShip?: boolean;
+  shippingCost?: number;
+  paymentMethod?: string;
+  installmentCount?: number;
+  rawTotal?: number;
+  discountTotal?: number;
+  termFee?: number;
+  finalTotal?: number;
+};
+
 const statusVariant: Record<string, "default" | "success" | "warning" | "danger"> = {
   pending: "warning",
   pending_approval: "warning",
@@ -127,7 +148,7 @@ export default function AdminOrderDetailPage() {
       .finally(() => setLoading(false));
   }, [id]);
 
-  const metadata = useMemo(() => parseMetadata(order?.metadataJson), [order?.metadataJson]);
+  const metadata = useMemo(() => parseMetadata(order?.metadataJson) as OrderMetadata, [order?.metadataJson]);
   const paymentInfo = order ? getOrderPaymentInfo(order) : { method: "", label: "", locked: false };
   const platform = String(metadata.platform || order?.marketplace || "").trim();
   const shippingCost = Number(metadata.shippingCost || 0) || 0;
@@ -344,6 +365,34 @@ export default function AdminOrderDetailPage() {
               </div>
             ) : (
               <p className="mt-3 text-sm text-gray-500">Ödeme kaydı yok.</p>
+            )}
+          </section>
+
+          <section className="rounded-xl border border-gray-200 bg-white shadow-sm p-5">
+            <h2 className="font-semibold text-gray-900 mb-4 flex items-center gap-2"><Building2 size={16} /> Sipariş Meta</h2>
+            <div className="space-y-3 text-sm">
+              <InfoRow label="Platform" value={metadata.platform || order.marketplace || "Yok"} />
+              <InfoRow label="Firma" value={metadata.company || "Yok"} />
+              <InfoRow label="Vergi / TCKN" value={metadata.taxId || "Yok"} />
+              <InfoRow label="Fatura" value={metadata.invoiceAddress || "Yok"} />
+              <InfoRow label="Teslimat" value={metadata.deliveryAddress || "Yok"} />
+              <InfoRow label="Adres aynı mı" value={metadata.sameAddress ? "Evet" : "Hayır"} />
+              <InfoRow label="Ödeme yöntemi" value={paymentInfo.label || "Belirsiz"} />
+              <InfoRow label="Taksit" value={String(metadata.installmentCount || installmentCount || 1)} />
+              <InfoRow label="Kupon" value={metadata.couponId ? `${metadata.couponId} • -${formatPrice(metadata.couponDiscount || 0)}` : "Yok"} />
+              <InfoRow label="Kampanya" value={metadata.campaignLabel ? `${metadata.campaignLabel} • -${formatPrice(metadata.campaignDiscount || 0)}` : "Yok"} />
+              <InfoRow label="Kargo" value={metadata.campaignFreeShip ? "Bedava" : formatPrice(metadata.shippingCost || shippingCost)} />
+              <InfoRow label="Ara toplam" value={formatPrice(metadata.rawTotal || 0)} />
+              <InfoRow label="Toplam indirim" value={formatPrice(metadata.discountTotal || order.discount || 0)} />
+              <InfoRow label="Vade farkı" value={metadata.termFee ? formatPrice(metadata.termFee) : "Yok"} />
+              <InfoRow label="Nihai toplam" value={formatPrice(metadata.finalTotal || order.total)} />
+            </div>
+
+            {order.metadataJson && (
+              <details className="mt-4 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2">
+                <summary className="cursor-pointer text-sm font-medium text-gray-700">Ham metadata</summary>
+                <pre className="mt-3 overflow-auto text-xs text-gray-600 whitespace-pre-wrap break-words">{order.metadataJson}</pre>
+              </details>
             )}
           </section>
 

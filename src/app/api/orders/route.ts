@@ -45,8 +45,16 @@ export async function POST(req: Request) {
 
     const {
       address,
+      company = "",
+      taxId = "",
+      invoiceAddress = "",
+      deliveryAddress = "",
+      sameAddress = false,
       couponId,
       discount,
+      campaignDiscount: campaignDiscountInput = 0,
+      campaignLabel: campaignLabelInput = "",
+      campaignFreeShip: campaignFreeShipInput = false,
       paymentTermDays,
       paymentTermRate,
       attachments,
@@ -97,10 +105,14 @@ export async function POST(req: Request) {
       await prisma.coupon.update({ where: { id: couponId }, data: { usageCount: { increment: 1 } } });
     }
 
-    const subTotal = total - finalDiscount;
-    const termFee = (paymentTermRate && paymentTermRate > 0) ? subTotal * (paymentTermRate / 100) : 0;
+    const campaignDiscount = Math.max(0, Number(campaignDiscountInput) || 0);
+    const campaignLabel = String(campaignLabelInput || "");
+    const campaignFreeShip = Boolean(campaignFreeShipInput);
+    const totalDiscount = Math.min(total, finalDiscount + campaignDiscount);
+    const subTotal = total - totalDiscount;
+    const termFee = (paymentTermRate && paymentTermRate > 0) ? total * (paymentTermRate / 100) : 0;
     const shipping = typeof shippingCost === "number" && shippingCost > 0 ? shippingCost : 0;
-    const finalTotal = subTotal + termFee + shipping;
+    const finalTotal = subTotal + termFee + (campaignFreeShip ? 0 : shipping);
 
     const method = (paymentMethod || "DEALER_ACCOUNT") as ProductLibraryPaymentMethod | "DEALER_ACCOUNT";
     const useGatewayPayment = dealer && method !== "DEALER_ACCOUNT";
@@ -160,9 +172,23 @@ export async function POST(req: Request) {
 
     const metadataJson = JSON.stringify({
       platform: platform || "",
-      shippingCost: shipping,
+      company,
+      taxId,
+      invoiceAddress,
+      deliveryAddress: deliveryAddress || invoiceAddress || "",
+      sameAddress: Boolean(sameAddress),
+      couponId: couponId || null,
+      couponDiscount: finalDiscount,
+      campaignDiscount,
+      campaignLabel,
+      campaignFreeShip,
+      shippingCost: campaignFreeShip ? 0 : shipping,
       paymentMethod: method,
       installmentCount: useGatewayPayment ? installmentCount : undefined,
+      rawTotal: total,
+      discountTotal: totalDiscount,
+      termFee,
+      finalTotal,
     });
 
     const paymentDeadlineAt = useGatewayPayment && method === "BANK_TRANSFER" ? paymentDeadlineFromNow() : null;
@@ -172,7 +198,7 @@ export async function POST(req: Request) {
         userId: user.id,
         dealerId: dealer?.id || null,
         total: finalTotal,
-        discount: finalDiscount,
+        discount: totalDiscount,
         couponId: couponId || null,
         hasBackorder,
         paymentTermDays: paymentTermDays || 0,
