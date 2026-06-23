@@ -13,13 +13,14 @@ import {
   Sparkles,
   FileText,
 } from "lucide-react";
-import { BATCH_GENERATION_SOURCE } from "@/lib/product-universe/blueprint-batch-types";
+import { PIPELINE_GENERATION_SOURCE_OPTIONS } from "@/lib/page-factory/pipeline/pipeline-source-filter";
 import type { PipelineMode } from "@/lib/page-factory/pipeline/pipeline-types";
 
 type Project = { id: string; name: string };
 
 type PreviewResult = {
   totalBlueprints: number;
+  totalCandidates: number;
   needsAeo: number;
   needsDraft: number;
   needsGate: number;
@@ -30,11 +31,14 @@ type PreviewResult = {
   sampleBlueprintIds: string[];
   warnings: string[];
   planOnly?: boolean;
+  generationSource?: string;
 };
 
 type RunResult = {
   jobId: string;
   totalBlueprints: number;
+  processed?: number;
+  skipped?: number;
   aeoGenerated: number;
   draftsGenerated: number;
   gatePassed: number;
@@ -75,9 +79,9 @@ const BLUEPRINT_KINDS = [
 
 export function PageFactoryPipelineTab({ projects, mode }: Props) {
   const [projectId, setProjectId] = useState("");
-  const [generationSource, setGenerationSource] = useState<string>(BATCH_GENERATION_SOURCE);
+  const [generationSource, setGenerationSource] = useState<string>("ALL");
   const [blueprintType, setBlueprintType] = useState("");
-  const [minQualityScore, setMinQualityScore] = useState(70);
+  const [minQualityScore, setMinQualityScore] = useState(0);
   const [minAeoScore, setMinAeoScore] = useState(0);
   const [onlyWithoutAeo, setOnlyWithoutAeo] = useState(false);
   const [onlyWithoutDraft, setOnlyWithoutDraft] = useState(false);
@@ -91,7 +95,7 @@ export function PageFactoryPipelineTab({ projects, mode }: Props) {
 
   const buildBody = (pipelineMode: PipelineMode) => ({
     projectId: projectId || undefined,
-    generationSource: generationSource || undefined,
+    generationSource: generationSource || "ALL",
     blueprintType: blueprintType || undefined,
     minQualityScore,
     minAeoScore: minAeoScore || undefined,
@@ -202,9 +206,9 @@ export function PageFactoryPipelineTab({ projects, mode }: Props) {
                 onChange={(e) => setGenerationSource(e.target.value)}
                 className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm"
               >
-                <option value="">Tümü</option>
-                <option value={BATCH_GENERATION_SOURCE}>Product Universe Batch</option>
-                <option value="PRODUCT_UNIVERSE_V2">Product Universe V2</option>
+                {PIPELINE_GENERATION_SOURCE_OPTIONS.map((o) => (
+                  <option key={o.value} value={o.value}>{o.label}</option>
+                ))}
               </select>
             </Field>
             <Field label="Blueprint Type">
@@ -293,6 +297,8 @@ export function PageFactoryPipelineTab({ projects, mode }: Props) {
           ))}
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             <StatCard label="Seçilen Blueprint" value={preview.totalBlueprints} />
+            <StatCard label="Projede Toplam" value={preview.totalCandidates} color="text-gray-600" />
+            <StatCard label="Kaynak Filtresi" value={preview.generationSource || "ALL"} small />
             <StatCard label="AEO üretilecek" value={preview.needsAeo} color="text-violet-600" />
             <StatCard label="Draft üretilecek" value={preview.needsDraft} color="text-blue-600" />
             <StatCard label="Gate çalışacak" value={preview.needsGate} color="text-emerald-600" />

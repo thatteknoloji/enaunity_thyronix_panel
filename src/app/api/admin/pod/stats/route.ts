@@ -24,16 +24,34 @@ export async function GET() {
 
     const byPlan = (planKey: string) => active.filter((l) => l.planKey === planKey).length;
 
+    const [activeLicensedDealers, trialCount, expiredCount, starterCount, proCount, eliteCount, totalDesigns, totalProjects, totalMockups, storeReady] =
+      await Promise.all([
+        Promise.resolve(new Set(active.map((l) => l.dealerId)).size),
+        Promise.resolve(trial.length),
+        Promise.resolve(expired.length),
+        Promise.resolve(byPlan("starter")),
+        Promise.resolve(byPlan("pro")),
+        Promise.resolve(byPlan("elite")),
+        prisma.pODDesign.count(),
+        prisma.pODProject.count(),
+        prisma.pODProject.count({ where: { mockupUrl: { not: "" } } }),
+        prisma.pODProject.count({ where: { status: "STORE_READY" } }),
+      ]);
+
     return NextResponse.json({
       success: true,
       data: {
-        activeLicensedDealers: new Set(active.map((l) => l.dealerId)).size,
-        trialCount: trial.length,
-        expiredCount: expired.length,
-        starterCount: byPlan("starter"),
-        proCount: byPlan("pro"),
-        eliteCount: byPlan("elite"),
-        editorPhaseActive: false,
+        activeLicensedDealers,
+        trialCount,
+        expiredCount,
+        starterCount,
+        proCount,
+        eliteCount,
+        totalDesigns,
+        totalProjects,
+        totalMockups,
+        storeReady,
+        editorPhaseActive: true,
       },
     });
   } catch (e) {

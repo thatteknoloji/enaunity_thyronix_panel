@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Loader2, Shirt, Users, Clock, AlertTriangle, Key, Layers } from "lucide-react";
+import { Loader2, Shirt, Users, Clock, AlertTriangle, Key, Layers, Image, FolderKanban, Sparkles, Store } from "lucide-react";
 import { AdminModuleAccessPanel } from "@/components/admin/AdminModuleAccessPanel";
 import { toAdminUrl } from "@/lib/auth/admin-access";
 
@@ -13,6 +13,10 @@ type Stats = {
   starterCount: number;
   proCount: number;
   eliteCount: number;
+  totalDesigns: number;
+  totalProjects: number;
+  totalMockups: number;
+  storeReady: number;
   editorPhaseActive: boolean;
 };
 
@@ -34,7 +38,7 @@ export default function AdminPodPage() {
       <div>
         <p className="text-[10px] font-semibold uppercase tracking-wider text-emerald-600 mb-1">Tasarımcı Modülü</p>
         <h1 className="text-2xl font-bold text-ena-text">POD Creator Yönetimi</h1>
-        <p className="text-sm text-ena-text-muted mt-1">Lisans altyapısı — editör fazı henüz aktif değil</p>
+        <p className="text-sm text-ena-text-muted mt-1">Tasarım stüdyosu V1 — lisans ve içerik istatistikleri</p>
       </div>
 
       {loading ? (
@@ -43,17 +47,21 @@ export default function AdminPodPage() {
         </div>
       ) : stats ? (
         <>
-          <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
-            POD Editor Fazı henüz aktif değil. Bu ekranda yalnızca lisans ve plan yönetimi yapılır.
-          </div>
+          {stats.editorPhaseActive && (
+            <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
+              POD Designer V1 aktif — tasarım yükleme, yerleştirme ve mockup üretimi çalışıyor.
+            </div>
+          )}
 
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {[
+              { label: "Toplam Tasarım", value: stats.totalDesigns, icon: Image },
+              { label: "Toplam Proje", value: stats.totalProjects, icon: FolderKanban },
+              { label: "Toplam Mockup", value: stats.totalMockups, icon: Sparkles },
+              { label: "Store Ready", value: stats.storeReady, icon: Store },
               { label: "Aktif POD lisanslı bayi", value: stats.activeLicensedDealers, icon: Users },
               { label: "Trial POD lisans", value: stats.trialCount, icon: Clock },
               { label: "Süresi dolan POD lisans", value: stats.expiredCount, icon: AlertTriangle },
-              { label: "POD Starter", value: stats.starterCount, icon: Layers },
-              { label: "POD Pro", value: stats.proCount, icon: Layers },
               { label: "POD Elite", value: stats.eliteCount, icon: Shirt },
             ].map((item) => (
               <div key={item.label} className="rounded-xl border border-ena-border bg-white p-5 shadow-sm">
@@ -67,17 +75,14 @@ export default function AdminPodPage() {
           </div>
 
           <div className="flex flex-wrap gap-3">
-            <Link
-              href={toAdminUrl("/admin/module-licenses?moduleKey=POD_CREATOR")}
-              className="inline-flex items-center gap-2 rounded-lg border border-ena-border bg-white px-4 py-2 text-sm font-medium hover:bg-gray-50"
-            >
-              <Key size={16} /> Modül Lisansları
+            <Link href={toAdminUrl("/admin/pod/designs")} className="inline-flex items-center gap-2 rounded-lg border border-ena-border bg-white px-4 py-2 text-sm font-medium hover:bg-gray-50">
+              <Image size={16} /> Tasarımlar
             </Link>
-            <Link
-              href={toAdminUrl("/admin/module-plans")}
-              className="inline-flex items-center gap-2 rounded-lg border border-ena-border bg-white px-4 py-2 text-sm font-medium hover:bg-gray-50"
-            >
-              <Layers size={16} /> POD Planları
+            <Link href={toAdminUrl("/admin/pod/templates")} className="inline-flex items-center gap-2 rounded-lg border border-ena-border bg-white px-4 py-2 text-sm font-medium hover:bg-gray-50">
+              <Layers size={16} /> Şablonlar
+            </Link>
+            <Link href={toAdminUrl("/admin/module-licenses?moduleKey=POD_CREATOR")} className="inline-flex items-center gap-2 rounded-lg border border-ena-border bg-white px-4 py-2 text-sm font-medium hover:bg-gray-50">
+              <Key size={16} /> Modül Lisansları
             </Link>
           </div>
         </>

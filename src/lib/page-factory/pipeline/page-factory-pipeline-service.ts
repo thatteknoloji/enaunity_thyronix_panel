@@ -11,6 +11,12 @@ import {
   previewPublishGateForDraft,
   runPublishGateForDraft,
 } from "@/lib/page-factory/publish-gate/publish-gate-service";
+import { publishDraftInternal } from "@/lib/page-factory/publish/page-publish-service";
+import {
+  isBlueprintPipelineEligible,
+  matchesGenerationSource,
+  resolveGenerationSourceFilter,
+} from "./pipeline-source-filter";
 import {
   PIPELINE_LIMITS,
   PIPELINE_VERSION,
@@ -25,6 +31,7 @@ type BlueprintRow = {
   id: string;
   metadataJson: string;
   projectId: string;
+  pageType: string;
 };
 
 function hasAeo(metadata: Record<string, unknown>): boolean {
@@ -32,38 +39,37 @@ function hasAeo(metadata: Record<string, unknown>): boolean {
   return aeo?.version === "AEO_LAYER_V1";
 }
 
-function isEligibleStatus(metadata: Record<string, unknown>): boolean {
-  const status = String(metadata.status || metadata.contentStatus || "DRAFT").toUpperCase();
-  if (status === "REJECTED") return false;
-  return ["DRAFT", "READY", "NOT_GENERATED", "AEO_READY", "NEEDS_REVIEW"].includes(status);
+function hasProductForAeo(metadata: Record<string, unknown>): boolean {
+  return !!(metadata.productId || metadata.productUniverseId);
 }
 
 function matchesBlueprintFilters(
   bp: BlueprintRow,
   metadata: Record<string, unknown>,
+  sourceFilter: ReturnType<typeof resolveGenerationSourceFilter>,
   filters: PipelineFilters,
   draftIds: Set<string>,
-  gateDraftIds: Set<string>
+  gateBlueprintIds: Set<string>
 ): boolean {
-  if (!metadata.productId && !metadata.productUniverseId) return false;
-  if (!isEligibleStatus(metadata)) return false;
+  if (!isBlueprintPipelineEligible(metadata)) return false;
 
-  if (filters.generationSource && metadata.generationSource !== filters.generationSource) return false;
+  if (!matchesGenerationSource(sourceFilter, metadata, bp.pageType)) return false;
+
   if (filters.blueprintType) {
     const kind = metadata.blueprintKind || metadata.blueprintType;
     if (kind !== filters.blueprintType) return false;
   }
-  if (filters.minQualityScore != null) {
+  if (filters.minQualityScore != null && filters.minQualityScore > 0) {
     const qs = Number(metadata.qualityScore ?? 0);
     if (qs < filters.minQualityScore) return false;
   }
-  if (filters.minAeoScore != null) {
+  if (filters.minAeoScore != null && filters.minAeoScore > 0) {
     const aeo = metadata.aeo as AeoBlueprintPayload | undefined;
     if ((aeo?.aeoQualityScore ?? 0) < filters.minAeoScore) return false;
   }
   if (filters.onlyWithoutAeo && hasAeo(metadata)) return false;
   if (filters.onlyWithoutDraft && draftIds.has(bp.id)) return false;
-  if (filters.onlyWithoutGate && gateDraftIds.has(bp.id)) return false;
+  if (filters.onlyWithoutGate && gateBlueprintIds.has(bp.id)) return false;
 
   return true;
 }
@@ -83,6 +89,7 @@ async function loadBlueprintBatch(
     throw new Error("Bu projeye erişim yetkiniz yok");
   }
 
+  const sourceFilter = resolveGenerationSourceFilter(filters.generationSource);
   const totalCandidates = await prisma.pageFactoryBlueprint.count({
     where: { projectId: filters.projectId },
   });
@@ -92,13 +99,17 @@ async function loadBlueprintBatch(
   }
 
   const limit = resolvePipelineLimit(filters.limit, opts.isAdmin);
+  const fetchTake =
+    sourceFilter === "ALL"
+      ? Math.min(totalCandidates, Math.max(limit, 500))
+      : Math.min(totalCandidates, limit * 4);
 
   const [all, drafts, gates] = await Promise.all([
     prisma.pageFactoryBlueprint.findMany({
       where: { projectId: filters.projectId },
-      select: { id: true, metadataJson: true, projectId: true },
-      orderBy: { updatedAt: "desc" },
-      take: limit * 4,
+      select: { id: true, metadataJson: true, projectId: true, pageType: true },
+      orderBy: { createdAt: "asc" },
+      take: fetchTake,
     }),
     prisma.pageFactoryContentDraft.findMany({
       where: { projectId: filters.projectId },
@@ -106,16 +117,48 @@ async function loadBlueprintBatch(
     }),
     prisma.pageFactoryPublishGate.findMany({
       where: { projectId: filters.projectId },
-      select: { draftId: true, draft: { select: { blueprintId: true } } },
+      select: { draft: { select: { blueprintId: true } } },
     }),
   ]);
 
   const draftIds = new Set(drafts.map((d) => d.blueprintId));
   const gateBlueprintIds = new Set(gates.map((g) => g.draft.blueprintId));
 
-  const matched = all
-    .filter((bp) => matchesBlueprintFilters(bp, parseMetadata(bp.metadataJson), filters, draftIds, gateBlueprintIds))
+  let matched = all
+    .filter((bp) =>
+      matchesBlueprintFilters(bp, parseMetadata(bp.metadataJson), sourceFilter, filters, draftIds, gateBlueprintIds)
+    )
     .slice(0, limit);
+
+  if (matched.length === 0 && totalCandidates > 0 && sourceFilter !== "ALL") {
+    warnings.push(
+      `Kaynak filtresi (${sourceFilter}) eşleşmedi — projectId içindeki blueprintlere fallback (${limit})`
+    );
+    matched = all
+      .filter((bp) => isBlueprintPipelineEligible(parseMetadata(bp.metadataJson)))
+      .slice(0, limit);
+  }
+
+  if (matched.length === 0 && totalCandidates > 0) {
+    warnings.push("Filtre sonucu 0 — proje blueprint fallback (kalite/kaynak filtresi atlandı)");
+    matched = all
+      .filter((bp) => isBlueprintPipelineEligible(parseMetadata(bp.metadataJson)))
+      .slice(0, limit);
+  }
+
+  if (matched.length === 0 && totalCandidates > 0) {
+    const extra = await prisma.pageFactoryBlueprint.findMany({
+      where: { projectId: filters.projectId },
+      select: { id: true, metadataJson: true, projectId: true, pageType: true },
+      orderBy: { createdAt: "asc" },
+      skip: fetchTake,
+      take: limit,
+    });
+    if (extra.length > 0) {
+      warnings.push(`İlk ${fetchTake} kayıt dışında ${extra.length} blueprint fallback`);
+      matched = extra;
+    }
+  }
 
   return { blueprints: matched, totalCandidates, warnings };
 }
@@ -124,20 +167,29 @@ function resolveMode(filters: PipelineFilters): PipelineMode {
   return filters.mode || "full";
 }
 
-function shouldRunAeo(mode: PipelineMode, metadata: Record<string, unknown>): boolean {
+function shouldRunAeo(mode: PipelineMode, metadata: Record<string, unknown>, filters: PipelineFilters): boolean {
   if (mode === "draft_only" || mode === "gate_only") return false;
-  return !hasAeo(metadata);
+  if (!hasProductForAeo(metadata)) return false;
+  if (filters.onlyWithoutAeo && hasAeo(metadata)) return false;
+  return true;
 }
 
-function shouldRunDraft(mode: PipelineMode, hasDraft: boolean): boolean {
+function shouldRunDraft(mode: PipelineMode, filters: PipelineFilters, hasDraft: boolean): boolean {
   if (mode === "aeo_only" || mode === "gate_only") return false;
-  return !hasDraft;
+  if (filters.onlyWithoutDraft && hasDraft) return false;
+  return true;
 }
 
-function shouldRunGate(mode: PipelineMode, hasGate: boolean): boolean {
+function shouldAutoPublish(mode: PipelineMode, filters: PipelineFilters): boolean {
+  if (mode !== "full") return false;
+  return filters.autoPublish !== false;
+}
+
+function shouldRunGate(mode: PipelineMode, filters: PipelineFilters, hasGate: boolean): boolean {
   if (mode === "aeo_only" || mode === "draft_only") return false;
   if (mode === "gate_only") return true;
-  return !hasGate;
+  if (filters.onlyWithoutGate && hasGate) return false;
+  return true;
 }
 
 export async function previewPipeline(
@@ -146,6 +198,7 @@ export async function previewPipeline(
 ): Promise<PipelinePreviewResult> {
   const { blueprints, totalCandidates, warnings } = await loadBlueprintBatch(filters, opts);
   const mode = resolveMode(filters);
+  const sourceFilter = resolveGenerationSourceFilter(filters.generationSource);
 
   let needsAeo = 0;
   let needsDraft = 0;
@@ -154,33 +207,30 @@ export async function previewPipeline(
   let gateWarningEstimate = 0;
   let gateBlockedEstimate = 0;
   let readyToPublishEstimate = 0;
+  let publishEstimate = 0;
 
   const draftMap = new Map<string, string>();
-  if (filters.projectId) {
-    const drafts = await prisma.pageFactoryContentDraft.findMany({
-      where: { projectId: filters.projectId, blueprintId: { in: blueprints.map((b) => b.id) } },
-      select: { id: true, blueprintId: true },
-    });
-    for (const d of drafts) draftMap.set(d.blueprintId, d.id);
-  }
+  const drafts = await prisma.pageFactoryContentDraft.findMany({
+    where: { projectId: filters.projectId, blueprintId: { in: blueprints.map((b) => b.id) } },
+    select: { id: true, blueprintId: true },
+  });
+  for (const d of drafts) draftMap.set(d.blueprintId, d.id);
 
   const gateSet = new Set<string>();
-  if (filters.projectId) {
-    const gates = await prisma.pageFactoryPublishGate.findMany({
-      where: { projectId: filters.projectId },
-      select: { draft: { select: { blueprintId: true } } },
-    });
-    for (const g of gates) gateSet.add(g.draft.blueprintId);
-  }
+  const gates = await prisma.pageFactoryPublishGate.findMany({
+    where: { projectId: filters.projectId },
+    select: { draft: { select: { blueprintId: true } } },
+  });
+  for (const g of gates) gateSet.add(g.draft.blueprintId);
 
   for (const bp of blueprints) {
     const metadata = parseMetadata(bp.metadataJson);
     const hasDraft = draftMap.has(bp.id);
     const hasGate = gateSet.has(bp.id);
 
-    if (shouldRunAeo(mode, metadata)) needsAeo++;
-    if (shouldRunDraft(mode, hasDraft)) needsDraft++;
-    if (shouldRunGate(mode, hasGate)) needsGate++;
+    if (shouldRunAeo(mode, metadata, filters)) needsAeo++;
+    if (shouldRunDraft(mode, filters, hasDraft)) needsDraft++;
+    if (shouldRunGate(mode, filters, hasGate)) needsGate++;
 
     const draftId = draftMap.get(bp.id);
     if (draftId) {
@@ -189,15 +239,22 @@ export async function previewPipeline(
         if (gatePreview.status === "PASSED") gatePassedEstimate++;
         else if (gatePreview.status === "WARNING" || gatePreview.status === "NEEDS_REVIEW") gateWarningEstimate++;
         else if (gatePreview.status === "BLOCKED") gateBlockedEstimate++;
+        if (
+          (gatePreview.status === "PASSED" || gatePreview.status === "WARNING") &&
+          gatePreview.score >= 60
+        ) {
+          publishEstimate++;
+        }
         if (gatePreview.status === "PASSED" && gatePreview.score >= 80) readyToPublishEstimate++;
       } catch {
-        /* skip preview errors */
+        /* skip */
       }
     }
   }
 
   return {
     totalBlueprints: blueprints.length,
+    totalCandidates,
     needsAeo,
     needsDraft,
     needsGate,
@@ -205,9 +262,11 @@ export async function previewPipeline(
     gatePassedEstimate,
     gateWarningEstimate,
     gateBlockedEstimate,
+    publishEstimate,
     sampleBlueprintIds: blueprints.slice(0, 20).map((b) => b.id),
     warnings,
     planOnly: totalCandidates > PIPELINE_LIMITS.planOnlyThreshold,
+    generationSource: sourceFilter,
   };
 }
 
@@ -234,25 +293,30 @@ export async function runPipeline(
     jobId = job.id;
   }
 
+  let processed = 0;
+  let skipped = 0;
   let aeoGenerated = 0;
   let draftsGenerated = 0;
   let gatePassed = 0;
   let gateWarning = 0;
   let gateBlocked = 0;
+  let pagesPublished = 0;
+  let pagesUpdated = 0;
+  let publishSkipped = 0;
   let errorCount = 0;
   const errors: Array<{ blueprintId: string; message: string }> = [];
 
   for (const bp of blueprints) {
+    processed++;
     try {
       let metadata = parseMetadata(bp.metadataJson);
       const draftExisting = await getContentDraftForBlueprint(bp.id);
-      const gateExisting = draftExisting
-        ? await getPublishGateForDraft(draftExisting.id)
-        : null;
+      const gateExisting = draftExisting ? await getPublishGateForDraft(draftExisting.id) : null;
 
-      if (shouldRunAeo(mode, metadata)) {
+      if (shouldRunAeo(mode, metadata, filters)) {
         const aeo = await generateAeoForBlueprint(bp.id, dryRun);
-        if (aeo.written || (dryRun && aeo.payload)) aeoGenerated++;
+        if (!dryRun && aeo.written) aeoGenerated++;
+        else if (dryRun && aeo.payload) aeoGenerated++;
         if (!dryRun) {
           const refreshed = await prisma.pageFactoryBlueprint.findUnique({
             where: { id: bp.id },
@@ -263,17 +327,43 @@ export async function runPipeline(
       }
 
       let draftId = draftExisting?.id;
-      if (shouldRunDraft(mode, !!draftExisting)) {
+      if (shouldRunDraft(mode, filters, !!draftExisting)) {
         const draft = await generateContentDraftForBlueprint(bp.id, dryRun);
-        if (draft.written || (dryRun && draft.payload)) draftsGenerated++;
+        if (!dryRun && draft.written) draftsGenerated++;
+        else if (dryRun && draft.payload) draftsGenerated++;
         draftId = draft.draftId || draftExisting?.id;
       }
 
-      if (shouldRunGate(mode, !!gateExisting) && draftId) {
+      if (shouldRunGate(mode, filters, !!gateExisting) && draftId) {
         const gate = await runPublishGateForDraft(draftId, dryRun);
-        if (gate.status === "PASSED") gatePassed++;
-        else if (gate.status === "WARNING" || gate.status === "NEEDS_REVIEW") gateWarning++;
-        else if (gate.status === "BLOCKED") gateBlocked++;
+        if (!dryRun || gate.checks?.length) {
+          if (gate.status === "PASSED") gatePassed++;
+          else if (gate.status === "WARNING" || gate.status === "NEEDS_REVIEW") gateWarning++;
+          else if (gate.status === "BLOCKED") gateBlocked++;
+        }
+      }
+
+      if (shouldAutoPublish(mode, filters) && draftId && !dryRun) {
+        const draft = await prisma.pageFactoryContentDraft.findUnique({
+          where: { id: draftId },
+          include: { publishGate: true },
+        });
+        if (draft?.status === "READY_TO_PUBLISH" && draft.publishGate) {
+          const gs = draft.publishGate.status;
+          if (gs === "PASSED" || gs === "WARNING") {
+            try {
+              const pub = await publishDraftInternal(draftId);
+              if (pub.created) pagesPublished++;
+              else if (pub.updated) pagesUpdated++;
+            } catch {
+              publishSkipped++;
+            }
+          } else {
+            publishSkipped++;
+          }
+        } else {
+          publishSkipped++;
+        }
       }
     } catch (e) {
       errorCount++;
@@ -285,15 +375,22 @@ export async function runPipeline(
     }
   }
 
+  skipped = Math.max(0, blueprints.length - processed + errorCount);
+
   const resultPayload = {
     version: PIPELINE_VERSION,
     mode,
     dryRun,
+    processed,
+    skipped,
     aeoGenerated,
     draftsGenerated,
     gatePassed,
     gateWarning,
     gateBlocked,
+    pagesPublished,
+    pagesUpdated,
+    publishSkipped,
     errorCount,
     warnings,
     errors,
@@ -303,12 +400,13 @@ export async function runPipeline(
     await prisma.pageFactoryPipelineJob.update({
       where: { id: jobId },
       data: {
-        status: errorCount > 0 && aeoGenerated + draftsGenerated === 0 ? "FAILED" : "COMPLETED",
+        status: errorCount > 0 && processed === errorCount ? "FAILED" : "COMPLETED",
         aeoGenerated,
         draftsGenerated,
         gatePassed,
         gateWarning,
         gateBlocked,
+        pagesPublished,
         errorCount,
         resultJson: JSON.stringify(resultPayload),
       },
@@ -318,11 +416,16 @@ export async function runPipeline(
   return {
     jobId,
     totalBlueprints: blueprints.length,
+    processed,
+    skipped,
     aeoGenerated,
     draftsGenerated,
     gatePassed,
     gateWarning,
     gateBlocked,
+    pagesPublished,
+    pagesUpdated,
+    publishSkipped,
     errorCount,
     dryRun,
     warnings,

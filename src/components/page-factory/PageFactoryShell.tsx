@@ -20,6 +20,8 @@ import { AdminModuleAccessPanel } from "@/components/admin/AdminModuleAccessPane
 import { BlueprintUniverseTab } from "@/components/page-factory/BlueprintUniverseTab";
 import { PublishGateReviewTab } from "@/components/page-factory/PublishGateReviewTab";
 import { PageFactoryPipelineTab } from "@/components/page-factory/PageFactoryPipelineTab";
+import { PageFactoryPublishedPagesTab } from "@/components/page-factory/PageFactoryPublishedPagesTab";
+import { PageFactoryInternalSitemapTab } from "@/components/page-factory/PageFactoryInternalSitemapTab";
 import { ContentDraftPreviewModal } from "@/components/page-factory/ContentDraftPreviewModal";
 
 type Dashboard = {
@@ -94,7 +96,7 @@ export function PageFactoryShell({ showLicensePanel = false }: Props) {
     data: null,
     title: "",
   });
-  const [shellView, setShellView] = useState<"projects" | "review" | "pipeline">("projects");
+  const [shellView, setShellView] = useState<"projects" | "review" | "pipeline" | "published" | "sitemap">("projects");
   const [error, setError] = useState<string | null>(null);
   const [form, setForm] = useState({
     name: "",
@@ -256,6 +258,20 @@ export function PageFactoryShell({ showLicensePanel = false }: Props) {
         >
           Pipeline
         </button>
+        <button
+          type="button"
+          onClick={() => setShellView("published")}
+          className={`px-4 py-1.5 text-xs font-medium rounded-md ${shellView === "published" ? "bg-emerald-600 text-white" : "text-gray-600 hover:bg-gray-100"}`}
+        >
+          Published Pages
+        </button>
+        <button
+          type="button"
+          onClick={() => setShellView("sitemap")}
+          className={`px-4 py-1.5 text-xs font-medium rounded-md ${shellView === "sitemap" ? "bg-blue-600 text-white" : "text-gray-600 hover:bg-gray-100"}`}
+        >
+          Internal Sitemap
+        </button>
       </div>
 
       {shellView === "review" ? (
@@ -267,6 +283,28 @@ export function PageFactoryShell({ showLicensePanel = false }: Props) {
           </div>
         ) : dashboard ? (
           <PageFactoryPipelineTab
+            projects={dashboard.projects.map((p) => ({ id: p.id, name: p.name }))}
+            mode={showLicensePanel ? "admin" : "dealer"}
+          />
+        ) : null
+      ) : shellView === "published" ? (
+        loading ? (
+          <div className="flex justify-center py-16">
+            <Loader2 className="animate-spin text-violet-500" size={28} />
+          </div>
+        ) : dashboard ? (
+          <PageFactoryPublishedPagesTab
+            projects={dashboard.projects.map((p) => ({ id: p.id, name: p.name }))}
+            mode={showLicensePanel ? "admin" : "dealer"}
+          />
+        ) : null
+      ) : shellView === "sitemap" ? (
+        loading ? (
+          <div className="flex justify-center py-16">
+            <Loader2 className="animate-spin text-violet-500" size={28} />
+          </div>
+        ) : dashboard ? (
+          <PageFactoryInternalSitemapTab
             projects={dashboard.projects.map((p) => ({ id: p.id, name: p.name }))}
             mode={showLicensePanel ? "admin" : "dealer"}
           />

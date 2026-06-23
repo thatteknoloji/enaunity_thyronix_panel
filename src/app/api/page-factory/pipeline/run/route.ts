@@ -8,7 +8,7 @@ function parseFilters(body: Record<string, unknown>): PipelineFilters {
   const mode = body.mode as PipelineMode | undefined;
   return {
     projectId: body.projectId ? String(body.projectId) : undefined,
-    generationSource: body.generationSource ? String(body.generationSource) : undefined,
+    generationSource: body.generationSource ? String(body.generationSource) : "ALL",
     blueprintType: body.blueprintType ? String(body.blueprintType) : undefined,
     minQualityScore: body.minQualityScore != null ? Number(body.minQualityScore) : undefined,
     minAeoScore: body.minAeoScore != null ? Number(body.minAeoScore) : undefined,

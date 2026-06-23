@@ -2926,35 +2926,77 @@ model AffiliatePayout {
 }
 
 model PODProductTemplate {
-  id           String   @id @default(cuid())
-  name         String
-  slug         String   @unique
-  category     String   @default("")
-  basePrice    Float    @default(0)
-  printAreasJson String @default("[]")
-  status       String   @default("draft")
-  metadataJson String   @default("{}")
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id             String   @id @default(cuid())
+  name           String
+  slug           String   @unique
+  category       String   @default("")
+  basePrice      Float    @default(0)
+  baseImageUrl   String   @default("")
+  printWidth     Float    @default(0)
+  printHeight    Float    @default(0)
+  printAreasJson String   @default("[]")
+  overlayAreaJson String  @default("{}")
+  safeAreaJson   String   @default("{}")
+  status         String   @default("active")
+  metadataJson   String   @default("{}")
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 
-  designs PODDesign[]
+  designs  PODDesign[]
+  projects PODProject[]
 }
 
 model PODDesign {
-  id         String   @id @default(cuid())
-  templateId String?
-  template   PODProductTemplate? @relation(fields: [templateId], references: [id], onDelete: SetNull)
-  storeId    String?
-  store      PODCreatorStore? @relation(fields: [storeId], references: [id], onDelete: SetNull)
-  creatorUserId String
-  title      String   @default("")
-  previewUrl String   @default("")
-  status     String   @default("draft")
-  metadataJson String @default("{}")
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  id                    String   @id @default(cuid())
+  dealerId              String?
+  templateId            String?
+  template              PODProductTemplate? @relation(fields: [templateId], references: [id], onDelete: SetNull)
+  storeId               String?
+  store                 PODCreatorStore? @relation(fields: [storeId], references: [id], onDelete: SetNull)
+  creatorUserId         String
+  title                 String   @default("")
+  description           String   @default("")
+  fileUrl               String   @default("")
+  previewUrl            String   @default("")
+  thumbnailUrl          String   @default("")
+  fileType              String   @default("PNG")
+  width                 Int      @default(0)
+  height                Int      @default(0)
+  dpi                   Int      @default(300)
+  transparentBackground Boolean  @default(false)
+  status                String   @default("active")
+  metadataJson          String   @default("{}")
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
 
-  orders PODOrder[]
+  orders   PODOrder[]
+  projects PODProject[]
+
+  @@index([dealerId])
+  @@index([creatorUserId])
+  @@index([status])
+}
+
+model PODProject {
+  id                 String             @id @default(cuid())
+  dealerId           String
+  designId           String
+  design             PODDesign          @relation(fields: [designId], references: [id], onDelete: Cascade)
+  templateId         String
+  template           PODProductTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
+  placementJson      String             @default("{}")
+  previewUrl         String             @default("")
+  mockupUrl          String             @default("")
+  mockupThumbnailUrl String             @default("")
+  status             String             @default("DRAFT")
+  metadataJson       String             @default("{}")
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+
+  @@index([dealerId])
+  @@index([designId])
+  @@index([templateId])
+  @@index([status])
 }
 
 model PODCreatorStore {
@@ -3094,6 +3136,7 @@ model PageFactoryContentDraft {
   updatedAt           DateTime                      @updatedAt
 
   publishGate         PageFactoryPublishGate?
+  publishedPage       PageFactoryPublishedPage?
 
   @@index([projectId])
   @@index([dealerId])
@@ -3160,6 +3203,7 @@ model PageFactoryPipelineJob {
   gatePassed       Int                          @default(0)
   gateWarning      Int                          @default(0)
   gateBlocked      Int                          @default(0)
+  pagesPublished   Int                          @default(0)
   errorCount       Int                          @default(0)
   createdAt        DateTime                     @default(now())
   updatedAt        DateTime                     @updatedAt
@@ -3168,6 +3212,86 @@ model PageFactoryPipelineJob {
   @@index([projectId])
   @@index([status])
   @@index([createdAt])
+}
+
+enum PageFactoryPublishedPageStatus {
+  STAGED
+  PUBLISHED_INTERNAL
+  UNPUBLISHED
+  ARCHIVED
+}
+
+model PageFactoryPublishedPage {
+  id                String                         @id @default(cuid())
+  draftId           String                         @unique
+  draft             PageFactoryContentDraft        @relation(fields: [draftId], references: [id], onDelete: Cascade)
+  blueprintId       String
+  projectId         String?
+  dealerId          String?
+  title             String
+  slug              String
+  path              String                         @unique
+  h1                String                         @default("")
+  metaTitle         String                         @default("")
+  metaDescription   String                         @default("")
+  bodyJson          String                         @default("[]")
+  faqJson           String                         @default("[]")
+  schemaJson        String                         @default("{}")
+  internalLinksJson String                         @default("[]")
+  canonicalUrl      String?
+  robots            String                         @default("index,follow")
+  status            PageFactoryPublishedPageStatus @default(STAGED)
+  publishScore      Int                            @default(0)
+  seoScore          Int                            @default(0)
+  aeoScore          Int                            @default(0)
+  geoScore          Int                            @default(0)
+  sourceJson        String                         @default("{}")
+  metadataJson      String                         @default("{}")
+  publishedAt       DateTime?
+  createdAt         DateTime                       @default(now())
+  updatedAt         DateTime                       @updatedAt
+
+  @@index([blueprintId])
+  @@index([projectId])
+  @@index([dealerId])
+  @@index([status])
+  @@index([slug])
+  @@index([publishedAt])
+}
+
+enum PageFactoryInternalSitemapType {
+  MAIN
+  PROJECT
+  GEO
+  PRODUCT
+  FAQ
+  CATEGORY
+  INTENT
+}
+
+enum PageFactoryInternalSitemapStatus {
+  ACTIVE
+  STALE
+  ERROR
+}
+
+model PageFactoryInternalSitemap {
+  id            String                         @id @default(cuid())
+  projectId     String?
+  sitemapType   PageFactoryInternalSitemapType @default(MAIN)
+  path          String                         @default("/pf-sitemap/internal.json")
+  urlCount      Int                            @default(0)
+  status        PageFactoryInternalSitemapStatus @default(ACTIVE)
+  generatedJson String                         @default("{}")
+  metadataJson  String                         @default("{}")
+  generatedAt   DateTime?
+  createdAt     DateTime                       @default(now())
+  updatedAt     DateTime                       @updatedAt
+
+  @@unique([projectId, sitemapType, path])
+  @@index([projectId])
+  @@index([sitemapType])
+  @@index([status])
 }
 
 // ── Data Universe Engine (GEO / Industry / Intent / Question — içerik üretmez) ──

@@ -575,6 +575,16 @@ export async function middleware(request: NextRequest) {
 
   if (isAccountPage || isDealerPage || isProductLibraryPage || isDealerApi) {
     if (role !== "dealer" && !isAdminRole(role)) {
+      if (role === "user") {
+        const userAccessible = [
+          "/account/application",
+          "/account/appearance",
+          "/account/legal-reaccept",
+        ];
+        if (userAccessible.some((p) => pathname === p || pathname.startsWith(p + "/"))) {
+          return NextResponse.next();
+        }
+      }
       if (isApi) return jsonError(403, "Yetkisiz erişim");
       return NextResponse.redirect(new URL("/auth/login", request.url));
     }

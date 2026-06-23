@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { isAdminRole } from "@/lib/auth/admin-access";
 import { requirePageFactoryApiAccess } from "@/lib/page-factory/api-guard";
-import { listPublishGateQueue, getPublishGateStats } from "@/lib/page-factory/publish-gate/publish-gate-service";
+import { listPublishGateQueue, getPublishGateStats, listDraftsWithoutGate } from "@/lib/page-factory/publish-gate/publish-gate-service";
 
 export async function GET(req: Request) {
   try {
@@ -15,6 +15,16 @@ export async function GET(req: Request) {
     if (searchParams.get("stats") === "true") {
       const stats = await getPublishGateStats(projectId);
       return NextResponse.json({ success: true, data: stats });
+    }
+
+    if (searchParams.get("withoutGate") === "true") {
+      const drafts = await listDraftsWithoutGate({
+        projectId,
+        dealerId: isAdmin ? null : user!.dealerId,
+        isAdmin,
+        limit: Number(searchParams.get("limit") || 50),
+      });
+      return NextResponse.json({ success: true, data: { items: drafts } });
     }
 
     const data = await listPublishGateQueue({

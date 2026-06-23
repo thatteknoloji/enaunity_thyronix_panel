@@ -21,7 +21,7 @@ export type PodLicenseStatus = {
   licenseState: "active" | "pending" | "none";
   planKey: string | null;
   limits: Record<string, number> | null;
-  featureStatus: "COMING_SOON";
+  featureStatus: "ACTIVE";
   endsAt: string | null;
 };
 
@@ -204,7 +204,7 @@ export async function getPodLicenseStatus(dealerId: string): Promise<PodLicenseS
     licenseState,
     planKey: license?.planKey || null,
     limits,
-    featureStatus: "COMING_SOON",
+    featureStatus: "ACTIVE",
     endsAt: license?.endsAt?.toISOString() || null,
   };
 }

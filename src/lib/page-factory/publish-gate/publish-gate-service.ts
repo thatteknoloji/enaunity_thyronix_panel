@@ -354,6 +354,27 @@ export async function listPublishGateQueue(opts: {
   return { items, total, page, limit, totalPages: Math.max(1, Math.ceil(total / limit)) };
 }
 
+export async function listDraftsWithoutGate(opts: {
+  projectId?: string;
+  dealerId?: string | null;
+  isAdmin: boolean;
+  limit?: number;
+}) {
+  const limit = Math.min(opts.limit ?? 30, 100);
+  const where: Record<string, unknown> = { publishGate: null };
+  if (opts.projectId) where.projectId = opts.projectId;
+  if (!opts.isAdmin && opts.dealerId) where.dealerId = opts.dealerId;
+
+  return prisma.pageFactoryContentDraft.findMany({
+    where,
+    orderBy: { updatedAt: "desc" },
+    take: limit,
+    include: {
+      blueprint: { select: { id: true, title: true, pageType: true, metadataJson: true } },
+    },
+  });
+}
+
 export async function getPublishGateStats(projectId?: string) {
   const where = projectId ? { projectId } : {};
   const gates = await prisma.pageFactoryPublishGate.groupBy({

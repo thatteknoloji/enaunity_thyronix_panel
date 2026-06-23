@@ -65,6 +65,7 @@ export default function CheckoutPage() {
   const [showOnlineSuggestion, setShowOnlineSuggestion] = useState(false);
 
   const isDealer = !!dealer;
+  const canUseDealerPayment = !!paymentDealerId;
 
   useEffect(() => {
     fetchCart();
@@ -72,6 +73,7 @@ export default function CheckoutPage() {
       if (!d.data) { router.push("/auth/login?redirect=/checkout"); return; }
       setUser(d.data);
       if (d.data.dealerId) {
+        setPaymentDealerId(d.data.dealerId);
         fetch("/api/dealer/profile").then((r) => r.json()).then((p) => {
           if (p.success) {
             setDealer(p.data);
@@ -81,7 +83,6 @@ export default function CheckoutPage() {
             if (p.data.dealerGroup?.minOrderAmount) {
               setMinOrderAmount(p.data.dealerGroup.minOrderAmount);
             }
-            setPaymentDealerId(d.data.dealerId);
           }
         });
       }
@@ -157,7 +158,7 @@ export default function CheckoutPage() {
     if (!platform) { setError("Lütfen bir platform seçin"); return false; }
     const addrToCheck = sameAddress ? invoiceAddress : deliveryAddress;
     if (!invoiceAddress.trim() || !addrToCheck.trim()) { setError("Adres bilgilerini doldurun"); return false; }
-    if (isDealer && !paymentMethod) {
+    if (canUseDealerPayment && !paymentMethod) {
       setError("Bayi siparişi için lütfen bir ödeme yöntemi seçin.");
       return false;
     }
@@ -253,7 +254,7 @@ export default function CheckoutPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (isDealer) {
+    if (canUseDealerPayment) {
       setError("Bayi siparişi için ödeme yöntemi seçin.");
       return;
     }
@@ -530,7 +531,7 @@ export default function CheckoutPage() {
           </Button>
         )}
 
-        {isDealer && (
+        {canUseDealerPayment && (
           <div className="pt-4 border-t border-ena-border">
             <p className="text-sm text-ena-light mb-3">Ödeme yöntemini aşağıdan seçin. Bayi siparişi admin onayına gider.</p>
             <PaymentCheckoutPanel
