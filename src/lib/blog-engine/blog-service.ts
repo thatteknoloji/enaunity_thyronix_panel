@@ -25,6 +25,7 @@ import {
   type BlogGenerateResult,
   type BlogPreviewResult,
 } from "./blog-types";
+import { getGeoCitiesFromDbOrFallback } from "@/lib/geo/turkiye-geo-source";
 
 type BuiltPost = {
   title: string;
@@ -334,7 +335,7 @@ async function buildCategoryBlogBuilt(opts: BlogGenerateOptions): Promise<BuiltP
 async function buildGeoBlogBuilt(opts: BlogGenerateOptions): Promise<BuiltPost[]> {
   const keyword = (opts.keyword || opts.category || "").trim();
   if (!keyword) throw new Error("keyword gerekli (GEO modu)");
-  const provinces = opts.province ? [opts.province] : [...BLOG_GEO_PROVINCES];
+  const provinces = opts.province ? [opts.province] : await getGeoCitiesFromDbOrFallback(10);
   return provinces.map((province) => {
     const content = buildGeoContent(keyword, province, opts.district);
     const loc = opts.district ? `${province}-${opts.district}` : province;

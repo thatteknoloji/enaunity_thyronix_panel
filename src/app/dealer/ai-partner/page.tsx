@@ -38,6 +38,9 @@ export default function DealerAiPartnerPage() {
 
   return (
     <div className="max-w-2xl">
+      <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-amber-500/15 px-3 py-1 text-xs font-semibold text-amber-200">
+        Beta — temel üretim çalışır; tam panel yakında
+      </div>
       <h1 className="text-2xl font-bold text-white mb-2">AI Partner Merkezi</h1>
       <p className="text-ena-light text-sm mb-6">Ürün, SEO ve içerik üretim asistanı</p>
       <div className="rounded-xl border border-ena-border bg-ena-card p-5 space-y-4">

@@ -21,7 +21,7 @@ export async function GET() {
     const catalogItems = catalogItemIds.length > 0
       ? await prisma.productCatalogItem.findMany({
           where: { id: { in: catalogItemIds } },
-          select: { id: true, name: true, sku: true, image: true, category: true },
+          select: { id: true, name: true, sku: true, imagesJson: true, category: true },
         })
       : [];
 

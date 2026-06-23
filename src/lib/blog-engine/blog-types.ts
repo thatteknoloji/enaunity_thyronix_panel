@@ -100,15 +100,7 @@ export type BlogBatchGenerateResult = {
   warnings: string[];
 };
 
-export const BLOG_GEO_PROVINCES = [
-  "İstanbul",
-  "Ankara",
-  "İzmir",
-  "Bursa",
-  "Antalya",
-  "Konya",
-  "Adana",
-  "Gaziantep",
-  "Kocaeli",
-  "Mersin",
-] as const;
+import { getDefaultGeoCities, TURKIYE_GEO_FALLBACK_PROVINCES } from "@/lib/geo/turkiye-geo-source";
+
+/** @deprecated BLOG_GEO_PROVINCES — getGeoCitiesFromDbOrFallback / getDefaultGeoCities kullanın */
+export const BLOG_GEO_PROVINCES = TURKIYE_GEO_FALLBACK_PROVINCES;

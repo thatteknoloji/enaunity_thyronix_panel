@@ -15,6 +15,8 @@ import {
   Upload,
 } from "lucide-react";
 import { BLOG_GEO_PROVINCES } from "@/lib/blog-engine/blog-types";
+import { fetchPageFactoryJson } from "@/lib/page-factory/fetch-json";
+import { getDefaultGeoCities } from "@/lib/geo/turkiye-geo-source";
 
 type Tab = "dashboard" | "generate" | "published" | "drafts" | "archive";
 
@@ -69,12 +71,12 @@ export function BlogEngineShell() {
     "# Giriş\n## Nedir?\n## Nasıl Seçilir?\n## Karşılaştırma\n## SSS\n1. Fiyat nedir?\n2. Nereden alınır?"
   );
   const [competitorUrl, setCompetitorUrl] = useState("");
+  const [geoProvinces, setGeoProvinces] = useState<string[]>([...getDefaultGeoCities(10)]);
 
   const loadStats = useCallback(async () => {
     try {
-      const res = await fetch("/api/admin/blog-engine/stats");
-      const d = await res.json();
-      if (d.success) setStats(d.data);
+      const d = await fetchPageFactoryJson<Stats>("/api/admin/blog-engine/stats");
+      if (d.success && d.data) setStats(d.data);
     } catch {
       /* ignore */
     }
@@ -84,9 +86,8 @@ export function BlogEngineShell() {
     setLoading(true);
     try {
       const q = status ? `?status=${status}&limit=50` : "?limit=50";
-      const res = await fetch(`/api/admin/blog-engine/posts${q}`);
-      const d = await res.json();
-      if (d.success) setPosts(d.data.items || []);
+      const d = await fetchPageFactoryJson<{ items: BlogPostItem[] }>(`/api/admin/blog-engine/posts${q}`);
+      if (d.success && d.data) setPosts(d.data.items || []);
     } catch {
       setPosts([]);
     } finally {
@@ -96,6 +97,15 @@ export function BlogEngineShell() {
 
   useEffect(() => {
     loadStats();
+    fetchPageFactoryJson<{ items: Array<{ name: string }> }>("/api/admin/page-factory/geo?entity=provinces&limit=81")
+      .then((d) => {
+        if (d.success && d.data?.items?.length) {
+          setGeoProvinces(d.data.items.map((p) => p.name));
+        }
+      })
+      .catch(() => {
+        setGeoProvinces([...BLOG_GEO_PROVINCES]);
+      });
   }, [loadStats]);
 
   useEffect(() => {
@@ -127,14 +137,13 @@ export function BlogEngineShell() {
     setPreview(null);
     setLoading(true);
     try {
-      const res = await fetch("/api/admin/blog-engine/preview", {
+      const d = await fetchPageFactoryJson("/api/admin/blog-engine/preview", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(buildBody()),
       });
-      const d = await res.json();
       if (!d.success) throw new Error(d.error || "Preview başarısız");
-      setPreview(d.data);
+      setPreview(d.data as Record<string, unknown>);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Preview başarısız");
     } finally {
@@ -147,12 +156,11 @@ export function BlogEngineShell() {
     setResult(null);
     setLoading(true);
     try {
-      const res = await fetch("/api/admin/blog-engine/generate", {
+      const d = await fetchPageFactoryJson("/api/admin/blog-engine/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(buildBody(false, autoPublish)),
       });
-      const d = await res.json();
       if (!d.success) throw new Error(d.error || "Generate başarısız");
       setResult(d.data);
       await loadStats();
@@ -170,8 +178,7 @@ export function BlogEngineShell() {
   const publishPost = async (id: string) => {
     setLoading(true);
     try {
-      const res = await fetch(`/api/admin/blog-engine/posts/${id}/publish`, { method: "POST" });
-      const d = await res.json();
+      const d = await fetchPageFactoryJson(`/api/admin/blog-engine/posts/${id}/publish`, { method: "POST" });
       if (!d.success) throw new Error(d.error);
       await loadStats();
       loadPosts(tab === "published" ? "PUBLISHED" : "DRAFT");
@@ -185,8 +192,7 @@ export function BlogEngineShell() {
   const archivePost = async (id: string) => {
     setLoading(true);
     try {
-      const res = await fetch(`/api/admin/blog-engine/posts/${id}/archive`, { method: "POST" });
-      const d = await res.json();
+      const d = await fetchPageFactoryJson(`/api/admin/blog-engine/posts/${id}/archive`, { method: "POST" });
       if (!d.success) throw new Error(d.error);
       await loadStats();
       loadPosts("ARCHIVED");
@@ -335,7 +341,7 @@ export function BlogEngineShell() {
                     className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm"
                   >
                     <option value="">Tümü (10 il)</option>
-                    {BLOG_GEO_PROVINCES.map((p) => (
+                    {geoProvinces.map((p) => (
                       <option key={p} value={p}>
                         {p}
                       </option>

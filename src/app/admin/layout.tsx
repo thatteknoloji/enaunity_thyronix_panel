@@ -36,7 +36,7 @@ function buildNavGroups(t: (key: string) => string) {
         { href: "/admin/homepage", label: "Ana Sayfa", icon: LayoutDashboard },
         { href: "/admin/ecosystem", label: "Ekosistem Vitrini", icon: Sparkles },
         { href: "/admin/contracts", label: t("admin.contracts"), icon: ScrollText },
-        { href: "/admin/blog-engine", label: "Blog Engine", icon: FileText },
+        { href: "/admin/blog-engine", label: "Blog Engine", icon: FileText, badge: "Beta" },
         { href: "/admin/legal-audit", label: "Hukuki Denetim", icon: Shield },
       ],
     },
@@ -109,6 +109,7 @@ function buildNavGroups(t: (key: string) => string) {
         { href: "/admin/partners/commissions", label: "Komisyonlar", icon: DollarSign },
         { href: "/admin/partners/payouts", label: "Ödemeler", icon: Banknote },
         { href: "/admin/pod", label: "POD Merkezi", icon: Shirt },
+        { href: "/admin/ai-partner", label: "AI Partner", icon: Brain, badge: "Yakında" },
         { href: "/admin/page-factory", label: "AI Page Factory", icon: Layers },
         { href: "/admin/page-factory/data", label: "Veri Evreni", icon: Layers },
         { href: "/admin/page-factory/data/import", label: "GEO Import", icon: Layers },
@@ -338,7 +339,16 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                         }`}
                         title={collapsed ? item.label : undefined}>
                         <item.icon size={collapsed ? 18 : 16} className="shrink-0" />
-                        {!collapsed && <span>{item.label}</span>}
+                        {!collapsed && (
+                          <>
+                            <span className="flex-1">{item.label}</span>
+                            {"badge" in item && item.badge ? (
+                              <span className="rounded-full bg-amber-500/20 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-amber-300">
+                                {item.badge}
+                              </span>
+                            ) : null}
+                          </>
+                        )}
                       </Link>
                     );
                   })}

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getImportJob } from "@/lib/product-universe/import-service";
 import { requireProductUniverseApiAccess } from "@/lib/product-universe/api-guard";
 
+/** @deprecated Backward-compatible — canonical: /api/product-universe/excel/jobs/[id] */
 export async function GET(
   _req: Request,
   { params }: { params: Promise<{ id: string }> }

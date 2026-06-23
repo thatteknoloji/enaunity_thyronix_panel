@@ -86,7 +86,6 @@ export type UniverseGeneratorFilters = UniverseAutoPipelineOptions &
     villageIds?: string[];
   };
 
-/** @deprecated TOP_20_CITIES — artık DB GEO kullanılıyor; geri uyumluluk için tutuldu */
 export type UniverseCity = {
   slug: string;
   name: string;
@@ -101,6 +100,7 @@ export const UNIVERSE_GEO_LEVEL_OPTIONS: Array<{ value: UniverseGeoLevel | "stre
   { value: "street", label: "Cadde / Sokak" },
 ];
 
+/** @deprecated TOP_20_CITIES — DB GEO kullanın: @/lib/geo/turkiye-geo-source getTopGeoCities / getGeoCitiesFromDbOrFallback */
 export const TOP_20_CITIES: UniverseCity[] = [
   { slug: "istanbul", name: "İstanbul", region: "Marmara" },
   { slug: "ankara", name: "Ankara", region: "İç Anadolu" },

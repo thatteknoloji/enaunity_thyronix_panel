@@ -2,7 +2,10 @@ import { NextResponse } from "next/server";
 import { commitProductImport, IMPORT_SOURCE_TYPES } from "@/lib/product-universe/import-service";
 import { requireProductUniverseApiAccess } from "@/lib/product-universe/api-guard";
 
-/** Legacy import endpoint — delegates to commitProductImport */
+/**
+ * @deprecated Legacy monolithic import — yeni akış: excel/preview + excel/commit
+ * Bu endpoint geri uyumluluk için tutulur; UI ProductUniverseImportWizard excel/* kullanır.
+ */
 export async function POST(req: Request) {
   try {
     const guard = await requireProductUniverseApiAccess();

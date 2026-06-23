@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { listImportJobs } from "@/lib/product-universe/import-service";
 import { requireProductUniverseApiAccess } from "@/lib/product-universe/api-guard";
 
+/** @deprecated Backward-compatible — canonical: /api/product-universe/excel/jobs */
 export async function GET(req: Request) {
   try {
     const guard = await requireProductUniverseApiAccess();

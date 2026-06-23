@@ -124,7 +124,7 @@ export function ProductUniverseImportWizard({ projects, mode, onComplete }: Prop
 
   const loadTemplates = useCallback(async () => {
     try {
-      const d = await fetchPageFactoryJson<Template[]>("/api/product-universe/import/templates");
+      const d = await fetchPageFactoryJson<Template[]>("/api/product-universe/excel/templates");
       if (d.success) setTemplates(d.data || []);
     } catch {
       /* ignore */
@@ -176,7 +176,7 @@ export function ProductUniverseImportWizard({ projects, mode, onComplete }: Prop
     setLoading(true);
     setError(null);
     try {
-      const d = await fetchPageFactoryJson("/api/product-universe/import/templates", {
+      const d = await fetchPageFactoryJson("/api/product-universe/excel/templates", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name: templateName, sourceType, mapping: columnMapping }),
@@ -241,7 +241,7 @@ export function ProductUniverseImportWizard({ projects, mode, onComplete }: Prop
   };
 
   const downloadTemplate = () => {
-    window.open("/api/product-universe/import/template", "_blank");
+    window.open("/api/product-universe/excel/template", "_blank");
   };
 
   const fieldOptions = MAPPING_FIELD_DEFS.map((f) => ({

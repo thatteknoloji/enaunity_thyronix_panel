@@ -248,17 +248,18 @@ export function PageFactoryShell({ showLicensePanel = false }: Props) {
         </button>
         <button
           type="button"
-          onClick={() => setShellView("universe")}
-          className={`px-4 py-1.5 text-xs font-medium rounded-md ${shellView === "universe" ? "bg-amber-600 text-white" : "text-gray-600 hover:bg-gray-100"}`}
-        >
-          Blueprint Evreni
-        </button>
-        <button
-          type="button"
           onClick={() => setShellView("universe-generator")}
           className={`px-4 py-1.5 text-xs font-medium rounded-md ${shellView === "universe-generator" ? "bg-violet-600 text-white" : "text-gray-600 hover:bg-gray-100"}`}
         >
           Universe Generator
+        </button>
+        <button
+          type="button"
+          onClick={() => setShellView("universe")}
+          className={`px-4 py-1.5 text-xs font-medium rounded-md ${shellView === "universe" ? "bg-amber-600 text-white" : "text-gray-500 hover:bg-gray-100"}`}
+          title="Eski blueprint evren akışı — yeni projeler için Universe Generator kullanın"
+        >
+          Legacy Blueprint Evren
         </button>
         <button
           type="button"
@@ -300,24 +301,6 @@ export function PageFactoryShell({ showLicensePanel = false }: Props) {
 
       {shellView === "review" ? (
         <PublishGateReviewTab projectId={activeProjectId || selected?.id} />
-      ) : shellView === "universe" ? (
-        loading ? (
-          <div className="flex justify-center py-16">
-            <Loader2 className="animate-spin text-violet-500" size={28} />
-          </div>
-        ) : dashboard ? (
-          <div className="space-y-4">
-            {(activeProjectId || selected?.id) ? (
-              <BlueprintUniverseTab
-                projectId={activeProjectId || selected!.id}
-                sector={dashboard.projects.find((p) => p.id === (activeProjectId || selected?.id))?.sector || ""}
-                onGenerated={() => loadDashboard()}
-              />
-            ) : (
-              <p className="text-sm text-gray-500">Blueprint evreni için üstten proje seçin.</p>
-            )}
-          </div>
-        ) : null
       ) : shellView === "universe-generator" ? (
         loading ? (
           <div className="flex justify-center py-16">
@@ -328,6 +311,31 @@ export function PageFactoryShell({ showLicensePanel = false }: Props) {
             projects={dashboard.projects.map((p) => ({ id: p.id, name: p.name }))}
             defaultProjectId={activeProjectId || selected?.id}
           />
+        ) : null
+      ) : shellView === "universe" ? (
+        loading ? (
+          <div className="flex justify-center py-16">
+            <Loader2 className="animate-spin text-violet-500" size={28} />
+          </div>
+        ) : dashboard ? (
+          <div className="space-y-4">
+            <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+              <strong>Legacy Blueprint Universe (V1)</strong> — yeni üretimler için üst menüden{" "}
+              <button type="button" onClick={() => setShellView("universe-generator")} className="underline font-medium">
+                Universe Generator
+              </button>{" "}
+              sekmesini kullanın (Product Universe Bridge V2).
+            </div>
+            {(activeProjectId || selected?.id) ? (
+              <BlueprintUniverseTab
+                projectId={activeProjectId || selected!.id}
+                sector={dashboard.projects.find((p) => p.id === (activeProjectId || selected?.id))?.sector || ""}
+                onGenerated={() => loadDashboard()}
+              />
+            ) : (
+              <p className="text-sm text-gray-500">Legacy evren için üstten proje seçin.</p>
+            )}
+          </div>
         ) : null
       ) : shellView === "pipeline" ? (
         loading ? (
@@ -561,15 +569,27 @@ export function PageFactoryShell({ showLicensePanel = false }: Props) {
                 </button>
                 <button
                   type="button"
-                  onClick={() => setProjectTab("universe")}
-                  className={`px-4 py-1.5 text-xs font-medium rounded-md ${projectTab === "universe" ? "bg-violet-600 text-white" : "text-gray-600 hover:bg-gray-100"}`}
+                  onClick={() => setShellView("universe-generator")}
+                  className="px-4 py-1.5 text-xs font-medium rounded-md bg-violet-600 text-white hover:bg-violet-700"
                 >
-                  Blueprint Evreni
+                  Universe Generator (V2)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setProjectTab("universe")}
+                  className={`px-4 py-1.5 text-xs font-medium rounded-md ${projectTab === "universe" ? "bg-amber-600 text-white" : "text-gray-500 hover:bg-gray-100"}`}
+                  title="Eski blueprint evren — legacy"
+                >
+                  Legacy Blueprint
                 </button>
               </div>
 
               {projectTab === "universe" ? (
-                <BlueprintUniverseTab
+                <div className="space-y-3">
+                  <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900">
+                    Legacy Blueprint Universe — yeni üretim için üst menüden <strong>Universe Generator</strong> kullanın.
+                  </div>
+                  <BlueprintUniverseTab
                   projectId={selected.id}
                   sector={selected.sector}
                   onGenerated={() => {
@@ -577,6 +597,7 @@ export function PageFactoryShell({ showLicensePanel = false }: Props) {
                     loadDashboard();
                   }}
                 />
+                </div>
               ) : (
               <>
               {selected.metadata?.estimate && (

@@ -5,7 +5,7 @@ import {
 } from "@/lib/product-universe/import-service";
 import { requireProductUniverseApiAccess } from "@/lib/product-universe/api-guard";
 
-/** @deprecated Backward-compatible — canonical: /api/product-universe/excel/templates */
+/** Canonical: excel/templates — legacy alias: /api/product-universe/import/templates */
 export async function GET() {
   try {
     const guard = await requireProductUniverseApiAccess();
