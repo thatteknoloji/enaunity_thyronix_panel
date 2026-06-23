@@ -33,6 +33,14 @@ export async function POST(req: Request) {
       twitterHandle: body.twitterHandle,
       locale: body.locale,
       copyrightText: body.copyrightText,
+      notFoundTitle: body.notFoundTitle,
+      notFoundSubtitle: body.notFoundSubtitle,
+      notFoundBody: body.notFoundBody,
+      notFoundHint: body.notFoundHint,
+      notFoundSearchPlaceholder: body.notFoundSearchPlaceholder,
+      notFoundFooterNote: body.notFoundFooterNote,
+      notFoundQuickLinksJson: body.notFoundQuickLinksJson,
+      notFoundRedirectRulesJson: body.notFoundRedirectRulesJson,
     };
     const data = await updateSiteSettings(payload);
     return NextResponse.json({ success: true, data });

@@ -1943,6 +1943,14 @@ model SiteSettings {
   twitterHandle          String   @default("")
   locale                 String   @default("tr_TR")
   copyrightText          String   @default("")
+  notFoundTitle          String   @default("")
+  notFoundSubtitle       String   @default("")
+  notFoundBody           String   @default("")
+  notFoundHint           String   @default("")
+  notFoundSearchPlaceholder String @default("")
+  notFoundFooterNote     String   @default("")
+  notFoundQuickLinksJson String   @default("[]")
+  notFoundRedirectRulesJson String @default("[]")
   createdAt              DateTime @default(now())
   updatedAt              DateTime @updatedAt
 }

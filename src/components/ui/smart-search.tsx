@@ -10,9 +10,15 @@ interface SmartSearchProps {
   variant?: "hero" | "header";
   onClose?: () => void;
   autoFocus?: boolean;
+  placeholder?: string;
 }
 
-export default function SmartSearch({ variant = "hero", onClose, autoFocus }: SmartSearchProps) {
+export default function SmartSearch({
+  variant = "hero",
+  onClose,
+  autoFocus,
+  placeholder,
+}: SmartSearchProps) {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<Product[]>([]);
   const [loading, setLoading] = useState(false);
@@ -91,7 +97,7 @@ export default function SmartSearch({ variant = "hero", onClose, autoFocus }: Sm
           onChange={(e) => setQuery(e.target.value)}
           onKeyDown={handleKeyDown}
           onFocus={() => { if (results.length || loading) setOpen(true); }}
-          placeholder={isHero ? "Ürün, kategori veya marka ara..." : "Ara..."}
+          placeholder={placeholder || (isHero ? "Ürün, kategori veya marka ara..." : "Ara...")}
           className={`w-full bg-transparent text-ena-text placeholder:text-ena-text-muted/50 focus:outline-none ${
             isHero ? "text-base" : "text-sm"
           }`}

@@ -6,11 +6,23 @@ import {
   DEFAULT_LOCALE,
   DEFAULT_META_DESCRIPTION,
   DEFAULT_OG_SITE_NAME,
+  DEFAULT_NOT_FOUND_BODY,
+  DEFAULT_NOT_FOUND_FOOTER_NOTE,
+  DEFAULT_NOT_FOUND_HINT,
+  DEFAULT_NOT_FOUND_SEARCH_PLACEHOLDER,
+  DEFAULT_NOT_FOUND_SUBTITLE,
+  DEFAULT_NOT_FOUND_TITLE,
   DEFAULT_ORGANIZATION_NAME,
   DEFAULT_SITE_TITLE,
   DEFAULT_SITE_TITLE_TEMPLATE,
   DEFAULT_THEME_COLOR,
 } from "./defaults";
+import {
+  parseNotFoundQuickLinks,
+  parseNotFoundRedirectRules,
+  type NotFoundQuickLink,
+  type NotFoundRedirectRule,
+} from "./not-found";
 
 export type SiteSettingsDTO = {
   faviconUrl: string;
@@ -29,6 +41,14 @@ export type SiteSettingsDTO = {
   twitterHandle: string;
   locale: string;
   copyrightText: string;
+  notFoundTitle: string;
+  notFoundSubtitle: string;
+  notFoundBody: string;
+  notFoundHint: string;
+  notFoundSearchPlaceholder: string;
+  notFoundFooterNote: string;
+  notFoundQuickLinksJson: string;
+  notFoundRedirectRulesJson: string;
   updatedAt: string;
 };
 
@@ -46,6 +66,14 @@ export type ResolvedSiteSettings = SiteSettingsDTO & {
   resolvedOrganizationName: string;
   resolvedLocale: string;
   resolvedLang: string;
+  resolvedNotFoundTitle: string;
+  resolvedNotFoundSubtitle: string;
+  resolvedNotFoundBody: string;
+  resolvedNotFoundHint: string;
+  resolvedNotFoundSearchPlaceholder: string;
+  resolvedNotFoundFooterNote: string;
+  resolvedNotFoundQuickLinks: NotFoundQuickLink[];
+  resolvedNotFoundRedirectRules: NotFoundRedirectRule[];
 };
 
 export function withCacheVersion(url: string, updatedAt: Date | string): string {
@@ -83,6 +111,14 @@ function mapRow(row: Awaited<ReturnType<typeof prisma.siteSettings.findUnique>>)
     twitterHandle: row?.twitterHandle?.trim() || "",
     locale: row?.locale?.trim() || "",
     copyrightText: row?.copyrightText?.trim() || "",
+    notFoundTitle: row?.notFoundTitle?.trim() || "",
+    notFoundSubtitle: row?.notFoundSubtitle?.trim() || "",
+    notFoundBody: row?.notFoundBody?.trim() || "",
+    notFoundHint: row?.notFoundHint?.trim() || "",
+    notFoundSearchPlaceholder: row?.notFoundSearchPlaceholder?.trim() || "",
+    notFoundFooterNote: row?.notFoundFooterNote?.trim() || "",
+    notFoundQuickLinksJson: row?.notFoundQuickLinksJson?.trim() || "[]",
+    notFoundRedirectRulesJson: row?.notFoundRedirectRulesJson?.trim() || "[]",
     updatedAt: updatedAt.toISOString(),
   };
 }
@@ -117,6 +153,15 @@ export async function getSiteSettings(): Promise<ResolvedSiteSettings> {
     resolvedOrganizationName: base.organizationName || DEFAULT_ORGANIZATION_NAME,
     resolvedLocale: locale,
     resolvedLang: lang,
+    resolvedNotFoundTitle: base.notFoundTitle || DEFAULT_NOT_FOUND_TITLE,
+    resolvedNotFoundSubtitle: base.notFoundSubtitle || DEFAULT_NOT_FOUND_SUBTITLE,
+    resolvedNotFoundBody: base.notFoundBody || DEFAULT_NOT_FOUND_BODY,
+    resolvedNotFoundHint: base.notFoundHint || DEFAULT_NOT_FOUND_HINT,
+    resolvedNotFoundSearchPlaceholder:
+      base.notFoundSearchPlaceholder || DEFAULT_NOT_FOUND_SEARCH_PLACEHOLDER,
+    resolvedNotFoundFooterNote: base.notFoundFooterNote || DEFAULT_NOT_FOUND_FOOTER_NOTE,
+    resolvedNotFoundQuickLinks: parseNotFoundQuickLinks(base.notFoundQuickLinksJson, []),
+    resolvedNotFoundRedirectRules: parseNotFoundRedirectRules(base.notFoundRedirectRulesJson, []),
   };
 }
 
@@ -138,6 +183,17 @@ export async function updateSiteSettings(input: Partial<SiteSettingsDTO>): Promi
   if (input.twitterHandle !== undefined) data.twitterHandle = input.twitterHandle.trim().replace(/^@/, "");
   if (input.locale !== undefined) data.locale = input.locale.trim();
   if (input.copyrightText !== undefined) data.copyrightText = input.copyrightText.trim();
+  if (input.notFoundTitle !== undefined) data.notFoundTitle = input.notFoundTitle.trim();
+  if (input.notFoundSubtitle !== undefined) data.notFoundSubtitle = input.notFoundSubtitle.trim();
+  if (input.notFoundBody !== undefined) data.notFoundBody = input.notFoundBody.trim();
+  if (input.notFoundHint !== undefined) data.notFoundHint = input.notFoundHint.trim();
+  if (input.notFoundSearchPlaceholder !== undefined)
+    data.notFoundSearchPlaceholder = input.notFoundSearchPlaceholder.trim();
+  if (input.notFoundFooterNote !== undefined) data.notFoundFooterNote = input.notFoundFooterNote.trim();
+  if (input.notFoundQuickLinksJson !== undefined)
+    data.notFoundQuickLinksJson = input.notFoundQuickLinksJson.trim();
+  if (input.notFoundRedirectRulesJson !== undefined)
+    data.notFoundRedirectRulesJson = input.notFoundRedirectRulesJson.trim();
 
   const row = await prisma.siteSettings.upsert({
     where: { id: "default" },

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { normalizeAdminSecretPath } from "@/lib/auth/admin-access";
+import { matchRedirectRule, type NotFoundRedirectRule } from "@/lib/site-settings/not-found";
 
 const ADMIN_ROLES = ["SUPER_ADMIN", "ADMIN", "MANAGER", "SUPPORT", "ACCOUNTING", "WAREHOUSE"];
 function isAdminRole(role: string) { return ADMIN_ROLES.includes(role?.toUpperCase()); }
@@ -67,6 +68,34 @@ async function guardLinkSlashDealerAccess(
   }
 }
 
+async function resolveRedirectRule(request: NextRequest, pathname: string): Promise<NotFoundRedirectRule | null> {
+  const adminSecret = normalizeAdminSecretPath(process.env.ADMIN_SECRET_PATH || "/x-control-eu-7294");
+  if (
+    pathname.startsWith("/api/") ||
+    pathname.startsWith("/_next/") ||
+    pathname.startsWith("/uploads/") ||
+    pathname === "/favicon.ico" ||
+    pathname.startsWith("/admin") ||
+    pathname.startsWith(adminSecret) ||
+    pathname.startsWith("/dealer") ||
+    pathname.startsWith("/auth")
+  ) {
+    return null;
+  }
+
+  try {
+    const res = await fetch(new URL("/api/public/redirect-rules", request.url), {
+      headers: { accept: "application/json" },
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    if (!data?.success || !Array.isArray(data.data)) return null;
+    return matchRedirectRule(pathname, data.data as NotFoundRedirectRule[]);
+  } catch {
+    return null;
+  }
+}
+
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const isApi = pathname.startsWith("/api/");
@@ -78,6 +107,12 @@ export async function middleware(request: NextRequest) {
     const apex = request.nextUrl.clone();
     apex.hostname = hostname.slice(4);
     return NextResponse.redirect(apex, 301);
+  }
+
+  const redirectRule = await resolveRedirectRule(request, pathname);
+  if (redirectRule) {
+    const destination = new URL(redirectRule.toPath, request.url);
+    return NextResponse.redirect(destination, redirectRule.statusCode);
   }
 
   // Mağaza / tanıtım — giriş zorunlu değil
