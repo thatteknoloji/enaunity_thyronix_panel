@@ -132,7 +132,7 @@ function buildDupKey(productId: string, pageType: string, variantKey: string): s
 
 function buildMetadata(
   product: ProductBundle,
-  draft: Omit<UniverseBlueprintDraft, "metadata">,
+  draft: UniverseBlueprintDraft,
   jobId?: string
 ): Record<string, unknown> {
   const dna = product.contentDNA;
