@@ -2,12 +2,14 @@
 
 import { useEffect, useState, useCallback, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
+import Link from "next/link";
 import { formatPrice, formatDate } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ShoppingCart, Store, Search, CheckCircle, XCircle, Truck, ChevronDown, ChevronUp, ArrowUpDown, Package, ChevronLeft, ChevronRight, FileText, ImageIcon } from "lucide-react";
 import toast from "react-hot-toast";
 import OperasyonOrdersPanel from "@/components/admin/OperasyonOrdersPanel";
+import { getOrderPaymentInfo } from "@/lib/orders/payment-metadata";
 
 interface Order {
   id: string; total: number; discount: number; status: string; address: string; createdAt: string;
@@ -17,6 +19,7 @@ interface Order {
   items: Array<{ id: string; productId: string; quantity: number; price: number; product: { name: string; image: string } }>;
   statusHistory?: Array<{ id: string; status: string; note: string; changedBy: string; createdAt: string }>;
   attachments?: Array<{ id: string; fileName: string; fileUrl: string; fileType: string }>;
+  metadataJson?: string;
 }
 
 const STATUS_TABS = [
@@ -287,7 +290,9 @@ function AdminOrdersContent() {
                         {order.dealer && (
                           <p className="text-[11px] text-purple-600 flex items-center gap-1 truncate"><Store size={11} /> {order.dealer.company}</p>
                         )}
-                        <p className="text-[10px] text-gray-400 font-mono">#{order.id.slice(0, 8)}</p>
+                        <Link href={`/admin/orders/${order.id}`} className="text-[10px] text-gray-400 font-mono hover:text-gray-900 inline-flex items-center gap-1">
+                          #{order.id.slice(0, 8)} <ChevronRight size={11} />
+                        </Link>
                         <p className="text-[10px] text-gray-400">{formatDate(order.createdAt)}</p>
                       </div>
                     </div>
@@ -295,6 +300,11 @@ function AdminOrdersContent() {
                       <span className={`inline-flex px-2 py-0.5 rounded text-[11px] font-medium border ${statusColors[order.status] || "text-gray-600 bg-gray-50 border-gray-200"}`}>
                         {statusLabels[order.status] || order.status}
                       </span>
+                      {getOrderPaymentInfo(order).method && (
+                        <p className="text-[10px] text-gray-500">
+                          {getOrderPaymentInfo(order).label}
+                        </p>
+                      )}
                       <p className="text-base font-bold text-gray-900">{formatPrice(order.total)}</p>
                       {order.discount > 0 && <p className="text-[11px] text-emerald-600">-{formatPrice(order.discount)}</p>}
                       {order.trackingNumber && <p className="text-[10px] text-blue-600 font-mono">{order.carrier}: {order.trackingNumber}</p>}

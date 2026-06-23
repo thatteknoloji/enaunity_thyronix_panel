@@ -60,22 +60,9 @@ export default function CheckoutPage() {
   const [minOrderAmount, setMinOrderAmount] = useState(0);
   const [minOrderErrors, setMinOrderErrors] = useState<string[]>([]);
 
-  const [paymentMethodsAvailable, setPaymentMethodsAvailable] = useState(false);
   const [paymentDealerId, setPaymentDealerId] = useState<string | null>(null);
   const [paymentAlternatives, setPaymentAlternatives] = useState<string[]>([]);
   const [showOnlineSuggestion, setShowOnlineSuggestion] = useState(false);
-
-  useEffect(() => {
-    if (!paymentDealerId) return;
-    fetch(`/api/payments/settings?dealerId=${paymentDealerId}`)
-      .then((r) => r.json())
-      .then((d) => {
-        if (d.success && (d.data?.methods?.length > 0 || d.data?.balanceEnabled)) {
-          setPaymentMethodsAvailable(true);
-        }
-      })
-      .catch(() => {});
-  }, [paymentDealerId]);
 
   const isDealer = !!dealer;
 
@@ -170,6 +157,10 @@ export default function CheckoutPage() {
     if (!platform) { setError("Lütfen bir platform seçin"); return false; }
     const addrToCheck = sameAddress ? invoiceAddress : deliveryAddress;
     if (!invoiceAddress.trim() || !addrToCheck.trim()) { setError("Adres bilgilerini doldurun"); return false; }
+    if (isDealer && !paymentMethod) {
+      setError("Bayi siparişi için lütfen bir ödeme yöntemi seçin.");
+      return false;
+    }
     setSubmitting(true);
     setError("");
 
@@ -207,8 +198,6 @@ export default function CheckoutPage() {
     if (paymentMethod) {
       body.paymentMethod = paymentMethod;
       body.installmentCount = installmentCount;
-    } else if (isDealer) {
-      body.paymentMethod = "DEALER_ACCOUNT";
     }
     const stored = window.sessionStorage.getItem("couponData");
     if (stored) {
@@ -235,7 +224,12 @@ export default function CheckoutPage() {
         router.push(`/payment/pending?module=B2B_ORDER&plan=${data.data.order?.id || ""}&paymentId=${data.data.paymentId}`);
         return true;
       }
-      router.push("/account");
+      if (isDealer) {
+        const orderId = data.data.order?.id;
+        router.push(orderId ? `/dealer/orders/${orderId}` : "/dealer/orders");
+      } else {
+        router.push("/account");
+      }
       return true;
     }
     setError(data.error || "Sipariş oluşturulamadı");
@@ -249,7 +243,11 @@ export default function CheckoutPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    await submitOrder(isDealer ? "DEALER_ACCOUNT" : undefined);
+    if (isDealer) {
+      setError("Bayi siparişi için ödeme yöntemi seçin.");
+      return;
+    }
+    await submitOrder();
   };
 
   const handleOnlinePayment = async (method: string, installmentCount: number) => {
@@ -516,13 +514,15 @@ export default function CheckoutPage() {
           </label>
         </div>
 
-        <Button type="submit" className="w-full" disabled={submitting || items.length === 0}>
-          {submitting ? "Sipariş oluşturuluyor..." : isDealer ? "Cari Hesaptan Sipariş Ver" : "Siparişi Tamamla"}
-        </Button>
+        {!isDealer && (
+          <Button type="submit" className="w-full" disabled={submitting || items.length === 0}>
+            {submitting ? "Sipariş oluşturuluyor..." : "Siparişi Tamamla"}
+          </Button>
+        )}
 
-        {isDealer && paymentMethodsAvailable && (
+        {isDealer && (
           <div className="pt-4 border-t border-ena-border">
-            <p className="text-sm text-ena-light mb-3">veya online ödeme ile tamamlayın</p>
+            <p className="text-sm text-ena-light mb-3">Ödeme yöntemini aşağıdan seçin. Bayi siparişi admin onayına gider.</p>
             <PaymentCheckoutPanel
               amount={total}
               title="B2B Online Ödeme"

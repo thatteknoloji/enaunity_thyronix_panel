@@ -5,10 +5,12 @@ import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import { formatPrice, formatDate } from "@/lib/utils";
-import { ChevronLeft, Package, FileText, XCircle, CheckCircle, Clock, Truck, Ban } from "lucide-react";
+import { ChevronLeft, Package, FileText, XCircle, CheckCircle, Clock, Truck, Ban, PencilLine } from "lucide-react";
 import toast from "react-hot-toast";
 import { useCartStore } from "@/lib/cart-store";
+import { getOrderPaymentInfo } from "@/lib/orders/payment-metadata";
 
 const statusVariant: Record<string, "default" | "success" | "warning" | "danger"> = {
   pending_approval: "warning",
@@ -33,17 +35,51 @@ export default function DealerOrderDetailPage() {
   const [order, setOrder] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [showInvoice, setShowInvoice] = useState(false);
+  const [draftAddress, setDraftAddress] = useState("");
+  const [draftNotes, setDraftNotes] = useState("");
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     fetch(`/api/dealer/orders/${id}`)
       .then((r) => r.json())
-      .then((d) => { if (d.success) setOrder(d.data); })
+      .then((d) => {
+        if (d.success) {
+          setOrder(d.data);
+          setDraftAddress(d.data.address || "");
+          setDraftNotes(d.data.notes || "");
+        }
+      })
       .finally(() => setLoading(false));
   }, [id]);
 
+  const paymentInfo = order ? getOrderPaymentInfo(order) : { method: "", label: "", locked: false };
+  const canEditOrder = !!order && ["pending", "pending_approval", "waiting_payment"].includes(order.status);
+
+  const handleSave = async () => {
+    if (!canEditOrder) return;
+    setSaving(true);
+    const res = await fetch(`/api/dealer/orders/${id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "update", address: draftAddress, notes: draftNotes }),
+    });
+    const d = await res.json();
+    if (d.success) {
+      toast.success("Sipariş güncellendi");
+      setOrder((prev: any) => ({ ...prev, address: draftAddress, notes: draftNotes }));
+    } else {
+      toast.error(d.error || "Güncelleme başarısız");
+    }
+    setSaving(false);
+  };
+
   const handleCancel = async () => {
     if (!confirm("Sipariş iptal edilsin mi?")) return;
-    const res = await fetch(`/api/dealer/orders/${id}`, { method: "PUT" });
+    const res = await fetch(`/api/dealer/orders/${id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "cancel" }),
+    });
     const d = await res.json();
     if (d.success) {
       toast.success("Sipariş iptal edildi");
@@ -138,7 +174,7 @@ export default function DealerOrderDetailPage() {
           <p className="text-sm text-ena-light/50 mt-1">#{order.id.slice(0, 8).toUpperCase()}</p>
         </div>
         <div className="flex items-center gap-2">
-          {(order.status === "pending" || order.status === "pending_approval") && (
+          {canEditOrder && (
             <Button variant="outline" onClick={handleCancel} className="gap-2 text-ena-primary border-red-200 hover:bg-ena-primary/5">
               <XCircle size={16} /> İptal Et
             </Button>
@@ -164,6 +200,11 @@ export default function DealerOrderDetailPage() {
         <div className="rounded-xl border border-ena-border bg-ena-card/30 p-5 shadow-sm">
           <p className="text-xs font-semibold uppercase text-ena-light/50 mb-1">Toplam</p>
           <p className="text-xl font-bold text-ena-text">{formatPrice(order.total)}</p>
+          {paymentInfo.method && (
+            <p className="mt-2 inline-flex rounded-full border border-ena-border bg-white px-2.5 py-1 text-[11px] font-medium text-ena-light/70">
+              {paymentInfo.label}
+            </p>
+          )}
         </div>
         <div className="rounded-xl border border-ena-border bg-ena-card/30 p-5 shadow-sm">
           <p className="text-xs font-semibold uppercase text-ena-light/50 mb-1">Kargo</p>
@@ -267,8 +308,42 @@ export default function DealerOrderDetailPage() {
 
       <div className="rounded-xl border border-ena-border bg-ena-card/30 p-5 shadow-sm">
         <h2 className="text-sm font-semibold text-ena-text mb-2">Teslimat Adresi</h2>
-        <p className="text-sm text-ena-light/70 whitespace-pre-wrap">{order.address}</p>
+        {canEditOrder ? (
+          <div className="space-y-3">
+            <Input value={draftAddress} onChange={(e) => setDraftAddress(e.target.value)} label="Adres" />
+            <div>
+              <label className="block text-sm font-medium text-ena-light mb-1">Sipariş Notu</label>
+              <textarea
+                value={draftNotes}
+                onChange={(e) => setDraftNotes(e.target.value)}
+                rows={4}
+                className="w-full rounded border border-ena-border bg-ena-card/50 px-3 py-2.5 text-sm text-ena-text shadow-sm placeholder:text-ena-text-muted/50 focus:border-ena-text/40 focus:outline-none focus:ring-1 focus:ring-ena-border"
+                placeholder="Not ekleyin..."
+              />
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              <Button onClick={handleSave} disabled={saving} className="gap-2">
+                <PencilLine size={16} /> {saving ? "Kaydediliyor..." : "Değişiklikleri Kaydet"}
+              </Button>
+              <span className="text-xs text-ena-light/50">Admin onayı gelmeden adres ve notu değiştirebilirsiniz.</span>
+            </div>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            <p className="text-sm text-ena-light/70 whitespace-pre-wrap">{order.address}</p>
+            <div className="rounded-lg border border-ena-border bg-white/60 p-3">
+              <p className="text-xs font-semibold uppercase text-ena-light/50 mb-1">Sipariş Notu</p>
+              <p className="text-sm text-ena-light/70 whitespace-pre-wrap">{order.notes || "Not eklenmemiş"}</p>
+            </div>
+          </div>
+        )}
       </div>
+
+      {!canEditOrder && (
+        <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
+          Sipariş admin onayından sonra kilitlenir. Bu aşamada iptal, adres ve not değişikliği kapalıdır.
+        </div>
+      )}
     </div>
   );
 }

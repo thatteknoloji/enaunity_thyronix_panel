@@ -42,6 +42,7 @@ export async function GET(req: Request) {
     if (sourceType) where.sourceType = sourceType;
     if (searchParams.get("excludeMarketplace") === "true") {
       where.sourceType = "B2B";
+      where.AND = [...(where.AND || []), { status: { not: "waiting_payment" } }];
     }
     if (fromDate) where.createdAt = { ...(where.createdAt || {}), gte: new Date(fromDate) };
     if (toDate) where.createdAt = { ...(where.createdAt || {}), lte: new Date(toDate + "T23:59:59.999Z") };

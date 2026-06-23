@@ -1,11 +1,12 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { CreditCard, Landmark, Loader2 } from "lucide-react";
+import { CreditCard, Landmark, Loader2, Wallet } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export interface PaymentCheckoutSettings {
   methods: string[];
+  balanceEnabled: boolean;
   bankTransferEnabled: boolean;
   activeCardProvider: string;
   cardDisplayName: string;
@@ -19,6 +20,7 @@ export interface PaymentCheckoutSettings {
 }
 
 const METHOD_LABELS: Record<string, string> = {
+  DEALER_ACCOUNT: "Bakiye / Cari Hesap",
   BANK_TRANSFER: "Havale / EFT",
   ESNEKPOS: "EsnekPOS",
   IYZICO: "İyzico",
@@ -39,6 +41,15 @@ export function PaymentCheckoutPanel({ amount, currency = "TRY", dealerId, onCon
   const [installment, setInstallment] = useState(1);
   const [fetching, setFetching] = useState(true);
 
+  const availableMethods = useMemo(() => {
+    if (!settings) return [];
+    const methods = [...settings.methods];
+    if (dealerId && settings.balanceEnabled) {
+      methods.unshift("DEALER_ACCOUNT");
+    }
+    return Array.from(new Set(methods));
+  }, [dealerId, settings]);
+
   useEffect(() => {
     const url = dealerId ? `/api/payments/settings?dealerId=${dealerId}` : "/api/payments/settings";
     fetch(url)
@@ -46,14 +57,18 @@ export function PaymentCheckoutPanel({ amount, currency = "TRY", dealerId, onCon
       .then((d) => {
         if (d.success) {
           setSettings(d.data);
-          setMethod(d.data.methods[0] || "BANK_TRANSFER");
+          const methods = [...(d.data.methods || [])];
+          if (dealerId && d.data.balanceEnabled) {
+            methods.unshift("DEALER_ACCOUNT");
+          }
+          setMethod(Array.from(new Set(methods))[0] || "BANK_TRANSFER");
         }
       })
       .finally(() => setFetching(false));
   }, [dealerId]);
 
   const pricing = useMemo(() => {
-    if (!settings || method === "BANK_TRANSFER") {
+    if (!settings || method === "BANK_TRANSFER" || method === "DEALER_ACCOUNT") {
       return { base: amount, fee: 0, total: amount };
     }
     const fee = Math.round((amount * (settings.extraFeePercent / 100) + settings.extraFeeFixed) * 100) / 100;
@@ -61,7 +76,7 @@ export function PaymentCheckoutPanel({ amount, currency = "TRY", dealerId, onCon
   }, [amount, method, settings]);
 
   const installmentOptions = useMemo(() => {
-    if (!settings?.installmentsEnabled || method === "BANK_TRANSFER") return [1];
+    if (!settings?.installmentsEnabled || method === "BANK_TRANSFER" || method === "DEALER_ACCOUNT") return [1];
     return Array.from({ length: settings.maxInstallments }, (_, i) => i + 1);
   }, [settings, method]);
 
@@ -74,7 +89,7 @@ export function PaymentCheckoutPanel({ amount, currency = "TRY", dealerId, onCon
     );
   }
 
-  if (!settings?.methods.length) {
+  if (!availableMethods.length) {
     return (
       <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
         Ödeme yöntemi yapılandırılmamış. Admin → Ödeme Altyapısı
@@ -82,17 +97,19 @@ export function PaymentCheckoutPanel({ amount, currency = "TRY", dealerId, onCon
     );
   }
 
+  const currentSettings = settings as PaymentCheckoutSettings;
+
   return (
     <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm space-y-4">
       <div>
-        <h3 className="text-lg font-bold text-gray-900">{title || settings.checkoutTitle || "Ödeme"}</h3>
-        {settings.checkoutDescription && (
-          <p className="text-sm text-gray-500 mt-1">{settings.checkoutDescription}</p>
+        <h3 className="text-lg font-bold text-gray-900">{title || currentSettings.checkoutTitle || "Ödeme"}</h3>
+        {currentSettings.checkoutDescription && (
+          <p className="text-sm text-gray-500 mt-1">{currentSettings.checkoutDescription}</p>
         )}
       </div>
 
       <div className="space-y-2">
-        {settings.methods.map((m) => (
+        {availableMethods.map((m) => (
           <button
             key={m}
             type="button"
@@ -101,15 +118,15 @@ export function PaymentCheckoutPanel({ amount, currency = "TRY", dealerId, onCon
               method === m ? "border-gray-900 bg-gray-50" : "border-gray-200 hover:border-gray-300"
             }`}
           >
-            {m === "BANK_TRANSFER" ? <Landmark size={18} className="text-gray-600" /> : <CreditCard size={18} className="text-gray-600" />}
+            {m === "BANK_TRANSFER" ? <Landmark size={18} className="text-gray-600" /> : m === "DEALER_ACCOUNT" ? <Wallet size={18} className="text-gray-600" /> : <CreditCard size={18} className="text-gray-600" />}
             <span className="text-sm font-medium text-gray-900">
-              {m === settings.activeCardProvider ? settings.cardDisplayName : METHOD_LABELS[m] || m}
+              {m === currentSettings.activeCardProvider ? currentSettings.cardDisplayName : METHOD_LABELS[m] || m}
             </span>
           </button>
         ))}
       </div>
 
-      {settings.installmentsEnabled && method !== "BANK_TRANSFER" && installmentOptions.length > 1 && (
+      {currentSettings.installmentsEnabled && method !== "BANK_TRANSFER" && installmentOptions.length > 1 && (
         <div>
           <label className="block text-xs font-semibold text-gray-700 mb-1">Taksit</label>
           <select className="admin-input" value={installment} onChange={(e) => setInstallment(parseInt(e.target.value))}>
@@ -135,16 +152,17 @@ export function PaymentCheckoutPanel({ amount, currency = "TRY", dealerId, onCon
         )}
       </div>
 
-      {pricing.total < (settings.minAmount || 0) && method !== "BANK_TRANSFER" && (
-        <p className="text-xs text-red-600">Minimum ödeme tutarı: {settings.minAmount} {currency}</p>
+      {pricing.total < (currentSettings.minAmount || 0) && method !== "BANK_TRANSFER" && method !== "DEALER_ACCOUNT" && (
+        <p className="text-xs text-red-600">Minimum ödeme tutarı: {currentSettings.minAmount} {currency}</p>
       )}
 
       <Button
+        type="button"
         className="w-full"
-        disabled={loading || (method !== "BANK_TRANSFER" && pricing.total < (settings.minAmount || 0))}
+        disabled={loading || (method !== "BANK_TRANSFER" && method !== "DEALER_ACCOUNT" && pricing.total < (currentSettings.minAmount || 0))}
         onClick={() => onConfirm(method, installment)}
       >
-        {loading ? <><Loader2 size={14} className="animate-spin mr-1" /> İşleniyor...</> : "Ödemeye Devam Et"}
+        {loading ? <><Loader2 size={14} className="animate-spin mr-1" /> İşleniyor...</> : (method === "DEALER_ACCOUNT" || method === "BANK_TRANSFER" ? "Siparişi Oluştur" : "Ödemeye Devam Et")}
       </Button>
     </div>
   );

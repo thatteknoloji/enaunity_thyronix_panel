@@ -8,6 +8,7 @@ function normalizeCoreOrder(o: any) {
   return {
     ...o,
     engine: "core",
+    metadataJson: o.metadataJson || "{}",
     displayStatus: o.fulfillmentStatus || o.status,
     items: (o.items || []).map((i: any) => ({
       ...i,
@@ -32,6 +33,7 @@ function normalizeLegacyOrder(o: any) {
     address: [o.customerName, o.customerCity].filter(Boolean).join(", "),
     createdAt: o.createdAt,
     engine: "legacy_dealer_order",
+    metadataJson: o.metadataJson || "{}",
     displayStatus: o.status,
     items: (o.items || []).map((i: any) => ({
       id: i.id,

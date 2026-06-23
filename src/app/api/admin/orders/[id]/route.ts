@@ -3,6 +3,36 @@ import { prisma } from "@/lib/db";
 import { requireAdmin } from "@/lib/auth";
 import { addDealerBalance } from "@/lib/dealer-pricing";
 import { createNotification, sendEmail, notifyOrderStatus } from "@/lib/notifications";
+import { getOrderStockStatus } from "@/lib/orders/order-stock-service";
+
+export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
+  try {
+    await requireAdmin();
+    const { id } = await params;
+    const order = await prisma.order.findUnique({
+      where: { id },
+      include: {
+        items: { include: { product: true, productCatalogItem: true } },
+        user: { select: { name: true, email: true } },
+        dealer: { select: { id: true, company: true, name: true, email: true, phone: true, group: true } },
+        statusHistory: { orderBy: { createdAt: "asc" } },
+        attachments: true,
+        payments: { orderBy: { createdAt: "asc" } },
+        invoices: { orderBy: { createdAt: "desc" } },
+      },
+    });
+
+    if (!order) {
+      return NextResponse.json({ success: false, error: "Sipariş bulunamadı" }, { status: 404 });
+    }
+
+    const warehouseStatus = await getOrderStockStatus(order.id);
+
+    return NextResponse.json({ success: true, data: { ...order, warehouseStatus } });
+  } catch {
+    return NextResponse.json({ success: false, error: "Yetkisiz erişim" }, { status: 401 });
+  }
+}
 
 export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {

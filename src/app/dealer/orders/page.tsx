@@ -5,6 +5,7 @@ import { formatPrice, formatDate } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Package, Search, Filter } from "lucide-react";
 import Link from "next/link";
+import { getOrderPaymentInfo } from "@/lib/orders/payment-metadata";
 
 interface Order {
   id: string;
@@ -18,6 +19,7 @@ interface Order {
   address: string;
   createdAt: string;
   engine?: string;
+  metadataJson?: string;
   items: Array<{
     id: string;
     product: { name: string; image: string };
@@ -131,19 +133,28 @@ export default function DealerOrdersPage() {
         </div>
       ) : (
         <div className="space-y-3">
-          {filtered.map((order) => (
+          {filtered.map((order) => {
+            const paymentInfo = getOrderPaymentInfo(order);
+            return (
             <Link key={order.id} href={`/dealer/orders/${order.id}`} className="block rounded-xl border border-ena-border bg-ena-card/30 p-5 shadow-sm hover:shadow-md hover:border-ena-border/50 transition-all">
               <div className="flex items-center justify-between mb-3">
                 <div>
                   <span className="text-xs text-ena-light/50">Sipariş #{order.id.slice(0, 8)}</span>
                   <p className="text-xs text-ena-light/40 mt-0.5">{formatDate(order.createdAt)}</p>
                 </div>
-                <Badge variant={statusVariant[order.displayStatus || order.fulfillmentStatus || order.status] || "default"}>
-                  {statusText[order.displayStatus || order.fulfillmentStatus || order.status] || order.fulfillmentStatus || order.status}
-                </Badge>
-                {order.marketplace && (
-                  <span className="ml-2 text-[10px] px-2 py-0.5 rounded-full bg-blue-50 text-blue-700">{order.marketplace}</span>
-                )}
+                <div className="flex items-center gap-2 flex-wrap justify-end">
+                  <Badge variant={statusVariant[order.displayStatus || order.fulfillmentStatus || order.status] || "default"}>
+                    {statusText[order.displayStatus || order.fulfillmentStatus || order.status] || order.fulfillmentStatus || order.status}
+                  </Badge>
+                  {paymentInfo.method && (
+                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-gray-100 text-gray-700">
+                      {paymentInfo.label}
+                    </span>
+                  )}
+                  {order.marketplace && (
+                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-blue-50 text-blue-700">{order.marketplace}</span>
+                  )}
+                </div>
               </div>
               <div className="space-y-2">
                 {order.items.map((item) => (
@@ -159,7 +170,8 @@ export default function DealerOrdersPage() {
                 <span className="text-sm font-bold text-ena-text">Toplam: {formatPrice(order.total)}</span>
               </div>
             </Link>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>
