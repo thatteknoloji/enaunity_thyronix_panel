@@ -457,6 +457,7 @@ export default function CheckoutPage() {
         transition={{ delay: 0.3 }}
         onSubmit={handleSubmit}
         className="space-y-5"
+        noValidate
       >
         <h2 className="font-bold text-ena-text">Satış Platformu</h2>
         <div className="rounded border border-ena-border bg-ena-card/40 p-4">
@@ -536,24 +537,24 @@ export default function CheckoutPage() {
             {submitting ? "Sipariş oluşturuluyor..." : "Siparişi Tamamla"}
           </Button>
         )}
-
-        {showGatewayPaymentPanel && (
-          <div className="pt-4 border-t border-ena-border">
-            <p className="text-sm text-ena-light mb-3">
-              {canUseDealerPayment
-                ? "Ödeme yöntemini aşağıdan seçin. Bayi siparişi admin onayına gider."
-                : "Ödeme yöntemini aşağıdan seçin. Admin siparişleri ödeme tamamlandıktan sonra işleme alınır."}
-            </p>
-            <PaymentCheckoutPanel
-              amount={total}
-              title="B2B Online Ödeme"
-              loading={submitting}
-              dealerId={paymentDealerId || undefined}
-              onConfirm={handleOnlinePayment}
-            />
-          </div>
-        )}
       </motion.form>
+
+      {showGatewayPaymentPanel && (
+        <div className="pt-4 mt-6 border-t border-ena-border">
+          <p className="text-sm text-ena-light mb-3">
+            {canUseDealerPayment
+              ? "Ödeme yöntemini aşağıdan seçin. Bayi siparişi admin onayına gider."
+              : "Ödeme yöntemini aşağıdan seçin. Admin siparişleri ödeme tamamlandıktan sonra işleme alınır."}
+          </p>
+          <PaymentCheckoutPanel
+            amount={total}
+            title="B2B Online Ödeme"
+            loading={submitting}
+            dealerId={paymentDealerId || undefined}
+            onConfirm={handleOnlinePayment}
+          />
+        </div>
+      )}
     </div>
   );
 }

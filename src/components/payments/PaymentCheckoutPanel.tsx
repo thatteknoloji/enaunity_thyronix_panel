@@ -165,7 +165,7 @@ export function PaymentCheckoutPanel({ amount, currency = "TRY", dealerId, onCon
         type="button"
         className="w-full"
         disabled={loading || (method !== "BANK_TRANSFER" && method !== "DEALER_ACCOUNT" && pricing.total < (currentSettings.minAmount || 0))}
-        onClick={() => onConfirm(method, installment)}
+        onClick={() => { void onConfirm(method, installment); }}
       >
         {loading ? <><Loader2 size={14} className="animate-spin mr-1" /> İşleniyor...</> : (method === "DEALER_ACCOUNT" || method === "BANK_TRANSFER" ? "Siparişi Oluştur" : "Ödemeye Devam Et")}
       </Button>
