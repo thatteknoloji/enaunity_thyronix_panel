@@ -8,6 +8,7 @@ import {
 import { ProductUniverseBlueprintPanel } from "./ProductUniverseBlueprintPanel";
 import { ProductUniverseThyronixBridgePanel } from "./ProductUniverseThyronixBridgePanel";
 import { ProductUniverseImportWizard } from "./ProductUniverseImportWizard";
+import { ProductUniverseBlueprintBatchPanel } from "./ProductUniverseBlueprintBatchPanel";
 
 type Stats = { total: number; analyzed: number; withImages: number; clusters: number; lowQuality: number };
 type Product = {
@@ -71,7 +72,7 @@ export function ProductUniverseShell({ mode }: Props) {
   const [bulkResult, setBulkResult] = useState<Record<string, unknown> | null>(null);
   const [bulkProjectId, setBulkProjectId] = useState("");
   const [bulkDryRun, setBulkDryRun] = useState(true);
-  const [shellTab, setShellTab] = useState<"main" | "thyronix">("main");
+  const [shellTab, setShellTab] = useState<"main" | "thyronix" | "blueprint-batch">("main");
 
   const loadData = useCallback(async () => {
     setLoading(true);
@@ -208,6 +209,17 @@ export function ProductUniverseShell({ mode }: Props) {
           </button>
           <button
             type="button"
+            onClick={() => setShellTab("blueprint-batch")}
+            className={`px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-colors ${
+              shellTab === "blueprint-batch"
+                ? "border-violet-600 text-violet-700"
+                : "border-transparent text-gray-500 hover:text-gray-700"
+            }`}
+          >
+            Blueprint Batch
+          </button>
+          <button
+            type="button"
             onClick={() => setShellTab("thyronix")}
             className={`px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-colors ${
               shellTab === "thyronix"
@@ -222,6 +234,8 @@ export function ProductUniverseShell({ mode }: Props) {
 
       {mode === "admin" && shellTab === "thyronix" ? (
         <ProductUniverseThyronixBridgePanel />
+      ) : mode === "admin" && shellTab === "blueprint-batch" ? (
+        <ProductUniverseBlueprintBatchPanel projects={projects} mode={mode} />
       ) : (
       <>
       {error && (

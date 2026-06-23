@@ -29,13 +29,18 @@ type PreviewData = {
   totalRows: number;
   validRows: number;
   errorRows: number;
+  warningCount: number;
   duplicateInFile: number;
   duplicateInDb: number;
   imageUrlCount: number;
+  productsWithImages: number;
+  productsWithDescription: number;
+  averageQualityScore: number;
   blueprintReadyEstimate: number;
   analyzedEstimate: number;
   rejectedEstimate: number;
   columns: string[];
+  columnSamples: Record<string, string[]>;
   columnMapping: Record<string, string>;
   previewRows: Array<{
     rowIndex: number;
@@ -90,7 +95,10 @@ export function ProductUniverseImportWizard({ projects, mode, onComplete }: Prop
   const [projectId, setProjectId] = useState("");
   const [duplicateMode, setDuplicateMode] = useState<"skip" | "update" | "create_new">("skip");
   const [runAnalysis, setRunAnalysis] = useState(true);
+  const [generateBlueprintPreview, setGenerateBlueprintPreview] = useState(false);
+  const [minQuality, setMinQuality] = useState<number | "">("");
   const [limit, setLimit] = useState(mode === "admin" ? 1000 : 500);
+  const [columnSamples, setColumnSamples] = useState<Record<string, string[]>>({});
 
   const loadTemplates = useCallback(async () => {
     try {
@@ -120,6 +128,7 @@ export function ProductUniverseImportWizard({ projects, mode, onComplete }: Prop
       setPreview(d.data);
       setColumns(d.data.columns || []);
       setColumnMapping(d.data.columnMapping || {});
+      setColumnSamples(d.data.columnSamples || {});
       return d.data as PreviewData;
     } catch (e) {
       setError(e instanceof Error ? e.message : "Önizleme başarısız");
@@ -185,7 +194,9 @@ export function ProductUniverseImportWizard({ projects, mode, onComplete }: Prop
       fd.append("mapping", JSON.stringify(columnMapping));
       fd.append("duplicateMode", duplicateMode);
       fd.append("runAnalysis", String(runAnalysis));
+      fd.append("generateBlueprintPreview", String(generateBlueprintPreview));
       fd.append("limit", String(limit));
+      if (minQuality !== "") fd.append("minQuality", String(minQuality));
       fd.append("dryRun", "false");
       if (projectId) fd.append("projectId", projectId);
       const r = await fetch("/api/product-universe/import/commit", { method: "POST", body: fd });
@@ -322,13 +333,32 @@ export function ProductUniverseImportWizard({ projects, mode, onComplete }: Prop
                 <thead className="sticky top-0 bg-gray-50">
                   <tr className="text-left text-gray-500">
                     <th className="py-2 px-3">Excel Kolonu</th>
+                    <th className="py-2 px-3">Örnek Değerler</th>
+                    <th className="py-2 px-3">Sistem Önerisi</th>
                     <th className="py-2 px-3">Eşleşen Alan</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {(columns.length ? columns : Object.keys(columnMapping)).map((col) => (
+                  {(columns.length ? columns : Object.keys(columnMapping)).map((col) => {
+                    const samples = columnSamples[col] || [];
+                    const suggested = columnMapping[col] || "_skip";
+                    const suggestedLabel =
+                      fieldOptions.find((f) => f.value === suggested)?.label || "Yok say";
+                    return (
                     <tr key={col} className="border-t border-gray-50">
                       <td className="py-2 px-3 font-medium text-gray-800">{col}</td>
+                      <td className="py-2 px-3 text-gray-500 max-w-[180px]">
+                        {samples.length ? (
+                          <ul className="space-y-0.5">
+                            {samples.map((s) => (
+                              <li key={s} className="truncate" title={s}>{s}</li>
+                            ))}
+                          </ul>
+                        ) : (
+                          <span className="text-gray-300">—</span>
+                        )}
+                      </td>
+                      <td className="py-2 px-3 text-violet-600">{suggestedLabel}</td>
                       <td className="py-2 px-3">
                         <select
                           value={columnMapping[col] || "_skip"}
@@ -343,7 +373,8 @@ export function ProductUniverseImportWizard({ projects, mode, onComplete }: Prop
                         </select>
                       </td>
                     </tr>
-                  ))}
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
@@ -388,9 +419,12 @@ export function ProductUniverseImportWizard({ projects, mode, onComplete }: Prop
               <MiniStat label="Toplam" value={preview.totalRows} />
               <MiniStat label="Geçerli" value={preview.validRows} />
               <MiniStat label="Hatalı" value={preview.errorRows} color="red" />
+              <MiniStat label="Uyarı" value={preview.warningCount ?? 0} color="amber" />
               <MiniStat label="Dup (dosya)" value={preview.duplicateInFile} color="amber" />
               <MiniStat label="Dup (DB)" value={preview.duplicateInDb} color="amber" />
-              <MiniStat label="Görsel URL" value={preview.imageUrlCount} />
+              <MiniStat label="Görselli ürün" value={preview.productsWithImages ?? 0} />
+              <MiniStat label="Açıklamalı" value={preview.productsWithDescription ?? 0} />
+              <MiniStat label="Ort. kalite" value={preview.averageQualityScore ?? 0} />
               <MiniStat label="BLUEPRINT_READY" value={preview.blueprintReadyEstimate} color="emerald" />
               <MiniStat label="ANALYZED" value={preview.analyzedEstimate} color="blue" />
               <MiniStat label="REJECTED" value={preview.rejectedEstimate} color="red" />
@@ -490,8 +524,32 @@ export function ProductUniverseImportWizard({ projects, mode, onComplete }: Prop
               <div className="flex items-end">
                 <label className="flex items-center gap-2 text-sm cursor-pointer">
                   <input type="checkbox" checked={runAnalysis} onChange={(e) => setRunAnalysis(e.target.checked)} />
-                  Entity + DNA + kalite analizi çalıştır
+                  Entity + DNA + kalite analizi
                 </label>
+              </div>
+              <div className="flex items-end">
+                <label className="flex items-center gap-2 text-sm cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={generateBlueprintPreview}
+                    onChange={(e) => setGenerateBlueprintPreview(e.target.checked)}
+                  />
+                  Blueprint önizleme (metadata)
+                </label>
+              </div>
+              <div>
+                <label className="text-xs text-gray-500">Min kalite skoru (opsiyonel)</label>
+                <input
+                  type="number"
+                  min={0}
+                  max={100}
+                  placeholder="örn. 40"
+                  value={minQuality}
+                  onChange={(e) =>
+                    setMinQuality(e.target.value === "" ? "" : parseInt(e.target.value, 10) || "")
+                  }
+                  className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm"
+                />
               </div>
             </div>
             <div className="flex gap-2">

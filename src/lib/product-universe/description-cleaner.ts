@@ -19,11 +19,31 @@ const MARKETPLACE_BOILERPLATE = [
   /sepete\s*ekle/gi,
   /taksit\s*imkanı/gi,
   /marketplace\s*banner/gi,
+  /satıcı\s*tarafından\s*gönderilir/gi,
+  /satici\s*tarafindan\s*gonderilir/gi,
+  /satıcı\s*tarafından\s*gonderilir/gi,
 ];
 
 const HTML_TAG_RE = /<[^>]+>/g;
 const MULTI_SPACE_RE = /\s{2,}/g;
 const MULTI_NEWLINE_RE = /\n{3,}/g;
+
+function dedupeRepeatedPhrases(text: string): string {
+  const sentences = text.split(/(?<=[.!?])\s+|\n+/).map((s) => s.trim()).filter(Boolean);
+  const seen = new Set<string>();
+  const unique: string[] = [];
+  for (const s of sentences) {
+    const key = s.toLowerCase().replace(/\s+/g, " ");
+    if (key.length < 8) {
+      unique.push(s);
+      continue;
+    }
+    if (seen.has(key)) continue;
+    seen.add(key);
+    unique.push(s);
+  }
+  return unique.join(" ");
+}
 
 export function cleanProductDescription(raw: string): string {
   if (!raw) return "";
@@ -41,6 +61,8 @@ export function cleanProductDescription(raw: string): string {
   for (const pattern of MARKETPLACE_BOILERPLATE) {
     text = text.replace(pattern, " ");
   }
+
+  text = dedupeRepeatedPhrases(text);
 
   text = text
     .replace(/\r\n/g, "\n")

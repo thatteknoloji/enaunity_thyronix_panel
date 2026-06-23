@@ -24,6 +24,9 @@ export async function POST(req: Request) {
     const user = await prisma.user.findUnique({ where: { email } });
 
     if (user) {
+      if (!user.password) {
+        return NextResponse.json({ success: false, error: "Bu hesap Google ile oluşturulmuş. Lütfen Google ile giriş yapın." }, { status: 401 });
+      }
       const valid = await verifyPassword(password, user.password);
       if (!valid) {
         return NextResponse.json({ success: false, error: "Geçersiz giriş bilgileri" }, { status: 401 });

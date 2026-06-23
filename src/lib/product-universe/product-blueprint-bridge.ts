@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/db";
 import { slugify } from "@/lib/utils";
+import { BATCH_GENERATION_SOURCE } from "./blueprint-batch-types";
 import type {
   ProductAttribute,
   ProductContentDNA,
@@ -776,6 +777,10 @@ export async function listProductUniverseBlueprints(searchParams: URLSearchParam
   const pageType = searchParams.get("pageType")?.trim();
   const q = searchParams.get("q")?.trim();
   const contentStatus = searchParams.get("contentStatus")?.trim();
+  const generationSource = searchParams.get("generationSource")?.trim();
+  const sourceType = searchParams.get("sourceType")?.trim();
+  const brand = searchParams.get("brand")?.trim();
+  const batchJobId = searchParams.get("batchJobId")?.trim();
 
   const where = projectId ? { projectId } : {};
   const all = await prisma.pageFactoryBlueprint.findMany({
@@ -791,7 +796,16 @@ export async function listProductUniverseBlueprints(searchParams: URLSearchParam
     } catch {
       return false;
     }
-    if (meta.generationSource !== GENERATION_SOURCE) return false;
+    const src = meta.generationSource;
+    const isProductUniverse = src === GENERATION_SOURCE || src === BATCH_GENERATION_SOURCE;
+    if (generationSource) {
+      if (src !== generationSource) return false;
+    } else if (!isProductUniverse) {
+      return false;
+    }
+    if (sourceType && meta.sourceType !== sourceType) return false;
+    if (brand && meta.brand !== brand) return false;
+    if (batchJobId && meta.createdByBatchJobId !== batchJobId) return false;
     if (dealerId && bp.project.dealerId && bp.project.dealerId !== dealerId) return false;
     if (productId && meta.productId !== productId) return false;
     if (pageType && bp.pageType !== pageType) return false;

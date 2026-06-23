@@ -124,8 +124,16 @@ assert(preview.totalRows === 2, "Toplam satır");
 assert(preview.previewRows.length <= 20, "İlk 20 satır önizleme");
 assert(preview.imageUrlCount >= 2, "Görsel URL sayısı");
 assert(preview.validRows === 2, "Geçerli satırlar");
+assert(preview.columnSamples["Ürün Adı"]?.length >= 1, "Kolon örnek değerleri");
+assert(preview.productsWithImages >= 1, "Görselli ürün sayısı");
+assert(preview.averageQualityScore > 0, "Ortalama kalite skoru");
 
-// 8. Duplicate in file
+// 8. Seller phrase cleaning
+console.log("\nSatıcı ifadesi temizleme:");
+const sellerDesc = cleanProductDescription("Ürün detayı. Satıcı tarafından gönderilir.");
+assert(!sellerDesc.toLowerCase().includes("satıcı tarafından"), "Satıcı ifadesi temizlendi");
+
+// 9. Duplicate in file
 console.log("\nDuplicate (dosya içi):");
 const dupRows = [
   { sku: "SKU-1", productName: "A", brand: "B", category: "C", price: "10", image1: "https://x.com/1.jpg" },

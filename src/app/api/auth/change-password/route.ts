@@ -27,7 +27,7 @@ export async function POST(req: Request) {
       ? await prisma.subUser.findUnique({ where: { id: user.id }, select: { password: true } })
       : await prisma.user.findUnique({ where: { id: user.id }, select: { password: true } });
 
-    if (!stored || !(await verifyPassword(currentPassword, stored.password))) {
+    if (!stored?.password || !(await verifyPassword(currentPassword, stored.password))) {
       return NextResponse.json({ success: false, error: "Mevcut şifre hatalı" }, { status: 400 });
     }
 

@@ -85,13 +85,18 @@ export type ImportPreviewResult = {
   totalRows: number;
   validRows: number;
   errorRows: number;
+  warningCount: number;
   duplicateInFile: number;
   duplicateInDb: number;
   imageUrlCount: number;
+  productsWithImages: number;
+  productsWithDescription: number;
+  averageQualityScore: number;
   blueprintReadyEstimate: number;
   analyzedEstimate: number;
   rejectedEstimate: number;
   columns: string[];
+  columnSamples: Record<string, string[]>;
   mapping: ProductColumnMapping;
   columnMapping: UserColumnMapping;
   detectedColumns: Record<string, string | string[]>;

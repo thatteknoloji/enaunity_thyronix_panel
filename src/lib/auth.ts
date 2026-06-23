@@ -3,7 +3,17 @@ import bcrypt from "bcryptjs";
 import { cookies, headers } from "next/headers";
 import type { User } from "@/types";
 
-const JWT_SECRET = process.env.JWT_SECRET || "fallback-secret";
+const JWT_SECRET = (() => {
+  const secret = process.env.JWT_SECRET;
+  if (!secret) {
+    if (process.env.NODE_ENV === "production") {
+      throw new Error("JWT_SECRET environment variable is not set");
+    }
+    console.warn("[auth] JWT_SECRET not set, using fallback for development");
+    return "dev-fallback-secret";
+  }
+  return secret;
+})();
 
 export async function hashPassword(password: string): Promise<string> {
   return bcrypt.hash(password, 12);

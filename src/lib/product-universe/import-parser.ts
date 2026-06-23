@@ -52,6 +52,28 @@ function pick(row: ImportRow, col?: string): string {
   return norm(row[col]);
 }
 
+/** İlk N satırdan her kolon için örnek değerler (mapping UI için). */
+export function extractColumnSamples(
+  rows: ImportRow[],
+  columns: string[],
+  sampleCount = 3
+): Record<string, string[]> {
+  const out: Record<string, string[]> = {};
+  for (const col of columns) out[col] = [];
+
+  for (const row of rows) {
+    for (const col of columns) {
+      const samples = out[col]!;
+      if (samples.length >= sampleCount) continue;
+      const val = norm(row[col]);
+      if (!val) continue;
+      const truncated = val.length > 60 ? `${val.slice(0, 57)}...` : val;
+      if (!samples.includes(truncated)) samples.push(truncated);
+    }
+  }
+  return out;
+}
+
 export function parseImportFile(buffer: Buffer, fileName: string): ImportRow[] {
   const lower = fileName.toLowerCase();
   if (lower.endsWith(".json")) {

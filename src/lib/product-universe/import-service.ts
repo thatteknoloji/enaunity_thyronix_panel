@@ -4,7 +4,7 @@ import type { ProductUniverseSourceType } from "@prisma/client";
 import { generateContentDNA } from "./content-dna-engine";
 import { extractProductEntities } from "./entity-extractor";
 import { harvestProductImages } from "./image-harvester";
-import { parseImportFile, parseProductRows, type ParsedProductRow } from "./import-parser";
+import { parseImportFile, parseProductRows, extractColumnSamples, type ParsedProductRow } from "./import-parser";
 import {
   type DuplicateMode,
   type ImportCommitOptions,
@@ -317,6 +317,10 @@ export async function previewProductImport(
   const dbCheckCache = new Map<string, boolean>();
 
   const previewRows: PreviewRowSample[] = [];
+  let qualityScoreSum = 0;
+  let productsWithImages = 0;
+  let productsWithDescription = 0;
+  let warningCount = 0;
 
   for (const row of parsed.rows) {
     imageUrlCount += row.imageUrls.length;
@@ -349,22 +353,37 @@ export async function previewProductImport(
     else if (sample.status === "ANALYZED") analyzedEstimate++;
     else rejectedEstimate++;
 
+    qualityScoreSum += sample.qualityScore;
+    if (row.imageUrls.length > 0) productsWithImages++;
+    if (row.descriptionClean.length > 0) productsWithDescription++;
+    warningCount += sample.rowWarnings.length;
+
     if (previewRows.length < ROW_LIMITS.previewSample) {
       previewRows.push(sample);
     }
   }
 
+  const columnSamples = extractColumnSamples(rawRows, parsed.columns, 3);
+  const validCount = parsed.rows.length;
+  const averageQualityScore =
+    validCount > 0 ? Math.round((qualityScoreSum / validCount) * 10) / 10 : 0;
+
   return {
     totalRows: rawRows.length,
-    validRows: parsed.rows.length,
+    validRows: validCount,
     errorRows: parsed.errors.length,
+    warningCount,
     duplicateInFile,
     duplicateInDb,
     imageUrlCount,
+    productsWithImages,
+    productsWithDescription,
+    averageQualityScore,
     blueprintReadyEstimate,
     analyzedEstimate,
     rejectedEstimate,
     columns: parsed.columns,
+    columnSamples,
     mapping: parsed.mapping,
     columnMapping: parsed.columnMapping,
     detectedColumns: parsed.detectedColumns,
@@ -372,6 +391,18 @@ export async function previewProductImport(
     warnings: parsed.warnings,
     errors: parsed.errors,
   };
+}
+
+async function enforceMinQuality(productId: string, minQuality?: number): Promise<boolean> {
+  if (minQuality == null || minQuality <= 0) return true;
+  const p = await prisma.productUniverse.findUnique({ where: { id: productId } });
+  if (!p || p.qualityScore >= minQuality) return true;
+  await prisma.productImage.deleteMany({ where: { productId } });
+  await prisma.productEntity.deleteMany({ where: { productId } });
+  await prisma.productAttribute.deleteMany({ where: { productId } });
+  await prisma.productContentDNA.deleteMany({ where: { productId } });
+  await prisma.productUniverse.delete({ where: { id: productId } });
+  return false;
 }
 
 async function processImportRow(
@@ -427,6 +458,7 @@ async function processImportRow(
       });
     }
     if (opts.runAnalysis !== false) await analyzeProduct(productId);
+    if (!(await enforceMinQuality(productId, opts.minQuality))) return "skipped";
     return "updated";
   }
 
@@ -479,6 +511,9 @@ async function processImportRow(
   }
 
   if (opts.runAnalysis !== false) await analyzeProduct(productId);
+
+  if (!(await enforceMinQuality(productId, opts.minQuality))) return "skipped";
+
   return "inserted";
 }
 
@@ -669,6 +704,7 @@ export function generateImportTemplateBuffer(): Buffer {
   const headers = [
     "productName",
     "sku",
+    "barcode",
     "brand",
     "category",
     "description",
@@ -684,6 +720,7 @@ export function generateImportTemplateBuffer(): Buffer {
     {
       productName: "Örnek Ürün Adı",
       sku: "SKU-001",
+      barcode: "8680000000001",
       brand: "Örnek Marka",
       category: "Ev & Yaşam > Dekorasyon",
       description: "Ürün açıklaması buraya yazılır.",

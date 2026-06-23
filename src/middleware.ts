@@ -12,7 +12,7 @@ async function verifyJWT(token: string): Promise<Record<string, unknown> | null>
 
     const [headerB64, payloadB64, sigB64] = parts;
 
-    const secret = process.env.JWT_SECRET || "fallback-secret";
+    const secret = process.env.JWT_SECRET || "dev-fallback-secret";
     const encoder = new TextEncoder();
 
     const key = await crypto.subtle.importKey(
