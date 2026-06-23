@@ -257,7 +257,7 @@ export async function POST(req: Request) {
 
     await prisma.cartItem.deleteMany({ where: { cartId: cart.id } });
 
-    dispatchWebhook("order.created", {
+    void dispatchWebhook("order.created", {
       orderId: order.id,
       orderNo: order.id.slice(0, 8).toUpperCase(),
       total: finalTotal,
@@ -348,39 +348,43 @@ export async function POST(req: Request) {
         return NextResponse.json({ success: false, error: result.message || "Ödeme başlatılamadı" }, { status: 400 });
       }
 
-      if (method === "BANK_TRANSFER") {
-        if (dealer) {
-          await notifyBankTransferCreated({
-            dealerId: dealer.id,
-            title: "Havale/EFT — dekont yükleyin",
-            message: `#${order.id.slice(0, 8)} nolu sipariş için havale yaptıktan sonra dekont yüklemeniz zorunludur. 24 saat içinde yüklenmezse sipariş iptal edilir.`,
-            link: `/dealer/orders/${order.id}`,
-          });
-        } else {
-          await createNotification({
-            userId: user.id,
-            title: "Havale/EFT — dekont bekleniyor",
-            message: `#${order.id.slice(0, 8)} nolu sipariş için havale yaptıktan sonra dekont yükleyebilirsiniz.`,
-            type: "payment",
-            link: `/admin/orders/${order.id}`,
-          });
-        }
-      }
-
       if (dealer) {
-        await notifyOrderCreated(
-          dealer.id, order.id, finalTotal, dealer.email, dealer.name,
+        void notifyOrderCreated(
+          dealer.id,
+          order.id,
+          finalTotal,
+          dealer.email,
+          dealer.name,
           itemDetails.map((item) => ({ name: item.product.name, qty: item.quantity, price: item.effectivePrice })),
           dealer.phone
-        );
+        ).catch(() => {});
       } else {
-        await createNotification({
+        void createNotification({
           userId: user.id,
           title: "Sipariş Alındı",
           message: `#${order.id.slice(0, 8)} nolu siparişiniz alındı.`,
           type: "order",
           link: `/admin/orders/${order.id}`,
-        });
+        }).catch(() => {});
+      }
+
+      if (method === "BANK_TRANSFER") {
+        if (dealer) {
+          void notifyBankTransferCreated({
+            dealerId: dealer.id,
+            title: "Havale/EFT — dekont yükleyin",
+            message: `#${order.id.slice(0, 8)} nolu sipariş için havale yaptıktan sonra dekont yüklemeniz zorunludur. 24 saat içinde yüklenmezse sipariş iptal edilir.`,
+            link: `/dealer/orders/${order.id}`,
+          }).catch(() => {});
+        } else {
+          void createNotification({
+            userId: user.id,
+            title: "Havale/EFT — dekont bekleniyor",
+            message: `#${order.id.slice(0, 8)} nolu sipariş için havale yaptıktan sonra dekont yükleyebilirsiniz.`,
+            type: "payment",
+            link: `/admin/orders/${order.id}`,
+          }).catch(() => {});
+        }
       }
 
       return NextResponse.json({
@@ -397,19 +401,19 @@ export async function POST(req: Request) {
     }
 
     if (dealer) {
-      await notifyOrderCreated(
+      void notifyOrderCreated(
         dealer.id, order.id, finalTotal, dealer.email, dealer.name,
         itemDetails.map((item) => ({ name: item.product.name, qty: item.quantity, price: item.effectivePrice })),
         dealer.phone
-      );
+      ).catch(() => {});
     } else {
-      await createNotification({
+      void createNotification({
         userId: user.id,
         title: "Sipariş Alındı",
         message: `#${order.id.slice(0, 8)} nolu siparişiniz alındı.`,
         type: "order",
         link: `/dealer/orders/${order.id}`,
-      });
+      }).catch(() => {});
     }
 
     return NextResponse.json({ success: true, data: order }, { status: 201 });

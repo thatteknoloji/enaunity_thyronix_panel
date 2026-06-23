@@ -6,6 +6,9 @@ const transporter = nodemailer.createTransport({
   host: process.env.SMTP_HOST || "smtp.gmail.com",
   port: parseInt(process.env.SMTP_PORT || "587"),
   secure: process.env.SMTP_SECURE === "true",
+  connectionTimeout: 10000,
+  greetingTimeout: 10000,
+  socketTimeout: 10000,
   auth: { user: process.env.SMTP_USER || "", pass: process.env.SMTP_PASS || "" },
 });
 
@@ -36,8 +39,8 @@ export async function notifyOrderCreated(dealerId: string, orderId: string, tota
     type: "order", link: `/dealer/orders/${orderId}`,
   });
   const { orderCreatedEmail } = await import("./email-templates");
-  sendEmail({ to: dealerEmail, subject: `Sipariş #${orderId.slice(0, 8)} Alındı`, html: orderCreatedEmail(dealerName, orderId.slice(0, 8), total, items) }).catch(() => {});
-  await sendSMS(`Sipariş #${orderId.slice(0, 8)} alındı. Toplam: ${total.toFixed(2)} ₺`, dealerPhone).catch(() => {});
+  void sendEmail({ to: dealerEmail, subject: `Sipariş #${orderId.slice(0, 8)} Alındı`, html: orderCreatedEmail(dealerName, orderId.slice(0, 8), total, items) }).catch(() => {});
+  void sendSMS(`Sipariş #${orderId.slice(0, 8)} alındı. Toplam: ${total.toFixed(2)} ₺`, dealerPhone).catch(() => {});
 }
 
 export async function notifyOrderStatus(dealerId: string, orderId: string, status: string, statusLabel: string, dealerEmail: string, dealerName: string, dealerPhone?: string) {
@@ -47,9 +50,9 @@ export async function notifyOrderStatus(dealerId: string, orderId: string, statu
     type: "order", link: `/dealer/orders/${orderId}`,
   });
   const { orderStatusEmail } = await import("./email-templates");
-  sendEmail({ to: dealerEmail, subject: `Sipariş #${orderId.slice(0, 8)} — ${statusLabel}`, html: orderStatusEmail(dealerName, orderId.slice(0, 8), status, statusLabel) }).catch(() => {});
+  void sendEmail({ to: dealerEmail, subject: `Sipariş #${orderId.slice(0, 8)} — ${statusLabel}`, html: orderStatusEmail(dealerName, orderId.slice(0, 8), status, statusLabel) }).catch(() => {});
   if (status === "shipped" || status === "delivered") {
-    await sendSMS(`Sipariş #${orderId.slice(0, 8)} — ${statusLabel}`, dealerPhone).catch(() => {});
+    void sendSMS(`Sipariş #${orderId.slice(0, 8)} — ${statusLabel}`, dealerPhone).catch(() => {});
   }
 }
 
@@ -60,8 +63,8 @@ export async function notifyTracking(dealerId: string, orderId: string, carrier:
     type: "order", link: `/dealer/orders/${orderId}`,
   });
   const { trackingEmail } = await import("./email-templates");
-  sendEmail({ to: dealerEmail, subject: `Kargo Takip — #${orderId.slice(0, 8)}`, html: trackingEmail(dealerName, orderId.slice(0, 8), carrier, trackingNumber) }).catch(() => {});
-  await sendSMS(`Kargo: ${carrier} — Takip No: ${trackingNumber}`, dealerPhone).catch(() => {});
+  void sendEmail({ to: dealerEmail, subject: `Kargo Takip — #${orderId.slice(0, 8)}`, html: trackingEmail(dealerName, orderId.slice(0, 8), carrier, trackingNumber) }).catch(() => {});
+  void sendSMS(`Kargo: ${carrier} — Takip No: ${trackingNumber}`, dealerPhone).catch(() => {});
 }
 
 export async function notifyReturnStatus(dealerId: string, returnId: string, status: string, note: string, dealerEmail: string, dealerName: string, dealerPhone?: string) {
@@ -72,6 +75,6 @@ export async function notifyReturnStatus(dealerId: string, returnId: string, sta
     type: "return", link: `/dealer/returns`,
   });
   const { returnStatusEmail } = await import("./email-templates");
-  sendEmail({ to: dealerEmail, subject: `İade Talebi — ${label}`, html: returnStatusEmail(dealerName, returnId.slice(0, 8), status, note) }).catch(() => {});
-  await sendSMS(`İade talebiniz ${label.toLowerCase()} — #${returnId.slice(0, 8)}`, dealerPhone).catch(() => {});
+  void sendEmail({ to: dealerEmail, subject: `İade Talebi — ${label}`, html: returnStatusEmail(dealerName, returnId.slice(0, 8), status, note) }).catch(() => {});
+  void sendSMS(`İade talebiniz ${label.toLowerCase()} — #${returnId.slice(0, 8)}`, dealerPhone).catch(() => {});
 }

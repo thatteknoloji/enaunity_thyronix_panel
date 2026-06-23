@@ -29,6 +29,8 @@ export async function dispatchWebhook(
           ? await createSignature(JSON.stringify(payload), endpoint.secret)
           : "";
 
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 10000);
         const res = await fetch(endpoint.url, {
           method: "POST",
           headers: {
@@ -42,7 +44,8 @@ export async function dispatchWebhook(
             data: payload,
             timestamp: new Date().toISOString(),
           }),
-        });
+          signal: controller.signal,
+        }).finally(() => clearTimeout(timeout));
 
         const duration = Date.now() - start;
         const responseText = await res.text();

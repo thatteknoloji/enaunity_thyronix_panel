@@ -9,6 +9,8 @@ export async function sendSMS(message: string, phone?: string): Promise<boolean>
   }
 
   try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 10000);
     const res = await fetch(SMS_API, {
       method: "POST",
       headers: {
@@ -20,7 +22,8 @@ export async function sendSMS(message: string, phone?: string): Promise<boolean>
         message,
         phone: phone || "",
       }),
-    });
+      signal: controller.signal,
+    }).finally(() => clearTimeout(timeout));
 
     if (!res.ok) {
       console.error("[SMS] API error:", await res.text());
