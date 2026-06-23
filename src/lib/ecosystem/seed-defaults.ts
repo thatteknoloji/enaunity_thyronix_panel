@@ -37,6 +37,7 @@ const DEFAULTS = [
   buildSeedFromPlatform("hive", 2),
   buildSeedFromPlatform("linkslash", 3),
   buildSeedFromPlatform("page-factory", 4),
+  buildSeedFromPlatform("product-library", 5),
 ];
 
 export async function ensureDefaultShowcaseProducts() {

@@ -553,7 +553,7 @@ export default function DealerProductLibraryPanel() {
                     </a>
                     <a
                       className="inline-flex items-center justify-center rounded-xl border border-ena-primary bg-ena-primary px-3 py-2 text-xs font-medium text-white hover:opacity-90"
-                      href="/downloads/product-library/ena-marketplace-connector.zip"
+                      href="/api/product-library/connector/download"
                       target="_blank"
                       rel="noreferrer"
                     >

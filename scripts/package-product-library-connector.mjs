@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * ENA Marketplace Connector paketleyici
- * public/product-library/connector → public/downloads/product-library/ena-marketplace-connector.zip
+ * public/product-library/connector → private/product-library/ena-marketplace-connector.zip
  */
 import { execSync } from "child_process";
 import { existsSync, mkdirSync, readFileSync } from "fs";
@@ -11,7 +11,7 @@ import { fileURLToPath } from "url";
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, "..");
 const EXT_DIR = join(ROOT, "public/product-library/connector");
-const OUT_DIR = join(ROOT, "public/downloads/product-library");
+const OUT_DIR = join(ROOT, "private/product-library");
 const OUT_ZIP = join(OUT_DIR, "ena-marketplace-connector.zip");
 const MANIFEST = join(EXT_DIR, "manifest.json");
 

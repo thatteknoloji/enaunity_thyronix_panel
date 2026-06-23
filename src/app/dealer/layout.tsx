@@ -50,6 +50,7 @@ function buildStaticGroups(t: (key: string) => string): NavGroup[] {
       label: "Operasyon",
       items: [
         { href: "/dealer/my-products", label: "Bayi Ürünlerim", icon: Package },
+        { href: "/dealer/product-library", label: "Hazır Ürünler", icon: Package },
         { href: "/dealer/manual-order", label: "Manuel Sipariş", icon: Upload },
         { href: "/dealer/fulfillment/orders", label: "Fulfillment Siparişleri", icon: ShoppingCart },
         { href: "/dealer/fulfillment/shipments", label: "Kargolarım", icon: Truck },
