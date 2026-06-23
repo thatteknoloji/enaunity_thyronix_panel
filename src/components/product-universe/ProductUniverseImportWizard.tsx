@@ -15,6 +15,7 @@ import {
   Upload,
 } from "lucide-react";
 import { MAPPING_FIELD_DEFS } from "@/lib/product-universe/import-types";
+import { fetchPageFactoryJson } from "@/lib/page-factory/fetch-json";
 
 const SOURCE_TYPES = [
   { value: "TRENDYOL_EXCEL", label: "Trendyol Excel" },
@@ -123,8 +124,7 @@ export function ProductUniverseImportWizard({ projects, mode, onComplete }: Prop
 
   const loadTemplates = useCallback(async () => {
     try {
-      const r = await fetch("/api/product-universe/import/templates");
-      const d = await r.json();
+      const d = await fetchPageFactoryJson<Template[]>("/api/product-universe/import/templates");
       if (d.success) setTemplates(d.data || []);
     } catch {
       /* ignore */

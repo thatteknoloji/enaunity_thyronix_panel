@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Eye, FileText, Loader2, Save, Shield } from "lucide-react";
 import { ContentDraftPreviewModal } from "@/components/page-factory/ContentDraftPreviewModal";
+import { fetchPageFactoryJson } from "@/lib/page-factory/fetch-json";
 
 type Props = {
   blueprintId: string;
@@ -40,8 +41,7 @@ export function ProductUniverseContentDraftSection({
 
   const resolveDraftId = async (): Promise<string | null> => {
     if (resolvedDraftId) return resolvedDraftId;
-    const r = await fetch(`/api/page-factory/blueprints/${blueprintId}/draft`);
-    const d = await r.json();
+    const d = await fetchPageFactoryJson<{ id: string }>(`/api/page-factory/blueprints/${blueprintId}/draft`);
     if (d.success && d.data?.id) {
       setResolvedDraftId(d.data.id);
       return d.data.id;
@@ -56,18 +56,15 @@ export function ProductUniverseContentDraftSection({
       const id = await resolveDraftId();
       let payload: any;
       if (id) {
-        const r = await fetch(`/api/page-factory/blueprints/${blueprintId}/draft/preview`, { method: "POST" });
-        const d = await r.json();
+        const d = await fetchPageFactoryJson(`/api/page-factory/blueprints/${blueprintId}/draft/preview`, { method: "POST" });
         if (!d.success) throw new Error(d.error);
-        payload = d.data.payload || d.data;
-        const gateR = await fetch(`/api/page-factory/drafts/${id}/publish-gate/preview`, { method: "POST" });
-        const gateD = await gateR.json();
+        payload = (d.data as { payload?: unknown }).payload || d.data;
+        const gateD = await fetchPageFactoryJson(`/api/page-factory/drafts/${id}/publish-gate/preview`, { method: "POST" });
         if (gateD.success) payload = { ...payload, gate: gateD.data };
       } else {
-        const r = await fetch(`/api/page-factory/blueprints/${blueprintId}/draft/preview`, { method: "POST" });
-        const d = await r.json();
+        const d = await fetchPageFactoryJson(`/api/page-factory/blueprints/${blueprintId}/draft/preview`, { method: "POST" });
         if (!d.success) throw new Error(d.error);
-        payload = d.data.payload || d.data;
+        payload = (d.data as { payload?: unknown }).payload || d.data;
       }
       setPreviewData(payload);
       setPreviewOpen(true);
@@ -82,17 +79,17 @@ export function ProductUniverseContentDraftSection({
     setSaving(true);
     setError(null);
     try {
-      const r = await fetch(`/api/page-factory/blueprints/${blueprintId}/draft/generate`, {
+      const d = await fetchPageFactoryJson(`/api/page-factory/blueprints/${blueprintId}/draft/generate`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ dryRun: false }),
       });
-      const d = await r.json();
       if (!d.success) throw new Error(d.error || "Draft oluşturulamadı");
-      setPublishScore(d.data.payload.quality.publishScore);
-      setStatus(d.data.payload.status);
-      setResolvedDraftId(d.data.draftId);
-      setPreviewData(d.data.payload);
+      const gen = d.data as { payload: { quality: { publishScore: number }; status: string }; draftId: string };
+      setPublishScore(gen.payload.quality.publishScore);
+      setStatus(gen.payload.status);
+      setResolvedDraftId(gen.draftId);
+      setPreviewData(gen.payload);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Draft oluşturulamadı");
     } finally {
@@ -106,15 +103,15 @@ export function ProductUniverseContentDraftSection({
     try {
       const id = await resolveDraftId();
       if (!id) throw new Error("Önce draft oluşturun");
-      const r = await fetch(`/api/page-factory/drafts/${id}/publish-gate/run`, {
+      const d = await fetchPageFactoryJson(`/api/page-factory/drafts/${id}/publish-gate/run`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ dryRun: false }),
       });
-      const d = await r.json();
       if (!d.success) throw new Error(d.error);
-      setGate({ status: d.data.status, score: d.data.score });
-      if (d.data.status === "PASSED" && d.data.score >= 80) setStatus("READY_TO_PUBLISH");
+      const gateData = d.data as { status: string; score: number };
+      setGate({ status: gateData.status, score: gateData.score });
+      if (gateData.status === "PASSED" && gateData.score >= 80) setStatus("READY_TO_PUBLISH");
     } catch (e) {
       setError(e instanceof Error ? e.message : "Gate başarısız");
     } finally {

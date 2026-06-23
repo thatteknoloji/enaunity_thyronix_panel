@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { ArrowLeft, Loader2, Plus, Trash2, RefreshCw } from "lucide-react";
 import { toAdminUrl } from "@/lib/auth/admin-access";
+import { fetchPageFactoryJson } from "@/lib/page-factory/fetch-json";
 
 type Tab = "geo" | "industries" | "categories" | "intents" | "patterns";
 
@@ -23,9 +24,8 @@ export function DataUniverseAdmin() {
   const [error, setError] = useState<string | null>(null);
 
   const loadGeoStats = useCallback(async () => {
-    const r = await fetch("/api/admin/page-factory/geo?entity=stats");
-    const d = await r.json();
-    if (d.success) setStats(d.data);
+    const d = await fetchPageFactoryJson<Record<string, number>>("/api/admin/page-factory/geo?entity=stats");
+    if (d.success) setStats(d.data || null);
   }, []);
 
   const load = useCallback(async () => {
@@ -33,11 +33,12 @@ export function DataUniverseAdmin() {
     setError(null);
     try {
       if (tab === "geo") {
-        const r = await fetch(`/api/admin/page-factory/geo?entity=${geoLevel}&page=${page}&limit=50&activeOnly=false`);
-        const d = await r.json();
+        const d = await fetchPageFactoryJson<{ items: Row[]; total: number }>(
+          `/api/admin/page-factory/geo?entity=${geoLevel}&page=${page}&limit=50&activeOnly=false`
+        );
         if (!d.success) throw new Error(d.error);
-        setRows(d.data.items || []);
-        setTotal(d.data.total || 0);
+        setRows(d.data?.items || []);
+        setTotal(d.data?.total || 0);
       } else {
         const entity =
           tab === "industries"
@@ -47,11 +48,12 @@ export function DataUniverseAdmin() {
               : tab === "intents"
                 ? "intents"
                 : "question-patterns";
-        const r = await fetch(`/api/admin/page-factory/reference?entity=${entity}&page=${page}&limit=50&activeOnly=false`);
-        const d = await r.json();
+        const d = await fetchPageFactoryJson<{ items: Row[]; total: number }>(
+          `/api/admin/page-factory/reference?entity=${entity}&page=${page}&limit=50&activeOnly=false`
+        );
         if (!d.success) throw new Error(d.error);
-        setRows(d.data.items || []);
-        setTotal(d.data.total || 0);
+        setRows(d.data?.items || []);
+        setTotal(d.data?.total || 0);
       }
     } catch (e) {
       setError(e instanceof Error ? e.message : "Yüklenemedi");
@@ -75,12 +77,11 @@ export function DataUniverseAdmin() {
   const saveGeo = async () => {
     const body: Record<string, unknown> = { entity: geoLevel, ...form };
     if (form.id) body.id = form.id;
-    const r = await fetch("/api/admin/page-factory/geo", {
+    const d = await fetchPageFactoryJson("/api/admin/page-factory/geo", {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify(body),
     });
-    const d = await r.json();
     if (!d.success) {
       setError(d.error);
       return;
@@ -101,12 +102,11 @@ export function DataUniverseAdmin() {
             : "question-patterns";
     const body: Record<string, unknown> = { entity, ...form };
     if (form.id) body.id = form.id;
-    const r = await fetch("/api/admin/page-factory/reference", {
+    const d = await fetchPageFactoryJson("/api/admin/page-factory/reference", {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify(body),
     });
-    const d = await r.json();
     if (!d.success) {
       setError(d.error);
       return;
@@ -117,7 +117,7 @@ export function DataUniverseAdmin() {
 
   const removeGeo = async (id: string) => {
     if (!confirm("Silinsin mi?")) return;
-    await fetch(`/api/admin/page-factory/geo?entity=${geoLevel}&id=${id}`, { method: "DELETE" });
+    await fetchPageFactoryJson(`/api/admin/page-factory/geo?entity=${geoLevel}&id=${id}`, { method: "DELETE" });
     load();
     loadGeoStats();
   };
@@ -132,7 +132,7 @@ export function DataUniverseAdmin() {
           : tab === "intents"
             ? "intents"
             : "question-patterns";
-    await fetch(`/api/admin/page-factory/reference?entity=${entity}&id=${id}`, { method: "DELETE" });
+    await fetchPageFactoryJson(`/api/admin/page-factory/reference?entity=${entity}&id=${id}`, { method: "DELETE" });
     load();
   };
 

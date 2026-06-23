@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { ArrowLeft, Loader2, Upload, FileSpreadsheet, CheckCircle2, AlertCircle } from "lucide-react";
 import { toAdminUrl } from "@/lib/auth/admin-access";
+import { fetchPageFactoryJson } from "@/lib/page-factory/fetch-json";
 
 const IMPORT_TYPES = [
   { value: "province", label: "İl" },
@@ -50,9 +51,8 @@ export function DataUniverseImportAdmin() {
   const [error, setError] = useState<string | null>(null);
 
   const loadJobs = useCallback(async () => {
-    const r = await fetch("/api/admin/page-factory/data/import/jobs?limit=15");
-    const d = await r.json();
-    if (d.success) setJobs(d.data.items || []);
+    const d = await fetchPageFactoryJson<{ items: Job[] }>("/api/admin/page-factory/data/import/jobs?limit=15");
+    if (d.success) setJobs(d.data?.items || []);
   }, []);
 
   useEffect(() => {
@@ -60,9 +60,8 @@ export function DataUniverseImportAdmin() {
   }, [loadJobs]);
 
   const loadJobDetail = async (id: string) => {
-    const r = await fetch(`/api/admin/page-factory/data/import/jobs/${id}`);
-    const d = await r.json();
-    if (d.success) setSelectedJob(d.data);
+    const d = await fetchPageFactoryJson(`/api/admin/page-factory/data/import/jobs/${id}`);
+    if (d.success) setSelectedJob(d.data as typeof selectedJob);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -79,10 +78,9 @@ export function DataUniverseImportAdmin() {
       fd.append("file", file);
       fd.append("type", type);
       fd.append("dryRun", String(dryRun));
-      const r = await fetch("/api/admin/page-factory/data/import", { method: "POST", body: fd });
-      const d = await r.json();
+      const d = await fetchPageFactoryJson<ImportResult>("/api/admin/page-factory/data/import", { method: "POST", body: fd });
       if (!d.success) throw new Error(d.error || "Import başarısız");
-      setResult(d.data);
+      setResult(d.data || null);
       await loadJobs();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Import başarısız");

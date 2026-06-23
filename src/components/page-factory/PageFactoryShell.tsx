@@ -141,7 +141,7 @@ export function PageFactoryShell({ showLicensePanel = false }: Props) {
           name: data.name,
           sector: data.sector,
           country: data.country,
-          productionType: data.productionType,
+          productionType: data.productionType as ProductionType,
         });
         const statsD = await fetchPageFactoryJson(`/api/page-factory/projects/${id}/draft-stats`);
         if (statsD.success) setDraftStats(statsD.data as typeof draftStats);

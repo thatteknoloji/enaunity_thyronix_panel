@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Eye, Loader2, Save, Layers } from "lucide-react";
 import { ProductUniverseAeoSection } from "./ProductUniverseAeoSection";
 import { ProductUniverseContentDraftSection } from "./ProductUniverseContentDraftSection";
+import { fetchPageFactoryJson } from "@/lib/page-factory/fetch-json";
 
 type Project = { id: string; name: string };
 
@@ -67,11 +68,10 @@ export function ProductUniverseBlueprintPanel({
 
   const loadSaved = useCallback(async () => {
     if (!projectId) return;
-    const r = await fetch(
+    const d = await fetchPageFactoryJson<{ items: typeof savedBlueprints }>(
       `/api/product-universe/blueprints?projectId=${projectId}&productId=${productId}&limit=50`
     );
-    const d = await r.json();
-    if (d.success) setSavedBlueprints(d.data.items || []);
+    if (d.success) setSavedBlueprints(d.data?.items || []);
   }, [projectId, productId]);
 
   useEffect(() => {
@@ -102,14 +102,13 @@ export function ProductUniverseBlueprintPanel({
     setLoading(true);
     setError(null);
     try {
-      const r = await fetch(`/api/product-universe/products/${productId}/blueprints/preview`, {
+      const d = await fetchPageFactoryJson(`/api/product-universe/products/${productId}/blueprints/preview`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(buildBody(true)),
       });
-      const d = await r.json();
       if (!d.success) throw new Error(d.error || "Önizleme başarısız");
-      setPreview(d.data);
+      setPreview(d.data as typeof preview);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Önizleme başarısız");
     } finally {
@@ -125,19 +124,21 @@ export function ProductUniverseBlueprintPanel({
     setSaving(true);
     setError(null);
     try {
-      const r = await fetch(`/api/product-universe/products/${productId}/blueprints/generate`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(buildBody(false)),
-      });
-      const d = await r.json();
+      const d = await fetchPageFactoryJson<{ warnings?: string[] }>(
+        `/api/product-universe/products/${productId}/blueprints/generate`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(buildBody(false)),
+        }
+      );
       if (!d.success) throw new Error(d.error || "Kayıt başarısız");
       await loadSaved();
       setPreview((prev) =>
         prev
           ? {
               ...prev,
-              warnings: [...(prev.warnings || []), ...(d.data.warnings || [])],
+              warnings: [...(prev.warnings || []), ...(d.data?.warnings || [])],
             }
           : null
       );

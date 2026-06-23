@@ -9,6 +9,7 @@ import {
   RefreshCw,
   Link2,
 } from "lucide-react";
+import { fetchPageFactoryJson } from "@/lib/page-factory/fetch-json";
 
 type BridgeStatus = {
   activeSourceCount: number;

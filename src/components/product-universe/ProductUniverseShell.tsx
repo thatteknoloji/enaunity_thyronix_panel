@@ -9,6 +9,7 @@ import { ProductUniverseBlueprintPanel } from "./ProductUniverseBlueprintPanel";
 import { ProductUniverseThyronixBridgePanel } from "./ProductUniverseThyronixBridgePanel";
 import { ProductUniverseImportWizard } from "./ProductUniverseImportWizard";
 import { ProductUniverseBlueprintBatchPanel } from "./ProductUniverseBlueprintBatchPanel";
+import { fetchPageFactoryJson } from "@/lib/page-factory/fetch-json";
 
 type Stats = { total: number; analyzed: number; withImages: number; clusters: number; lowQuality: number };
 type Product = {
@@ -80,20 +81,18 @@ export function ProductUniverseShell({ mode }: Props) {
   const loadData = useCallback(async () => {
     setLoading(true);
     try {
-      const [prodRes, jobRes, projRes] = await Promise.all([
-        fetch(`/api/product-universe/products?page=1&limit=30${q ? `&q=${encodeURIComponent(q)}` : ""}`),
-        fetch("/api/product-universe/excel/jobs?limit=10"),
-        fetch("/api/page-factory/projects"),
+      const [prodData, jobData, projData] = await Promise.all([
+        fetchPageFactoryJson(`/api/product-universe/products?page=1&limit=30${q ? `&q=${encodeURIComponent(q)}` : ""}`),
+        fetchPageFactoryJson("/api/product-universe/excel/jobs?limit=10"),
+        fetchPageFactoryJson<Project[]>("/api/page-factory/projects"),
       ]);
-      const prodData = await prodRes.json();
-      const jobData = await jobRes.json();
-      const projData = await projRes.json();
 
       if (prodData.success) {
-        setProducts(prodData.data.items || []);
-        setStats(prodData.data.stats || null);
+        const pdata = prodData.data as { items: Product[]; stats: Stats };
+        setProducts(pdata.items || []);
+        setStats(pdata.stats || null);
       }
-      if (jobData.success) setJobs(jobData.data.items || []);
+      if (jobData.success) setJobs((jobData.data as { items: Job[] }).items || []);
       if (projData.success) setProjects(projData.data || []);
     } catch {
       setError("Veri yüklenemedi");
@@ -106,9 +105,8 @@ export function ProductUniverseShell({ mode }: Props) {
     setSelectedJobId(jobId);
     setJobDetailLoading(true);
     try {
-      const r = await fetch(`/api/product-universe/excel/jobs/${jobId}`);
-      const d = await r.json();
-      if (d.success) setJobDetail(d.data);
+      const d = await fetchPageFactoryJson(`/api/product-universe/excel/jobs/${jobId}`);
+      if (d.success) setJobDetail(d.data as Record<string, unknown>);
     } catch {
       /* ignore */
     } finally {
@@ -124,9 +122,8 @@ export function ProductUniverseShell({ mode }: Props) {
     setDetailLoading(true);
     setDetailTab("detail");
     try {
-      const r = await fetch(`/api/product-universe/products/${id}`);
-      const d = await r.json();
-      if (d.success) setSelected(d.data);
+      const d = await fetchPageFactoryJson<ProductDetail>(`/api/product-universe/products/${id}`);
+      if (d.success) setSelected(d.data || null);
     } finally {
       setDetailLoading(false);
     }
@@ -158,7 +155,7 @@ export function ProductUniverseShell({ mode }: Props) {
     setError(null);
     setBulkResult(null);
     try {
-      const r = await fetch("/api/product-universe/blueprints/bulk-generate", {
+      const d = await fetchPageFactoryJson("/api/product-universe/blueprints/bulk-generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -173,9 +170,8 @@ export function ProductUniverseShell({ mode }: Props) {
           includeFaqPage: true,
         }),
       });
-      const d = await r.json();
       if (!d.success) throw new Error(d.error || "Bulk generate başarısız");
-      setBulkResult(d.data);
+      setBulkResult(d.data as Record<string, unknown>);
       if (!dryRun) await loadData();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Bulk generate başarısız");
@@ -185,7 +181,7 @@ export function ProductUniverseShell({ mode }: Props) {
   };
 
   const reanalyze = async (id: string) => {
-    await fetch(`/api/product-universe/products/${id}/analyze`, { method: "POST" });
+    await fetchPageFactoryJson(`/api/product-universe/products/${id}/analyze`, { method: "POST" });
     await openDetail(id);
     await loadData();
   };

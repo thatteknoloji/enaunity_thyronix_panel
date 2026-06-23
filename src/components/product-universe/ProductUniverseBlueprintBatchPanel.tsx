@@ -11,6 +11,7 @@ import {
   RefreshCw,
 } from "lucide-react";
 import { BLUEPRINT_TYPE_OPTIONS } from "@/lib/product-universe/blueprint-batch-types";
+import { fetchPageFactoryJson } from "@/lib/page-factory/fetch-json";
 
 type Project = { id: string; name: string };
 

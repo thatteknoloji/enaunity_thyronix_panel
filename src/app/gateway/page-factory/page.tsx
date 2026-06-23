@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Loader2, Layers, ArrowRight } from "lucide-react";
+import { fetchPageFactoryJson } from "@/lib/page-factory/fetch-json";
 
 type GatewayState =
   | { step: "loading" }

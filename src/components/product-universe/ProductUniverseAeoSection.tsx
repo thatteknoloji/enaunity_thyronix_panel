@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Eye, Loader2, Save, Sparkles } from "lucide-react";
+import { fetchPageFactoryJson } from "@/lib/page-factory/fetch-json";
 
 type AeoPayload = {
   aeoQualityScore: number;
@@ -37,10 +38,9 @@ export function ProductUniverseAeoSection({
     setLoading(true);
     setError(null);
     try {
-      const r = await fetch(`/api/aeo/blueprints/${blueprintId}/preview`, { method: "POST" });
-      const d = await r.json();
+      const d = await fetchPageFactoryJson<AeoPayload>(`/api/aeo/blueprints/${blueprintId}/preview`, { method: "POST" });
       if (!d.success) throw new Error(d.error || "Önizleme başarısız");
-      setPreview(d.data);
+      setPreview(d.data || null);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Önizleme başarısız");
     } finally {
@@ -52,15 +52,14 @@ export function ProductUniverseAeoSection({
     setSaving(true);
     setError(null);
     try {
-      const r = await fetch(`/api/aeo/blueprints/${blueprintId}/generate`, {
+      const d = await fetchPageFactoryJson<{ payload: AeoPayload }>(`/api/aeo/blueprints/${blueprintId}/generate`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ dryRun: false }),
       });
-      const d = await r.json();
       if (!d.success) throw new Error(d.error || "Kayıt başarısız");
-      setPreview(d.data.payload);
-      setSavedScore(d.data.payload.aeoQualityScore);
+      setPreview(d.data?.payload || null);
+      setSavedScore(d.data?.payload.aeoQualityScore ?? null);
       setSaved(true);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Kayıt başarısız");
