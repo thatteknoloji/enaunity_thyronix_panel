@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { Check, Eye, Loader2, Shield, Upload, X } from "lucide-react";
+import { fetchPageFactoryJson } from "@/lib/page-factory/fetch-json";
 
 type GateItem = {
   id: string;
@@ -44,25 +45,28 @@ export function PublishGateReviewTab({ projectId }: { projectId?: string }) {
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [preview, setPreview] = useState<any>(null);
   const [message, setMessage] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
-    const q = projectId ? `?projectId=${projectId}&stats=true` : "?stats=true";
-    const statsR = await fetch(`/api/page-factory/publish-gate/queue${q}`);
-    const statsD = await statsR.json();
-    if (statsD.success) setStats(statsD.data);
+    setError(null);
+    try {
+      const q = projectId ? `?projectId=${projectId}&stats=true` : "?stats=true";
+      const statsD = await fetchPageFactoryJson(`/api/page-factory/publish-gate/queue${q}`);
+      if (statsD.success) setStats(statsD.data as Stats);
 
-    const listQ = projectId ? `?projectId=${projectId}&limit=50` : "?limit=50";
-    const listR = await fetch(`/api/page-factory/publish-gate/queue${listQ}`);
-    const listD = await listR.json();
-    if (listD.success) setItems(listD.data.items || []);
+      const listQ = projectId ? `?projectId=${projectId}&limit=50` : "?limit=50";
+      const listD = await fetchPageFactoryJson(`/api/page-factory/publish-gate/queue${listQ}`);
+      if (listD.success) setItems((listD.data as { items?: GateItem[] }).items || []);
 
-    const wgQ = projectId ? `?projectId=${projectId}&withoutGate=true&limit=30` : "?withoutGate=true&limit=30";
-    const wgR = await fetch(`/api/page-factory/publish-gate/queue${wgQ}`);
-    const wgD = await wgR.json();
-    if (wgD.success) setWithoutGate(wgD.data.items || []);
-
-    setLoading(false);
+      const wgQ = projectId ? `?projectId=${projectId}&withoutGate=true&limit=30` : "?withoutGate=true&limit=30";
+      const wgD = await fetchPageFactoryJson(`/api/page-factory/publish-gate/queue${wgQ}`);
+      if (wgD.success) setWithoutGate((wgD.data as { items?: DraftWithoutGate[] }).items || []);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Kuyruk yüklenemedi");
+    } finally {
+      setLoading(false);
+    }
   }, [projectId]);
 
   useEffect(() => {
@@ -72,12 +76,11 @@ export function PublishGateReviewTab({ projectId }: { projectId?: string }) {
   const review = async (gateId: string, action: "approve" | "reject" | "needs_review") => {
     setActionLoading(gateId);
     try {
-      const r = await fetch(`/api/page-factory/publish-gate/${gateId}/review`, {
+      const d = await fetchPageFactoryJson(`/api/page-factory/publish-gate/${gateId}/review`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action }),
       });
-      const d = await r.json();
       if (!d.success) throw new Error(d.error);
       await load();
     } catch (e) {
@@ -91,12 +94,11 @@ export function PublishGateReviewTab({ projectId }: { projectId?: string }) {
     setActionLoading(draftId);
     setMessage(null);
     try {
-      const r = await fetch(`/api/page-factory/drafts/${draftId}/publish-gate/run`, {
+      const d = await fetchPageFactoryJson(`/api/page-factory/drafts/${draftId}/publish-gate/run`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ dryRun: false }),
       });
-      const d = await r.json();
       if (!d.success) throw new Error(d.error || "Gate başarısız");
       setMessage("Publish Gate oluşturuldu/güncellendi");
       await load();
@@ -111,10 +113,9 @@ export function PublishGateReviewTab({ projectId }: { projectId?: string }) {
     setActionLoading(`pub-${draftId}`);
     setMessage(null);
     try {
-      const r = await fetch(`/api/page-factory/drafts/${draftId}/publish/internal`, { method: "POST" });
-      const d = await r.json();
+      const d = await fetchPageFactoryJson(`/api/page-factory/drafts/${draftId}/publish/internal`, { method: "POST" });
       if (!d.success) throw new Error(d.error || "Yayın başarısız");
-      setMessage(`İç yayına alındı: ${d.data.path}`);
+      setMessage(`İç yayına alındı: ${(d.data as { path: string }).path}`);
       await load();
     } catch (e) {
       alert(e instanceof Error ? e.message : "Yayın başarısız");
@@ -124,9 +125,12 @@ export function PublishGateReviewTab({ projectId }: { projectId?: string }) {
   };
 
   const previewGate = async (draftId: string) => {
-    const r = await fetch(`/api/page-factory/drafts/${draftId}/publish-gate/preview`, { method: "POST" });
-    const d = await r.json();
-    if (d.success) setPreview(d.data);
+    try {
+      const d = await fetchPageFactoryJson(`/api/page-factory/drafts/${draftId}/publish-gate/preview`, { method: "POST" });
+      if (d.success) setPreview(d.data);
+    } catch (e) {
+      alert(e instanceof Error ? e.message : "Önizleme başarısız");
+    }
   };
 
   if (loading) return <p className="text-sm text-gray-500 flex items-center gap-2"><Loader2 size={14} className="animate-spin" /> Yükleniyor…</p>;
@@ -140,6 +144,10 @@ export function PublishGateReviewTab({ projectId }: { projectId?: string }) {
 
       {message && (
         <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-800">{message}</div>
+      )}
+
+      {error && (
+        <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">{error}</div>
       )}
 
       {stats && (

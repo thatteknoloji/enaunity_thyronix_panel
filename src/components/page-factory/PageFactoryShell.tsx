@@ -116,7 +116,7 @@ export function PageFactoryShell({ showLicensePanel = false }: Props) {
     try {
       const d = await fetchPageFactoryJson<Dashboard>("/api/page-factory/dashboard");
       if (!d.success) throw new Error(d.error || "Yüklenemedi");
-      setDashboard(d.data);
+      setDashboard(d.data ?? null);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Yüklenemedi");
     } finally {
@@ -194,16 +194,15 @@ export function PageFactoryShell({ showLicensePanel = false }: Props) {
     setCreating(true);
     setError(null);
     try {
-      const r = await fetch("/api/page-factory/projects", {
+      const d = await fetchPageFactoryJson("/api/page-factory/projects", {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify(form),
       });
-      const d = await r.json();
       if (!d.success) throw new Error(d.error || "Oluşturulamadı");
       setForm({ name: "", sector: "", country: "TR", language: "tr", productionType: "GEO_SEO" });
       await loadDashboard();
-      await loadProject(d.data.id);
+      await loadProject((d.data as { id: string }).id);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Oluşturulamadı");
     } finally {
@@ -215,10 +214,9 @@ export function PageFactoryShell({ showLicensePanel = false }: Props) {
     setGenerating(true);
     setError(null);
     try {
-      const r = await fetch(`/api/page-factory/projects/${id}/generate`, { method: "POST" });
-      const d = await r.json();
+      const d = await fetchPageFactoryJson(`/api/page-factory/projects/${id}/generate`, { method: "POST" });
       if (!d.success) throw new Error(d.error || "Plan üretilemedi");
-      setSelected(d.data);
+      setSelected(d.data as ProjectDetail);
       await loadDashboard();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Plan üretilemedi");
@@ -669,7 +667,7 @@ export function PageFactoryShell({ showLicensePanel = false }: Props) {
                         onClick={async () => {
                           setAeoBulkLoading(true);
                           try {
-                            const r = await fetch("/api/aeo/blueprints/bulk-generate", {
+                            const d = await fetchPageFactoryJson("/api/aeo/blueprints/bulk-generate", {
                               method: "POST",
                               headers: { "Content-Type": "application/json" },
                               body: JSON.stringify({
@@ -681,7 +679,6 @@ export function PageFactoryShell({ showLicensePanel = false }: Props) {
                                 dryRun: false,
                               }),
                             });
-                            const d = await r.json();
                             if (!d.success) throw new Error(d.error);
                             await loadProject(selected.id);
                           } catch (e) {
@@ -701,7 +698,7 @@ export function PageFactoryShell({ showLicensePanel = false }: Props) {
                         onClick={async () => {
                           setDraftBulkLoading(true);
                           try {
-                            const r = await fetch("/api/page-factory/blueprints/drafts/bulk-generate", {
+                            const d = await fetchPageFactoryJson("/api/page-factory/blueprints/drafts/bulk-generate", {
                               method: "POST",
                               headers: { "Content-Type": "application/json" },
                               body: JSON.stringify({
@@ -712,7 +709,6 @@ export function PageFactoryShell({ showLicensePanel = false }: Props) {
                                 dryRun: false,
                               }),
                             });
-                            const d = await r.json();
                             if (!d.success) throw new Error(d.error);
                             await loadProject(selected.id);
                           } catch (e) {
@@ -786,8 +782,7 @@ export function PageFactoryShell({ showLicensePanel = false }: Props) {
                                 type="button"
                                 className="text-[9px] px-1.5 py-0.5 rounded bg-violet-50 text-violet-700 hover:bg-violet-100"
                                 onClick={async () => {
-                                  const r = await fetch(`/api/page-factory/blueprints/${bp.id}/draft/preview`, { method: "POST" });
-                                  const d = await r.json();
+                                  const d = await fetchPageFactoryJson(`/api/page-factory/blueprints/${bp.id}/draft/preview`, { method: "POST" });
                                   if (d.success) setDraftPreview({ open: true, data: d.data, title: bp.title });
                                 }}
                               >
@@ -797,7 +792,7 @@ export function PageFactoryShell({ showLicensePanel = false }: Props) {
                                 type="button"
                                 className="text-[9px] px-1.5 py-0.5 rounded bg-violet-600 text-white hover:bg-violet-500"
                                 onClick={async () => {
-                                  await fetch(`/api/page-factory/blueprints/${bp.id}/draft/generate`, {
+                                  await fetchPageFactoryJson(`/api/page-factory/blueprints/${bp.id}/draft/generate`, {
                                     method: "POST",
                                     headers: { "Content-Type": "application/json" },
                                     body: JSON.stringify({ dryRun: false }),

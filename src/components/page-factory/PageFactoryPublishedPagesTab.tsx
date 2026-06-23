@@ -10,6 +10,7 @@ import {
   ShieldOff,
   Upload,
 } from "lucide-react";
+import { fetchPageFactoryJson } from "@/lib/page-factory/fetch-json";
 
 type Project = { id: string; name: string };
 

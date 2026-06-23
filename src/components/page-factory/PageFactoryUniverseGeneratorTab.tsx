@@ -17,6 +17,7 @@ import {
   Package,
 } from "lucide-react";
 import { UNIVERSE_SOURCE_OPTIONS } from "@/lib/page-factory/universe/universe-types";
+import { fetchPageFactoryJson } from "@/lib/page-factory/fetch-json";
 
 type Project = { id: string; name: string };
 
@@ -102,9 +103,8 @@ export function PageFactoryUniverseGeneratorTab({ projects, defaultProjectId }: 
   const loadStats = useCallback(async () => {
     if (!projectId) return;
     try {
-      const r = await fetch(`/api/page-factory/universe/jobs?projectId=${projectId}`);
-      const d = await r.json();
-      if (d.success) setStats(d.data.stats);
+      const d = await fetchPageFactoryJson(`/api/page-factory/universe/jobs?projectId=${projectId}`);
+      if (d.success) setStats((d.data as { stats: DashboardStats }).stats);
     } catch {
       /* ignore */
     }
@@ -141,14 +141,13 @@ export function PageFactoryUniverseGeneratorTab({ projects, defaultProjectId }: 
     setError(null);
     setPreview(null);
     try {
-      const r = await fetch("/api/page-factory/universe/estimate", {
+      const d = await fetchPageFactoryJson("/api/page-factory/universe/estimate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(buildBody("full")),
       });
-      const d = await r.json();
       if (!d.success) throw new Error(d.error || "Preview başarısız");
-      setPreview(d.data);
+      setPreview(d.data as PreviewResult);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Preview başarısız");
     } finally {
