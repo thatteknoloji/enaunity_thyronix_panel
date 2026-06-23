@@ -51,6 +51,8 @@
     "test:content-draft": "tsx scripts/test-content-draft.ts",
     "test:publish-gate": "tsx scripts/test-publish-gate.ts",
     "test:excel-import-v2": "tsx scripts/test-excel-import-v2.ts",
+    "test:blueprint-batch": "tsx scripts/test-blueprint-batch.ts",
+    "test:pipeline": "tsx scripts/test-pipeline.ts",
     "test:product-library": "tsx scripts/test-product-library.ts",
     "test:product-library-live": "tsx scripts/test-product-library-live.ts",
     "test:fulfillment": "tsx scripts/test-fulfillment.ts",

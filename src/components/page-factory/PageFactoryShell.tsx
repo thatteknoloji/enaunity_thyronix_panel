@@ -19,6 +19,7 @@ import { PRODUCTION_TYPES, type ProductionType } from "@/lib/page-factory/types"
 import { AdminModuleAccessPanel } from "@/components/admin/AdminModuleAccessPanel";
 import { BlueprintUniverseTab } from "@/components/page-factory/BlueprintUniverseTab";
 import { PublishGateReviewTab } from "@/components/page-factory/PublishGateReviewTab";
+import { PageFactoryPipelineTab } from "@/components/page-factory/PageFactoryPipelineTab";
 import { ContentDraftPreviewModal } from "@/components/page-factory/ContentDraftPreviewModal";
 
 type Dashboard = {
@@ -93,7 +94,7 @@ export function PageFactoryShell({ showLicensePanel = false }: Props) {
     data: null,
     title: "",
   });
-  const [shellView, setShellView] = useState<"projects" | "review">("projects");
+  const [shellView, setShellView] = useState<"projects" | "review" | "pipeline">("projects");
   const [error, setError] = useState<string | null>(null);
   const [form, setForm] = useState({
     name: "",
@@ -248,10 +249,28 @@ export function PageFactoryShell({ showLicensePanel = false }: Props) {
         >
           Publish Gate / Review Queue
         </button>
+        <button
+          type="button"
+          onClick={() => setShellView("pipeline")}
+          className={`px-4 py-1.5 text-xs font-medium rounded-md ${shellView === "pipeline" ? "bg-indigo-600 text-white" : "text-gray-600 hover:bg-gray-100"}`}
+        >
+          Pipeline
+        </button>
       </div>
 
       {shellView === "review" ? (
         <PublishGateReviewTab projectId={selected?.id} />
+      ) : shellView === "pipeline" ? (
+        loading ? (
+          <div className="flex justify-center py-16">
+            <Loader2 className="animate-spin text-violet-500" size={28} />
+          </div>
+        ) : dashboard ? (
+          <PageFactoryPipelineTab
+            projects={dashboard.projects.map((p) => ({ id: p.id, name: p.name }))}
+            mode={showLicensePanel ? "admin" : "dealer"}
+          />
+        ) : null
       ) : loading ? (
         <div className="flex justify-center py-16">
           <Loader2 className="animate-spin text-violet-500" size={28} />

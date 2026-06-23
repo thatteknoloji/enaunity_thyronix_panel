@@ -11,8 +11,9 @@ model User {
   id        String          @id @default(cuid())
   email     String          @unique
   name      String
-  password  String
+  password  String?
   role      String          @default("user")
+  googleId  String?         @unique
   status    String          @default("active") // pending, active, rejected, suspended
   phone     String          @default("")
   company   String          @default("")
@@ -3139,6 +3140,36 @@ model PageFactoryPublishGate {
   @@index([score])
 }
 
+enum PageFactoryPipelineJobStatus {
+  PENDING
+  RUNNING
+  COMPLETED
+  FAILED
+}
+
+model PageFactoryPipelineJob {
+  id               String                       @id @default(cuid())
+  dealerId         String?
+  projectId        String?
+  status           PageFactoryPipelineJobStatus @default(PENDING)
+  filtersJson      String                       @default("{}")
+  resultJson       String                       @default("{}")
+  totalBlueprints  Int                          @default(0)
+  aeoGenerated     Int                          @default(0)
+  draftsGenerated  Int                          @default(0)
+  gatePassed       Int                          @default(0)
+  gateWarning      Int                          @default(0)
+  gateBlocked      Int                          @default(0)
+  errorCount       Int                          @default(0)
+  createdAt        DateTime                     @default(now())
+  updatedAt        DateTime                     @updatedAt
+
+  @@index([dealerId])
+  @@index([projectId])
+  @@index([status])
+  @@index([createdAt])
+}
+
 // ── Data Universe Engine (GEO / Industry / Intent / Question — içerik üretmez) ──
 
 model GeoCountry {
@@ -3568,4 +3599,32 @@ model ProductUniverseImportTemplate {
 
   @@index([dealerId])
   @@index([sourceType])
+}
+
+enum ProductUniverseBlueprintJobStatus {
+  PENDING
+  RUNNING
+  COMPLETED
+  FAILED
+}
+
+model ProductUniverseBlueprintJob {
+  id               String                            @id @default(cuid())
+  dealerId         String?
+  projectId        String?
+  status           ProductUniverseBlueprintJobStatus @default(PENDING)
+  filtersJson      String                            @default("{}")
+  resultJson       String                            @default("{}")
+  totalCandidates  Int                               @default(0)
+  generatedCount   Int                               @default(0)
+  skippedCount     Int                               @default(0)
+  duplicateCount   Int                               @default(0)
+  errorCount       Int                               @default(0)
+  createdAt        DateTime                          @default(now())
+  updatedAt        DateTime                          @updatedAt
+
+  @@index([dealerId])
+  @@index([projectId])
+  @@index([status])
+  @@index([createdAt])
 }
