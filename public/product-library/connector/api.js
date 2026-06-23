@@ -36,7 +36,7 @@ var EnaConnectorApi = (function() {
           credentials: "include",
           signal: timeoutSignal(5000)
         });
-        if (resp.ok) {
+        if (resp.ok || resp.status === 401 || resp.status === 403) {
           activeOrigin = origin;
           try {
             await chrome.storage.sync.set({ enaConnectorOrigin: origin });
@@ -67,8 +67,30 @@ var EnaConnectorApi = (function() {
   }
 
   async function getSession() {
-    var data = await request(ENA_CONNECTOR_CONFIG.sessionPath, { method: "GET" }, 10000);
-    return data;
+    var origin = await resolveOrigin();
+    var response = await fetch(origin + ENA_CONNECTOR_CONFIG.sessionPath, {
+      credentials: "include",
+      signal: timeoutSignal(10000)
+    });
+    var data = await response.json().catch(function() { return {}; });
+    if (response.ok) return data;
+
+    if (response.status === 401 || response.status === 403) {
+      return {
+        success: true,
+        authenticated: false,
+        productLibraryAccess: false,
+        code: "AUTH_REQUIRED",
+        loginUrl: "/auth/login?redirect=/dealer/product-library",
+        dealerDashboardUrl: "/dealer/product-library",
+        rawError: data.error || "Oturum bulunamadi"
+      };
+    }
+
+    var err = new Error(data.error || ("HTTP " + response.status));
+    err.status = response.status;
+    err.data = data;
+    throw err;
   }
 
   async function claimJobs(connectionId, limit, clientName) {
