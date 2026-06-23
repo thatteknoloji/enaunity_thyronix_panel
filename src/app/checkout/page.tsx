@@ -156,106 +156,126 @@ export default function CheckoutPage() {
   };
 
   const submitOrder = async (paymentMethod?: string, installmentCount = 1) => {
-    if (!platform) { setError("Lütfen bir platform seçin"); return false; }
-    const addrToCheck = sameAddress ? invoiceAddress : deliveryAddress;
-    if (!invoiceAddress.trim() || !addrToCheck.trim()) { setError("Adres bilgilerini doldurun"); return false; }
-    if (canUseDealerPayment && !paymentMethod) {
-      setError("Bayi siparişi için lütfen bir ödeme yöntemi seçin.");
-      return false;
-    }
     setSubmitting(true);
     setError("");
 
-    if (minOrderAmount > 0 && total < minOrderAmount) {
-      setError(`Minimum sipariş tutarı ${formatPrice(minOrderAmount)}. Şu anki tutar: ${formatPrice(total)}`);
-      setSubmitting(false);
-      return false;
-    }
-
-    const qtyErrors: string[] = [];
-    for (const item of items) {
-      if (item.quantity < (item.product.minOrderQuantity || 1)) {
-        qtyErrors.push(`${item.product.name}: minimum ${item.product.minOrderQuantity} adet`);
+    try {
+      if (!platform) { setError("Lütfen bir platform seçin"); return false; }
+      const addrToCheck = sameAddress ? invoiceAddress : deliveryAddress;
+      if (!invoiceAddress.trim() || !addrToCheck.trim()) { setError("Adres bilgilerini doldurun"); return false; }
+      if (canUseDealerPayment && !paymentMethod) {
+        setError("Bayi siparişi için lütfen bir ödeme yöntemi seçin.");
+        return false;
       }
-    }
-    if (qtyErrors.length > 0) {
-      setError(`Minimum sipariş adetleri karşılanmadı:\n${qtyErrors.join("\n")}`);
-      setSubmitting(false);
-      return false;
-    }
 
-    const fullAddress = sameAddress
-      ? `Firma: ${company} | VKN: ${taxId} | Fatura: ${invoiceAddress} | Teslimat: ${invoiceAddress}`
-      : `Firma: ${company} | VKN: ${taxId} | Fatura: ${invoiceAddress} | Teslimat: ${deliveryAddress}`;
-
-    const body: Record<string, unknown> = {
-      address: fullAddress,
-      platform: platform || "own",
-      company,
-      taxId,
-      invoiceAddress,
-      deliveryAddress: sameAddress ? invoiceAddress : deliveryAddress,
-      sameAddress,
-      couponDiscount,
-      campaignDiscount,
-      campaignLabel,
-      campaignFreeShip,
-      shippingCost: effectiveShipping,
-    };
-    if (paymentTerm) { body.paymentTermDays = paymentTerm.days; body.paymentTermRate = paymentTerm.rate; }
-    if (attachments.length > 0) body.attachments = attachments;
-    if (paymentMethod) {
-      body.paymentMethod = paymentMethod;
-      body.installmentCount = installmentCount;
-    }
-    const stored = window.sessionStorage.getItem("couponData");
-    if (stored) {
-      const parsed = JSON.parse(stored);
-      body.couponId = parsed.id;
-      body.discount = parsed.discount;
-    }
-
-    const res = await fetch("/api/orders", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
-    });
-
-    const data = await res.json();
-    if (res.ok) {
-      clearCart();
-      window.sessionStorage.removeItem("couponData");
-      if (data.data?.redirectUrl) {
-        window.location.href = data.data.redirectUrl;
-        return true;
+      if (minOrderAmount > 0 && total < minOrderAmount) {
+        setError(`Minimum sipariş tutarı ${formatPrice(minOrderAmount)}. Şu anki tutar: ${formatPrice(total)}`);
+        return false;
       }
-      if (data.data?.paymentId && paymentMethod && paymentMethod !== "DEALER_ACCOUNT") {
+
+      const qtyErrors: string[] = [];
+      for (const item of items) {
+        if (item.quantity < (item.product.minOrderQuantity || 1)) {
+          qtyErrors.push(`${item.product.name}: minimum ${item.product.minOrderQuantity} adet`);
+        }
+      }
+      if (qtyErrors.length > 0) {
+        setError(`Minimum sipariş adetleri karşılanmadı:\n${qtyErrors.join("\n")}`);
+        return false;
+      }
+
+      const fullAddress = sameAddress
+        ? `Firma: ${company} | VKN: ${taxId} | Fatura: ${invoiceAddress} | Teslimat: ${invoiceAddress}`
+        : `Firma: ${company} | VKN: ${taxId} | Fatura: ${invoiceAddress} | Teslimat: ${deliveryAddress}`;
+
+      const body: Record<string, unknown> = {
+        address: fullAddress,
+        platform: platform || "own",
+        company,
+        taxId,
+        invoiceAddress,
+        deliveryAddress: sameAddress ? invoiceAddress : deliveryAddress,
+        sameAddress,
+        couponDiscount,
+        campaignDiscount,
+        campaignLabel,
+        campaignFreeShip,
+        shippingCost: effectiveShipping,
+      };
+      if (paymentTerm) { body.paymentTermDays = paymentTerm.days; body.paymentTermRate = paymentTerm.rate; }
+      if (attachments.length > 0) body.attachments = attachments;
+      if (paymentMethod) {
+        body.paymentMethod = paymentMethod;
+        body.installmentCount = installmentCount;
+      }
+
+      const stored = window.sessionStorage.getItem("couponData");
+      if (stored) {
+        try {
+          const parsed = JSON.parse(stored) as { id?: string; discount?: number };
+          if (parsed?.id) body.couponId = parsed.id;
+          if (typeof parsed?.discount === "number") body.discount = parsed.discount;
+        } catch {
+          window.sessionStorage.removeItem("couponData");
+        }
+      }
+
+      const res = await fetch("/api/orders", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+
+      const raw = await res.text();
+      let data: any = {};
+      if (raw) {
+        try {
+          data = JSON.parse(raw);
+        } catch {
+          data = { error: raw };
+        }
+      }
+
+      if (res.ok) {
+        clearCart();
+        window.sessionStorage.removeItem("couponData");
+        if (data.data?.redirectUrl) {
+          window.location.href = data.data.redirectUrl;
+          return true;
+        }
+        if (data.data?.paymentId && paymentMethod && paymentMethod !== "DEALER_ACCOUNT") {
+          if (user?.role === "admin") {
+            const orderId = data.data.order?.id;
+            router.push(orderId ? `/admin/orders/${orderId}` : "/admin/orders");
+            return true;
+          }
+          router.push(`/payment/pending?module=B2B_ORDER&plan=${data.data.order?.id || ""}&paymentId=${data.data.paymentId}`);
+          return true;
+        }
         if (user?.role === "admin") {
           const orderId = data.data.order?.id;
           router.push(orderId ? `/admin/orders/${orderId}` : "/admin/orders");
-          return true;
+        } else if (isDealer) {
+          const orderId = data.data.order?.id;
+          router.push(orderId ? `/dealer/orders/${orderId}` : "/dealer/orders");
+        } else {
+          router.push("/account");
         }
-        router.push(`/payment/pending?module=B2B_ORDER&plan=${data.data.order?.id || ""}&paymentId=${data.data.paymentId}`);
         return true;
       }
-      if (user?.role === "admin") {
-        const orderId = data.data.order?.id;
-        router.push(orderId ? `/admin/orders/${orderId}` : "/admin/orders");
-      } else if (isDealer) {
-        const orderId = data.data.order?.id;
-        router.push(orderId ? `/dealer/orders/${orderId}` : "/dealer/orders");
-      } else {
-        router.push("/account");
+
+      setError(data.error || "Sipariş oluşturulamadı");
+      if (data.code === "INSUFFICIENT_BALANCE" && data.alternatives?.length) {
+        setPaymentAlternatives(data.alternatives);
+        setShowOnlineSuggestion(true);
       }
-      return true;
+      return false;
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Sipariş oluşturulamadı");
+      return false;
+    } finally {
+      setSubmitting(false);
     }
-    setError(data.error || "Sipariş oluşturulamadı");
-    if (data.code === "INSUFFICIENT_BALANCE" && data.alternatives?.length) {
-      setPaymentAlternatives(data.alternatives);
-      setShowOnlineSuggestion(true);
-    }
-    setSubmitting(false);
-    return false;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {

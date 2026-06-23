@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { isAdminRole } from "@/lib/auth/admin-access";
 import { ProductUniverseShell } from "@/components/product-universe/ProductUniverseShell";
+import { fetchPageFactoryJson } from "@/lib/page-factory/fetch-json";
 
 export default function DealerProductUniversePage() {
   const router = useRouter();
@@ -17,8 +18,7 @@ export default function DealerProductUniversePage() {
           setOk(true);
           return;
         }
-        return fetch("/api/gateway/page-factory")
-          .then((r) => r.json())
+        return fetchPageFactoryJson<{ step: string }>("/api/gateway/page-factory")
           .then((d) => {
             if (d.success && d.data?.step === "ready") {
               setOk(true);

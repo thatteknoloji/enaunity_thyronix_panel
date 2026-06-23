@@ -59,7 +59,7 @@ export function ProductUniverseAeoSection({
       });
       if (!d.success) throw new Error(d.error || "Kayıt başarısız");
       setPreview(d.data?.payload || null);
-      setSavedScore(d.data?.payload.aeoQualityScore ?? null);
+      setSavedScore(d.data?.payload?.aeoQualityScore ?? null);
       setSaved(true);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Kayıt başarısız");

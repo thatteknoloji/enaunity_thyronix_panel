@@ -27,16 +27,23 @@ function splitName(fullName: string) {
 
 async function esnekposRequest(path: string, body: Record<string, unknown>) {
   const config = await getEsnekposConfig();
-  const res = await fetch(`${config.apiUrl}${path}`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-  });
-  const text = await res.text();
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 25000);
   try {
-    return JSON.parse(text) as Record<string, unknown>;
-  } catch {
-    return { STATUS: "FAILED", RETURN_MESSAGE: text || "EsnekPOS yanıt hatası" };
+    const res = await fetch(`${config.apiUrl}${path}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+      signal: controller.signal,
+    });
+    const text = await res.text();
+    try {
+      return JSON.parse(text) as Record<string, unknown>;
+    } catch {
+      return { STATUS: "FAILED", RETURN_MESSAGE: text || "EsnekPOS yanıt hatası" };
+    }
+  } finally {
+    clearTimeout(timeout);
   }
 }
 
@@ -122,6 +129,13 @@ export function createEsnekposProvider(): PaymentProvider {
           message: "EsnekPOS ödeme sayfasına yönlendiriliyorsunuz.",
         };
       } catch (e) {
+        if (e instanceof DOMException && e.name === "AbortError") {
+          return {
+            success: false,
+            status: "FAILED",
+            message: "EsnekPOS yanıt vermedi. Lütfen tekrar deneyin.",
+          };
+        }
         return {
           success: false,
           status: "FAILED",

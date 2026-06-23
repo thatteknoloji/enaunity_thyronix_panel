@@ -5,14 +5,14 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Layers, ArrowRight, Store } from "lucide-react";
 import { MARKETPLACE_MODULES } from "@/lib/modules/marketplace";
+import { fetchPageFactoryJson } from "@/lib/page-factory/fetch-json";
 
 export default function DealerPageFactoryLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const [state, setState] = useState<"checking" | "allowed" | "denied">("checking");
 
   useEffect(() => {
-    fetch("/api/gateway/page-factory")
-      .then((r) => r.json())
+    fetchPageFactoryJson<{ step: string; redirectTo?: string }>("/api/gateway/page-factory")
       .then((d) => {
         if (d.success && d.data?.step === "ready") {
           setState("allowed");
