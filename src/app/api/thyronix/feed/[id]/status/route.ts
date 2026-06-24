@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { buildFeedOutputUrls, FEED_MAX_PRODUCTS_PER_FILE, planFeedChunks } from "@/lib/thyronix/feed-chunk";
-import { loadActiveSourceIds, loadMergedFeedProducts } from "@/lib/thyronix/feed-output-service";
+import { loadMergedFeedProducts } from "@/lib/thyronix/feed-output-service";
+import { resolveFeedSourceIds } from "@/lib/thyronix/source-feed-provision";
 
 export const dynamic = "force-dynamic";
 
@@ -11,7 +12,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
     const feed = await prisma.thyronixFeed.findUnique({ where: { id } });
     if (!feed) return NextResponse.json({ error: "Feed bulunamadı" }, { status: 404 });
 
-    const sourceIds = await loadActiveSourceIds({ dealerId: feed.dealerId });
+    const sourceIds = await resolveFeedSourceIds(feed);
     const merged = await loadMergedFeedProducts(feed, sourceIds);
     const plan = planFeedChunks(merged.length);
     const outputUrls = buildFeedOutputUrls(id, plan);

@@ -4,10 +4,10 @@ import {
   assertCanAccessFeed,
   requireThyronixDealerOrAdmin,
   thyronixErrorResponse,
-  withTenantFilter,
 } from "@/lib/thyronix/access";
 import { buildFeedOutputUrls, planFeedChunks } from "@/lib/thyronix/feed-chunk";
-import { loadActiveSourceIds, loadMergedFeedProducts } from "@/lib/thyronix/feed-output-service";
+import { loadMergedFeedProducts } from "@/lib/thyronix/feed-output-service";
+import { resolveFeedSourceIds } from "@/lib/thyronix/source-feed-provision";
 
 export async function POST(req: Request) {
   try {
@@ -21,11 +21,7 @@ export async function POST(req: Request) {
     if (!feed) return NextResponse.json({ success: false, error: "Feed bulunamadı" }, { status: 404 });
 
     const startTime = Date.now();
-    const sources = await prisma.thyronixSource.findMany({
-      where: withTenantFilter(user, { status: "active" }),
-      select: { id: true },
-    });
-    const sourceIds = sources.map((s) => s.id);
+    const sourceIds = await resolveFeedSourceIds(feed);
     const merged = await loadMergedFeedProducts(feed, sourceIds);
     const totalProducts = merged.length;
     const chunkPlan = planFeedChunks(totalProducts);

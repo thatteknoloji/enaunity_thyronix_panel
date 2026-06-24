@@ -2,11 +2,11 @@ import { prisma } from "@/lib/db";
 import * as XLSX from "xlsx";
 import {
   feedOutputHeaders,
-  loadActiveSourceIds,
   parsePartFromRequest,
   resolveFeedChunkSlice,
 } from "@/lib/thyronix/feed-output-service";
 import { applyFeedTransformSettings, loadFeedTransformSettings, type FeedProduct } from "@/lib/thyronix/feed-transform";
+import { resolveFeedSourceIds } from "@/lib/thyronix/source-feed-provision";
 
 export const dynamic = "force-dynamic";
 
@@ -18,7 +18,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
     const feed = await prisma.thyronixFeed.findUnique({ where: { id } });
     if (!feed) return new Response("Feed bulunamadı", { status: 404 });
 
-    const sourceIds = await loadActiveSourceIds({ dealerId: feed.dealerId });
+    const sourceIds = await resolveFeedSourceIds(feed);
     const { products, plan, partMeta } = await resolveFeedChunkSlice(feed, sourceIds, part);
     const transformSettings = await loadFeedTransformSettings(feed.dealerId);
     const transformedProducts = applyFeedTransformSettings(products as FeedProduct[], transformSettings);

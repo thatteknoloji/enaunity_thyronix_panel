@@ -28,6 +28,8 @@ type Feed = {
   productCount: number;
   lastPublished: string | null;
   schedule: number;
+  sourceId?: string | null;
+  source?: { name?: string | null; type?: string | null } | null;
 };
 
 export default function FeedCenterPage() {
@@ -45,6 +47,8 @@ export default function FeedCenterPage() {
     () => planFeedChunks(activeProducts),
     [activeProducts]
   );
+  const manualFeedCount = useMemo(() => feeds.filter((feed) => !feed.sourceId).length, [feeds]);
+  const sourceFeedCount = useMemo(() => feeds.filter((feed) => !!feed.sourceId).length, [feeds]);
 
   const load = useCallback(() => {
     setLoading(true);
@@ -117,7 +121,11 @@ export default function FeedCenterPage() {
           <h1 className="text-2xl font-bold text-nexa-text">Feed Merkezi</h1>
           <p className="text-sm text-nexa-text-secondary mt-1">
             Feedleri yönetin, yayınlayın ve doğrulayın
-            {plan && <span className="ml-2 text-nexa-primary">({feeds.length}/{plan.limits.maxFeeds} — {plan.key})</span>}
+            {plan && (
+              <span className="ml-2 text-nexa-primary">
+                (manuel {manualFeedCount}/{plan.limits.maxFeeds} · kaynak {sourceFeedCount} · {plan.key})
+              </span>
+            )}
           </p>
         </div>
         {activeTab === "feeds" && (
@@ -199,6 +207,7 @@ export default function FeedCenterPage() {
                 <thead>
                   <tr className="border-b border-nexa-border bg-nexa-bg/50 text-nexa-text-secondary text-left">
                     <th className="px-4 py-3">Feed</th>
+                    <th className="px-4 py-3">Kaynak</th>
                     <th className="px-4 py-3">Format</th>
                     <th className="px-4 py-3">Kanal</th>
                     <th className="px-4 py-3">Son Yayın</th>
@@ -220,6 +229,16 @@ export default function FeedCenterPage() {
                             <span className="ml-2 text-amber-400">· {feedParts.partCount} parça</span>
                           )}
                         </div>
+                      </td>
+                      <td className="px-4 py-3 text-nexa-text-secondary text-xs">
+                        {f.sourceId ? (
+                          <div className="flex flex-col">
+                            <span className="font-medium text-nexa-text">{f.source?.name || "Kaynak feedi"}</span>
+                            <span className="text-[11px] text-nexa-text-secondary">{f.source?.type || "source"} · bağlı</span>
+                          </div>
+                        ) : (
+                          <span className="text-[11px] text-nexa-text-secondary">Manuel feed</span>
+                        )}
                       </td>
                       <td className="px-4 py-3 text-nexa-text-secondary">{f.outputFormat}</td>
                       <td className="px-4 py-3 text-nexa-text-secondary">{f.channel}</td>

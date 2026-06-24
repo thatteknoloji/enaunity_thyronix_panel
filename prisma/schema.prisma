@@ -1435,6 +1435,7 @@ model ThyronixSource {
   updatedAt DateTime @updatedAt
 
   products  ThyronixProduct[]
+  feeds     ThyronixFeed[]
   @@index([status])
   @@index([name])
   @@index([dealerId])
@@ -1497,6 +1498,7 @@ model ThyronixFeed {
   channel       String
   status        String    @default("active")
   productCount  Int       @default(0)
+  sourceId      String?
   url           String?
   interval      Int       @default(60)
   outputFormat  String    @default("jetteknoloji")
@@ -1508,9 +1510,12 @@ model ThyronixFeed {
   ownerType     ThyronixOwnerType   @default(ADMIN)
   createdAt     DateTime  @default(now())
   updatedAt    DateTime @updatedAt
+  source        ThyronixSource? @relation(fields: [sourceId], references: [id], onDelete: SetNull)
   @@index([status])
   @@index([dealerId])
   @@index([tenantScope])
+  @@index([sourceId])
+  @@unique([sourceId])
 }
 
 model ThyronixRule {
@@ -3919,4 +3924,115 @@ model ProductUniverseBlueprintJob {
   @@index([projectId])
   @@index([status])
   @@index([createdAt])
+}
+
+// ─── Link Kurtarma Merkezi (Legacy Recovery) ───
+
+enum LegacyUrlClassification {
+  BLOG
+  PRODUCT
+  CATEGORY
+  LANDING
+  FAQ
+  GEO
+  UNKNOWN
+}
+
+enum LegacyUrlRecoveryStrategy {
+  CREATE_BLOG
+  CREATE_PAGE
+  REDIRECT_301
+  GONE_410
+  IGNORE
+}
+
+enum LegacyUrlStatus {
+  IMPORTED
+  ANALYZED
+  PLANNED
+  GENERATED
+  COMPLETED
+}
+
+model LegacyUrl {
+  id                 String                    @id @default(cuid())
+  projectId          String?
+  url                String
+  normalizedUrl      String
+  source             String                    @default("")
+  lastmod            DateTime?
+  status             LegacyUrlStatus           @default(IMPORTED)
+  classification     LegacyUrlClassification   @default(UNKNOWN)
+  recoveryStrategy   LegacyUrlRecoveryStrategy @default(IGNORE)
+  confidenceScore    Int                       @default(0)
+  suggestedTargetUrl String?
+  generatedBlogId    String?
+  generatedPageId    String?
+  notes              String?
+  createdAt          DateTime                  @default(now())
+  updatedAt          DateTime                  @updatedAt
+
+  @@unique([normalizedUrl, projectId])
+  @@index([status])
+  @@index([classification])
+  @@index([recoveryStrategy])
+  @@index([projectId])
+}
+
+model LegacyRedirectRule {
+  id          String   @id @default(cuid())
+  sourceUrl   String   @unique
+  targetUrl   String
+  statusCode  Int      @default(301)
+  enabled     Boolean  @default(true)
+  legacyUrlId String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([enabled])
+}
+
+model LegacyGoneRule {
+  id          String   @id @default(cuid())
+  url         String   @unique
+  reason      String   @default("")
+  enabled     Boolean  @default(true)
+  legacyUrlId String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([enabled])
+}
+
+// ─── İçerik Kalite Merkezi ───
+
+enum ContentQualityContentType {
+  BLOG
+  PAGE
+  PRODUCT
+  RECOVERY_PAGE
+}
+
+model ContentQualityAudit {
+  id                 String                    @id @default(cuid())
+  contentType        ContentQualityContentType
+  contentId          String
+  seoScore           Int                       @default(0)
+  geoScore           Int                       @default(0)
+  aeoScore           Int                       @default(0)
+  qualityScore       Int                       @default(0)
+  contentHealthScore Int                       @default(0)
+  internalLinkScore  Int                       @default(0)
+  schemaScore        Int                       @default(0)
+  metaScore          Int                       @default(0)
+  issuesJson         String                    @default("[]")
+  recommendationsJson String                   @default("[]")
+  auditedAt          DateTime                  @default(now())
+  createdAt          DateTime                  @default(now())
+  updatedAt          DateTime                  @updatedAt
+
+  @@unique([contentType, contentId])
+  @@index([contentType])
+  @@index([qualityScore])
+  @@index([auditedAt])
 }

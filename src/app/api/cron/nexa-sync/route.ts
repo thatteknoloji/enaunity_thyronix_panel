@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { mergeProducts } from "@/lib/thyronix/merge-engine";
-import type { MergeStrategy } from "@/lib/thyronix/merge-engine";
+import { ensureSourceFeedsForSources, resolveFeedSourceIds } from "@/lib/thyronix/source-feed-provision";
+import { loadMergedFeedProducts } from "@/lib/thyronix/feed-output-service";
 
 export const dynamic = "force-dynamic";
 
@@ -15,6 +15,22 @@ export async function GET(req: Request) {
     }
 
     const now = new Date();
+    const sources = await prisma.thyronixSource.findMany({
+      select: {
+        id: true,
+        name: true,
+        type: true,
+        inputFormat: true,
+        status: true,
+        productCount: true,
+        lastSync: true,
+        dealerId: true,
+        tenantScope: true,
+        ownerType: true,
+      },
+    });
+    await ensureSourceFeedsForSources(sources.map((source) => ({ ...source, lastSync: source.lastSync || null })));
+
     const feeds = await prisma.thyronixFeed.findMany({ where: { status: "active" } });
     const results: Array<{ feedId: string; products: number; duration: number; error?: string }> = [];
 
@@ -29,15 +45,9 @@ export async function GET(req: Request) {
 
       const start = Date.now();
       try {
-        const sources = await prisma.thyronixSource.findMany({ where: { status: "active" } });
-        let totalProducts = 0;
-
-        for (const source of sources) {
-          const products = await prisma.thyronixProduct.findMany({ where: { sourceId: source.id, status: "active" } });
-          const strategy = ((feed as any).mergeStrategy || "lowest_price") as MergeStrategy;
-          const merged = mergeProducts(products as any, strategy, strategy === "source_priority" ? sources.map(s => s.id) : []);
-          totalProducts += merged.length;
-        }
+        const sourceIds = await resolveFeedSourceIds(feed as any);
+        const merged = await loadMergedFeedProducts(feed as any, sourceIds);
+        const totalProducts = merged.length;
 
         await prisma.thyronixFeed.update({
           where: { id: feed.id },

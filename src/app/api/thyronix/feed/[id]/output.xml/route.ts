@@ -3,11 +3,11 @@ import { generateFeedXml } from "@/lib/thyronix/xml-generator";
 import { getTemplate } from "@/lib/thyronix/templates";
 import {
   feedOutputHeaders,
-  loadActiveSourceIds,
   parsePartFromRequest,
   resolveFeedChunkSlice,
 } from "@/lib/thyronix/feed-output-service";
 import { applyFeedTransformSettings, loadFeedTransformSettings, type FeedProduct } from "@/lib/thyronix/feed-transform";
+import { resolveFeedSourceIds } from "@/lib/thyronix/source-feed-provision";
 
 export const dynamic = "force-dynamic";
 
@@ -22,7 +22,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
     const template = getTemplate(feed.outputFormat || "jetteknoloji");
     if (!template) return new Response("Unknown template", { status: 400, headers: { "Content-Type": "text/plain" } });
 
-    const sourceIds = await loadActiveSourceIds({ dealerId: feed.dealerId });
+    const sourceIds = await resolveFeedSourceIds(feed);
     const { products, plan, partMeta } = await resolveFeedChunkSlice(feed, sourceIds, part);
     const transformSettings = await loadFeedTransformSettings(feed.dealerId);
     const transformedProducts = applyFeedTransformSettings(products as FeedProduct[], transformSettings);

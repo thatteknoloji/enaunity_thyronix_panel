@@ -156,11 +156,21 @@ export default function AdminThyronixPage() {
             <button type="button" onClick={() => refreshTab("feeds")} className="text-xs text-gray-500 hover:text-gray-700"><RefreshCw size={12} /></button>
           </div>
           <table className="w-full text-sm">
-            <thead className="bg-gray-50"><tr><th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Ad</th><th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Kanal</th><th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Durum</th><th className="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase">Ürün</th><th className="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase">Aralık</th><th className="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase">Son Yayın</th></tr></thead>
+            <thead className="bg-gray-50"><tr><th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Ad</th><th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Kaynak</th><th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Kanal</th><th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Durum</th><th className="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase">Ürün</th><th className="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase">Aralık</th><th className="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase">Son Yayın</th></tr></thead>
             <tbody className="divide-y divide-gray-100">
               {feeds.map((f: any) => (
                 <tr key={f.id} className="hover:bg-gray-50/50">
                   <td className="px-4 py-3 text-xs font-medium text-gray-900">{f.name}</td>
+                  <td className="px-4 py-3 text-xs text-gray-600">
+                    {f.sourceId ? (
+                      <div className="flex flex-col">
+                        <span className="font-medium text-gray-900">{f.source?.name || "Kaynak feedi"}</span>
+                        <span className="text-[11px] text-gray-500">{f.source?.type || "source"} · bağlı</span>
+                      </div>
+                    ) : (
+                      "Manuel feed"
+                    )}
+                  </td>
                   <td className="px-4 py-3 text-xs text-gray-600">{f.channel}</td>
                   <td className="px-4 py-3"><StatusBadge status={f.status} /></td>
                   <td className="px-4 py-3 text-right text-xs text-gray-600">{f.productCount || 0}</td>
