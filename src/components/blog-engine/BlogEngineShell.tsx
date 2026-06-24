@@ -17,6 +17,7 @@ import {
 import { BLOG_GEO_PROVINCES } from "@/lib/blog-engine/blog-types";
 import { fetchPageFactoryJson } from "@/lib/page-factory/fetch-json";
 import { getDefaultGeoCities } from "@/lib/geo/turkiye-geo-source";
+import { labelSourceType, MODULE_TITLES } from "@/lib/admin/ui-labels";
 
 type Tab = "dashboard" | "generate" | "published" | "drafts" | "archive";
 
@@ -47,12 +48,12 @@ type BlogPostItem = {
 };
 
 const SOURCE_OPTIONS = [
-  { value: "KEYWORD", label: "Keyword" },
-  { value: "KEYWORD_GROUP", label: "Keyword Group" },
-  { value: "PRODUCT", label: "Product" },
-  { value: "CATEGORY", label: "Category" },
-  { value: "GEO", label: "GEO" },
-  { value: "COMPETITOR_STRUCTURE", label: "Competitor Structure" },
+  { value: "KEYWORD", label: labelSourceType("KEYWORD") },
+  { value: "KEYWORD_GROUP", label: labelSourceType("KEYWORD_GROUP") },
+  { value: "PRODUCT", label: labelSourceType("PRODUCT") },
+  { value: "CATEGORY", label: labelSourceType("CATEGORY") },
+  { value: "GEO", label: labelSourceType("GEO") },
+  { value: "COMPETITOR_STRUCTURE", label: labelSourceType("COMPETITOR_STRUCTURE") },
 ];
 
 export function BlogEngineShell() {
@@ -211,11 +212,11 @@ export function BlogEngineShell() {
   };
 
   const tabs: Array<{ id: Tab; label: string; icon: typeof LayoutDashboard }> = [
-    { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
-    { id: "generate", label: "Generate", icon: Sparkles },
-    { id: "published", label: "Published", icon: Globe },
-    { id: "drafts", label: "Drafts", icon: FileText },
-    { id: "archive", label: "Archive", icon: Archive },
+    { id: "dashboard", label: "Genel Bakış", icon: LayoutDashboard },
+    { id: "generate", label: "Oluştur", icon: Sparkles },
+    { id: "published", label: "Yayında", icon: Globe },
+    { id: "drafts", label: "Taslaklar", icon: FileText },
+    { id: "archive", label: "Arşiv", icon: Archive },
   ];
 
   return (
@@ -226,9 +227,9 @@ export function BlogEngineShell() {
             <FileText size={20} />
           </div>
           <div>
-            <h1 className="text-xl font-bold text-gray-900">ENA Blog Engine V1</h1>
+            <h1 className="text-xl font-bold text-gray-900">{MODULE_TITLES.blogEngine}</h1>
             <p className="text-sm text-gray-600 mt-1">
-              Özgün SEO / GEO / AEO blog üretimi — Page Factory&apos;den bağımsız, entegre edilebilir.
+              Özgün SEO / GEO / AEO blog üretimi — Sayfa Merkezi ile entegre çalışır.
             </p>
           </div>
         </div>
@@ -259,10 +260,10 @@ export function BlogEngineShell() {
           <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
             {[
               { label: "Toplam", value: stats.total },
-              { label: "Published", value: stats.published },
-              { label: "Draft", value: stats.drafts },
-              { label: "Archive", value: stats.archived },
-              { label: "Review", value: stats.review },
+              { label: "Yayında", value: stats.published },
+              { label: "Taslak", value: stats.drafts },
+              { label: "Arşiv", value: stats.archived },
+              { label: "İncelemede", value: stats.review },
             ].map(({ label, value }) => (
               <div key={label} className="rounded-lg border border-gray-200 bg-white p-4">
                 <p className="text-xs text-gray-500 uppercase">{label}</p>
@@ -305,7 +306,7 @@ export function BlogEngineShell() {
               </select>
             </label>
             <label className="block text-xs text-gray-600">
-              Keyword
+              Anahtar Kelime
               <input
                 value={keyword}
                 onChange={(e) => setKeyword(e.target.value)}
@@ -428,7 +429,7 @@ export function BlogEngineShell() {
               className="inline-flex items-center gap-2 rounded-lg border border-emerald-300 bg-emerald-50 px-4 py-2 text-sm font-medium text-emerald-800"
             >
               {loading ? <Loader2 size={16} className="animate-spin" /> : <Eye size={16} />}
-              Preview
+              Önizle
             </button>
             <button
               type="button"
@@ -437,7 +438,7 @@ export function BlogEngineShell() {
               className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white"
             >
               {loading ? <Loader2 size={16} className="animate-spin" /> : <Play size={16} />}
-              Generate
+              Oluştur
             </button>
             <button
               type="button"
@@ -446,7 +447,7 @@ export function BlogEngineShell() {
               className="inline-flex items-center gap-2 rounded-lg bg-violet-600 px-4 py-2 text-sm font-medium text-white"
             >
               {loading ? <Loader2 size={16} className="animate-spin" /> : <Upload size={16} />}
-              Generate & Publish
+              Oluştur ve Yayınla
             </button>
           </div>
 

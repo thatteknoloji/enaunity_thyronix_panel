@@ -4,164 +4,14 @@ import { useEffect, useState, useMemo } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import {
-  LayoutDashboard, Package, ShoppingCart, Users, LogOut, ChevronLeft, ChevronRight, ChevronDown,
-  ClipboardList, Store, DollarSign, Eye, Banknote, RotateCcw, Warehouse, FileText, Tag, Layers, Building2, Percent, Key, MessageSquare, ScrollText, Layout, PackagePlus, Truck, Shield, BarChart3, ClipboardCheck, Barcode, Bell, Megaphone, Webhook, Clock, CalendarClock, Upload, Link2, Plug, Zap, Sparkles,   CreditCard, Globe, Smartphone, Handshake, Brain, Shirt, ShoppingBag, Map, Radio, Workflow
+  Package, LogOut, ChevronLeft, ChevronRight, ChevronDown,
 } from "lucide-react";
 import { getNavPermissionMap, hasAnyPermission } from "@/lib/permissions";
 import { getAdminLoginPath, isAdminLoginPath, isAdminRole, isSuperAdmin, toAdminUrl } from "@/lib/auth/admin-access";
 import { isLegacyMarketplaceEnabledClient } from "@/lib/marketplace-hub/config";
+import { buildAdminNavGroups, navItemPath, resolveActiveNavItemHref } from "@/lib/admin/admin-nav";
 import NotificationBell from "@/components/NotificationBell";
 import { useT } from "@/lib/i18n/provider";
-
-function buildNavGroups(t: (key: string) => string) {
-  const legacyMarketplaceEnabled = isLegacyMarketplaceEnabledClient();
-
-  return [
-    {
-      label: "Genel Bakış",
-      icon: LayoutDashboard,
-      items: [
-        { href: "/admin", label: t("admin.dashboard"), icon: LayoutDashboard },
-        { href: "/admin/reports", label: t("admin.reports"), icon: BarChart3 },
-      ],
-    },
-    {
-      label: "Site & İçerik",
-      icon: Layout,
-      items: [
-        { href: "/admin/pages", label: t("admin.pages"), icon: FileText },
-        { href: "/admin/site-settings", label: "Site Ayarları", icon: Globe },
-        { href: "/admin/footer-settings", label: "Footer Ayarları", icon: Layout },
-        { href: "/admin/footer-legal-strip", label: "Footer Hukuki Şerit", icon: Shield },
-        { href: "/admin/homepage", label: "Ana Sayfa", icon: LayoutDashboard },
-        { href: "/admin/ecosystem", label: "Ekosistem Vitrini", icon: Sparkles },
-        { href: "/admin/contracts", label: t("admin.contracts"), icon: ScrollText },
-        { href: "/admin/blog-engine", label: "Blog Engine", icon: FileText, badge: "Beta" },
-        { href: "/admin/geo-icerik-fabrikasi", label: "GEO İçerik Fabrikası", icon: Globe, badge: "Beta" },
-        { href: "/admin/icerik-planlama-merkezi", label: "İçerik Planlama Merkezi", icon: Map, badge: "Beta" },
-        { href: "/admin/yayin-merkezi", label: "Yayın Merkezi", icon: Radio, badge: "Beta" },
-        { href: "/admin/icerik-operasyon-merkezi", label: "İçerik Operasyon Merkezi", icon: Workflow, badge: "Beta" },
-        { href: "/admin/link-kurtarma-merkezi", label: "Link Kurtarma Merkezi", icon: Link2, badge: "Beta" },
-        { href: "/admin/icerik-kalite-merkezi", label: "İçerik Kalite Merkezi", icon: Shield, badge: "Beta" },
-        { href: "/admin/legal-audit", label: "Hukuki Denetim", icon: Shield },
-      ],
-    },
-    {
-      label: t("admin.product_management"),
-      icon: Package,
-      items: [
-        { href: "/admin/products", label: t("admin.products"), icon: Package },
-        { href: "/admin/categories", label: t("admin.categories"), icon: Layers },
-        { href: "/admin/price-lists", label: t("admin.price_lists"), icon: DollarSign },
-        { href: "/admin/tiered-prices", label: t("admin.tiered_prices"), icon: Layers },
-        { href: "/admin/dealer-prices", label: t("admin.dealer_prices"), icon: Percent },
-        { href: "/admin/catalog-restrictions", label: t("admin.catalog_restrictions"), icon: Eye },
-        { href: "/admin/reviews", label: t("admin.reviews"), icon: MessageSquare },
-        { href: "/admin/bundles", label: t("admin.bundles"), icon: PackagePlus },
-        { href: "/admin/product-library", label: "Hazır Ürün Deposu", icon: Package },
-      ],
-    },
-    {
-      label: t("admin.dealer_management"),
-      icon: Store,
-      items: [
-        { href: "/admin/dealers", label: t("admin.dealers"), icon: Store },
-        { href: "/admin/members", label: "Üyeler", icon: Users },
-        { href: "/admin/dealer-approvals", label: "Bayi Onayları", icon: ClipboardCheck },
-        { href: "/admin/dealer-groups", label: t("admin.dealer_groups"), icon: Building2 },
-        { href: "/admin/sales-rep", label: t("admin.sales_rep"), icon: Users },
-        { href: "/admin/dealer-assignments", label: t("admin.assignment"), icon: Building2 },
-        { href: "/admin/partner-applications", label: t("admin.applications"), icon: ClipboardList },
-        { href: "/admin/api-keys", label: t("admin.api_keys"), icon: Key },
-        { href: "/admin/dealer-documents", label: "Bayi Evrakları", icon: Upload },
-      ],
-    },
-    {
-      label: t("admin.orders_finance"),
-      icon: ShoppingCart,
-      items: [
-        { href: "/admin/orders", label: t("admin.orders"), icon: ShoppingCart },
-        { href: "/admin/backorders", label: t("admin.backorders"), icon: Clock },
-        { href: "/admin/quotes", label: t("admin.quotes"), icon: FileText },
-        { href: "/admin/coupons", label: t("admin.coupons"), icon: Tag },
-        { href: "/admin/campaigns", label: t("admin.campaigns"), icon: Tag },
-        { href: "/admin/returns", label: t("admin.returns"), icon: RotateCcw },
-        { href: "/admin/payments", label: t("admin.payments"), icon: Banknote },
-        { href: "/admin/payments/gateways", label: "Ödeme Altyapısı", icon: CreditCard },
-        { href: "/admin/payments/policies", label: "Ödeme Politikaları", icon: CreditCard },
-        { href: "/admin/payment-terms", label: t("admin.payment_terms"), icon: CalendarClock },
-        { href: "/admin/dealer-transactions", label: "Bakiye Hareketleri", icon: DollarSign },
-        { href: "/admin/invoices", label: "Faturalar", icon: FileText },
-      ],
-    },
-    {
-      label: t("admin.stock_warehouse"),
-      icon: Warehouse,
-      items: [
-        { href: "/admin/stock-movements", label: t("admin.stock_movements"), icon: RotateCcw },
-        { href: "/admin/stock-counts", label: t("admin.stock_counts"), icon: ClipboardCheck },
-        { href: "/admin/stock/scan", label: t("admin.stock_scan"), icon: Barcode },
-        { href: "/admin/warehouses", label: t("admin.warehouses"), icon: Warehouse },
-        { href: "/admin/shipping", label: t("admin.shipping"), icon: Truck },
-      ],
-    },
-    {
-      label: "Partner Ecosystem",
-      icon: Handshake,
-      items: [
-        { href: "/admin/partners", label: "Partnerler", icon: Handshake },
-        { href: "/admin/partners/applications", label: "Partner Başvuruları", icon: ClipboardList },
-        { href: "/admin/partners/network", label: "Referans Ağı", icon: Users },
-        { href: "/admin/partners/commissions", label: "Komisyonlar", icon: DollarSign },
-        { href: "/admin/partners/payouts", label: "Ödemeler", icon: Banknote },
-        { href: "/admin/pod", label: "POD Merkezi", icon: Shirt },
-        { href: "/admin/ai-partner", label: "AI Partner", icon: Brain, badge: "Yakında" },
-        { href: "/admin/page-factory", label: "AI Page Factory", icon: Layers },
-        { href: "/admin/page-factory/data", label: "Veri Evreni", icon: Layers },
-        { href: "/admin/page-factory/data/import", label: "GEO Import", icon: Layers },
-        { href: "/admin/product-universe", label: "Product Universe (Thyronix Köprüsü)", icon: Package },
-      ],
-    },
-    {
-      label: "Premium Modüller",
-      icon: Sparkles,
-      items: [
-        { href: "/admin/marketplace-hub", label: "Pazaryeri Merkezi", icon: Store },
-        { href: "/admin/thyronix", label: "THYRONIX", icon: Zap },
-        { href: "/admin/hive", label: "HIVE", icon: Sparkles },
-        { href: "/admin/linkslash", label: "LinkSlash", icon: Link2 },
-        { href: "/admin/linkslash/android", label: "LinkSlash Android", icon: Smartphone },
-        { href: "/admin/linkslash/activation", label: "LinkSlash Aktivasyon", icon: Key },
-        { href: "/admin/linkslash/analytics", label: "LinkSlash Analytics", icon: BarChart3 },
-        { href: "/admin/linkslash/devices", label: "LinkSlash Cihazlar", icon: Smartphone },
-        { href: "/admin/linkslash/release", label: "LinkSlash Release", icon: Link2 },
-        { href: "/admin/product-links", label: "Ürün Bağlantıları", icon: Link2 },
-        { href: "/admin/module-licenses", label: "Modül Lisansları", icon: Key },
-        { href: "/admin/payments/module-payments", label: "Modül Ödemeleri", icon: CreditCard },
-        { href: "/admin/integrations/thyronix", label: "THYRONIX Entegrasyon", icon: Plug },
-        { href: "/admin/integrations/hive", label: "HIVE Entegrasyon", icon: Plug },
-        { href: "/admin/customer-products", label: "Müşteri Ürünleri", icon: Package },
-        { href: "/admin/dropship", label: "AI Dropship Store", icon: ShoppingBag },
-        ...(legacyMarketplaceEnabled
-          ? [{ href: "/admin/marketplace", label: "Pazar Yeri (Legacy)", icon: Store }]
-          : []),
-      ],
-    },
-    {
-      label: "Sistem & Kullanıcılar",
-      icon: Shield,
-      items: [
-        { href: "/admin/users", label: t("admin.users"), icon: Users },
-        { href: "/admin/roles", label: t("admin.roles"), icon: Shield },
-        { href: "/admin/broadcasts", label: "Bildirim Yayınları", icon: Megaphone },
-        { href: "/admin/notifications", label: t("admin.notifications"), icon: Bell },
-        { href: "/admin/admin-logs", label: "Admin Logları", icon: ClipboardList },
-        { href: "/admin/approval-rules", label: t("admin.approval_rules"), icon: ClipboardCheck },
-        { href: "/admin/webhooks", label: t("admin.webhooks"), icon: Webhook },
-      ],
-    },
-  ];
-}
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -182,14 +32,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const isLoginPage = isAdminLoginPath(pathname);
 
   const navGroups = useMemo(() => {
-    const allNavGroups = buildNavGroups(t);
+    const allNavGroups = buildAdminNavGroups(t, isLegacyMarketplaceEnabledClient());
     const fullAccess = isSuperAdmin(userRole) || userPermissions.length === 0 || userPermissions.includes("*");
     return allNavGroups
       .map((group) => ({
         ...group,
         items: group.items.filter((item) => {
           if (fullAccess) return true;
-          const perms = permMap[item.href];
+          const perms = permMap[navItemPath(item.href)];
           if (!perms || perms.length === 0) return false;
           return hasAnyPermission(userPermissions, ...perms);
         }),
@@ -238,12 +88,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     const active = new Set(expandedGroups);
     let changed = false;
     navGroups.forEach((g) => {
-      const hasActive = g.items.some(
-        (item) => {
-          const url = toAdminUrl(item.href);
-          return pathname === url || (item.href !== "/admin" && pathname.startsWith(url));
-        }
-      );
+      const hasActive = !!resolveActiveNavItemHref(pathname, g.items, toAdminUrl);
       if (hasActive && !active.has(g.label)) { active.add(g.label); changed = true; }
     });
     if (changed) setExpandedGroups(active);
@@ -306,12 +151,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       <nav className="flex-1 overflow-y-auto p-2 space-y-0.5 scrollbar-none">
         {navGroups.map((group) => {
           const isExpanded = expandedGroups.has(group.label) || collapsed;
-          const hasActive = group.items.some(
-            (item) => {
-          const url = toAdminUrl(item.href);
-          return pathname === url || (item.href !== "/admin" && pathname.startsWith(url));
-        }
-          );
+          const activeHref = resolveActiveNavItemHref(pathname, group.items, toAdminUrl);
+          const hasActive = !!activeHref;
 
           return (
             <div key={group.label}>
@@ -336,10 +177,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               {(isExpanded || collapsed) && (
                 <div className={!collapsed ? "ml-2 pl-3 border-l border-white/5 space-y-0.5" : "space-y-0.5"}>
                   {group.items.map((item) => {
-                    const itemUrl = toAdminUrl(item.href);
-                    const isActive = pathname === itemUrl || (item.href !== "/admin" && pathname.startsWith(itemUrl));
+                    const itemUrl = item.href.includes("?")
+                      ? `${toAdminUrl(navItemPath(item.href))}?${item.href.split("?")[1]}`
+                      : toAdminUrl(item.href);
+                    const isActive = activeHref === item.href;
                     return (
-                      <Link key={item.href} href={itemUrl} onClick={() => setMobileOpen(false)}
+                      <Link key={`${group.label}-${item.label}`} href={itemUrl} onClick={() => setMobileOpen(false)}
                         className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200 cursor-pointer ${
                           isActive ? "bg-ena-primary/10 text-ena-primary border border-ena-primary/20" : "text-ena-light hover:text-white hover:bg-white/5"
                         }`}

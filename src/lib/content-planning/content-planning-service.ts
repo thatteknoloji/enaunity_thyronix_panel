@@ -256,7 +256,7 @@ export async function getPlanningDashboard(): Promise<PlanningDashboard> {
 export async function publishPlanToEngines(
   planId: string,
   engines: PlanEngine[],
-  opts?: { autoPublish?: boolean; dryRun?: boolean; projectId?: string | null }
+  opts?: { autoPublish?: boolean; dryRun?: boolean; projectId?: string | null; skipPublishingQueue?: boolean }
 ): Promise<PublishPlanResult> {
   const data = await getContentPlan(planId);
   if (!data) throw new Error("Plan bulunamadı");
@@ -406,12 +406,14 @@ export async function publishPlanToEngines(
       where: { id: planId },
       data: { status: "GENERATED" },
     });
-    try {
-      await queuePlan(planId, {
-        publishMode: opts?.autoPublish ? "AUTOMATIC" : "MANUAL",
-      });
-    } catch {
-      /* Kuyruk oluşturma başarısız olsa da plan yayını tamamlanmış sayılır */
+    if (!opts?.skipPublishingQueue) {
+      try {
+        await queuePlan(planId, {
+          publishMode: opts?.autoPublish ? "AUTOMATIC" : "MANUAL",
+        });
+      } catch {
+        /* Kuyruk oluşturma başarısız olsa da plan yayını tamamlanmış sayılır */
+      }
     }
   }
 

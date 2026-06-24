@@ -233,11 +233,9 @@ export function ProductUniverseShell({ mode }: Props) {
     <div className="space-y-6">
       <div>
         <p className="text-[10px] font-semibold uppercase tracking-wider text-violet-600">
-          AI Page Factory · Product Universe V2
+          Sayfa Merkezi · Ürün Evreni
         </p>
-        <h1 className="text-xl font-bold text-gray-900">
-          {mode === "admin" ? "Product Universe" : "Ürün Evreni"}
-        </h1>
+        <h1 className="text-xl font-bold text-gray-900">Ürün Evreni</h1>
         <p className="text-sm text-gray-500">
           Ürün import, entity çıkarımı, Content DNA ve PageFactory blueprint köprüsü
         </p>

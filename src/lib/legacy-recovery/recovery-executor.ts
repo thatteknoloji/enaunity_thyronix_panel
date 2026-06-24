@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/db";
 import { generateKeywordBlog } from "@/lib/blog-engine/blog-service";
+import { processLegacyRecoveryThroughPipeline } from "@/lib/content-operations/content-pipeline-service";
 import { generateContentDraftForBlueprint } from "@/lib/page-factory/content-draft/content-draft-service";
 import { normalizeLegacyUrl, extractKeywordFromPath, extractPathSlug } from "./url-normalizer";
 import type { LegacyBulkResult } from "./types";
@@ -106,7 +107,10 @@ async function createGoneRule(item: LegacyUrl): Promise<void> {
   });
 }
 
-export async function executeLegacyRecovery(item: LegacyUrl): Promise<LegacyUrl> {
+export async function executeLegacyRecovery(
+  item: LegacyUrl,
+  opts?: { skipPipeline?: boolean; autoPublish?: boolean }
+): Promise<LegacyUrl> {
   let generatedBlogId = item.generatedBlogId;
   let generatedPageId = item.generatedPageId;
   let status: LegacyUrl["status"] = "COMPLETED";
@@ -131,7 +135,7 @@ export async function executeLegacyRecovery(item: LegacyUrl): Promise<LegacyUrl>
       break;
   }
 
-  return prisma.legacyUrl.update({
+  const updated = await prisma.legacyUrl.update({
     where: { id: item.id },
     data: {
       status,
@@ -139,6 +143,18 @@ export async function executeLegacyRecovery(item: LegacyUrl): Promise<LegacyUrl>
       generatedPageId,
     },
   });
+
+  if (!opts?.skipPipeline && (generatedBlogId || generatedPageId)) {
+    try {
+      await processLegacyRecoveryThroughPipeline(updated.id, {
+        autoPublish: opts?.autoPublish !== false,
+      });
+    } catch {
+      /* Pipeline hatası kurtarma kaydını geri almaz */
+    }
+  }
+
+  return updated;
 }
 
 export async function generateLegacyRecoveries(opts?: {

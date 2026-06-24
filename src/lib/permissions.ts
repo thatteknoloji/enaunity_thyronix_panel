@@ -70,8 +70,8 @@ export const ALL_PERMISSIONS = {
   partners_manage: { label: "Partner Ecosystem Yönet", group: "Partner Ecosystem" },
   pod_view: { label: "POD Merkezi Görüntüle", group: "Partner Ecosystem" },
 
-  blog_view: { label: "Blog Engine Görüntüle", group: "İçerik Yönetimi" },
-  blog_manage: { label: "Blog Engine Yönet", group: "İçerik Yönetimi" },
+  blog_view: { label: "Blog Merkezi Görüntüle", group: "İçerik Yönetimi" },
+  blog_manage: { label: "Blog Merkezi Yönet", group: "İçerik Yönetimi" },
   content_quality_view: { label: "İçerik Kalite Merkezi", group: "İçerik Yönetimi" },
   content_planning_view: { label: "İçerik Planlama Merkezi", group: "İçerik Yönetimi" },
   publishing_view: { label: "Yayın Merkezi", group: "İçerik Yönetimi" },
@@ -203,5 +203,8 @@ export function getNavPermissionMap(): Record<string, PermissionKey[]> {
   "/admin/icerik-kalite-merkezi": ["content_quality_view", "settings_view"],
   "/admin/link-kurtarma-merkezi": ["legacy_recovery_view", "settings_view"],
   "/admin/yayin-merkezi": ["publishing_view", "settings_view"],
+  "/admin/icerik-operasyon-merkezi": ["content_planning_view", "publishing_view", "settings_view"],
+  "/admin/product-universe": ["partners_view", "partners_manage"],
+  "/admin/module-plans": ["admin_users"],
   };
 }

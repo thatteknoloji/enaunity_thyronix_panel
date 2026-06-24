@@ -147,7 +147,7 @@ export function GeoContentFactoryShell() {
   };
 
   const tabs: Array<{ id: Tab; label: string; icon: typeof LayoutDashboard }> = [
-    { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
+    { id: "dashboard", label: "Genel Bakış", icon: LayoutDashboard },
     { id: "create", label: "Oluştur", icon: PlusCircle },
     { id: "queue", label: "İş Kuyruğu", icon: Loader2 },
     { id: "completed", label: "Tamamlananlar", icon: CheckCircle2 },

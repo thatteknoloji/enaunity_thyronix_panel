@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import {
   AlertTriangle,
   Archive,
@@ -16,6 +17,7 @@ import {
   XCircle,
 } from "lucide-react";
 import { fetchPageFactoryJson } from "@/lib/page-factory/fetch-json";
+import { labelContentStatus, labelContentType } from "@/lib/admin/ui-labels";
 
 type Tab =
   | "dashboard"
@@ -62,7 +64,10 @@ type CalendarDay = {
   total: number;
 };
 
+const PUBLISHING_TABS: Tab[] = ["dashboard", "queue", "calendar", "published", "drafts", "archive", "batch"];
+
 export function PublishingCenterShell() {
+  const searchParams = useSearchParams();
   const [tab, setTab] = useState<Tab>("dashboard");
   const [stats, setStats] = useState<Stats | null>(null);
   const [items, setItems] = useState<QueueItem[]>([]);
@@ -102,6 +107,13 @@ export function PublishingCenterShell() {
   }, [loadStats]);
 
   useEffect(() => {
+    const q = searchParams.get("tab");
+    if (q && PUBLISHING_TABS.includes(q as Tab)) {
+      setTab(q as Tab);
+    }
+  }, [searchParams]);
+
+  useEffect(() => {
     if (tab === "dashboard") loadStats();
     else if (tab === "calendar") loadCalendar();
     else if (tab === "published") loadQueue("PUBLISHED");
@@ -135,7 +147,7 @@ export function PublishingCenterShell() {
   };
 
   const tabs: Array<{ id: Tab; label: string; icon: typeof LayoutDashboard }> = [
-    { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
+    { id: "dashboard", label: "Genel Bakış", icon: LayoutDashboard },
     { id: "queue", label: "Kuyruk", icon: Layers },
     { id: "calendar", label: "Takvim", icon: Calendar },
     { id: "published", label: "Yayınlananlar", icon: CheckCircle2 },
@@ -440,7 +452,7 @@ function QueueTable({
                 </td>
               )}
               <td className="p-3 font-medium max-w-xs truncate">{item.title}</td>
-              <td className="p-3">{item.contentType}</td>
+              <td className="p-3">{labelContentType(item.contentType)}</td>
               <td className="p-3">
                 <StatusBadge status={item.status} />
               </td>
@@ -513,7 +525,7 @@ function StatusBadge({ status }: { status: string }) {
   };
   return (
     <span className={`text-xs px-2 py-0.5 rounded-full ${colors[status] || colors.DRAFT}`}>
-      {status}
+      {labelContentStatus(status)}
     </span>
   );
 }

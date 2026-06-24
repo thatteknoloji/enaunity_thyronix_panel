@@ -22,6 +22,10 @@ import {
   Rocket,
   Radio,
   Orbit,
+  Map,
+  Shield,
+  Link2,
+  Layers,
 } from "lucide-react";
 import { toAdminUrl } from "@/lib/auth/admin-access";
 
@@ -340,14 +344,35 @@ export default function AdminDashboardOverview() {
     hasDivergence: boolean;
     divergenceCount: number;
   } | null>(null);
+  const [contentHub, setContentHub] = useState({
+    plans: 0,
+    blogs: 0,
+    pages: 0,
+    queuePending: 0,
+    published: 0,
+    qualityPending: 0,
+    recoveredLinks: 0,
+  });
 
   const loadData = useCallback(async (silent = false) => {
     if (!silent) setLoading(true);
     else setRefreshing(true);
     try {
-      const [dash, health] = await Promise.all([
+      const [dash, health, contentOps, blogStats, legacyStats, pageStats] = await Promise.all([
         fetch("/api/admin/dashboard/stats", { credentials: "include" }).then((r) => r.json()),
         fetch("/api/admin/accounting/health", { credentials: "include" })
+          .then((r) => r.json())
+          .catch(() => null),
+        fetch("/api/admin/content-operations/dashboard", { credentials: "include" })
+          .then((r) => r.json())
+          .catch(() => null),
+        fetch("/api/admin/blog-engine/stats", { credentials: "include" })
+          .then((r) => r.json())
+          .catch(() => null),
+        fetch("/api/admin/legacy-recovery/stats", { credentials: "include" })
+          .then((r) => r.json())
+          .catch(() => null),
+        fetch("/api/page-factory/published-pages?stats=true&limit=1", { credentials: "include" })
           .then((r) => r.json())
           .catch(() => null),
       ]);
@@ -380,6 +405,16 @@ export default function AdminDashboardOverview() {
           divergenceCount: health.data.divergenceCount,
         });
       }
+
+      setContentHub({
+        plans: contentOps?.data?.totalPlans ?? 0,
+        blogs: blogStats?.data?.total ?? contentOps?.data?.totalProductions ?? 0,
+        pages: pageStats?.data?.stats?.publishedInternal ?? pageStats?.data?.stats?.total ?? 0,
+        queuePending: contentOps?.data?.queuePending ?? 0,
+        published: contentOps?.data?.publishedTotal ?? 0,
+        qualityPending: contentOps?.data?.qualityPending ?? 0,
+        recoveredLinks: legacyStats?.data?.completed ?? legacyStats?.data?.generated ?? 0,
+      });
       setLastUpdated(new Date());
       setRefreshTick((t) => t + 1);
     } finally {
@@ -557,7 +592,7 @@ export default function AdminDashboardOverview() {
               <h1 className="text-3xl md:text-4xl font-black tracking-tight bg-gradient-to-r from-white via-cyan-100 to-violet-200 bg-clip-text text-transparent">
                 Genel Bakış
               </h1>
-              <p className="mt-1 text-xs text-cyan-200/50 uppercase tracking-widest">ENA Operations Dashboard</p>
+              <p className="mt-1 text-xs text-cyan-200/50 uppercase tracking-widest">ENA Yönetim Paneli</p>
 
               <div className="mt-4 flex flex-wrap items-end gap-4">
                 <div>
@@ -677,6 +712,53 @@ export default function AdminDashboardOverview() {
             />
           )}
         </AnimatePresence>
+      </motion.div>
+
+      {/* İçerik Merkezi özet kartları */}
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.1 }}
+        className="space-y-3"
+      >
+        <div className="flex items-center justify-between gap-3">
+          <h2 className="text-sm font-bold text-gray-900 uppercase tracking-wider">İçerik Merkezi</h2>
+          <Link
+            href={toAdminUrl("/admin/icerik-operasyon-merkezi")}
+            className="text-xs text-cyan-600 hover:underline flex items-center gap-1"
+          >
+            Operasyon Merkezi <ArrowUpRight size={12} />
+          </Link>
+        </div>
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-3">
+          {[
+            { label: "İçerik Planları", value: contentHub.plans, icon: Map, href: "/admin/icerik-planlama-merkezi", accent: "from-violet-500 to-purple-400" },
+            { label: "Bloglar", value: contentHub.blogs, icon: FileText, href: "/admin/blog-engine", accent: "from-emerald-500 to-teal-400" },
+            { label: "Sayfalar", value: contentHub.pages, icon: Layers, href: "/admin/page-factory", accent: "from-blue-500 to-cyan-400" },
+            { label: "Yayın Kuyruğu", value: contentHub.queuePending, icon: Radio, href: "/admin/yayin-merkezi", accent: "from-indigo-500 to-blue-400" },
+            { label: "Yayınlananlar", value: contentHub.published, icon: Rocket, href: "/admin/yayin-merkezi", accent: "from-emerald-600 to-green-400" },
+            { label: "Kalite Bekleyenler", value: contentHub.qualityPending, icon: Shield, href: "/admin/icerik-kalite-merkezi", accent: "from-amber-500 to-orange-400" },
+            { label: "Kurtarılan Linkler", value: contentHub.recoveredLinks, icon: Link2, href: "/admin/link-kurtarma-merkezi", accent: "from-rose-500 to-pink-400" },
+          ].map((card, i) => (
+            <Link key={card.label} href={toAdminUrl(card.href)}>
+              <motion.div
+                custom={i}
+                initial="hidden"
+                animate="visible"
+                variants={fadeUp}
+                whileHover={{ y: -4 }}
+                className="group relative rounded-xl border border-gray-200 bg-white p-4 shadow-sm hover:shadow-md transition-all overflow-hidden"
+              >
+                <div className={`absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r ${card.accent}`} />
+                <card.icon size={18} className="text-gray-500 group-hover:text-gray-800 mb-2" />
+                <p className="text-xl font-black text-gray-900 tabular-nums">
+                  <AnimatedNumber value={card.value} animateKey={refreshTick} />
+                </p>
+                <p className="text-[11px] text-gray-500 mt-1 leading-tight">{card.label}</p>
+              </motion.div>
+            </Link>
+          ))}
+        </div>
       </motion.div>
 
       {/* Pipeline — veri yokken sistem durumu */}

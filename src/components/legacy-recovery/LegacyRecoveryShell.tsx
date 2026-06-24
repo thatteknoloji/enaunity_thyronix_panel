@@ -156,12 +156,12 @@ export function LegacyRecoveryShell() {
   };
 
   const tabs: Array<{ id: Tab; label: string; icon: typeof LayoutDashboard }> = [
-    { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
+    { id: "dashboard", label: "Genel Bakış", icon: LayoutDashboard },
     { id: "import", label: "URL İçe Aktar", icon: Upload },
     { id: "analyze", label: "Analiz", icon: Sparkles },
     { id: "plan", label: "Kurtarma Planı", icon: FileInput },
     { id: "redirects", label: "301 Yönlendirmeler", icon: ArrowRightLeft },
-    { id: "gone", label: "410 Listesi", icon: Ban },
+    { id: "gone", label: "410 Kaldırılan Sayfalar", icon: Ban },
     { id: "generated", label: "Üretilen İçerikler", icon: Link2 },
   ];
 

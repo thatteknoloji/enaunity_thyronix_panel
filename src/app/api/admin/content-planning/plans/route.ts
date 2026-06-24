@@ -4,7 +4,6 @@ import {
   generateContentPlan,
   listContentPlans,
   previewContentPlan,
-  publishPlanToEngines,
 } from "@/lib/content-planning/content-planning-service";
 import type { PlanEngine } from "@/lib/content-planning/types";
 
@@ -43,8 +42,10 @@ export async function POST(req: Request) {
     }
 
     if (action === "publish") {
-      const result = await publishPlanToEngines(body.planId, body.engines as PlanEngine[], {
-        autoPublish: !!body.autoPublish,
+      const { runFullPipelineFromPlan } = await import("@/lib/content-operations/content-pipeline-service");
+      const result = await runFullPipelineFromPlan(body.planId, {
+        engines: body.engines as PlanEngine[],
+        autoPublish: body.autoPublish !== false,
         dryRun: !!body.dryRun,
         projectId: body.projectId,
       });

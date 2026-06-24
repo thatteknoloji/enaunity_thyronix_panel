@@ -26,6 +26,7 @@ import { PageFactoryProjectBar } from "@/components/page-factory/PageFactoryProj
 import { PageFactoryUniverseGeneratorTab } from "@/components/page-factory/PageFactoryUniverseGeneratorTab";
 import { ContentDraftPreviewModal } from "@/components/page-factory/ContentDraftPreviewModal";
 import { fetchPageFactoryJson } from "@/lib/page-factory/fetch-json";
+import { MODULE_TITLES } from "@/lib/admin/ui-labels";
 
 type Dashboard = {
   totalProjects: number;
@@ -227,10 +228,10 @@ export function PageFactoryShell({ showLicensePanel = false }: Props) {
   return (
     <div className="space-y-8">
       <div>
-        <p className="text-[10px] font-semibold uppercase tracking-wider text-violet-600 mb-1">ENA Engine</p>
-        <h1 className="text-2xl font-bold text-gray-900">AI Page Factory</h1>
+        <p className="text-[10px] font-semibold uppercase tracking-wider text-violet-600 mb-1">ENA İçerik Motoru</p>
+        <h1 className="text-2xl font-bold text-gray-900">{MODULE_TITLES.pageFactory}</h1>
         <p className="text-sm text-gray-500 mt-1">
-          Sayfa evreni planlama — topology, cluster, blueprint. Faz 1: içerik üretimi yok.
+          Sayfa evreni planlama — topoloji, küme ve blueprint yönetimi.
         </p>
       </div>
 
@@ -251,43 +252,43 @@ export function PageFactoryShell({ showLicensePanel = false }: Props) {
           onClick={() => setShellView("universe-generator")}
           className={`px-4 py-1.5 text-xs font-medium rounded-md ${shellView === "universe-generator" ? "bg-violet-600 text-white" : "text-gray-600 hover:bg-gray-100"}`}
         >
-          Universe Generator
+          Evren Üretici
         </button>
         <button
           type="button"
           onClick={() => setShellView("universe")}
           className={`px-4 py-1.5 text-xs font-medium rounded-md ${shellView === "universe" ? "bg-amber-600 text-white" : "text-gray-500 hover:bg-gray-100"}`}
-          title="Eski blueprint evren akışı — yeni projeler için Universe Generator kullanın"
+          title="Eski blueprint evren akışı — yeni projeler için Evren Üretici kullanın"
         >
-          Legacy Blueprint Evren
+          Eski Blueprint Evreni
         </button>
         <button
           type="button"
           onClick={() => setShellView("review")}
           className={`px-4 py-1.5 text-xs font-medium rounded-md ${shellView === "review" ? "bg-emerald-600 text-white" : "text-gray-600 hover:bg-gray-100"}`}
         >
-          Publish Gate / Review Queue
+          Yayın Kapısı / İnceleme Kuyruğu
         </button>
         <button
           type="button"
           onClick={() => setShellView("pipeline")}
           className={`px-4 py-1.5 text-xs font-medium rounded-md ${shellView === "pipeline" ? "bg-indigo-600 text-white" : "text-gray-600 hover:bg-gray-100"}`}
         >
-          Pipeline
+          Üretim Hattı
         </button>
         <button
           type="button"
           onClick={() => setShellView("published")}
           className={`px-4 py-1.5 text-xs font-medium rounded-md ${shellView === "published" ? "bg-emerald-600 text-white" : "text-gray-600 hover:bg-gray-100"}`}
         >
-          Published Pages
+          Yayınlanan Sayfalar
         </button>
         <button
           type="button"
           onClick={() => setShellView("sitemap")}
           className={`px-4 py-1.5 text-xs font-medium rounded-md ${shellView === "sitemap" ? "bg-blue-600 text-white" : "text-gray-600 hover:bg-gray-100"}`}
         >
-          Internal Sitemap
+          İç Site Haritası
         </button>
       </div>
 

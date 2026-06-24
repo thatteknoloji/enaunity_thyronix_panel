@@ -15,6 +15,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import { fetchPageFactoryJson } from "@/lib/page-factory/fetch-json";
+import { labelContentStatus } from "@/lib/admin/ui-labels";
 
 type Tab = "dashboard" | "create" | "plans" | "content-map" | "link-map";
 
@@ -224,7 +225,7 @@ export function ContentPlanningShell() {
   };
 
   const tabs: Array<{ id: Tab; label: string; icon: typeof LayoutDashboard }> = [
-    { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
+    { id: "dashboard", label: "Genel Bakış", icon: LayoutDashboard },
     { id: "create", label: "Plan Oluştur", icon: PlusCircle },
     { id: "plans", label: "Planlar", icon: MapIcon },
     { id: "content-map", label: "İçerik Haritası", icon: GitBranch },
@@ -478,7 +479,7 @@ function PlanTable({
             <tr key={p.id} className="border-t">
               <td className="p-3 font-medium">{p.name}</td>
               <td className="p-3">{p.primaryKeyword}</td>
-              <td className="p-3">{p.status}</td>
+              <td className="p-3">{labelContentStatus(p.status)}</td>
               <td className="p-3 text-right">{p.estimatedContentCount}</td>
               <td className="p-3 text-right">{p.estimatedGeoCount}</td>
               <td className="p-3 text-right">{p.estimatedFaqCount}</td>

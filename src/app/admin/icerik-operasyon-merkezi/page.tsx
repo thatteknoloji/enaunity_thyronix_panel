@@ -1,13 +1,13 @@
 "use client";
 
 import { Suspense } from "react";
-import { PublishingCenterShell } from "@/components/publishing-center/PublishingCenterShell";
+import { ContentOperationsShell } from "@/components/content-operations/ContentOperationsShell";
 
-export default function YayinMerkeziPage() {
+export default function IcerikOperasyonMerkeziPage() {
   return (
     <div className="p-6">
       <Suspense fallback={<div className="text-sm text-gray-500">Yükleniyor…</div>}>
-        <PublishingCenterShell />
+        <ContentOperationsShell />
       </Suspense>
     </div>
   );
