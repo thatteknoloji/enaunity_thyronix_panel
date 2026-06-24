@@ -69,6 +69,14 @@ export const ALL_PERMISSIONS = {
   partners_view: { label: "Partner Ecosystem Görüntüle", group: "Partner Ecosystem" },
   partners_manage: { label: "Partner Ecosystem Yönet", group: "Partner Ecosystem" },
   pod_view: { label: "POD Merkezi Görüntüle", group: "Partner Ecosystem" },
+
+  blog_view: { label: "Blog Engine Görüntüle", group: "İçerik Yönetimi" },
+  blog_manage: { label: "Blog Engine Yönet", group: "İçerik Yönetimi" },
+  content_quality_view: { label: "İçerik Kalite Merkezi", group: "İçerik Yönetimi" },
+  content_planning_view: { label: "İçerik Planlama Merkezi", group: "İçerik Yönetimi" },
+  publishing_view: { label: "Yayın Merkezi", group: "İçerik Yönetimi" },
+  legacy_recovery_view: { label: "Link Kurtarma Merkezi", group: "İçerik Yönetimi" },
+  geo_factory_view: { label: "GEO İçerik Fabrikası", group: "İçerik Yönetimi" },
 } as const;
 
 export type PermissionKey = keyof typeof ALL_PERMISSIONS;
@@ -104,6 +112,9 @@ export const DEFAULT_ADMIN_PERMISSIONS: PermissionKey[] = [
   "settings_view", "settings_manage", "pages_manage",
   "ecosystem_view", "ecosystem_manage",
   "partners_view", "partners_manage", "pod_view",
+  "blog_view", "blog_manage",
+  "content_quality_view", "content_planning_view",
+  "publishing_view", "legacy_recovery_view", "geo_factory_view",
 ];
 
 export function getNavPermissionMap(): Record<string, PermissionKey[]> {
@@ -186,5 +197,11 @@ export function getNavPermissionMap(): Record<string, PermissionKey[]> {
     "/admin/linkslash": ["partners_view", "partners_manage"],
     "/admin/linkslash/android": ["partners_view", "partners_manage"],
     "/admin/dropship": ["partners_view", "partners_manage"],
+  "/admin/blog-engine": ["blog_view", "blog_manage"],
+  "/admin/geo-icerik-fabrikasi": ["geo_factory_view", "settings_view"],
+  "/admin/icerik-planlama-merkezi": ["content_planning_view", "settings_view"],
+  "/admin/icerik-kalite-merkezi": ["content_quality_view", "settings_view"],
+  "/admin/link-kurtarma-merkezi": ["legacy_recovery_view", "settings_view"],
+  "/admin/yayin-merkezi": ["publishing_view", "settings_view"],
   };
 }
