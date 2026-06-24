@@ -7,6 +7,10 @@ import {
   thyronixErrorResponse,
 } from "@/lib/thyronix/access";
 import {
+  getWorkspaceSettingsByDealerId,
+  updateWorkspaceSettingsByDealerId,
+} from "@/lib/thyronix/workspace";
+import {
   BEZOS_BAYI_MAPPING_DOC,
   BEZOS_BAYI_XML,
   buildBezosSourcePayload,
@@ -18,6 +22,11 @@ import {
 import { getTemplate } from "@/lib/thyronix/templates";
 import { parseXmlToProducts } from "@/lib/thyronix/xml-parser";
 import { fetchAndParseXmlFeeds, resolveSourceFeedUrls } from "@/lib/thyronix/feed-fetch";
+import {
+  applyFeedTransformSettings,
+  normalizeFeedTransformSettings,
+  type FeedProduct,
+} from "@/lib/thyronix/feed-transform";
 
 const CONNECTOR_SLUG = "bezos-bayi-xml";
 
@@ -161,6 +170,7 @@ export async function GET() {
           : null,
         samplePreview: parseSamplePreview(),
         dealerId: targetDealer.id,
+        transformSettings: (await getWorkspaceSettingsByDealerId(targetDealer.id)).automation.feedTransform,
       },
     });
   } catch (e) {
@@ -187,12 +197,15 @@ export async function POST(req: Request) {
       const template = getTemplate("bezos");
       if (!template) return NextResponse.json({ success: false, error: "Bezos şablonu bulunamadı" }, { status: 500 });
       const { products, feedStats } = await fetchAndParseXmlFeeds(urls, template, BEZOS_BAYI_XML.fieldMapping);
+      const workspace = await getWorkspaceSettingsByDealerId(targetDealer.id);
+      const transformSettings = normalizeFeedTransformSettings(body.feedTransform || workspace.automation.feedTransform);
+      const transformed = applyFeedTransformSettings(products as FeedProduct[], transformSettings);
       return NextResponse.json({
         success: true,
         data: {
-          total: products.length,
+          total: transformed.length,
           feeds: feedStats,
-          preview: products.slice(0, 5).map((p) => ({
+          preview: transformed.slice(0, 5).map((p) => ({
             name: p.name,
             barcode: p.barcode,
             stockCode: p.stockCode,
@@ -201,6 +214,18 @@ export async function POST(req: Request) {
           })),
         },
       });
+    }
+
+    if (action === "save-settings") {
+      const workspace = await getWorkspaceSettingsByDealerId(targetDealer.id);
+      const transformSettings = normalizeFeedTransformSettings(body.feedTransform || {});
+      await updateWorkspaceSettingsByDealerId(targetDealer.id, {
+        automation: {
+          ...workspace.automation,
+          feedTransform: transformSettings,
+        },
+      });
+      return NextResponse.json({ success: true, data: { feedTransform: transformSettings } });
     }
 
     const payload = buildBezosSourcePayload(body.dealerLabel || targetDealer.name || user.name || undefined);

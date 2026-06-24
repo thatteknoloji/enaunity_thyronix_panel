@@ -7,6 +7,7 @@ import {
   parsePartFromRequest,
   resolveFeedChunkSlice,
 } from "@/lib/thyronix/feed-output-service";
+import { applyFeedTransformSettings, loadFeedTransformSettings, type FeedProduct } from "@/lib/thyronix/feed-transform";
 
 export const dynamic = "force-dynamic";
 
@@ -23,10 +24,12 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
 
     const sourceIds = await loadActiveSourceIds({ dealerId: feed.dealerId });
     const { products, plan, partMeta } = await resolveFeedChunkSlice(feed, sourceIds, part);
+    const transformSettings = await loadFeedTransformSettings(feed.dealerId);
+    const transformedProducts = applyFeedTransformSettings(products as FeedProduct[], transformSettings);
 
-    const productsWithVariants = products.map((p) => ({
+    const productsWithVariants = transformedProducts.map((p) => ({
       ...p,
-      variants: [] as never[],
+      variants: [] as Array<Record<string, unknown>>,
     }));
 
     const xml = generateFeedXml(productsWithVariants as never, template);

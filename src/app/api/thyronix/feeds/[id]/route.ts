@@ -5,6 +5,13 @@ import {
   requireThyronixDealerOrAdmin,
   thyronixErrorResponse,
 } from "@/lib/thyronix/access";
+import { normalizeTemplateId } from "@/lib/thyronix/templates";
+import { FEED_REFRESH_INTERVALS } from "@/lib/thyronix/commercial";
+
+function normalizeSchedule(value: unknown): 4 | 6 | 12 | 24 {
+  const n = Number(value);
+  return (FEED_REFRESH_INTERVALS.includes(n as 4 | 6 | 12 | 24) ? n : 24) as 4 | 6 | 12 | 24;
+}
 
 export async function PUT(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -19,9 +26,9 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
         channel: body.channel,
         url: body.url,
         interval: body.interval,
-        outputFormat: body.outputFormat,
+        outputFormat: normalizeTemplateId(body.outputFormat || "jetteknoloji"),
         mergeStrategy: body.mergeStrategy,
-        schedule: body.schedule,
+        schedule: normalizeSchedule(body.schedule),
         status: body.status,
       },
     });

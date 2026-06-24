@@ -218,7 +218,7 @@ export async function POST() {
       data: {
         name: "Demo Ürün Feed'i",
         channel: "Genel",
-        outputFormat: "xml",
+        outputFormat: "custom_xml",
         status: "active",
         productCount: 100,
         lastPublished: new Date(),

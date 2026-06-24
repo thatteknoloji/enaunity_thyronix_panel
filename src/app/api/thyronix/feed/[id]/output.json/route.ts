@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { buildFeedOutputUrls, planFeedChunks, parseFeedPartParam } from "@/lib/thyronix/feed-chunk";
 import { loadActiveSourceIds, loadMergedFeedProducts } from "@/lib/thyronix/feed-output-service";
+import { applyFeedTransformSettings, loadFeedTransformSettings, type FeedProduct } from "@/lib/thyronix/feed-transform";
 
 export const dynamic = "force-dynamic";
 
@@ -15,10 +16,12 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
 
     const sourceIds = await loadActiveSourceIds({ dealerId: feed.dealerId });
     const merged = await loadMergedFeedProducts(feed, sourceIds);
-    const plan = planFeedChunks(merged.length);
+    const transformSettings = await loadFeedTransformSettings(feed.dealerId);
+    const transformed = applyFeedTransformSettings(merged as FeedProduct[], transformSettings);
+    const plan = planFeedChunks(transformed.length);
     const partIndex = Math.min(Math.max(part, 1), Math.max(plan.partCount, 1)) - 1;
     const chunk = plan.parts[partIndex] || plan.parts[0];
-    const slice = chunk ? merged.slice(chunk.offset, chunk.offset + chunk.limit) : [];
+    const slice = chunk ? transformed.slice(chunk.offset, chunk.offset + chunk.limit) : [];
 
     return NextResponse.json({
       feedId: id,

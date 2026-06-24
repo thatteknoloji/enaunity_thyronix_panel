@@ -4,9 +4,10 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import {
   ArrowLeft, Save, RefreshCw, Play, CheckCircle2, AlertCircle,
-  Link2, Table2, ExternalLink,
+  Link2, Table2, ExternalLink, Settings2,
 } from "lucide-react";
 import toast from "react-hot-toast";
+import { DEFAULT_FEED_TRANSFORM, type ThyronixFeedTransformSettings } from "@/lib/thyronix/commercial";
 
 type MappingRow = {
   xmlField: string;
@@ -38,6 +39,7 @@ export default function BezosBayiConnectorPage() {
   const [feedUrls, setFeedUrls] = useState<string[]>([]);
   const [savedSource, setSavedSource] = useState<SavedSource | null>(null);
   const [samplePreview, setSamplePreview] = useState<Record<string, unknown>[]>([]);
+  const [transformSettings, setTransformSettings] = useState<ThyronixFeedTransformSettings>({ ...DEFAULT_FEED_TRANSFORM });
   const [liveTest, setLiveTest] = useState<{ total: number; feeds: { url: string; count: number; error?: string }[] } | null>(null);
 
   const load = async () => {
@@ -54,6 +56,7 @@ export default function BezosBayiConnectorPage() {
       setFeedUrls(urls);
       setSavedSource(d.data.savedSource);
       setSamplePreview(d.data.samplePreview || []);
+      if (d.data.transformSettings) setTransformSettings({ ...DEFAULT_FEED_TRANSFORM, ...d.data.transformSettings });
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Bağlantı hatası");
     } finally {
@@ -82,6 +85,26 @@ export default function BezosBayiConnectorPage() {
     }
   };
 
+  const handleSaveSettings = async () => {
+    setSaving(true);
+    try {
+      const res = await fetch("/api/thyronix/connectors/bezos-bayi", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "save-settings", feedTransform: transformSettings }),
+      });
+      const d = await res.json();
+      if (!d.success) throw new Error(d.error || "Ayar kaydı başarısız");
+      if (d.data?.feedTransform) setTransformSettings({ ...DEFAULT_FEED_TRANSFORM, ...d.data.feedTransform });
+      toast.success("Yayın kuralları kaydedildi");
+      await load();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Ayar kaydı başarısız");
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const handleLiveTest = async () => {
     setTesting(true);
     setLiveTest(null);
@@ -89,7 +112,7 @@ export default function BezosBayiConnectorPage() {
       const res = await fetch("/api/thyronix/connectors/bezos-bayi", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "test-live", feedUrls }),
+        body: JSON.stringify({ action: "test-live", feedUrls, feedTransform: transformSettings }),
       });
       const d = await res.json();
       if (!d.success) throw new Error(d.error || "Test başarısız");
@@ -201,6 +224,107 @@ export default function BezosBayiConnectorPage() {
           ) : (
             <p className="text-xs text-nexa-text-secondary">Henüz kaydedilmedi. &quot;Eşleştirmeyi Kaydet&quot; ile Thyronix kaynağı oluşturulur.</p>
           )}
+        </div>
+      </div>
+
+      <div className="rounded-xl border border-nexa-border bg-nexa-card p-4 space-y-4">
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2 text-sm font-semibold text-nexa-text">
+            <Settings2 size={16} className="text-nexa-primary" /> Yayın Kuralları
+          </div>
+          <p className="text-[11px] text-nexa-text-secondary">Bu bölüm yalnızca yetkili bayi hesabı için geçerlidir.</p>
+        </div>
+        <label className="flex items-center gap-2 text-sm text-nexa-text">
+          <input
+            type="checkbox"
+            checked={transformSettings.enabled}
+            onChange={(e) => setTransformSettings({ ...transformSettings, enabled: e.target.checked })}
+          />
+          XML çıktısında marka / başlık / açıklama dönüşümünü etkinleştir
+        </label>
+        <div className="grid gap-3 md:grid-cols-2">
+          <label className="block text-xs text-nexa-text-secondary">
+            Hedef marka
+            <input
+              className="mt-1 w-full rounded-lg border border-nexa-border bg-nexa-bg px-3 py-2 text-sm text-nexa-text"
+              value={transformSettings.targetBrand}
+              onChange={(e) => setTransformSettings({ ...transformSettings, targetBrand: e.target.value })}
+              placeholder="Esra'nın Dünyası"
+            />
+          </label>
+          <label className="block text-xs text-nexa-text-secondary">
+            Başlık üst limiti
+            <input
+              type="number"
+              min={40}
+              max={200}
+              className="mt-1 w-full rounded-lg border border-nexa-border bg-nexa-bg px-3 py-2 text-sm text-nexa-text"
+              value={transformSettings.maxTitleLength}
+              onChange={(e) => setTransformSettings({ ...transformSettings, maxTitleLength: Number(e.target.value) || 120 })}
+            />
+          </label>
+          <label className="block text-xs text-nexa-text-secondary md:col-span-2">
+            Kaynak marka adları
+            <textarea
+              className="mt-1 min-h-[88px] w-full rounded-lg border border-nexa-border bg-nexa-bg px-3 py-2 text-sm text-nexa-text"
+              value={transformSettings.sourceBrandAliases.join("\n")}
+              onChange={(e) =>
+                setTransformSettings({
+                  ...transformSettings,
+                  sourceBrandAliases: e.target.value.split(/[\n,;|]+/g).map((item) => item.trim()).filter(Boolean),
+                })
+              }
+              placeholder={"BEZOS HOME\nBEZOS\nBayi Markası"}
+            />
+          </label>
+          <label className="block text-xs text-nexa-text-secondary md:col-span-2">
+            Yasaklı kelimeler
+            <textarea
+              className="mt-1 min-h-[88px] w-full rounded-lg border border-nexa-border bg-nexa-bg px-3 py-2 text-sm text-nexa-text"
+              value={transformSettings.bannedWords.join("\n")}
+              onChange={(e) =>
+                setTransformSettings({
+                  ...transformSettings,
+                  bannedWords: e.target.value.split(/[\n,;|]+/g).map((item) => item.trim()).filter(Boolean),
+                })
+              }
+              placeholder={"çakma\ntaklit\nreplika"}
+            />
+          </label>
+          <label className="block text-xs text-nexa-text-secondary">
+            Başlık öneki
+            <input
+              className="mt-1 w-full rounded-lg border border-nexa-border bg-nexa-bg px-3 py-2 text-sm text-nexa-text"
+              value={transformSettings.titlePrefix}
+              onChange={(e) => setTransformSettings({ ...transformSettings, titlePrefix: e.target.value })}
+              placeholder="Örn: Premium"
+            />
+          </label>
+          <label className="block text-xs text-nexa-text-secondary">
+            Başlık son eki
+            <input
+              className="mt-1 w-full rounded-lg border border-nexa-border bg-nexa-bg px-3 py-2 text-sm text-nexa-text"
+              value={transformSettings.titleSuffix}
+              onChange={(e) => setTransformSettings({ ...transformSettings, titleSuffix: e.target.value })}
+              placeholder="Örn: Kampanya"
+            />
+          </label>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <button
+            onClick={handleSaveSettings}
+            disabled={saving}
+            className="inline-flex items-center gap-1.5 rounded-lg border border-nexa-border px-3 py-2 text-xs font-medium text-nexa-text hover:bg-nexa-hover disabled:opacity-50"
+          >
+            <Save size={14} /> {saving ? "Kaydediliyor…" : "Kuralları Kaydet"}
+          </button>
+          <button
+            onClick={handleLiveTest}
+            disabled={testing}
+            className="inline-flex items-center gap-1.5 rounded-lg border border-nexa-border px-3 py-2 text-xs font-medium text-nexa-text hover:bg-nexa-hover disabled:opacity-50"
+          >
+            <Play size={14} /> {testing ? "Test…" : "Kurallarla Canlı Test"}
+          </button>
         </div>
       </div>
 

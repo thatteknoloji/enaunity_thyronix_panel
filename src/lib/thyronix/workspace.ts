@@ -24,6 +24,26 @@ export async function getThyronixPlanKey(dealerId: string | null): Promise<strin
 
 export async function getWorkspaceSettings(user: User) {
   const dealerId = await resolveDealerId(user);
+  return getWorkspaceSettingsByDealerId(dealerId);
+}
+
+export async function updateWorkspaceSettings(
+  user: User,
+  patch: Partial<{
+    onboardingCompleted: boolean;
+    onboardingStep: number;
+    onboarding: Record<string, unknown>;
+    automation: ThyronixAutomationSettings;
+    team: ThyronixTeamMember[];
+    checklist: Record<string, unknown>;
+  }>
+) {
+  const dealerId = await resolveDealerId(user);
+  if (!dealerId) throw new Error("Forbidden");
+  return updateWorkspaceSettingsByDealerId(dealerId, patch);
+}
+
+export async function getWorkspaceSettingsByDealerId(dealerId: string | null) {
   if (!dealerId) {
     return {
       dealerId: null,
@@ -57,8 +77,8 @@ export async function getWorkspaceSettings(user: User) {
   };
 }
 
-export async function updateWorkspaceSettings(
-  user: User,
+export async function updateWorkspaceSettingsByDealerId(
+  dealerId: string | null,
   patch: Partial<{
     onboardingCompleted: boolean;
     onboardingStep: number;
@@ -68,7 +88,6 @@ export async function updateWorkspaceSettings(
     checklist: Record<string, unknown>;
   }>
 ) {
-  const dealerId = await resolveDealerId(user);
   if (!dealerId) throw new Error("Forbidden");
 
   const existing = await prisma.thyronixWorkspaceSettings.findUnique({ where: { dealerId } });

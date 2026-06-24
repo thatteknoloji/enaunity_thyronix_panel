@@ -27,6 +27,7 @@ type Feed = {
   outputFormat: string;
   productCount: number;
   lastPublished: string | null;
+  schedule: number;
 };
 
 export default function FeedCenterPage() {
@@ -35,9 +36,10 @@ export default function FeedCenterPage() {
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState<Feed | null>(null);
-  const [form, setForm] = useState({ name: "", channel: "trendyol", outputFormat: "jetteknoloji" });
+  const [form, setForm] = useState({ name: "", channel: "trendyol", outputFormat: "jetteknoloji", schedule: 24 });
   const [plan, setPlan] = useState<{ key: string; limits: { maxFeeds: number } } | null>(null);
   const [activeProducts, setActiveProducts] = useState(0);
+  const [defaultSchedule, setDefaultSchedule] = useState(24);
 
   const catalogChunkPlan = useMemo(
     () => planFeedChunks(activeProducts),
@@ -53,7 +55,10 @@ export default function FeedCenterPage() {
     ])
       .then(([fd, ws, rep]) => {
         if (fd.success) setFeeds(fd.data || []);
-        if (ws.success) setPlan({ key: ws.data.planKey, limits: ws.data.limits });
+        if (ws.success) {
+          setPlan({ key: ws.data.planKey, limits: ws.data.limits });
+          setDefaultSchedule(ws.data.automation?.feedIntervalHours || 24);
+        }
         if (rep.success) setActiveProducts(rep.data?.activeProducts || rep.data?.totalProducts || 0);
       })
       .finally(() => setLoading(false));
@@ -74,7 +79,7 @@ export default function FeedCenterPage() {
       toast.success(editing ? "Feed güncellendi" : "Feed oluşturuldu");
       setShowForm(false);
       setEditing(null);
-      setForm({ name: "", channel: "trendyol", outputFormat: "jetteknoloji" });
+      setForm({ name: "", channel: "trendyol", outputFormat: "jetteknoloji", schedule: defaultSchedule });
       load();
     } else toast.error(d.error || "Hata");
   };
@@ -117,7 +122,7 @@ export default function FeedCenterPage() {
         </div>
         {activeTab === "feeds" && (
           <button
-            onClick={() => { setEditing(null); setShowForm(true); }}
+            onClick={() => { setEditing(null); setForm({ name: "", channel: "trendyol", outputFormat: "jetteknoloji", schedule: defaultSchedule }); setShowForm(true); }}
             className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-nexa-primary text-white text-sm font-semibold"
           >
             <Plus size={16} /> Yeni Feed
@@ -166,6 +171,12 @@ export default function FeedCenterPage() {
           <select className="w-full rounded-lg border border-nexa-border bg-nexa-bg px-3 py-2 text-sm" value={form.outputFormat} onChange={(e) => setForm({ ...form, outputFormat: e.target.value })}>
             {FORMATS.map((f) => <option key={f} value={f}>{f}</option>)}
           </select>
+          <select className="w-full rounded-lg border border-nexa-border bg-nexa-bg px-3 py-2 text-sm" value={form.schedule} onChange={(e) => setForm({ ...form, schedule: Number(e.target.value) as 4 | 6 | 12 | 24 })}>
+            <option value={4}>4 saat</option>
+            <option value={6}>6 saat</option>
+            <option value={12}>12 saat</option>
+            <option value={24}>24 saat</option>
+          </select>
           <button onClick={saveFeed} className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-nexa-primary text-white text-sm font-semibold">
             <Save size={14} /> Kaydet
           </button>
@@ -192,6 +203,7 @@ export default function FeedCenterPage() {
                     <th className="px-4 py-3">Kanal</th>
                     <th className="px-4 py-3">Son Yayın</th>
                     <th className="px-4 py-3">Durum</th>
+                    <th className="px-4 py-3">Aralık</th>
                     <th className="px-4 py-3 text-right">İşlem</th>
                   </tr>
                 </thead>
@@ -213,6 +225,7 @@ export default function FeedCenterPage() {
                       <td className="px-4 py-3 text-nexa-text-secondary">{f.channel}</td>
                       <td className="px-4 py-3 text-nexa-text-secondary text-xs">{f.lastPublished ? new Date(f.lastPublished).toLocaleString("tr-TR") : "—"}</td>
                       <td className="px-4 py-3"><span className={`text-xs ${f.status === "active" ? "text-nexa-success" : "text-nexa-warning"}`}>{f.status}</span></td>
+                      <td className="px-4 py-3 text-nexa-text-secondary text-xs">{f.schedule || 24} saat</td>
                       <td className="px-4 py-3">
                         <div className="flex justify-end gap-1 flex-wrap">
                           <button onClick={() => publishFeed(f.id)} className="p-2 rounded-lg hover:bg-nexa-primary/10 text-nexa-primary" title="Yayınla"><Play size={14} /></button>
@@ -234,7 +247,7 @@ export default function FeedCenterPage() {
                           {feedParts.partCount > 3 && (
                             <a href={`/api/thyronix/feed/${f.id}/status`} target="_blank" className="px-2 py-1 text-[10px] text-nexa-primary">+{feedParts.partCount - 3}</a>
                           )}
-                          <button onClick={() => { setEditing(f); setForm({ name: f.name, channel: f.channel, outputFormat: f.outputFormat }); setShowForm(true); }} className="p-2 rounded-lg hover:bg-nexa-hover text-nexa-text-secondary"><Copy size={14} /></button>
+                          <button onClick={() => { setEditing(f); setForm({ name: f.name, channel: f.channel, outputFormat: f.outputFormat, schedule: f.schedule || 24 }); setShowForm(true); }} className="p-2 rounded-lg hover:bg-nexa-hover text-nexa-text-secondary"><Copy size={14} /></button>
                           <button onClick={() => deleteFeed(f.id)} className="p-2 rounded-lg hover:bg-nexa-danger/10 text-nexa-danger"><Trash2 size={14} /></button>
                         </div>
                       </td>

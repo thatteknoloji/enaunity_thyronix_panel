@@ -41,6 +41,14 @@ export interface FeedTemplate {
 }
 
 const ENCODING = '<?xml version="1.0" encoding="UTF-8"?>';
+const TEMPLATE_ALIASES: Record<string, string> = {
+  xml: "custom_xml",
+};
+
+export function normalizeTemplateId(id: string): string {
+  const key = String(id || "").trim().toLowerCase();
+  return TEMPLATE_ALIASES[key] || key;
+}
 
 export const ALL_TEMPLATES: FeedTemplate[] = [
   // ─────────────── ENTEGRASYON FİRMALARI ───────────────
@@ -337,7 +345,7 @@ export const ALL_TEMPLATES: FeedTemplate[] = [
 ];
 
 export function getTemplate(id: string): FeedTemplate | undefined {
-  return ALL_TEMPLATES.find(t => t.id === id);
+  return ALL_TEMPLATES.find(t => t.id === normalizeTemplateId(id));
 }
 
 export function getTemplatesByGroup(): Record<string, FeedTemplate[]> {

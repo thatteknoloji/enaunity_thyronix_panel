@@ -102,6 +102,20 @@
 | P9.6 | Audit log monitoring/alerting | `logAdminAction()` hataları sessizce yutuyor. Console + monitoring |
 | P9.7 | `@updatedAt` ekle | Birçok modelde otomatik timestamp yok, audit zorlaşıyor |
 
+## Phase 10 — CRM+ & WhatsApp
+
+| # | Task | Detay |
+|---|---|---|
+| P10.1 | Firma / hesap kartı katmanı | Mevcut `Dealer` ve `User` alanlarını CRM görünümüne dönüştür |
+| P10.2 | Kişi / iletişim kartları | `Contact` benzeri ayrı kartlar, ilişki ve iletişim geçmişi |
+| P10.3 | Lead / fırsat / pipeline | Aşama takibi, satış hunisi ve fırsat yönetimi |
+| P10.4 | Görev / hatırlatma | Görev atama, SLA, takip tarihleri |
+| P10.5 | Not / aktivite zaman çizelgesi | Teklif, sipariş, arama, not ve mesaj geçmişi |
+| P10.6 | Orta seviye teklif modülü | Satır bazlı teklif, revizyon, PDF ve siparişe dönüşüm |
+| P10.7 | Etiketler / özel alanlar | Esnek CRM metadata alanları |
+| P10.8 | Bayi / müşteri bağları | Satış temsilcisi ve bayi ilişkisi, hesap sahipliği |
+| P10.9 | WhatsApp entegrasyonu | CRM iletişim kanalı, mesaj eşleme, otomatik görev oluşturma |
+
 ---
 
 ## Proje Büyüklüğü (Mevcut Durum)
@@ -118,4 +132,4 @@
 
 ---
 
-*Son güncelleme: 22 Haziran 2026*
+*Son güncelleme: 24 Haziran 2026*

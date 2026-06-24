@@ -6,6 +6,7 @@ import {
   parsePartFromRequest,
   resolveFeedChunkSlice,
 } from "@/lib/thyronix/feed-output-service";
+import { applyFeedTransformSettings, loadFeedTransformSettings, type FeedProduct } from "@/lib/thyronix/feed-transform";
 
 export const dynamic = "force-dynamic";
 
@@ -19,10 +20,12 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
 
     const sourceIds = await loadActiveSourceIds({ dealerId: feed.dealerId });
     const { products, plan, partMeta } = await resolveFeedChunkSlice(feed, sourceIds, part);
+    const transformSettings = await loadFeedTransformSettings(feed.dealerId);
+    const transformedProducts = applyFeedTransformSettings(products as FeedProduct[], transformSettings);
 
     const headers = ["Ürün Adı", "Açıklama", "Marka", "Kategori", "Barkod", "Stok Kodu", "Model Kodu", "Fiyat", "Stok", "Para Birimi", "Durum", "Görseller"];
     const keys = ["name", "description", "brand", "category", "barcode", "stockCode", "modelCode", "price", "stock", "currency", "status", "images"];
-    const rows = products.map((p) => keys.map((k) => p[k] ?? ""));
+    const rows = transformedProducts.map((p) => keys.map((k) => p[k] ?? ""));
     const data = [headers, ...rows];
 
     const wb = XLSX.utils.book_new();

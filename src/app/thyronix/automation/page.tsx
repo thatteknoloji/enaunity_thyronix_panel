@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { Workflow, RefreshCw, Bell, RotateCcw, Clock } from "lucide-react";
 import toast from "react-hot-toast";
 import type { ThyronixAutomationSettings } from "@/lib/thyronix/commercial";
-import { DEFAULT_AUTOMATION } from "@/lib/thyronix/commercial";
+import { DEFAULT_AUTOMATION, FEED_REFRESH_INTERVALS } from "@/lib/thyronix/commercial";
 
 export default function AutomationPage() {
   const [settings, setSettings] = useState<ThyronixAutomationSettings>(DEFAULT_AUTOMATION);
@@ -82,7 +82,15 @@ export default function AutomationPage() {
           </label>
           <label className="block text-sm text-nexa-text-secondary">
             Aralık (saat)
-            <input type="number" min={1} className="mt-1 w-full rounded-lg border border-nexa-border bg-nexa-bg px-3 py-2" value={settings.feedIntervalHours} onChange={(e) => setSettings({ ...settings, feedIntervalHours: parseInt(e.target.value) || 6 })} />
+            <select
+              className="mt-1 w-full rounded-lg border border-nexa-border bg-nexa-bg px-3 py-2"
+              value={settings.feedIntervalHours}
+              onChange={(e) => setSettings({ ...settings, feedIntervalHours: (Number(e.target.value) as 4 | 6 | 12 | 24) || 6 })}
+            >
+              {FEED_REFRESH_INTERVALS.map((hours) => (
+                <option key={hours} value={hours}>{hours} saat</option>
+              ))}
+            </select>
           </label>
         </div>
 

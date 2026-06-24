@@ -9,6 +9,13 @@ import {
 } from "@/lib/thyronix/access";
 import { checkPlanLimit } from "@/lib/thyronix/workspace";
 import { resolveDealerId } from "@/lib/thyronix/workspace";
+import { normalizeTemplateId } from "@/lib/thyronix/templates";
+import { FEED_REFRESH_INTERVALS } from "@/lib/thyronix/commercial";
+
+function normalizeSchedule(value: unknown): 4 | 6 | 12 | 24 {
+  const n = Number(value);
+  return (FEED_REFRESH_INTERVALS.includes(n as 4 | 6 | 12 | 24) ? n : 24) as 4 | 6 | 12 | 24;
+}
 
 export async function GET() {
   try {
@@ -44,9 +51,9 @@ export async function POST(req: Request) {
         channel: body.channel || "custom",
         url: body.url || null,
         interval: body.interval || 60,
-        outputFormat: body.outputFormat || "jetteknoloji",
+        outputFormat: normalizeTemplateId(body.outputFormat || "jetteknoloji"),
         mergeStrategy: body.mergeStrategy || "lowest_price",
-        schedule: body.schedule || 24,
+        schedule: normalizeSchedule(body.schedule),
         status: body.status || "active",
         dealerId: owner.dealerId,
         tenantScope: owner.tenantScope,

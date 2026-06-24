@@ -56,10 +56,37 @@ export type ThyronixAutomationSettings = {
   autoSync: boolean;
   syncIntervalMinutes: number;
   autoGenerateFeed: boolean;
-  feedIntervalHours: number;
+  feedIntervalHours: 4 | 6 | 12 | 24;
   notifications: boolean;
   retryPolicy: "none" | "3x" | "5x";
   notifyOnError: boolean;
+  feedTransform: ThyronixFeedTransformSettings;
+};
+
+export type ThyronixFeedTransformSettings = {
+  enabled: boolean;
+  targetBrand: string;
+  sourceBrandAliases: string[];
+  bannedWords: string[];
+  titlePrefix: string;
+  titleSuffix: string;
+  descriptionPrefix: string;
+  descriptionSuffix: string;
+  maxTitleLength: number;
+};
+
+export const FEED_REFRESH_INTERVALS = [4, 6, 12, 24] as const;
+
+export const DEFAULT_FEED_TRANSFORM: ThyronixFeedTransformSettings = {
+  enabled: false,
+  targetBrand: "Esra'nın Dünyası",
+  sourceBrandAliases: [],
+  bannedWords: ["çakma", "taklit", "replika", "muadil"],
+  titlePrefix: "",
+  titleSuffix: "",
+  descriptionPrefix: "",
+  descriptionSuffix: "",
+  maxTitleLength: 120,
 };
 
 export const DEFAULT_AUTOMATION: ThyronixAutomationSettings = {
@@ -70,6 +97,7 @@ export const DEFAULT_AUTOMATION: ThyronixAutomationSettings = {
   notifications: true,
   retryPolicy: "3x",
   notifyOnError: true,
+  feedTransform: DEFAULT_FEED_TRANSFORM,
 };
 
 export function normalizePlanKey(planKey?: string | null): ThyronixPlanKey {
