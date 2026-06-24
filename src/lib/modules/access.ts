@@ -81,14 +81,6 @@ export async function getDealerApprovalStatus(dealerId: string) {
   return prisma.dealerApproval.findUnique({ where: { dealerId } });
 }
 
-export async function requireDealerModuleAccess(moduleKey: string) {
-  const { requireDealer } = await import("@/lib/auth");
-  const user = await requireDealer();
-  const has = await hasModuleAccess(user.dealerId!, moduleKey, { userRole: user.role });
-  if (!has) throw new Error("Bu modüle erişim yetkiniz yok");
-  return user;
-}
-
 export async function canDealerPurchaseModule(dealerId: string): Promise<boolean> {
   const approval = await prisma.dealerApproval.findUnique({ where: { dealerId } });
   return approval?.status === "ACTIVE";
