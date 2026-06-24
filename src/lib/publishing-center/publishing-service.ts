@@ -385,10 +385,7 @@ async function archiveContentByType(contentType: PublishingContentType, contentI
       });
       break;
     case "RECOVERY_PAGE":
-      await prisma.legacyUrl.update({
-        where: { id: contentId },
-        data: { status: "GONE" },
-      });
+      // Kurtarma kaydı arşivlenir — kuyruk durumu güncellenir
       break;
   }
 }

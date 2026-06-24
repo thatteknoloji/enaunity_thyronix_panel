@@ -5,6 +5,7 @@ import {
   generateProductBlog,
 } from "@/lib/blog-engine/blog-service";
 import { startGeoJob } from "@/lib/geo-content-factory/geo-content-factory-service";
+import { queuePlan } from "@/lib/publishing-center/publishing-service";
 import type { ContentPlan, ContentPlanNode, ContentPlanStatus } from "@prisma/client";
 import {
   buildContentMapTree,
@@ -405,6 +406,13 @@ export async function publishPlanToEngines(
       where: { id: planId },
       data: { status: "GENERATED" },
     });
+    try {
+      await queuePlan(planId, {
+        publishMode: opts?.autoPublish ? "AUTOMATIC" : "MANUAL",
+      });
+    } catch {
+      /* Kuyruk oluşturma başarısız olsa da plan yayını tamamlanmış sayılır */
+    }
   }
 
   return result;

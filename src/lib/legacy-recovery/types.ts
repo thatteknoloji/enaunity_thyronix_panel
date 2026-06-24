@@ -19,7 +19,8 @@ export type LegacyUrlStatus =
   | "ANALYZED"
   | "PLANNED"
   | "GENERATED"
-  | "COMPLETED";
+  | "COMPLETED"
+  | "GONE";
 
 export type LegacyUrlImportRow = {
   url: string;

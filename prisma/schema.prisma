@@ -3952,6 +3952,7 @@ enum LegacyUrlStatus {
   PLANNED
   GENERATED
   COMPLETED
+  GONE
 }
 
 model LegacyUrl {
