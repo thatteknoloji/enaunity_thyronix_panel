@@ -6,6 +6,7 @@ import {
   parsePartFromRequest,
   resolveFeedChunkSlice,
 } from "@/lib/thyronix/feed-output-service";
+import { isFeedXmlCacheFresh, readFeedXmlCache, writeFeedXmlCache } from "@/lib/thyronix/feed-output-cache";
 import { applyFeedTransformSettings, loadFeedTransformSettings, type FeedProduct } from "@/lib/thyronix/feed-transform";
 import { resolveFeedSourceIds } from "@/lib/thyronix/source-feed-provision";
 
@@ -22,6 +23,18 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
     const template = getTemplate(feed.outputFormat || "jetteknoloji");
     if (!template) return new Response("Unknown template", { status: 400, headers: { "Content-Type": "text/plain" } });
 
+    if (await isFeedXmlCacheFresh(feed.id, part, feed.lastPublished)) {
+      const cached = await readFeedXmlCache(feed.id, part);
+      if (cached) {
+        return new Response(cached, {
+          headers: {
+            "Content-Type": "application/xml; charset=utf-8",
+            "Cache-Control": "public, max-age=300, s-maxage=600",
+          },
+        });
+      }
+    }
+
     const sourceIds = await resolveFeedSourceIds(feed);
     const { products, plan, partMeta } = await resolveFeedChunkSlice(feed, sourceIds, part);
     const transformSettings = await loadFeedTransformSettings(feed.dealerId);
@@ -33,6 +46,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
     }));
 
     const xml = generateFeedXml(productsWithVariants as never, template);
+    await writeFeedXmlCache(feed.id, partMeta.part, xml);
 
     return new Response(xml, {
       headers: {
