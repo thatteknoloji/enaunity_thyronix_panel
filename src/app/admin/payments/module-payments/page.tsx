@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { CreditCard, Check, X, RotateCcw } from "lucide-react";
 import toast from "react-hot-toast";
-import { getModuleLabel } from "@/lib/modules/access";
+import { getModuleLabel } from "@/lib/modules/labels";
 import { statusLabel } from "@/lib/ui/turkish-labels";
 
 export default function AdminModulePaymentsPage() {

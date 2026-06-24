@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { Shield, Check, X, Clock, RotateCcw } from "lucide-react";
 import toast from "react-hot-toast";
-import { getModuleLabel, getStatusLabel } from "@/lib/modules/access";
+import { getModuleLabel, getStatusLabel } from "@/lib/modules/labels";
 
 export default function AdminModuleLicensesPage() {
   const [licenses, setLicenses] = useState<any[]>([]);

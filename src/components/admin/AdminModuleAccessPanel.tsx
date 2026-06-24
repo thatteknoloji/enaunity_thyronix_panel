@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { Plus, Shield, Loader2, UserPlus, Trash2, KeyRound, Copy } from "lucide-react";
 import toast from "react-hot-toast";
-import { getStatusLabel } from "@/lib/modules/access";
+import { getStatusLabel } from "@/lib/modules/labels";
 
 type ModuleKey = "THYRONIX" | "HIVE" | "LINKSLASH" | "POD_CREATOR" | "AI_PAGE_FACTORY";
 
