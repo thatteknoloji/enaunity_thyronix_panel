@@ -220,6 +220,35 @@ export async function approvePayment(paymentId: string): Promise<PaymentResult> 
     return { success: true, status: "PAID", message: "Ödeme onaylandı, paket erişimi açıldı." };
   }
 
+  let moduleMeta: Record<string, unknown> = {};
+  try {
+    moduleMeta = JSON.parse(payment.metadataJson || "{}") as Record<string, unknown>;
+  } catch {
+    moduleMeta = {};
+  }
+  const paymentMeta = (moduleMeta.payment as Record<string, unknown>) || {};
+  const isSplit = paymentMeta.mode === "SPLIT" || moduleMeta.paymentMode === "SPLIT";
+  const balancePortion = roundMoney(Number(paymentMeta.balancePortion || 0));
+
+  if (isSplit && balancePortion > 0) {
+    await deductDealerBalance(
+      payment.dealerId,
+      balancePortion,
+      undefined,
+      "MODULE_PAYMENT",
+      `Split modül ödemesi — bakiye kısmı (${payment.moduleKey})`
+    );
+    await prisma.payment.create({
+      data: {
+        dealerId: payment.dealerId,
+        amount: balancePortion,
+        type: "balance",
+        status: "COMPLETED",
+        note: `${payment.moduleKey} modül — split bakiye kısmı`,
+      },
+    });
+  }
+
   const existingLicense = await prisma.moduleLicense.findFirst({
     where: { dealerId: payment.dealerId, moduleKey: payment.moduleKey },
     orderBy: { createdAt: "desc" },

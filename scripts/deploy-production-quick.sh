@@ -17,7 +17,7 @@ fi
 
 pm2 stop enaunity 2>/dev/null || true
 npx prisma generate
-npx prisma db push --skip-generate
+npx prisma migrate deploy
 rm -rf .next node_modules/.cache
 npm run build
 pm2 restart enaunity 2>/dev/null || pm2 start npm --name enaunity -- start

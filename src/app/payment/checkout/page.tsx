@@ -6,6 +6,7 @@ import Link from "next/link";
 import { ChevronLeft, Loader2 } from "lucide-react";
 import toast from "react-hot-toast";
 import { PaymentCheckoutPanel } from "@/components/payments/PaymentCheckoutPanel";
+import { DealerCheckoutPaymentPanel } from "@/components/payments/DealerCheckoutPaymentPanel";
 
 interface CheckoutContext {
   type: "module" | "package";
@@ -53,6 +54,55 @@ function CheckoutContent() {
       .catch(() => setError("Bağlantı hatası"))
       .finally(() => setLoading(false));
   }, [type, moduleKey, planKey, packageId, router]);
+
+  const handleDealerModulePayment = async (payload: {
+    paymentMode: "BALANCE_ONLY" | "CARD_ONLY" | "SPLIT";
+    paymentMethod: string;
+    installmentCount: number;
+  }) => {
+    if (!ctx || ctx.type !== "module") return;
+    if (ctx.requiresLogin || ctx.requiresDealer) {
+      const qs = new URLSearchParams();
+      if (type) qs.set("type", type);
+      if (moduleKey) qs.set("moduleKey", moduleKey);
+      if (planKey) qs.set("planKey", planKey);
+      router.push(`/auth/login?redirect=${encodeURIComponent(`/payment/checkout?${qs}`)}`);
+      return;
+    }
+    setSubmitting(true);
+    setError("");
+    try {
+      const res = await fetch("/api/dealer/modules/purchase-request", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          moduleKey: ctx.moduleKey,
+          planKey: ctx.planKey,
+          paymentMethod: payload.paymentMethod,
+          paymentMode: payload.paymentMode,
+          installmentCount: payload.installmentCount,
+        }),
+      });
+      const d = await res.json();
+      if (!d.success) throw new Error(d.error || "Ödeme başlatılamadı");
+      if (d.data?.status === "PAID") {
+        toast.success(d.data.message || "Modül lisansı aktifleştirildi");
+        router.push("/dealer/modules");
+        return;
+      }
+      if (d.data?.redirectUrl) {
+        window.location.href = d.data.redirectUrl;
+        return;
+      }
+      router.push(
+        `/payment/pending?module=${ctx.moduleKey}&plan=${ctx.planKey}&paymentId=${d.data.paymentId}`,
+      );
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Ödeme hatası");
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   const handleConfirm = async (paymentMethod: string, installmentCount: number) => {
     if (!ctx) return;
@@ -143,14 +193,25 @@ function CheckoutContent() {
             {error && (
               <div className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700 mb-4">{error}</div>
             )}
-            <PaymentCheckoutPanel
-              amount={ctx.amount}
-              currency={ctx.currency}
-              title={ctx.title}
-              loading={submitting}
-              dealerId={ctx.dealerId || undefined}
-              onConfirm={handleConfirm}
-            />
+            {ctx.dealerId && ctx.type === "module" ? (
+              <DealerCheckoutPaymentPanel
+                cartTotal={ctx.amount}
+                dealerId={ctx.dealerId}
+                loading={submitting}
+                returnUrl={`/payment/checkout?type=module&moduleKey=${ctx.moduleKey}&planKey=${ctx.planKey}`}
+                confirmLabel="Ödemeyi Onayla"
+                onConfirm={handleDealerModulePayment}
+              />
+            ) : (
+              <PaymentCheckoutPanel
+                amount={ctx.amount}
+                currency={ctx.currency}
+                title={ctx.title}
+                loading={submitting}
+                dealerId={ctx.dealerId || undefined}
+                onConfirm={handleConfirm}
+              />
+            )}
           </>
         ) : null}
       </div>

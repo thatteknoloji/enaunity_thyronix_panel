@@ -29,12 +29,9 @@ if command -v pm2 >/dev/null 2>&1 && pm2 describe enaunity >/dev/null 2>&1; then
   pm2 stop enaunity || true
 fi
 
-echo "→ prisma generate + db push…"
+echo "→ prisma generate + migrate deploy…"
 npx prisma generate
-npx prisma db push --skip-generate
-
-echo "→ data universe migration (idempotent)…"
-npx prisma migrate deploy || echo "  (migrate deploy atlandı — db push yeterli)"
+npx prisma migrate deploy
 
 echo "→ data universe seed (81 il, 973 ilçe)…"
 npm run seed:turkiye-geo || echo "  (turkiye geo seed atlandı)"

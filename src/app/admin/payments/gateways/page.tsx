@@ -2,12 +2,32 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, CreditCard, Save, Shield, Zap } from "lucide-react";
+import { ArrowLeft, CreditCard, Save, Shield, Wallet, Zap } from "lucide-react";
 import { toAdminUrl } from "@/lib/auth/admin-access";
 import { AdminFormField, AdminFormSelect } from "@/components/admin/AdminFormField";
 import toast from "react-hot-toast";
 
-type Tab = "general" | "esnekpos" | "iyzico";
+type Tab = "general" | "esnekpos" | "iyzico" | "balance";
+
+interface BalanceFormState {
+  enabled: boolean;
+  minAmount: number;
+  presets: string;
+  belowMinMessage: string;
+  splitEnabled: boolean;
+  bankTransferEnabled: boolean;
+  pendingMessage: string;
+}
+
+const BALANCE_DEFAULT: BalanceFormState = {
+  enabled: true,
+  minAmount: 5000,
+  presets: "5000,10000,20000",
+  belowMinMessage: "Minimum bakiye yükleme tutarı 5.000 ₺'dir.",
+  splitEnabled: true,
+  bankTransferEnabled: true,
+  pendingMessage: "Havale onayı genellikle 1-2 iş günü sürer.",
+};
 
 interface FormState {
   bankTransferEnabled: boolean;
@@ -68,26 +88,30 @@ const DEFAULT: FormState = {
 export default function PaymentGatewaysAdminPage() {
   const [tab, setTab] = useState<Tab>("general");
   const [form, setForm] = useState<FormState>(DEFAULT);
+  const [balanceForm, setBalanceForm] = useState<BalanceFormState>(BALANCE_DEFAULT);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [savingBalance, setSavingBalance] = useState(false);
   const [envHint, setEnvHint] = useState({ esnek: false, iyzico: false });
 
   useEffect(() => {
-    fetch("/api/admin/payments/gateways")
-      .then((r) => r.json())
-      .then((d) => {
-        if (!d.success) return;
-        const raw = d.data.raw || {};
+    Promise.all([
+      fetch("/api/admin/payments/gateways").then((r) => r.json()),
+      fetch("/api/admin/payments/balance-settings").then((r) => r.json()),
+    ])
+      .then(([gw, bal]) => {
+        if (gw.success) {
+        const raw = gw.data.raw || {};
         setForm({
           ...DEFAULT,
-          bankTransferEnabled: d.data.bankTransferEnabled,
-          activeCardProvider: d.data.activeCardProvider,
-          checkoutTitle: d.data.checkoutTitle,
-          checkoutDescription: d.data.checkoutDescription,
-          require3ds: d.data.require3ds,
-          esnekposEnabled: raw.esnekposEnabled ?? d.data.esnekpos.enabled,
-          esnekposSandbox: raw.esnekposSandbox ?? d.data.esnekpos.sandbox,
-          esnekposMerchantId: d.data.esnekposMerchantId || "",
+          bankTransferEnabled: gw.data.bankTransferEnabled,
+          activeCardProvider: gw.data.activeCardProvider,
+          checkoutTitle: gw.data.checkoutTitle,
+          checkoutDescription: gw.data.checkoutDescription,
+          require3ds: gw.data.require3ds,
+          esnekposEnabled: raw.esnekposEnabled ?? gw.data.esnekpos.enabled,
+          esnekposSandbox: raw.esnekposSandbox ?? gw.data.esnekpos.sandbox,
+          esnekposMerchantId: gw.data.esnekposMerchantId || "",
           esnekposMerchantKey: "",
           esnekposExtraFeePct: raw.esnekposExtraFeePct ?? 0,
           esnekposExtraFeeFix: raw.esnekposExtraFeeFix ?? 0,
@@ -95,9 +119,9 @@ export default function PaymentGatewaysAdminPage() {
           esnekposMaxInstall: raw.esnekposMaxInstall ?? 1,
           esnekposMinAmount: raw.esnekposMinAmount ?? 0,
           esnekposDisplayName: raw.esnekposDisplayName ?? "EsnekPOS",
-          iyzicoEnabled: raw.iyzicoEnabled ?? d.data.iyzico.enabled,
-          iyzicoSandbox: raw.iyzicoSandbox ?? d.data.iyzico.sandbox,
-          iyzicoApiKey: d.data.iyzicoApiKey || "",
+          iyzicoEnabled: raw.iyzicoEnabled ?? gw.data.iyzico.enabled,
+          iyzicoSandbox: raw.iyzicoSandbox ?? gw.data.iyzico.sandbox,
+          iyzicoApiKey: gw.data.iyzicoApiKey || "",
           iyzicoSecretKey: "",
           iyzicoExtraFeePct: raw.iyzicoExtraFeePct ?? 0,
           iyzicoExtraFeeFix: raw.iyzicoExtraFeeFix ?? 0,
@@ -106,12 +130,51 @@ export default function PaymentGatewaysAdminPage() {
           iyzicoMinAmount: raw.iyzicoMinAmount ?? 0,
           iyzicoDisplayName: raw.iyzicoDisplayName ?? "İyzico",
         });
-        setEnvHint({ esnek: d.data.envEsnekpos, iyzico: d.data.envIyzico });
+        setEnvHint({ esnek: gw.data.envEsnekpos, iyzico: gw.data.envIyzico });
+        }
+        if (bal.success && bal.data) {
+          setBalanceForm({
+            enabled: bal.data.enabled ?? true,
+            minAmount: bal.data.minAmount ?? 5000,
+            presets: (bal.data.presets || [5000, 10000, 20000]).join(","),
+            belowMinMessage: bal.data.belowMinMessage || BALANCE_DEFAULT.belowMinMessage,
+            splitEnabled: bal.data.splitEnabled ?? true,
+            bankTransferEnabled: bal.data.bankTransferEnabled ?? true,
+            pendingMessage: bal.data.pendingMessage || BALANCE_DEFAULT.pendingMessage,
+          });
+        }
       })
       .finally(() => setLoading(false));
   }, []);
 
   const update = (patch: Partial<FormState>) => setForm((p) => ({ ...p, ...patch }));
+
+  const updateBalance = (patch: Partial<BalanceFormState>) => setBalanceForm((p) => ({ ...p, ...patch }));
+
+  const saveBalance = async () => {
+    setSavingBalance(true);
+    try {
+      const presets = balanceForm.presets
+        .split(",")
+        .map((s) => parseInt(s.trim(), 10))
+        .filter((n) => !Number.isNaN(n) && n > 0);
+      const r = await fetch("/api/admin/payments/balance-settings", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...balanceForm,
+          presets: presets.length ? presets : [5000, 10000, 20000],
+        }),
+      });
+      const d = await r.json();
+      if (d.success) toast.success("Bakiye ayarları kaydedildi");
+      else toast.error(d.error || "Kaydedilemedi");
+    } catch {
+      toast.error("Kaydedilemedi");
+    } finally {
+      setSavingBalance(false);
+    }
+  };
 
   const save = async () => {
     setSaving(true);
@@ -155,6 +218,7 @@ export default function PaymentGatewaysAdminPage() {
     { key: "general", label: "Genel", icon: Shield },
     { key: "esnekpos", label: "EsnekPOS", icon: Zap },
     { key: "iyzico", label: "İyzico", icon: CreditCard },
+    { key: "balance", label: "Bakiye", icon: Wallet },
   ];
 
   return (
@@ -171,11 +235,11 @@ export default function PaymentGatewaysAdminPage() {
         </div>
         <button
           type="button"
-          onClick={save}
-          disabled={saving}
+          onClick={tab === "balance" ? saveBalance : save}
+          disabled={tab === "balance" ? savingBalance : saving}
           className="px-4 py-2 text-sm bg-gray-900 text-white rounded-lg flex items-center gap-1 disabled:opacity-50"
         >
-          <Save size={14} /> {saving ? "Kaydediliyor..." : "Kaydet"}
+          <Save size={14} /> {tab === "balance" ? (savingBalance ? "Kaydediliyor..." : "Bakiye Ayarlarını Kaydet") : saving ? "Kaydediliyor..." : "Kaydet"}
         </button>
       </div>
 
@@ -265,6 +329,30 @@ export default function PaymentGatewaysAdminPage() {
               <AdminFormField label="Max taksit" value={String(form.iyzicoMaxInstall)} onChange={(v) => update({ iyzicoMaxInstall: parseInt(v) || 1 })} />
             </div>
             <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={form.iyzicoInstallments} onChange={(e) => update({ iyzicoInstallments: e.target.checked })} /> Taksit seçenekleri açık</label>
+          </>
+        )}
+
+        {tab === "balance" && (
+          <>
+            <p className="text-xs text-gray-500">
+              Bayi bakiye yükleme ve checkout&apos;ta bölünmüş ödeme kuralları. Kart top-up için EsnekPOS sekmesinde credential gerekir.
+            </p>
+            <label className="flex items-center gap-2 text-sm text-gray-800">
+              <input type="checkbox" checked={balanceForm.enabled} onChange={(e) => updateBalance({ enabled: e.target.checked })} />
+              Bakiye yükleme aktif
+            </label>
+            <label className="flex items-center gap-2 text-sm text-gray-800">
+              <input type="checkbox" checked={balanceForm.splitEnabled} onChange={(e) => updateBalance({ splitEnabled: e.target.checked })} />
+              Bölünmüş ödeme (bakiye + kart) aktif
+            </label>
+            <label className="flex items-center gap-2 text-sm text-gray-800">
+              <input type="checkbox" checked={balanceForm.bankTransferEnabled} onChange={(e) => updateBalance({ bankTransferEnabled: e.target.checked })} />
+              Havale ile bakiye yükleme aktif
+            </label>
+            <AdminFormField label="Minimum yükleme tutarı (₺)" value={String(balanceForm.minAmount)} onChange={(v) => updateBalance({ minAmount: parseFloat(v) || 0 })} />
+            <AdminFormField label="Hızlı tutarlar (virgülle)" value={balanceForm.presets} onChange={(v) => updateBalance({ presets: v })} placeholder="5000,10000,20000" />
+            <AdminFormField label="Min. tutar altı mesaj" value={balanceForm.belowMinMessage} onChange={(v) => updateBalance({ belowMinMessage: v })} multiline />
+            <AdminFormField label="Havale bekleme mesajı" value={balanceForm.pendingMessage} onChange={(v) => updateBalance({ pendingMessage: v })} multiline />
           </>
         )}
       </div>

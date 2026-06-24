@@ -17,6 +17,8 @@ export interface CreatePaymentParams {
     packageId?: string;
     orderId?: string;
     installmentCount?: number;
+    paymentMode?: string;
+    paymentMeta?: Record<string, unknown>;
     buyer?: { id?: string; name?: string; surname?: string; email?: string; phone?: string };
     topUpId?: string;
     returnUrl?: string;

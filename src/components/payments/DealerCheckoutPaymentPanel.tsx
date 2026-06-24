@@ -24,6 +24,8 @@ type Props = {
   dealerId: string;
   onConfirm: (payload: { paymentMode: PaymentMode; paymentMethod: string; installmentCount: number }) => void | Promise<void>;
   loading?: boolean;
+  returnUrl?: string;
+  confirmLabel?: string;
 };
 
 const MODE_LABELS: Record<PaymentMode, string> = {
@@ -32,7 +34,14 @@ const MODE_LABELS: Record<PaymentMode, string> = {
   CARD_ONLY: "Tamamını kartla öde",
 };
 
-export function DealerCheckoutPaymentPanel({ cartTotal, dealerId, onConfirm, loading }: Props) {
+export function DealerCheckoutPaymentPanel({
+  cartTotal,
+  dealerId,
+  onConfirm,
+  loading,
+  returnUrl = "/checkout",
+  confirmLabel,
+}: Props) {
   const [ctx, setCtx] = useState<CheckoutContext | null>(null);
   const [mode, setMode] = useState<PaymentMode>("CARD_ONLY");
   const [installment, setInstallment] = useState(1);
@@ -51,6 +60,8 @@ export function DealerCheckoutPaymentPanel({ cartTotal, dealerId, onConfirm, loa
       })
       .finally(() => setFetching(false));
   }, [cartTotal, dealerId]);
+
+  const balanceReturn = `/dealer/balance?returnUrl=${encodeURIComponent(returnUrl)}`;
 
   const cardMethod = useMemo(() => {
     const methods = ctx?.cardMethods || ["ESNEKPOS"];
@@ -110,7 +121,7 @@ export function DealerCheckoutPaymentPanel({ cartTotal, dealerId, onConfirm, loa
                 {m === "BALANCE_ONLY" && !enabled && ctx.shortfall > 0 && (
                   <p className="text-xs text-amber-600 mt-0.5">
                     {ctx.shortfall.toLocaleString("tr-TR")} ₺ eksik —{" "}
-                    <Link href="/dealer/balance?returnUrl=/checkout" className="underline">
+                    <Link href={balanceReturn} className="underline">
                       Bakiye yükle
                     </Link>
                   </p>
@@ -133,7 +144,7 @@ export function DealerCheckoutPaymentPanel({ cartTotal, dealerId, onConfirm, loa
       {ctx.shortfall > 0 && (
         <div className="rounded-lg bg-blue-50 border border-blue-100 p-3 text-xs text-blue-800">
           Bakiyeniz yetersiz.{" "}
-          <Link href="/dealer/balance?returnUrl=/checkout" className="font-semibold underline">
+          <Link href={balanceReturn} className="font-semibold underline">
             Bakiye ekle
           </Link>{" "}
           veya bölünmüş / kart ödemesi kullanın.
@@ -154,6 +165,8 @@ export function DealerCheckoutPaymentPanel({ cartTotal, dealerId, onConfirm, loa
           <>
             <Loader2 size={14} className="animate-spin mr-1" /> İşleniyor...
           </>
+        ) : confirmLabel ? (
+          confirmLabel
         ) : mode === "BALANCE_ONLY" ? (
           "Siparişi Oluştur"
         ) : (

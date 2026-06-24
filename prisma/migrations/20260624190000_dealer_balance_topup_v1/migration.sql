@@ -27,3 +27,5 @@ DO $$ BEGIN
 EXCEPTION
   WHEN duplicate_object THEN null;
 END $$;
+
+ALTER TABLE "ModulePayment" ADD COLUMN IF NOT EXISTS "metadataJson" TEXT NOT NULL DEFAULT '{}';

@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/db";
+import type { PaymentGatewaySettings } from "@prisma/client";
 import type { ProductLibraryPaymentMethod } from "./gateway-config";
 import type { PaymentProviderKey } from "./payment-types";
 
@@ -148,7 +149,7 @@ function resolveActiveCard(esnek: ProviderSettings, iyzico: ProviderSettings, pr
   return "NONE";
 }
 
-function toDTO(row: typeof DEFAULT_ROW & { id: string; updatedAt: Date }): PaymentSettingsDTO {
+function toDTO(row: PaymentGatewaySettings): PaymentSettingsDTO {
   const esnekpos = mergeEsnek(row);
   const iyzico = mergeIyzico(row);
   const activeCardProvider = resolveActiveCard(
@@ -177,9 +178,7 @@ export function invalidatePaymentSettingsCache() {
   cacheAt = 0;
 }
 
-async function syncPaymentGatewayFromEnv(
-  row: typeof DEFAULT_ROW & { id: string; updatedAt: Date },
-): Promise<typeof DEFAULT_ROW & { id: string; updatedAt: Date }> {
+async function syncPaymentGatewayFromEnv(row: PaymentGatewaySettings): Promise<PaymentGatewaySettings> {
   const updates: Record<string, unknown> = {};
 
   const dbEsnekConfigured = Boolean(row.esnekposMerchantId && row.esnekposMerchantKey);
