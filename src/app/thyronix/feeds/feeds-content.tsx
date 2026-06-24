@@ -250,20 +250,17 @@ export default function FeedCenterPage() {
                           {feedParts.partCount <= 1 ? (
                             <a href={`/api/thyronix/feed/${f.id}/output.xml`} target="_blank" className="p-2 rounded-lg hover:bg-nexa-hover text-nexa-text-secondary" title="XML"><ExternalLink size={14} /></a>
                           ) : (
-                            feedParts.parts.slice(0, 3).map((p) => (
+                            feedParts.parts.map((p) => (
                               <a
                                 key={p.part}
                                 href={`/api/thyronix/feed/${f.id}/output.xml?part=${p.part}`}
                                 target="_blank"
-                                className="px-2 py-1 rounded text-[10px] bg-nexa-bg border border-nexa-border text-nexa-text-secondary hover:text-nexa-primary"
+                                className="px-2 py-1 rounded text-[10px] bg-nexa-bg border border-nexa-border text-nexa-text-secondary hover:text-nexa-primary whitespace-nowrap"
                                 title={`${p.label} — ${p.productCount.toLocaleString("tr-TR")} ürün`}
                               >
                                 Bayi XML {p.part}
                               </a>
                             ))
-                          )}
-                          {feedParts.partCount > 3 && (
-                            <a href={`/api/thyronix/feed/${f.id}/status`} target="_blank" className="px-2 py-1 text-[10px] text-nexa-primary">+{feedParts.partCount - 3}</a>
                           )}
                           <button onClick={() => { setEditing(f); setForm({ name: f.name, channel: f.channel, outputFormat: f.outputFormat, schedule: f.schedule || 24 }); setShowForm(true); }} className="p-2 rounded-lg hover:bg-nexa-hover text-nexa-text-secondary"><Copy size={14} /></button>
                           <button onClick={() => deleteFeed(f.id)} className="p-2 rounded-lg hover:bg-nexa-danger/10 text-nexa-danger"><Trash2 size={14} /></button>
