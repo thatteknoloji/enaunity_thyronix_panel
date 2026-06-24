@@ -55,10 +55,11 @@ export async function resolveDealerPaymentMethods(dealerId: string): Promise<Res
     getPolicy("DEALER", dealerId),
   ]);
 
-  const cardFallback = settings.activeCardProvider !== "NONE" && (
-    (settings.activeCardProvider === "ESNEKPOS" && settings.esnekpos.enabled) ||
-    (settings.activeCardProvider === "IYZICO" && settings.iyzico.enabled)
-  );
+  const cardOperational =
+    (settings.activeCardProvider === "ESNEKPOS" && settings.esnekpos.enabled && settings.esnekpos.configured) ||
+    (settings.activeCardProvider === "IYZICO" && settings.iyzico.enabled && settings.iyzico.configured);
+
+  const cardFallback = cardOperational;
 
   const cardEnabled = resolveField("cardEnabled", dealerPolicy, groupPolicy, globalPolicy, cardFallback);
   const bankTransferEnabled = resolveField(
@@ -74,10 +75,10 @@ export async function resolveDealerPaymentMethods(dealerId: string): Promise<Res
   let cardMethod: ProductLibraryPaymentMethod | null = null;
 
   if (cardEnabled) {
-    if (settings.activeCardProvider === "ESNEKPOS" && settings.esnekpos.enabled) {
+    if (settings.activeCardProvider === "ESNEKPOS" && settings.esnekpos.enabled && settings.esnekpos.configured) {
       methods.push("ESNEKPOS");
       cardMethod = "ESNEKPOS";
-    } else if (settings.activeCardProvider === "IYZICO" && settings.iyzico.enabled) {
+    } else if (settings.activeCardProvider === "IYZICO" && settings.iyzico.enabled && settings.iyzico.configured) {
       methods.push("IYZICO");
       cardMethod = "IYZICO";
     }

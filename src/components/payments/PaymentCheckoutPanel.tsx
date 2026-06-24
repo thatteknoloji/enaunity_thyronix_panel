@@ -125,7 +125,9 @@ export function PaymentCheckoutPanel({ amount, currency = "TRY", dealerId, onCon
           >
             {m === "BANK_TRANSFER" ? <Landmark size={18} className="text-gray-600" /> : m === "DEALER_ACCOUNT" ? <Wallet size={18} className="text-gray-600" /> : <CreditCard size={18} className="text-gray-600" />}
             <span className="text-sm font-medium text-gray-900">
-              {m === currentSettings.activeCardProvider ? currentSettings.cardDisplayName : METHOD_LABELS[m] || m}
+              {(m === "ESNEKPOS" || m === "IYZICO") && m === currentSettings.activeCardProvider
+                ? currentSettings.cardDisplayName
+                : METHOD_LABELS[m] || m}
             </span>
           </button>
         ))}

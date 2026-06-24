@@ -18,6 +18,7 @@ interface CheckoutContext {
   packageId?: string;
   requiresLogin?: boolean;
   requiresDealer?: boolean;
+  dealerId?: string | null;
 }
 
 function CheckoutContent() {
@@ -147,6 +148,7 @@ function CheckoutContent() {
               currency={ctx.currency}
               title={ctx.title}
               loading={submitting}
+              dealerId={ctx.dealerId || undefined}
               onConfirm={handleConfirm}
             />
           </>

@@ -71,17 +71,39 @@ const DEFAULT_ROW = {
   require3ds: true,
 };
 
-function envEsnekEnabled() {
-  return process.env.ESNEKPOS_ENABLED === "true";
+function hasEnvEsnekCredentials() {
+  const merchantId = process.env.ESNEKPOS_MERCHANT_ID || process.env.ESNEKPOS_PUBLIC_TOKEN;
+  const merchantKey = process.env.ESNEKPOS_SECRET || process.env.ESNEKPOS_MERCHANT_KEY;
+  return Boolean(merchantId && merchantKey);
 }
+
+function hasEnvIyzicoCredentials() {
+  const apiKey = process.env.IYZICO_API_KEY;
+  const secretKey = process.env.IYZICO_SECRET_KEY;
+  return Boolean(apiKey && secretKey);
+}
+
+function envEsnekEnabled() {
+  if (process.env.ESNEKPOS_ENABLED === "false") return false;
+  if (process.env.ESNEKPOS_ENABLED === "true") return true;
+  if (process.env.PAYMENT_PROVIDER === "ESNEKPOS") return true;
+  return hasEnvEsnekCredentials();
+}
+
 function envIyzicoEnabled() {
-  return process.env.IYZICO_ENABLED === "true";
+  if (process.env.IYZICO_ENABLED === "false") return false;
+  if (process.env.IYZICO_ENABLED === "true") return true;
+  if (process.env.PAYMENT_PROVIDER === "IYZICO") return true;
+  return hasEnvIyzicoCredentials();
 }
 
 function mergeEsnek(row: typeof DEFAULT_ROW): ProviderSettings {
   const merchantId = process.env.ESNEKPOS_MERCHANT_ID || process.env.ESNEKPOS_PUBLIC_TOKEN || row.esnekposMerchantId;
   const merchantKey = process.env.ESNEKPOS_SECRET || process.env.ESNEKPOS_MERCHANT_KEY || row.esnekposMerchantKey;
-  const enabled = row.esnekposEnabled || envEsnekEnabled();
+  const enabled =
+    row.esnekposEnabled ||
+    envEsnekEnabled() ||
+    row.activeCardProvider === "ESNEKPOS";
   const envSandbox = process.env.ESNEKPOS_SANDBOX;
   const sandbox = envSandbox !== undefined ? envSandbox === "true" : row.esnekposSandbox;
   return {
@@ -100,7 +122,10 @@ function mergeEsnek(row: typeof DEFAULT_ROW): ProviderSettings {
 function mergeIyzico(row: typeof DEFAULT_ROW): ProviderSettings {
   const apiKey = process.env.IYZICO_API_KEY || row.iyzicoApiKey;
   const secretKey = process.env.IYZICO_SECRET_KEY || row.iyzicoSecretKey;
-  const enabled = row.iyzicoEnabled || envIyzicoEnabled();
+  const enabled =
+    row.iyzicoEnabled ||
+    envIyzicoEnabled() ||
+    row.activeCardProvider === "IYZICO";
   return {
     enabled,
     sandbox: row.iyzicoSandbox || process.env.IYZICO_SANDBOX !== "false",
@@ -151,12 +176,50 @@ export function invalidatePaymentSettingsCache() {
   cacheAt = 0;
 }
 
+async function syncPaymentGatewayFromEnv(
+  row: typeof DEFAULT_ROW & { id: string; updatedAt: Date },
+): Promise<typeof DEFAULT_ROW & { id: string; updatedAt: Date }> {
+  const updates: Record<string, unknown> = {};
+
+  const dbEsnekConfigured = Boolean(row.esnekposMerchantId && row.esnekposMerchantKey);
+  const dbIyzicoConfigured = Boolean(row.iyzicoApiKey && row.iyzicoSecretKey);
+
+  if ((hasEnvEsnekCredentials() && envEsnekEnabled()) || dbEsnekConfigured) {
+    if (!row.esnekposEnabled) updates.esnekposEnabled = true;
+    if (row.activeCardProvider === "NONE") updates.activeCardProvider = "ESNEKPOS";
+  } else if ((hasEnvIyzicoCredentials() && envIyzicoEnabled()) || dbIyzicoConfigured) {
+    if (!row.iyzicoEnabled) updates.iyzicoEnabled = true;
+    if (row.activeCardProvider === "NONE") updates.activeCardProvider = "IYZICO";
+  }
+
+  if (!Object.keys(updates).length) return row;
+
+  const next = await prisma.paymentGatewaySettings.update({
+    where: { id: "default" },
+    data: updates,
+  });
+  invalidatePaymentSettingsCache();
+  return next;
+}
+
+export function buildCheckoutPaymentMethods(s: PaymentSettingsDTO): ProductLibraryPaymentMethod[] {
+  const methods: ProductLibraryPaymentMethod[] = [];
+  if (s.bankTransferEnabled) methods.push("BANK_TRANSFER");
+  if (s.activeCardProvider === "ESNEKPOS" && s.esnekpos.enabled && s.esnekpos.configured) {
+    methods.push("ESNEKPOS");
+  } else if (s.activeCardProvider === "IYZICO" && s.iyzico.enabled && s.iyzico.configured) {
+    methods.push("IYZICO");
+  }
+  return methods;
+}
+
 export async function getPaymentSettings(): Promise<PaymentSettingsDTO> {
   if (cache && Date.now() - cacheAt < 15_000) return cache;
   let row = await prisma.paymentGatewaySettings.findUnique({ where: { id: "default" } });
   if (!row) {
     row = await prisma.paymentGatewaySettings.create({ data: { id: "default", ...DEFAULT_ROW } });
   }
+  row = await syncPaymentGatewayFromEnv(row);
   cache = toDTO(row);
   cacheAt = Date.now();
   return cache;
@@ -215,6 +278,15 @@ export async function savePaymentSettings(input: Partial<PaymentSettingsDTO> & {
   if (input.iyzicoMinAmount !== undefined) data.iyzicoMinAmount = input.iyzicoMinAmount;
   if (input.iyzicoDisplayName !== undefined) data.iyzicoDisplayName = input.iyzicoDisplayName;
 
+  const existing = await prisma.paymentGatewaySettings.findUnique({ where: { id: "default" } });
+  const esnekOn = input.esnekposEnabled ?? existing?.esnekposEnabled ?? false;
+  const iyzicoOn = input.iyzicoEnabled ?? existing?.iyzicoEnabled ?? false;
+  const nextActive = (input.activeCardProvider ?? existing?.activeCardProvider ?? "NONE") as CardProvider;
+  if (nextActive === "NONE") {
+    if (esnekOn) data.activeCardProvider = "ESNEKPOS";
+    else if (iyzicoOn) data.activeCardProvider = "IYZICO";
+  }
+
   const row = await prisma.paymentGatewaySettings.upsert({
     where: { id: "default" },
     create: { id: "default", ...DEFAULT_ROW, ...data },
@@ -226,10 +298,7 @@ export async function savePaymentSettings(input: Partial<PaymentSettingsDTO> & {
 
 export async function getPublicPaymentSettings(): Promise<PublicPaymentSettings> {
   const s = await getPaymentSettings();
-  const methods: ProductLibraryPaymentMethod[] = [];
-  if (s.bankTransferEnabled) methods.push("BANK_TRANSFER");
-  if (s.activeCardProvider === "ESNEKPOS") methods.push("ESNEKPOS");
-  if (s.activeCardProvider === "IYZICO") methods.push("IYZICO");
+  const methods = buildCheckoutPaymentMethods(s);
 
   const card = s.activeCardProvider === "ESNEKPOS" ? s.esnekpos : s.iyzico;
 

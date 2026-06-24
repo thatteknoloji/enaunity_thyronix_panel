@@ -158,8 +158,11 @@ export async function middleware(request: NextRequest) {
   const isApi = pathname.startsWith("/api/");
   const token = request.cookies.get("token")?.value;
 
+  // Use Host header for domain detection (nextUrl.hostname = IP when behind proxy)
+  const rawHost = request.headers.get("host") || request.nextUrl.hostname;
+  const hostname = rawHost.split(":")[0].toLowerCase();
+
   // www → apex (ana sayfa ve tüm rotalar aynı host'ta kalsın)
-  const hostname = request.nextUrl.hostname;
   if (hostname.startsWith("www.")) {
     const apex = request.nextUrl.clone();
     apex.hostname = hostname.slice(4);

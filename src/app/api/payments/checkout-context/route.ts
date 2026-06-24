@@ -31,6 +31,7 @@ export async function GET(req: Request) {
           planKey,
           requiresLogin: !user,
           requiresDealer: !user?.dealerId,
+          dealerId: user?.dealerId || null,
         },
       });
     }
@@ -61,6 +62,7 @@ export async function GET(req: Request) {
           packageId,
           requiresLogin: false,
           requiresDealer: false,
+          dealerId: user.dealerId,
         },
       });
     }

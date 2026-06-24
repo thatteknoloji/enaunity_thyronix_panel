@@ -116,10 +116,16 @@ export default function PaymentGatewaysAdminPage() {
   const save = async () => {
     setSaving(true);
     try {
+      const payload = { ...form };
+      if (payload.esnekposEnabled && payload.activeCardProvider === "NONE") {
+        payload.activeCardProvider = "ESNEKPOS";
+      } else if (payload.iyzicoEnabled && payload.activeCardProvider === "NONE") {
+        payload.activeCardProvider = "IYZICO";
+      }
       const r = await fetch("/api/admin/payments/gateways", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        body: JSON.stringify(payload),
       });
       const d = await r.json();
       if (d.success) toast.success("Ödeme ayarları kaydedildi");
@@ -134,8 +140,12 @@ export default function PaymentGatewaysAdminPage() {
   const previewMethods = useMemo(() => {
     const m: string[] = [];
     if (form.bankTransferEnabled) m.push("Havale / EFT");
-    if (form.activeCardProvider === "ESNEKPOS" && form.esnekposEnabled) m.push(form.esnekposDisplayName);
-    if (form.activeCardProvider === "IYZICO" && form.iyzicoEnabled) m.push(form.iyzicoDisplayName);
+    if (form.esnekposEnabled && (form.esnekposMerchantId || form.activeCardProvider === "ESNEKPOS")) {
+      m.push(form.esnekposDisplayName);
+    }
+    if (form.iyzicoEnabled && (form.iyzicoApiKey || form.activeCardProvider === "IYZICO")) {
+      m.push(form.iyzicoDisplayName);
+    }
     return m;
   }, [form]);
 
