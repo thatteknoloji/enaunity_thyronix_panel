@@ -3849,6 +3849,7 @@ model DealerStore {
 
   products            StoreProduct[]
   orders              StoreOrder[]
+  categories          StoreCategory[]
 
   @@index([dealerId])
   @@index([slug])
@@ -3860,6 +3861,7 @@ model StoreProduct {
   storeId              String
   productCatalogItemId String
   dealerPrice          Float    @default(0)
+  stock                Int      @default(0)
   isActive             Boolean  @default(true)
   sortOrder            Int      @default(0)
   createdAt            DateTime @default(now())
@@ -3871,6 +3873,22 @@ model StoreProduct {
   @@index([storeId])
   @@index([productCatalogItemId])
   @@index([isActive])
+}
+
+model StoreCategory {
+  id              String      @id @default(cuid())
+  storeId         String
+  name            String
+  catalogCategory String?
+  slug            String
+  sortOrder       Int         @default(0)
+  isActive        Boolean     @default(true)
+  createdAt       DateTime    @default(now())
+
+  store           DealerStore @relation(fields: [storeId], references: [id], onDelete: Cascade)
+
+  @@unique([storeId, slug])
+  @@index([storeId])
 }
 
 model StoreOrder {
@@ -3887,6 +3905,8 @@ model StoreOrder {
   totalAmount        Float    @default(0)
   status             String   @default("PENDING")
   notes              String   @default("")
+  trackingCode       String   @default("")
+  carrierName        String   @default("")
   fulfillmentOrderId String?
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt

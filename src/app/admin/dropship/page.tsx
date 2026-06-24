@@ -568,7 +568,7 @@ export default function AdminDropshipPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">AI Dropship Store</h1>
+          <h1 className="text-2xl font-bold text-gray-900">ENA Dropship</h1>
           <p className="text-sm text-gray-500 mt-1">Mağazaları yönet, düzenle, aç/kapat</p>
         </div>
         <button onClick={() => setShowCreate(true)}

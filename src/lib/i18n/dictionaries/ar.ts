@@ -67,6 +67,8 @@ const ar = {
     feature_free_shipping_desc: "توصيل مجاني للطلبات B4B فوق 1000TL",
     feature_support_247: "دعم 24/7",
     feature_support_247_desc: "دعم متميز مع مدير حساب مخصص",
+    feature_dropship_store: "متجر ENA",
+    feature_dropship_store_desc: "افتح متجرك في ثوانٍ، وابدأ البيع بمنتجات جاهزة",
     search_title: "استكشف كتالوج منتجاتنا الواسع",
     search_desc: "ابحث حسب الفئة أو اسم المنتج أو الوصف",
     cta_title: "طور أعمالك",

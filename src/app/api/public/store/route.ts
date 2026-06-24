@@ -38,10 +38,16 @@ export async function GET(req: NextRequest) {
       return Response.json({ success: false, error: "Mağaza bulunamadı" }, { status: 404 });
     }
 
-    const products = await prisma.storeProduct.findMany({
-      where: { storeId: store.id, isActive: true },
-      orderBy: { sortOrder: "asc" },
-    });
+    const [products, categories] = await Promise.all([
+      prisma.storeProduct.findMany({
+        where: { storeId: store.id, isActive: true },
+        orderBy: { sortOrder: "asc" },
+      }),
+      prisma.storeCategory.findMany({
+        where: { storeId: store.id, isActive: true },
+        orderBy: { sortOrder: "asc" },
+      }),
+    ]);
 
     const catalogItemIds = products.map((p) => p.productCatalogItemId);
     const catalogItems =
@@ -67,12 +73,14 @@ export async function GET(req: NextRequest) {
       success: true,
       data: {
         store,
+        categories,
         products: products.map((p) => {
           const catalogItem = catalogMap[p.productCatalogItemId];
           return {
             id: p.id,
             storeProductId: p.id,
             dealerPrice: p.dealerPrice,
+            stock: p.stock,
             name: catalogItem?.name || "",
             sku: catalogItem?.sku || "",
             image: firstImageFromJson(catalogItem?.imagesJson || "[]"),
@@ -107,15 +115,27 @@ export async function POST(req: NextRequest) {
     const storeProducts = await prisma.storeProduct.findMany({
       where: { id: { in: productIds }, storeId: store.id, isActive: true },
     });
+    const catalogItemIds = storeProducts.map((sp) => sp.productCatalogItemId);
+    const catalogItems = catalogItemIds.length > 0
+      ? await prisma.productCatalogItem.findMany({ where: { id: { in: catalogItemIds } }, select: { id: true, name: true } })
+      : [];
+    const catalogNameMap = Object.fromEntries(catalogItems.map((ci) => [ci.id, ci.name]));
 
     const spMap = Object.fromEntries(storeProducts.map((sp) => [sp.id, sp]));
     let totalAmount = 0;
+    for (const i of items) {
+      const sp = spMap[i.storeProductId];
+      if (!sp) throw new Error(`Ürün bulunamadı: ${i.storeProductId}`);
+      if (sp.stock > 0 && (i.quantity || 1) > sp.stock) {
+        throw new Error(`Yetersiz stok: ${catalogNameMap[sp.productCatalogItemId] || sp.productCatalogItemId} (stok: ${sp.stock})`);
+      }
+    }
     const enrichedItems = items.map((i: { storeProductId: string; quantity: number }) => {
       const sp = spMap[i.storeProductId];
       if (!sp) throw new Error(`Ürün bulunamadı: ${i.storeProductId}`);
       const lineTotal = sp.dealerPrice * (i.quantity || 1);
       totalAmount += lineTotal;
-      return { storeProductId: i.storeProductId, quantity: i.quantity || 1, unitPrice: sp.dealerPrice, lineTotal };
+      return { storeProductId: i.storeProductId, quantity: i.quantity || 1, unitPrice: sp.dealerPrice, lineTotal, name: catalogNameMap[sp.productCatalogItemId] || "" };
     });
 
     const order = await prisma.storeOrder.create({
@@ -134,6 +154,16 @@ export async function POST(req: NextRequest) {
         status: "PENDING",
       },
     });
+
+    for (const i of items) {
+      const sp = spMap[i.storeProductId];
+      if (sp.stock > 0) {
+        await prisma.storeProduct.update({
+          where: { id: sp.id },
+          data: { stock: { decrement: i.quantity || 1 } },
+        });
+      }
+    }
 
     await prisma.dealerStore.update({
       where: { id: store.id },

@@ -54,7 +54,7 @@ export default function DropshipGatewayPage() {
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-orange-400 to-red-500">
             <Store size={32} className="text-white" />
           </div>
-          <h1 className="text-2xl font-bold text-white">AI Dropship Store</h1>
+<h1 className="text-2xl font-bold text-white">ENA Dropship</h1>
           <p className="text-ena-light">Mağaza oluşturmak için giriş yapmalısınız</p>
           <Link
             href="/auth/login?redirect=/gateway/dropship"
@@ -88,7 +88,7 @@ export default function DropshipGatewayPage() {
         <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-orange-400 to-red-500">
           <Store size={32} className="text-white" />
         </div>
-        <h1 className="text-2xl font-bold text-white">AI Dropship Store</h1>
+        <h1 className="text-2xl font-bold text-white">ENA Dropship</h1>
         <p className="text-ena-light">Kendi e-ticaret mağazanı açmak için lisans almalısın</p>
         <Link
           href="/dealer/modules"

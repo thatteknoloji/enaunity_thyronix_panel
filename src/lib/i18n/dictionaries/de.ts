@@ -67,6 +67,8 @@ const de = {
     feature_free_shipping_desc: "Kostenfreie Lieferung für B4B Bestellungen über 1000TL",
     feature_support_247: "24/7 Support",
     feature_support_247_desc: "Premium-Support mit persönlichem Kundenbetreuer",
+    feature_dropship_store: "ENA Shop",
+    feature_dropship_store_desc: "Eröffne deinen Store in Sekunden und starte mit fertigen Produkten",
     search_title: "Entdecken Sie unseren Produktkatalog",
     search_desc: "Suche nach Kategorie, Produktname oder Beschreibung",
     cta_title: "Wachsen Sie Ihr Unternehmen",

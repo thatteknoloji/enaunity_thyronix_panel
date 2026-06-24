@@ -48,7 +48,7 @@ export async function getModuleLicenseState(
   ctx?: ModuleAccessContext
 ): Promise<ModuleLicenseState> {
   if (isSuperAdmin(ctx?.userRole || undefined)) return "active";
-  if (moduleKey === "ENA_COMMERCE") {
+  if (moduleKey === "ENA_COMMERCE" || moduleKey === "AI_DROPSHIP") {
     const approval = await prisma.dealerApproval.findUnique({ where: { dealerId } });
     return approval?.status === "ACTIVE" ? "active" : approval ? "pending" : "none";
   }
@@ -81,6 +81,14 @@ export async function getDealerApprovalStatus(dealerId: string) {
   return prisma.dealerApproval.findUnique({ where: { dealerId } });
 }
 
+export async function requireDealerModuleAccess(moduleKey: string) {
+  const { requireDealer } = await import("@/lib/auth");
+  const user = await requireDealer();
+  const has = await hasModuleAccess(user.dealerId!, moduleKey, { userRole: user.role });
+  if (!has) throw new Error("Bu modüle erişim yetkiniz yok");
+  return user;
+}
+
 export async function canDealerPurchaseModule(dealerId: string): Promise<boolean> {
   const approval = await prisma.dealerApproval.findUnique({ where: { dealerId } });
   return approval?.status === "ACTIVE";
@@ -99,7 +107,7 @@ export function getModuleLabel(key: string): string {
     LINKSLASH: "LinkSlash",
     POD_CREATOR: "POD Creator",
     AI_PAGE_FACTORY: "AI Page Factory",
-    AI_DROPSHIP: "AI Dropship Store",
+    AI_DROPSHIP: "ENA Dropship",
     PRODUCT_LIBRARY: "Hazır Ürün Deposu",
   };
   return labels[key] || key;

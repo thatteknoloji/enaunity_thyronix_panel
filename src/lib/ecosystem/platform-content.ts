@@ -724,7 +724,7 @@ export const PLATFORM_CONTENT: Record<string, PlatformContent> = {
   },
   "dropship": {
     slug: "dropship",
-    name: "AI Dropship Store",
+    name: "ENA Dropship",
     subtitle: "Yapay Zeka Destekli Mağaza Oluşturucu",
     description: "Kendi e-ticaret mağazanı saniyeler içinde aç. Hazır Ürün Deposu'ndan ürünleri seç, fiyatlandır, subdomain'inde satışa başla. Sepet, ödeme, kargo — hepsi hazır.",
     icon: "Store",
@@ -743,18 +743,18 @@ export const PLATFORM_CONTENT: Record<string, PlatformContent> = {
     ],
     hero: {
       title: "Dakikalar İçinde Kendi E-Ticaret Mağazanı Aç",
-      subtitle: "AI Dropship Store Builder",
+      subtitle: "ENA Dropship Builder",
       description: "Hiç teknik bilgi gerektirmeden, Hazır Ürün Deposu'ndan seçtiğin ürünlerle kendi mağazanı kur. Subdomain, ödeme altyapısı, kargo — her şey hazır. Sen sadece sat.",
     },
     problems: [
-      { title: "E-Ticaret Maliyeti Çok Yüksek", description: "Kendi siteni kurmak, hosting, domain, ödeme entegrasyonu derken binlerce lira harcamak gerek. AI Dropship Store ile tüm altyapı hazır." },
+      { title: "E-Ticaret Maliyeti Çok Yüksek", description: "Kendi siteni kurmak, hosting, domain, ödeme entegrasyonu derken binlerce lira harcamak gerek. ENA Dropship ile tüm altyapı hazır." },
       { title: "Teknik Bilgi Gerekiyor", description: "E-ticaret sitesi kurmak için yazılımcıya ihtiyacın var. Tema, checkout, entegrasyon derken haftalar sürer." },
       { title: "Ürün Tedarik Etmek Zor", description: "Tedarikçi bulmak, ürün fotoğrafı çekmek, açıklama yazmak, stok takibi yapmak... Hepsi ayrı dert." },
       { title: "Ödeme ve Kargo Karmaşası", description: "Kendi POS'unu bağlatmak, kargo şirketiyle anlaşma yapmak, fatura kesmek — her biri ayrı bir operasyon." },
     ],
     solution: {
       title: "Altyapı Bizden, Satış Senden",
-      description: "AI Dropship Store Builder ile ihtiyacın olan tek şey bir ENA hesabı. Mağazanı aç, Hazır Ürün Deposu'ndan ürünleri seç, kendi fiyatını belirle ve satmaya başla. Ödeme, kargo, fatura — her şey ENAUNITY'de.",
+      description: "ENA Dropship Builder ile ihtiyacın olan tek şey bir ENA hesabı. Mağazanı aç, Hazır Ürün Deposu'ndan ürünleri seç, kendi fiyatını belirle ve satmaya başla. Ödeme, kargo, fatura — her şey ENAUNITY'de.",
     },
     features: [
       { title: "Alt Domain", description: "istediğin.enaunity.com.tr adresinde anında mağazan açılır. Profesyonel görünümlü, ücretsiz subdomain.", icon: "Globe" },
@@ -769,7 +769,7 @@ export const PLATFORM_CONTENT: Record<string, PlatformContent> = {
     sections: [
       {
         id: "what-is",
-        title: "AI Dropship Store Builder Nedir?",
+        title: "ENA Dropship Builder Nedir?",
         description: "Hiçbir teknik bilgi gerektirmeden, dakikalar içinde kendi e-ticaret mağazanı kurmanı sağlayan yapay zeka destekli dropshipping platformudur.",
         items: [
           { title: "Anında Mağaza Kurulumu", description: "Mağaza adını ve alt domainini gir, saniyeler içinde mağazan hazır. Logo, renkler ve tema ile kişiselleştir." },
@@ -780,19 +780,19 @@ export const PLATFORM_CONTENT: Record<string, PlatformContent> = {
       },
       {
         id: "why",
-        title: "Neden AI Dropship Store Builder?",
+        title: "Neden ENA Dropship Builder?",
         description: "E-ticarete başlamak hiç bu kadar kolay olmamıştı.",
         items: [
           { title: "Sıfır Sermaye", description: "Stok yatırımı yapmana gerek yok. Ürünler satıldıkça komisyon kazanırsın." },
           { title: "Sıfır Teknik Bilgi", description: "Domain, hosting, ödeme entegrasyonu, kargo anlaşması — hepsi bizde. Sen sadece satışa odaklan." },
-          { title: "Dakikalarda Açılır", description: "Geleneksel e-ticaret sitesi kurulumu haftalar sürer. AI Dropship Store Builder ile dakikalar içinde mağazan yayında." },
+          { title: "Dakikalarda Açılır", description: "Geleneksel e-ticaret sitesi kurulumu haftalar sürer. ENA Dropship Builder ile dakikalar içinde mağazan yayında." },
           { title: "Ölçeklenebilir", description: "10 ürün de 10.000 ürün de aynı sistem üzerinde yönetilir. İşin büyüdükçe kapasiten de büyür." },
         ],
       },
       {
         id: "groups",
         title: "Kimler İçin Uygun?",
-        description: "AI Dropship Store Builder farklı profillerden herkesin kullanabileceği bir sistemdir:",
+        description: "ENA Dropship Builder farklı profillerden herkesin kullanabileceği bir sistemdir:",
         items: [
           { title: "Girişimciler", description: "Yan gelir elde etmek isteyen, kendi işini kurmak isteyen herkes. Hiçbir ön şart yok." },
           { title: "Öğrenciler", description: "Okul harçlığını çıkarmak veya girişimciliği deneyimlemek isteyen öğrenciler için ideal." },
@@ -801,7 +801,7 @@ export const PLATFORM_CONTENT: Record<string, PlatformContent> = {
         ],
       },
     ],
-    flow: { label: "AI Dropship Store Kurulum Akışı", steps: ["Mağaza Oluştur", "Ürün Seç", "Fiyatlandır", "Yayına Al", "Satışa Başla"] },
+    flow: { label: "ENA Dropship Kurulum Akışı", steps: ["Mağaza Oluştur", "Ürün Seç", "Fiyatlandır", "Yayına Al", "Satışa Başla"] },
     stats: [
       { value: 5, suffix: "Dakika", label: "Kurulum Süresi" },
       { value: 3, suffix: "Adım", label: "Kurulum Adımı" },
@@ -843,7 +843,7 @@ export const PLATFORM_CONTENT: Record<string, PlatformContent> = {
       },
     ],
     faq: [
-      { id: "ds-1", question: "AI Dropship Store Builder nedir?", answer: "Hiçbir teknik bilgi gerektirmeden, dakikalar içinde kendi e-ticaret mağazanı kurmanı sağlayan dropshipping platformudur.", sortOrder: 0, active: true },
+      { id: "ds-1", question: "ENA Dropship Builder nedir?", answer: "Hiçbir teknik bilgi gerektirmeden, dakikalar içinde kendi e-ticaret mağazanı kurmanı sağlayan dropshipping platformudur.", sortOrder: 0, active: true },
       { id: "ds-2", question: "Ne kadar sürede mağaza açabilirim?", answer: "Mağaza adı ve alt domain bilgilerini gir, 5 dakika içinde mağazan hazır.", sortOrder: 1, active: true },
       { id: "ds-3", question: "Ürünleri nereden buluyorum?", answer: "ENAUNITY Hazır Ürün Deposu'ndaki binlerce ürün arasından seçim yaparsın. Stok, kalite ve tedarik ENAUNITY garantisinde.", sortOrder: 2, active: true },
       { id: "ds-4", question: "Fiyatlandırmayı ben mi belirliyorum?", answer: "Evet. Her ürünün baz fiyatı bellidir, sen üzerine kendi marjını koyarak satış fiyatını belirlersin.", sortOrder: 3, active: true },
@@ -854,7 +854,7 @@ export const PLATFORM_CONTENT: Record<string, PlatformContent> = {
     ],
     cta: {
       title: "Kendi e-ticaret mağazanı hemen aç",
-      description: "Dakikalar içinde kurulum, sıfır sermaye, tam kontrol. AI Dropship Store Builder ile satışa başlamak için hemen başvur.",
+      description: "Dakikalar içinde kurulum, sıfır sermaye, tam kontrol. ENA Dropship Builder ile satışa başlamak için hemen başvur.",
       primaryText: "Hemen Başla",
       primaryUrl: "/dealer/modules",
       secondaryText: "Nasıl Çalışır?",

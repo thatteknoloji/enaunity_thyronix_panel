@@ -1,10 +1,18 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { requireDealer } from "@/lib/auth";
+import { hasModuleAccess } from "@/lib/modules/access";
+
+async function requireDropshipAccess() {
+  const user = await requireDealer();
+  const has = await hasModuleAccess(user.dealerId!, "AI_DROPSHIP", { userRole: user.role });
+  if (!has) throw new Error("Bu modüle erişim yetkiniz yok");
+  return user;
+}
 
 export async function POST(req: Request) {
   try {
-    const user = await requireDealer();
+    const user = await requireDropshipAccess();
     const dealerId = user.dealerId!;
     const { customDomain } = await req.json();
 
@@ -38,7 +46,7 @@ export async function POST(req: Request) {
 
 export async function DELETE() {
   try {
-    const user = await requireDealer();
+    const user = await requireDropshipAccess();
     const dealerId = user.dealerId!;
 
     const store = await prisma.dealerStore.findUnique({ where: { dealerId } });

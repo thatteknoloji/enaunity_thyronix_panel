@@ -193,6 +193,7 @@ export function buildAdminNavGroups(t: (key: string) => string, legacyMarketplac
         { href: "/admin/returns", label: t("admin.returns"), icon: RotateCcw },
         { href: "/admin/payments", label: t("admin.payments"), icon: Banknote },
         { href: "/admin/payments/gateways", label: "Ödeme Altyapısı", icon: CreditCard },
+        { href: "/admin/dealer-balance-topups", label: "Bakiye Yükleme Onayları", icon: Banknote },
         { href: "/admin/payments/policies", label: "Ödeme Politikaları", icon: CreditCard },
         { href: "/admin/payment-terms", label: t("admin.payment_terms"), icon: CalendarClock },
         { href: "/admin/dealer-transactions", label: "Bakiye Hareketleri", icon: DollarSign },
@@ -241,7 +242,7 @@ export function buildAdminNavGroups(t: (key: string) => string, legacyMarketplac
         { href: "/admin/integrations/thyronix", label: "THYRONIX Entegrasyon", icon: Plug },
         { href: "/admin/integrations/hive", label: "HIVE Entegrasyon", icon: Plug },
         { href: "/admin/customer-products", label: "Müşteri Ürünleri", icon: Package },
-        { href: "/admin/dropship", label: "AI Dropship Store", icon: ShoppingBag },
+        { href: "/admin/dropship", label: "ENA Dropship", icon: ShoppingBag },
         ...(legacyMarketplaceEnabled
           ? [{ href: "/admin/marketplace", label: "Pazar Yeri (Legacy)", icon: Store }]
           : []),

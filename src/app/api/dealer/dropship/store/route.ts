@@ -1,6 +1,15 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getSession, requireDealer } from "@/lib/auth";
+import { hasModuleAccess } from "@/lib/modules/access";
+
+const MODULE = "AI_DROPSHIP";
+
+async function checkAccess(user: { dealerId?: string | null; role?: string | null }) {
+  if (!user.dealerId) throw new Error("Bayi bulunamadı");
+  const has = await hasModuleAccess(user.dealerId, MODULE, { userRole: user.role });
+  if (!has) throw new Error("Bu modüle erişim yetkiniz yok");
+}
 
 export async function GET() {
   try {
@@ -8,12 +17,9 @@ export async function GET() {
     if (!user) {
       return NextResponse.json({ success: false, error: "Yetkisiz erişim" }, { status: 401 });
     }
-    const dealerId = user.dealerId;
-    if (!dealerId) {
-      return NextResponse.json({ success: false, error: "Bayi bulunamadı" }, { status: 404 });
-    }
+    await checkAccess(user);
     let store = await prisma.dealerStore.findUnique({
-      where: { dealerId },
+      where: { dealerId: user.dealerId! },
       include: {
         products: {
           where: { isActive: true },
@@ -31,6 +37,7 @@ export async function GET() {
 export async function POST(req: Request) {
   try {
     const user = await requireDealer();
+    await checkAccess(user);
     const dealerId = user.dealerId!;
     const body = await req.json();
 
@@ -63,6 +70,7 @@ export async function POST(req: Request) {
 export async function PATCH(req: Request) {
   try {
     const user = await requireDealer();
+    await checkAccess(user);
     const dealerId = user.dealerId!;
     const body = await req.json();
 

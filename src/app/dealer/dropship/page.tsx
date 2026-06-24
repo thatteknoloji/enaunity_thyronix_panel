@@ -1,12 +1,15 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import {
   Store, ShoppingCart, Package, Settings, ExternalLink,
   CheckCircle, AlertCircle, Loader2, Eye, EyeOff,
-  Image, Palette, Trash2, Plus, Search, X, Link
+  Image, Palette, Trash2, Plus, Search, X, Link, Tag,
+  Download, ChevronDown, ChevronUp, User, MapPin, Clock, FileText, CreditCard, Bell, Truck
 } from "lucide-react";
+import ThemeTab from "./ThemeTab";
+import CategoriesTab from "./CategoriesTab";
 
 type CatalogItem = {
   id: string;
@@ -20,6 +23,7 @@ type StoreProduct = {
   id: string;
   productCatalogItemId: string;
   dealerPrice: number;
+  stock: number;
   isActive: boolean;
   sortOrder: number;
   catalogItem: CatalogItem | null;
@@ -45,7 +49,7 @@ type DealerStore = {
   products: StoreProduct[];
 };
 
-type Tab = "settings" | "products" | "orders" | "theme";
+type Tab = "settings" | "products" | "orders" | "categories" | "theme";
 
 export default function DealerDropshipPage() {
   const router = useRouter();
@@ -71,6 +75,33 @@ export default function DealerDropshipPage() {
   const [catalogResults, setCatalogResults] = useState<CatalogItem[]>([]);
   const [searching, setSearching] = useState(false);
   const [showCatalog, setShowCatalog] = useState(false);
+
+  const [notification, setNotification] = useState<{ time: Date; count: number } | null>(null);
+  const prevPendingCount = useRef(0);
+  const notificationTimer = useRef<ReturnType<typeof setTimeout>>(null);
+
+  useEffect(() => {
+    if (!store) return;
+    const poll = async () => {
+      try {
+        const res = await fetch("/api/dealer/dropship/orders?status=PENDING&limit=100");
+        const d = await res.json();
+        if (d.success && Array.isArray(d.data)) {
+          const newCount = d.data.length;
+          const oldCount = prevPendingCount.current;
+          if (newCount > oldCount && oldCount > 0) {
+            setNotification({ time: new Date(), count: newCount - oldCount });
+            if (notificationTimer.current) clearTimeout(notificationTimer.current);
+            notificationTimer.current = setTimeout(() => setNotification(null), 8000);
+          }
+          prevPendingCount.current = newCount;
+        }
+      } catch {}
+    };
+    poll();
+    const interval = setInterval(poll, 30000);
+    return () => clearInterval(interval);
+  }, [store]);
 
   useEffect(() => {
     fetch("/api/dealer/dropship/store")
@@ -185,6 +216,15 @@ export default function DealerDropshipPage() {
     fetchProducts();
   };
 
+  const updateProductStock = async (id: string, stock: number) => {
+    await fetch("/api/dealer/dropship/products", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id, stock }),
+    });
+    fetchProducts();
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-ena-dark via-[#1a1a2e] to-ena-dark flex items-center justify-center">
@@ -201,7 +241,7 @@ export default function DealerDropshipPage() {
             <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-orange-400 to-red-500 mb-4">
               <Store size={32} className="text-white" />
             </div>
-            <h1 className="text-2xl font-bold text-white">AI Dropship Store</h1>
+            <h1 className="text-2xl font-bold text-white">ENA Dropship</h1>
             <p className="text-ena-light mt-2">Kendi e-ticaret mağazanı oluştur</p>
           </div>
 
@@ -282,6 +322,7 @@ export default function DealerDropshipPage() {
     { key: "settings", label: "Ayarlar", icon: <Settings size={16} /> },
     { key: "products", label: "Ürünler", icon: <Package size={16} /> },
     { key: "orders", label: "Siparişler", icon: <ShoppingCart size={16} /> },
+    { key: "categories", label: "Kategoriler", icon: <Tag size={16} /> },
     { key: "theme", label: "Tema", icon: <Palette size={16} /> },
   ];
 
@@ -305,6 +346,12 @@ export default function DealerDropshipPage() {
             </div>
           </div>
           <div className="flex items-center gap-2">
+            {notification && (
+              <div className="bg-green-500/20 border border-green-500/30 text-green-400 px-3 py-1.5 rounded-xl text-xs font-medium animate-pulse flex items-center gap-1.5">
+                <Bell size={12} />
+                {notification.count} yeni sipariş!
+              </div>
+            )}
             <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium ${
               store?.status === "ACTIVE"
                 ? "bg-green-500/20 text-green-400 border border-green-500/30"
@@ -497,24 +544,55 @@ export default function DealerDropshipPage() {
                 <div className="space-y-2">
                   {store.products.map((p) => (
                     <div key={p.id} className="flex items-center justify-between p-3 rounded-xl hover:bg-white/5 transition-colors">
-                      <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-3 min-w-0 flex-1">
                         {p.catalogItem?.image && (
-                          <img src={p.catalogItem.image} alt="" className="w-12 h-12 rounded-lg object-cover bg-ena-dark" />
+                          <img src={p.catalogItem.image} alt="" className="w-12 h-12 rounded-lg object-cover bg-ena-dark shrink-0" />
                         )}
-                        <div>
-                          <p className="text-sm font-medium text-white">{p.catalogItem?.name || "Ürün"}</p>
-                          <p className="text-xs text-ena-light">{p.catalogItem?.sku}</p>
+                        <div className="min-w-0">
+                          <p className="text-sm font-medium text-white truncate">{p.catalogItem?.name || "Ürün"}</p>
+                          <div className="flex items-center gap-2 text-xs text-ena-light">
+                            <span>{p.catalogItem?.sku}</span>
+                            {p.catalogItem?.category && (
+                              <>
+                                <span>•</span>
+                                <span>{p.catalogItem.category}</span>
+                              </>
+                            )}
+                          </div>
                         </div>
                       </div>
-                      <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-2 shrink-0">
                         <div className="flex items-center gap-1">
-                          <input type="number" value={p.dealerPrice} min={0} step={0.01}
-                            onChange={(e) => {
+                          <input type="number" defaultValue={p.dealerPrice} min={0} step={0.01}
+                            onBlur={(e) => {
                               const v = parseFloat(e.target.value) || 0;
-                              updateProductPrice(p.id, v);
+                              if (v !== p.dealerPrice) updateProductPrice(p.id, v);
                             }}
-                            className="w-28 px-2 py-1.5 bg-ena-dark border border-white/10 rounded-lg text-white text-sm text-right focus:outline-none focus:ring-2 focus:ring-orange-500/50" />
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter") {
+                                const v = parseFloat((e.target as HTMLInputElement).value) || 0;
+                                if (v !== p.dealerPrice) updateProductPrice(p.id, v);
+                              }
+                            }}
+                            className="w-20 px-2 py-1.5 bg-ena-dark border border-white/10 rounded-lg text-white text-sm text-right focus:outline-none focus:ring-2 focus:ring-orange-500/50" />
                           <span className="text-xs text-ena-light">TL</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <input type="number" defaultValue={p.stock} min={0} step={1}
+                            onBlur={(e) => {
+                              const v = parseInt(e.target.value) || 0;
+                              if (v !== p.stock) updateProductStock(p.id, v);
+                            }}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter") {
+                                const v = parseInt((e.target as HTMLInputElement).value) || 0;
+                                if (v !== p.stock) updateProductStock(p.id, v);
+                              }
+                            }}
+                            className={`w-16 px-2 py-1.5 bg-ena-dark border rounded-lg text-white text-sm text-right focus:outline-none focus:ring-2 focus:ring-orange-500/50 ${
+                              p.stock <= 0 ? "border-red-500/40" : "border-white/10"
+                            }`} />
+                          <span className={`text-xs ${p.stock <= 0 ? "text-red-400" : "text-ena-light"}`}>adet</span>
                         </div>
                         <button onClick={() => removeProduct(p.id)}
                           className="p-1.5 hover:bg-red-500/20 rounded-lg text-red-400 transition-colors">
@@ -535,51 +613,12 @@ export default function DealerDropshipPage() {
           <OrdersTab />
         )}
 
+        {tab === "categories" && (
+          <CategoriesTab storeId={store?.id || ""} />
+        )}
+
         {tab === "theme" && (
-          <div className="bg-white/5 backdrop-blur rounded-2xl border border-white/10 p-6 space-y-4">
-            <h2 className="text-lg font-semibold text-white">Tema Özelleştirme</h2>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-ena-light mb-1">Ana Renk</label>
-                <div className="flex items-center gap-2">
-                  <input type="color" value={theme.primaryColor}
-                    onChange={(e) => setTheme({ ...theme, primaryColor: e.target.value })}
-                    className="w-10 h-10 rounded-lg border border-white/10 cursor-pointer bg-transparent" />
-                  <span className="text-sm text-white">{theme.primaryColor}</span>
-                </div>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-ena-light mb-1">İkincil Renk</label>
-                <div className="flex items-center gap-2">
-                  <input type="color" value={theme.secondaryColor}
-                    onChange={(e) => setTheme({ ...theme, secondaryColor: e.target.value })}
-                    className="w-10 h-10 rounded-lg border border-white/10 cursor-pointer bg-transparent" />
-                  <span className="text-sm text-white">{theme.secondaryColor}</span>
-                </div>
-              </div>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-ena-light mb-1">Yazı Tipi</label>
-              <select value={theme.fontFamily}
-                onChange={(e) => setTheme({ ...theme, fontFamily: e.target.value })}
-                className="w-full px-3 py-2.5 bg-ena-dark border border-white/10 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-orange-500/50 text-sm">
-                <option value="Inter">Inter</option>
-                <option value="Poppins">Poppins</option>
-                <option value="Roboto">Roboto</option>
-                <option value="Playfair Display">Playfair Display</option>
-              </select>
-            </div>
-            <div className="flex items-center gap-2 p-3 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-400 text-sm">
-              <Palette size={16} />
-              <span>Renk değişikliklerini kaydetmek için aşağıdaki Kaydet butonuna bas.</span>
-            </div>
-            <button onClick={() => updateStore({ themeJson: JSON.stringify(theme) })}
-              disabled={saving}
-              className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-xl font-medium hover:from-orange-600 hover:to-red-600 transition-all disabled:opacity-50 text-sm">
-              {saving ? <Loader2 size={16} className="animate-spin" /> : <Palette size={16} />}
-              {saving ? "Kaydediliyor..." : "Temayı Kaydet"}
-            </button>
-          </div>
+          <ThemeTab store={store} onSaved={() => window.location.reload()} />
         )}
       </div>
     </div>
@@ -587,9 +626,11 @@ export default function DealerDropshipPage() {
 }
 
 type StoreOrder = {
-  id: string; customerName: string; customerEmail: string;
-  shippingAddress: string; totalAmount: number; status: string;
-  itemsJson: string; notes: string; createdAt: string;
+  id: string; customerName: string; customerEmail: string; customerPhone: string;
+  shippingAddress: string; city: string; district: string; zipCode: string;
+  totalAmount: number; status: string;
+  itemsJson: string; notes: string; trackingCode: string; carrierName: string;
+  createdAt: string;
 };
 
 const STATUS_MAP: Record<string, string> = {
@@ -609,6 +650,10 @@ function OrdersTab() {
   const [orders, setOrders] = useState<StoreOrder[]>([]);
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState<string | null>(null);
+  const [statusFilter, setStatusFilter] = useState("ALL");
+  const [searchText, setSearchText] = useState("");
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [detailOrder, setDetailOrder] = useState<StoreOrder | null>(null);
 
   useEffect(() => {
     fetch("/api/dealer/dropship/orders")
@@ -624,84 +669,311 @@ function OrdersTab() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ id, status }),
     });
+    setOrders((prev) => prev.map((o) => o.id === id ? { ...o, status } : o));
+    if (detailOrder?.id === id) setDetailOrder({ ...detailOrder, status });
     setUpdating(null);
-    window.location.reload();
   };
+
+  const filteredOrders = orders.filter((o) => {
+    if (statusFilter !== "ALL" && o.status !== statusFilter) return false;
+    if (searchText) {
+      const q = searchText.toLowerCase();
+      if (!o.customerName.toLowerCase().includes(q) && !o.customerEmail.toLowerCase().includes(q)) return false;
+    }
+    return true;
+  });
+
+  const exportCSV = () => {
+    const rows = filteredOrders.map((o) => {
+      const items = (() => { try { return JSON.parse(o.itemsJson || "[]"); } catch { return []; } })();
+      const itemSummary = items.map((i: { quantity?: number; unitPrice?: number }) =>
+        `${i.quantity || 1}x ${((i.unitPrice || 0) * (i.quantity || 1)).toFixed(2)} TL`
+      ).join("; ");
+      return [o.id, o.customerName, o.customerEmail, o.shippingAddress, o.totalAmount.toFixed(2), STATUS_MAP[o.status] || o.status, itemSummary, new Date(o.createdAt).toLocaleDateString("tr-TR")];
+    });
+    const csv = [["Sipariş No", "Müşteri", "E-posta", "Adres", "Tutar", "Durum", "Ürünler", "Tarih"], ...rows]
+      .map((r) => r.map((v: string) => `"${v.replace(/"/g, '""')}"`).join(",")).join("\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "siparisler.csv"; a.click();
+  };
+
+  const statusFilters = [
+    { key: "ALL", label: "Tümü" },
+    { key: "PENDING", label: "Bekliyor" },
+    { key: "CONFIRMED", label: "Onaylandı" },
+    { key: "SHIPPED", label: "Kargoda" },
+    { key: "DELIVERED", label: "Teslim" },
+    { key: "CANCELLED", label: "İptal" },
+  ];
+
+  const totalRevenue = filteredOrders.reduce((s, o) => s + o.totalAmount, 0);
+  const pendingCount = orders.filter((o) => o.status === "PENDING").length;
 
   if (loading) return <div className="text-ena-light text-center py-8">Yükleniyor...</div>;
 
-  if (orders.length === 0) {
-    return (
-      <div className="bg-white/5 backdrop-blur rounded-2xl border border-white/10 p-6 text-center">
-        <ShoppingCart size={40} className="mx-auto text-gray-500 mb-3" />
-        <p className="text-ena-light">Henüz sipariş yok.</p>
+  return (
+    <div className="space-y-4">
+      {orders.length > 0 && (
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <div className="bg-white/5 backdrop-blur rounded-2xl border border-white/10 p-4">
+            <p className="text-xs text-ena-light">Toplam Sipariş</p>
+            <p className="text-xl font-bold text-white mt-1">{orders.length}</p>
+          </div>
+          <div className="bg-white/5 backdrop-blur rounded-2xl border border-white/10 p-4">
+            <p className="text-xs text-ena-light">Toplam Gelir</p>
+            <p className="text-xl font-bold text-green-400 mt-1">{orders.reduce((s, o) => s + o.totalAmount, 0).toFixed(2)} TL</p>
+          </div>
+          <div className="bg-white/5 backdrop-blur rounded-2xl border border-white/10 p-4">
+            <p className="text-xs text-ena-light">Bekleyen</p>
+            <p className="text-xl font-bold text-yellow-400 mt-1">{pendingCount}</p>
+          </div>
+          <div className="bg-white/5 backdrop-blur rounded-2xl border border-white/10 p-4">
+            <p className="text-xs text-ena-light">Ortalama Sipariş</p>
+            <p className="text-xl font-bold text-ena-light mt-1">{orders.length > 0 ? (orders.reduce((s, o) => s + o.totalAmount, 0) / orders.length).toFixed(2) : "0.00"} TL</p>
+          </div>
+        </div>
+      )}
+
+      <div className="bg-white/5 backdrop-blur rounded-2xl border border-white/10 p-4 space-y-4">
+        <div className="flex items-center gap-3 flex-wrap">
+          <div className="flex-1 relative min-w-[200px]">
+            <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-ena-light" />
+            <input type="text" value={searchText}
+              onChange={(e) => setSearchText(e.target.value)}
+              placeholder="Müşteri adı veya e-posta ile ara..."
+              className="w-full pl-10 pr-3 py-2 bg-ena-dark border border-white/10 rounded-xl text-white text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-orange-500/50" />
+          </div>
+          <button onClick={exportCSV} disabled={filteredOrders.length === 0}
+            className="flex items-center gap-1.5 px-3 py-2 bg-white/5 border border-white/10 rounded-xl text-ena-light hover:text-white text-sm disabled:opacity-50 transition-colors">
+            <Download size={14} /> CSV
+          </button>
+        </div>
+
+        <div className="flex items-center gap-1.5 flex-wrap">
+          {statusFilters.map((sf) => (
+            <button key={sf.key} onClick={() => setStatusFilter(sf.key)}
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                statusFilter === sf.key
+                  ? "bg-orange-500/20 text-orange-400"
+                  : "text-ena-light hover:text-white bg-white/5 hover:bg-white/10"
+              }`}>
+              {sf.label}
+              {sf.key !== "ALL" && (
+                <span className="ml-1.5 opacity-60">({orders.filter((o) => o.status === sf.key).length})</span>
+              )}
+            </button>
+          ))}
+        </div>
       </div>
-    );
-  }
+
+      {filteredOrders.length === 0 ? (
+        <div className="bg-white/5 backdrop-blur rounded-2xl border border-white/10 p-6 text-center">
+          <ShoppingCart size={40} className="mx-auto text-gray-500 mb-3" />
+          <p className="text-ena-light">{searchText || statusFilter !== "ALL" ? "Eşleşen sipariş bulunamadı." : "Henüz sipariş yok."}</p>
+        </div>
+      ) : (
+        <div className="space-y-2">
+          {filteredOrders.map((order) => {
+            const items = (() => { try { return JSON.parse(order.itemsJson || "[]"); } catch { return []; } })();
+            const isExpanded = expandedId === order.id;
+            const itemCount = items.reduce((s: number, i: { quantity?: number }) => s + (i.quantity || 1), 0);
+            const productCount = items.length;
+
+            return (
+              <div key={order.id} className="bg-white/5 backdrop-blur rounded-2xl border border-white/10 overflow-hidden">
+                <div className="p-4">
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-center gap-3 min-w-0 flex-1">
+                      <div className="w-9 h-9 rounded-xl bg-white/5 flex items-center justify-center shrink-0">
+                        <User size={16} className="text-ena-light" />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium text-white truncate">{order.customerName}</p>
+                        <p className="text-xs text-ena-light truncate">{order.customerEmail}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${STATUS_COLORS[order.status] || STATUS_COLORS.PENDING}`}>
+                        {STATUS_MAP[order.status] || order.status}
+                      </span>
+                      <button onClick={() => setExpandedId(isExpanded ? null : order.id)}
+                        className="p-1.5 hover:bg-white/10 rounded-lg text-ena-light transition-colors">
+                        {isExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-4 mt-2 text-xs text-ena-light">
+                    <span className="flex items-center gap-1"><Clock size={12} /> {new Date(order.createdAt).toLocaleDateString("tr-TR")}</span>
+                    <span>{productCount} ürün, {itemCount} adet</span>
+                    <span className="text-white font-semibold">{order.totalAmount.toFixed(2)} TL</span>
+                  </div>
+
+                  {isExpanded && (
+                    <div className="mt-3 pt-3 border-t border-white/10 space-y-3">
+                      <div className="text-xs space-y-1.5">
+                        {items.map((item: { storeProductId?: string; quantity?: number; unitPrice?: number; name?: string }, i: number) => (
+                          <div key={item.storeProductId || i} className="flex items-center gap-2 p-2 rounded-lg bg-white/5">
+                            <span className="text-ena-light w-6 text-right">{item.quantity || 1}x</span>
+                            <span className="text-white flex-1 truncate">{item.name || `Ürün #${i + 1}`}</span>
+                            <span className="text-ena-light">{((item.unitPrice || 0) * (item.quantity || 1)).toFixed(2)} TL</span>
+                          </div>
+                        ))}
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
+                        <div className="p-3 rounded-xl bg-white/5 space-y-1">
+                          <p className="flex items-center gap-1.5 text-ena-light font-medium mb-1"><MapPin size={12} /> Teslimat</p>
+                          <p className="text-white">{order.shippingAddress}</p>
+                          {(order.city || order.district) && (
+                            <p className="text-ena-light">{order.city}{order.city && order.district ? " / " : ""}{order.district} {order.zipCode}</p>
+                          )}
+                          {order.customerPhone && <p className="text-ena-light">{order.customerPhone}</p>}
+                        </div>
+                        <div className="p-3 rounded-xl bg-white/5 space-y-1">
+                          <p className="flex items-center gap-1.5 text-ena-light font-medium mb-1"><FileText size={12} /> Sipariş No</p>
+                          <p className="text-white font-mono text-xs break-all">{order.id}</p>
+                          <p className="text-ena-light">{new Date(order.createdAt).toLocaleString("tr-TR")}</p>
+                        </div>
+                        <div className="p-3 rounded-xl bg-white/5 space-y-1">
+                          <p className="flex items-center gap-1.5 text-ena-light font-medium mb-1"><CreditCard size={12} /> Tutar</p>
+                          <p className="text-white font-bold text-sm">{order.totalAmount.toFixed(2)} TL</p>
+                          <p className="text-ena-light">{STATUS_MAP[order.status] || order.status}</p>
+                        </div>
+                      </div>
+
+                      {order.notes && (
+                        <div className="p-3 rounded-xl bg-white/5 text-xs space-y-1">
+                          <p className="text-ena-light font-medium">Not</p>
+                          <p className="text-white">{order.notes}</p>
+                        </div>
+                      )}
+
+                      <TrackingSection order={order} setOrders={setOrders} setDetailOrder={setDetailOrder} />
+
+                      <div className="flex items-center justify-between pt-2 border-t border-white/10">
+                        <div className="flex items-center gap-2">
+                          {order.status === "PENDING" && (
+                            <>
+                              <button onClick={() => updateStatus(order.id, "CONFIRMED")} disabled={updating === order.id}
+                                className="px-3 py-1.5 bg-blue-600/80 text-white rounded-lg text-xs font-medium hover:bg-blue-600 transition-colors disabled:opacity-50">
+                                {updating === order.id ? "..." : "Onayla"}
+                              </button>
+                              <button onClick={() => updateStatus(order.id, "CANCELLED")} disabled={updating === order.id}
+                                className="px-3 py-1.5 bg-red-600/80 text-white rounded-lg text-xs font-medium hover:bg-red-600 transition-colors disabled:opacity-50">
+                                İptal
+                              </button>
+                            </>
+                          )}
+                          {order.status === "CONFIRMED" && (
+                            <button onClick={() => updateStatus(order.id, "SHIPPED")} disabled={updating === order.id}
+                              className="px-3 py-1.5 bg-purple-600/80 text-white rounded-lg text-xs font-medium hover:bg-purple-600 transition-colors disabled:opacity-50">
+                              {updating === order.id ? "..." : "Kargoya Ver"}
+                            </button>
+                          )}
+                          {order.status === "SHIPPED" && (
+                            <button onClick={() => updateStatus(order.id, "DELIVERED")} disabled={updating === order.id}
+                              className="px-3 py-1.5 bg-green-600/80 text-white rounded-lg text-xs font-medium hover:bg-green-600 transition-colors disabled:opacity-50">
+                              {updating === order.id ? "..." : "Teslim Edildi"}
+                            </button>
+                          )}
+                        </div>
+                        <span className="text-xs text-ena-light">
+                          {new Date(order.createdAt).toLocaleString("tr-TR")}
+                        </span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function TrackingSection({
+  order, setOrders, setDetailOrder,
+}: {
+  order: StoreOrder;
+  setOrders: React.Dispatch<React.SetStateAction<StoreOrder[]>>;
+  setDetailOrder: React.Dispatch<React.SetStateAction<StoreOrder | null>>;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [code, setCode] = useState(order.trackingCode || "");
+  const [carrier, setCarrier] = useState(order.carrierName || "");
+  const [saving, setSaving] = useState(false);
+
+  const hasTracking = order.trackingCode && order.carrierName;
+
+  if (order.status !== "CONFIRMED" && order.status !== "SHIPPED" && !hasTracking) return null;
+
+  const save = async () => {
+    setSaving(true);
+    const res = await fetch("/api/dealer/dropship/orders", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id: order.id, trackingCode: code, carrierName: carrier }),
+    });
+    const d = await res.json();
+    if (d.success) {
+      setOrders((prev) => prev.map((o) => o.id === order.id ? { ...o, trackingCode: code, carrierName: carrier } : o));
+      setDetailOrder((prev) => prev?.id === order.id ? { ...prev, trackingCode: code, carrierName: carrier } : prev);
+      setEditing(false);
+    }
+    setSaving(false);
+  };
 
   return (
-    <div className="space-y-3">
-      {orders.map((order) => {
-        const items = (() => { try { return JSON.parse(order.itemsJson || "[]"); } catch { return []; } })();
-        return (
-          <div key={order.id} className="bg-white/5 backdrop-blur rounded-2xl border border-white/10 p-4 space-y-3">
-            <div className="flex items-start justify-between">
-              <div>
-                <p className="text-sm font-medium text-white">{order.customerName}</p>
-                <p className="text-xs text-ena-light">{order.customerEmail}</p>
-              </div>
-              <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${STATUS_COLORS[order.status] || STATUS_COLORS.PENDING}`}>
-                {STATUS_MAP[order.status] || order.status}
-              </span>
-            </div>
-
-            <div className="text-xs text-gray-400 space-y-1">
-              {items.map((item: { storeProductId?: string; quantity?: number; unitPrice?: number; name?: string }) => (
-                <div key={item.storeProductId || "x"} className="flex items-center gap-2">
-                  <span>{item.quantity || 1}x</span>
-                  <span className="text-white">{item.name || "Ürün"}</span>
-                  <span>— {((item.unitPrice || 0) * (item.quantity || 1)).toFixed(2)} TL</span>
-                </div>
-              ))}
-            </div>
-
-            <div className="text-xs text-gray-400">
-              <p>Adres: {order.shippingAddress}</p>
-              {order.notes && <p>Not: {order.notes}</p>}
-            </div>
-
-            <div className="flex items-center justify-between pt-2 border-t border-white/10">
-              <p className="text-sm font-bold text-white">{order.totalAmount.toFixed(2)} TL</p>
-              <div className="flex items-center gap-2">
-                {order.status === "PENDING" && (
-                  <>
-                    <button onClick={() => updateStatus(order.id, "CONFIRMED")} disabled={updating === order.id}
-                      className="px-3 py-1.5 bg-blue-600/80 text-white rounded-lg text-xs font-medium hover:bg-blue-600 transition-colors disabled:opacity-50">
-                      Onayla
-                    </button>
-                    <button onClick={() => updateStatus(order.id, "CANCELLED")} disabled={updating === order.id}
-                      className="px-3 py-1.5 bg-red-600/80 text-white rounded-lg text-xs font-medium hover:bg-red-600 transition-colors disabled:opacity-50">
-                      İptal
-                    </button>
-                  </>
-                )}
-                {order.status === "CONFIRMED" && (
-                  <button onClick={() => updateStatus(order.id, "SHIPPED")} disabled={updating === order.id}
-                    className="px-3 py-1.5 bg-purple-600/80 text-white rounded-lg text-xs font-medium hover:bg-purple-600 transition-colors disabled:opacity-50">
-                    Kargoya Ver
-                  </button>
-                )}
-                {order.status === "SHIPPED" && (
-                  <button onClick={() => updateStatus(order.id, "DELIVERED")} disabled={updating === order.id}
-                    className="px-3 py-1.5 bg-green-600/80 text-white rounded-lg text-xs font-medium hover:bg-green-600 transition-colors disabled:opacity-50">
-                    Teslim Edildi
-                  </button>
-                )}
-              </div>
-            </div>
+    <div className="p-3 rounded-xl bg-purple-500/5 border border-purple-500/20 text-xs space-y-2">
+      <p className="flex items-center gap-1.5 text-purple-400 font-medium">
+        <Truck size={12} /> Kargo Takibi
+      </p>
+      {editing ? (
+        <div className="space-y-2">
+          <select value={carrier} onChange={(e) => setCarrier(e.target.value)}
+            className="w-full px-2 py-1.5 bg-ena-dark border border-white/10 rounded-lg text-white text-xs focus:outline-none focus:ring-2 focus:ring-purple-500/50">
+            <option value="">Kargo firması seç</option>
+            <option value="Yurtiçi Kargo">Yurtiçi Kargo</option>
+            <option value="MNG Kargo">MNG Kargo</option>
+            <option value="Aras Kargo">Aras Kargo</option>
+            <option value="Sürat Kargo">Sürat Kargo</option>
+            <option value="PTT Kargo">PTT Kargo</option>
+            <option value="Trendyol Express">Trendyol Express</option>
+            <option value="Hepsijet">Hepsijet</option>
+            <option value="Diğer">Diğer</option>
+          </select>
+          <input type="text" value={code} onChange={(e) => setCode(e.target.value)}
+            placeholder="Takip kodu"
+            className="w-full px-2 py-1.5 bg-ena-dark border border-white/10 rounded-lg text-white text-xs focus:outline-none focus:ring-2 focus:ring-purple-500/50" />
+          <div className="flex gap-2">
+            <button onClick={save} disabled={saving || !code || !carrier}
+              className="px-3 py-1.5 bg-purple-600/80 text-white rounded-lg text-xs font-medium hover:bg-purple-600 transition-colors disabled:opacity-50">
+              {saving ? "..." : "Kaydet"}
+            </button>
+            <button onClick={() => { setEditing(false); setCode(order.trackingCode || ""); setCarrier(order.carrierName || ""); }}
+              className="px-3 py-1.5 bg-white/10 text-white rounded-lg text-xs hover:bg-white/20 transition-colors">
+              İptal
+            </button>
           </div>
-        );
-      })}
+        </div>
+      ) : hasTracking ? (
+        <div className="flex items-center gap-2">
+          <span className="text-white">{order.carrierName}</span>
+          <span className="text-purple-300 font-mono">{order.trackingCode}</span>
+          <button onClick={() => { setEditing(true); setCode(order.trackingCode); setCarrier(order.carrierName); }}
+            className="ml-auto text-purple-400 hover:text-purple-300">
+            Düzenle
+          </button>
+        </div>
+      ) : (
+        <button onClick={() => setEditing(true)}
+          className="text-purple-400 hover:text-purple-300 transition-colors">
+          + Kargo bilgisi ekle
+        </button>
+      )}
     </div>
   );
 }

@@ -26,6 +26,7 @@ import {
   Shield,
   Link2,
   Layers,
+  ShoppingBag,
 } from "lucide-react";
 import { toAdminUrl } from "@/lib/auth/admin-access";
 
@@ -1164,7 +1165,7 @@ export default function AdminDashboardOverview() {
           </MissionPanel>
 
           <MissionPanel title="Hızlı İşlemler" delay={0.55}>
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
               {[
                 {
                   label: "Yeni Ürün",
@@ -1183,6 +1184,12 @@ export default function AdminDashboardOverview() {
                   icon: Store,
                   href: "/admin/dealers",
                   color: "from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500",
+                },
+                {
+                  label: "ENA Dropship",
+                  icon: ShoppingBag,
+                  href: "/admin/dropship",
+                  color: "from-orange-600 to-rose-600 hover:from-orange-500 hover:to-rose-500",
                 },
                 {
                   label: "Excel Export",

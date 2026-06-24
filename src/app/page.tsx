@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { formatPrice } from "@/lib/utils";
 import type { Product } from "@/types";
 import SmartSearch from "@/components/ui/smart-search";
-import { ChevronRight, Building2, Truck, BarChart3, Headphones } from "lucide-react";
+import { ChevronRight, Building2, Truck, BarChart3, Headphones, ShoppingBag } from "lucide-react";
 import { EcosystemShowcaseSection } from "@/components/ecosystem/EcosystemShowcaseSection";
 import { MarketplacePartnersSection } from "@/components/home/MarketplacePartnersSection";
 import { HomeBannersAtPlacement } from "@/components/home/HomeBannerSection";
@@ -167,12 +167,13 @@ export default function HomePage() {
         className="py-16 border-t border-ena-border"
       >
         <div className="mx-auto max-w-7xl px-4">
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-5">
             {[
               { icon: Building2, title: t("home.feature_corporate_pricing"), desc: t("home.feature_corporate_pricing_desc") },
               { icon: BarChart3, title: t("home.feature_bulk_order"), desc: t("home.feature_bulk_order_desc") },
               { icon: Truck, title: t("home.feature_free_shipping"), desc: t("home.feature_free_shipping_desc") },
               { icon: Headphones, title: t("home.feature_support_247"), desc: t("home.feature_support_247_desc") },
+              { icon: ShoppingBag, title: t("home.feature_dropship_store"), desc: t("home.feature_dropship_store_desc") },
             ].map((f, i) => (
               <motion.div
                 key={f.title}

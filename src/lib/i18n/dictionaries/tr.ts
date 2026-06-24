@@ -67,6 +67,8 @@ const tr = {
     feature_free_shipping_desc: "1000TL üzeri B4B siparişlerde ücretsiz teslimat",
     feature_support_247: "7/24 Destek",
     feature_support_247_desc: "Özel müşteri temsilcisi ile premium destek",
+    feature_dropship_store: "ENA Dropship",
+    feature_dropship_store_desc: "Kendi mağazanı saniyeler içinde aç, hazır ürünlerle satışa başla",
     search_title: "Geniş Ürün Kataloğumuzu İnceleyin",
     search_desc: "Kategori, ürün adı veya açıklama ile arayın",
     cta_title: "İşletmenizi Büyütün",

@@ -67,6 +67,8 @@ const en = {
     feature_free_shipping_desc: "Free delivery on B4B orders over 1000TL",
     feature_support_247: "7/24 Support",
     feature_support_247_desc: "Premium support with dedicated account manager",
+    feature_dropship_store: "ENA Store",
+    feature_dropship_store_desc: "Open your store in seconds, start selling with ready-made products",
     search_title: "Explore Our Wide Product Catalog",
     search_desc: "Search by category, product name or description",
     cta_title: "Grow Your Business",
