@@ -5,7 +5,7 @@ import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import {
   LayoutDashboard, Package, ShoppingCart, Users, LogOut, ChevronLeft, ChevronRight, ChevronDown,
-  ClipboardList, Store, DollarSign, Eye, Banknote, RotateCcw, Warehouse, FileText, Tag, Layers, Building2, Percent, Key, MessageSquare, ScrollText, Layout, PackagePlus, Truck, Shield, BarChart3, ClipboardCheck, Barcode, Bell, Megaphone, Webhook, Clock, CalendarClock, Upload, Link2, Plug, Zap, Sparkles,   CreditCard, Globe, Smartphone, Handshake, Brain, Shirt, ShoppingBag
+  ClipboardList, Store, DollarSign, Eye, Banknote, RotateCcw, Warehouse, FileText, Tag, Layers, Building2, Percent, Key, MessageSquare, ScrollText, Layout, PackagePlus, Truck, Shield, BarChart3, ClipboardCheck, Barcode, Bell, Megaphone, Webhook, Clock, CalendarClock, Upload, Link2, Plug, Zap, Sparkles,   CreditCard, Globe, Smartphone, Handshake, Brain, Shirt, ShoppingBag, Map
 } from "lucide-react";
 import { getNavPermissionMap, hasAnyPermission } from "@/lib/permissions";
 import { getAdminLoginPath, isAdminLoginPath, isAdminRole, isSuperAdmin, toAdminUrl } from "@/lib/auth/admin-access";
@@ -37,6 +37,10 @@ function buildNavGroups(t: (key: string) => string) {
         { href: "/admin/ecosystem", label: "Ekosistem Vitrini", icon: Sparkles },
         { href: "/admin/contracts", label: t("admin.contracts"), icon: ScrollText },
         { href: "/admin/blog-engine", label: "Blog Engine", icon: FileText, badge: "Beta" },
+        { href: "/admin/geo-icerik-fabrikasi", label: "GEO İçerik Fabrikası", icon: Globe, badge: "Beta" },
+        { href: "/admin/icerik-planlama-merkezi", label: "İçerik Planlama Merkezi", icon: Map, badge: "Beta" },
+        { href: "/admin/link-kurtarma-merkezi", label: "Link Kurtarma Merkezi", icon: Link2, badge: "Beta" },
+        { href: "/admin/icerik-kalite-merkezi", label: "İçerik Kalite Merkezi", icon: Shield, badge: "Beta" },
         { href: "/admin/legal-audit", label: "Hukuki Denetim", icon: Shield },
       ],
     },

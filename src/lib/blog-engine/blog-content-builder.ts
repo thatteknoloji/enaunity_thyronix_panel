@@ -5,6 +5,7 @@ import {
   type BlogContentSection,
   type BlogFaqItem,
   type BlogSourceType,
+  type ProductBlogType,
 } from "./blog-types";
 
 function section(
@@ -38,23 +39,87 @@ export function buildKeywordContent(keyword: string): BlogContentPayload {
   };
 }
 
-export function buildProductContent(productName: string, category?: string): BlogContentPayload {
+export function buildProductContent(
+  productName: string,
+  category?: string,
+  blogType: ProductBlogType = "usage"
+): BlogContentPayload {
   const topic = productName;
   const cat = category || "ürün";
-  const sections: BlogContentSection[] = [
-    section("usage", `${topic} Nasıl Kullanılır?`, paragraph(topic, "kullanım adımları ve ipuçları")),
-    section("purchase", `${topic} Satın Alma Rehberi`, paragraph(topic, "satın alırken dikkat edilecekler")),
-    section("benefits", `${topic} Avantajları`, paragraph(topic, "tercih edilme nedenleri")),
-    section("guide", `${topic} ve ${cat} İlişkisi`, paragraph(topic, `${cat} kategorisindeki konumu`)),
-    section("comparison", `${topic} Alternatifleri`, paragraph(topic, "benzer ürünlerle kıyaslama")),
-    section("conclusion", "Özet", `${topic} hakkında bilinçli karar için rehberimizi referans alabilirsiniz.`),
-  ];
+
+  const typeConfig: Record<
+    ProductBlogType,
+    { h1: string; intro: string; sections: BlogContentSection[] }
+  > = {
+    usage: {
+      h1: `${topic} — Kullanım Rehberi`,
+      intro: `${topic} ürününü doğru ve verimli kullanmak için adım adım rehber.`,
+      sections: [
+        section("usage", `${topic} Nasıl Kullanılır?`, paragraph(topic, "kullanım adımları ve ipuçları")),
+        section("guide", `${topic} Kurulum ve Hazırlık`, paragraph(topic, "kurulum öncesi hazırlık")),
+        section("guide", `${topic} Bakım ve Temizlik`, paragraph(topic, "bakım önerileri")),
+        section("benefits", `${topic} Kullanım Avantajları`, paragraph(topic, "doğru kullanımın faydaları")),
+        section("comparison", `${topic} Kullanım Senaryoları`, paragraph(topic, "farklı kullanım alanları")),
+        section("conclusion", "Özet", `${topic} kullanım rehberini referans alarak en iyi sonucu alabilirsiniz.`),
+      ],
+    },
+    benefits: {
+      h1: `${topic} — Avantajlar ve Faydalar`,
+      intro: `${topic} tercih edenler için sağladığı avantajları detaylıca inceliyoruz.`,
+      sections: [
+        section("benefits", `${topic} Temel Avantajları`, paragraph(topic, "tercih edilme nedenleri")),
+        section("benefits", `${topic} Uzun Vadeli Faydalar`, paragraph(topic, "sürdürülebilir faydalar")),
+        section("comparison", `${topic} Alternatiflere Göre Üstünlükler`, paragraph(topic, "rekabet avantajı")),
+        section("guide", `${topic} ve ${cat} İlişkisi`, paragraph(topic, `${cat} kategorisindeki konumu`)),
+        section("purchase", `Kimler ${topic} Tercih Etmeli?`, paragraph(topic, "hedef kitle")),
+        section("conclusion", "Özet", `${topic} avantajları bilinçli karar vermenize yardımcı olur.`),
+      ],
+    },
+    comparison: {
+      h1: `${topic} — Karşılaştırma Rehberi`,
+      intro: `${topic} ve alternatifleri arasında doğru seçimi yapmanız için karşılaştırma rehberi.`,
+      sections: [
+        section("comparison", `${topic} Alternatifleri`, paragraph(topic, "benzer ürünlerle kıyaslama")),
+        section("comparison", `${topic} Fiyat-Performans`, paragraph(topic, "fiyat performans analizi")),
+        section("guide", `${topic} Özellik Karşılaştırması`, paragraph(topic, "teknik özellik kıyası")),
+        section("benefits", `${topic} Tercih Kriterleri`, paragraph(topic, "seçim kriterleri")),
+        section("purchase", `${topic} Satın Alma Önerileri`, paragraph(topic, "satın alma ipuçları")),
+        section("conclusion", "Özet", `${topic} karşılaştırma tablosu ile doğru tercihi yapın.`),
+      ],
+    },
+    purchase: {
+      h1: `${topic} — Satın Alma Rehberi`,
+      intro: `${topic} satın alırken dikkat etmeniz gerekenler ve adım adım satın alma süreci.`,
+      sections: [
+        section("purchase", `${topic} Satın Alma Rehberi`, paragraph(topic, "satın alırken dikkat edilecekler")),
+        section("guide", `${topic} Fiyatlandırma`, paragraph(topic, "fiyat aralıkları ve faktörler")),
+        section("comparison", `${topic} Satıcı Karşılaştırması`, paragraph(topic, "güvenilir satıcı seçimi")),
+        section("benefits", `${topic} Garanti ve İade`, paragraph(topic, "garanti koşulları")),
+        section("usage", `${topic} Teslimat Sonrası`, paragraph(topic, "teslimat ve kurulum")),
+        section("conclusion", "Özet", `${topic} satın alma sürecinde bu rehberi takip edin.`),
+      ],
+    },
+    faq: {
+      h1: `${topic} — Sık Sorulan Sorular`,
+      intro: `${topic} hakkında en çok merak edilen sorular ve detaylı cevaplar.`,
+      sections: [
+        section("guide", `${topic} Nedir?`, paragraph(topic, "temel tanım")),
+        section("guide", `${topic} Nasıl Seçilir?`, paragraph(topic, "seçim kriterleri")),
+        section("benefits", `${topic} Avantajları`, paragraph(topic, "faydalar")),
+        section("purchase", `${topic} Fiyatları`, paragraph(topic, "fiyat bilgisi")),
+        section("usage", `${topic} Kullanımı`, paragraph(topic, "kullanım bilgisi")),
+        section("conclusion", "Özet", `${topic} SSS bölümünde tüm sorularınıza yanıt bulabilirsiniz.`),
+      ],
+    },
+  };
+
+  const cfg = typeConfig[blogType];
   return {
     version: BLOG_ENGINE_VERSION,
-    h1: `${topic} — Kullanım ve Satın Alma Rehberi`,
-    intro: `${topic} ürünü için kullanım, satın alma, avantajlar ve sık sorulan soruları tek sayfada topladık.`,
-    sections,
-    conclusion: sections[sections.length - 1].body,
+    h1: cfg.h1,
+    intro: cfg.intro,
+    sections: cfg.sections,
+    conclusion: cfg.sections[cfg.sections.length - 1].body,
   };
 }
 

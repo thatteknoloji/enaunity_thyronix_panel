@@ -3,9 +3,9 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
-  Store, Globe, ShoppingCart, Package, Settings, ExternalLink,
-  CheckCircle, AlertCircle, Loader2, Eye, EyeOff, ArrowRight,
-  Image, Palette, Trash2, Plus, Search, X
+  Store, ShoppingCart, Package, Settings, ExternalLink,
+  CheckCircle, AlertCircle, Loader2, Eye, EyeOff,
+  Image, Palette, Trash2, Plus, Search, X, Link
 } from "lucide-react";
 
 type CatalogItem = {
@@ -37,6 +37,8 @@ type DealerStore = {
   contactPhone: string;
   themeJson: string;
   paymentModel: string;
+  customDomain: string;
+  customDomainVerified: boolean;
   orderCount: number;
   totalRevenue: number;
   createdAt: string;
@@ -141,7 +143,7 @@ export default function DealerDropshipPage() {
     try {
       const res = await fetch("/api/upload", { method: "POST", body: fd });
       const d = await res.json();
-      if (d.success) await updateStore({ coverImage: d.data.fileUrl });
+      if (d.success) await updateStore({ logo: d.data[0]?.fileUrl || "" });
     } catch { setError("Logo yüklenemedi"); }
   };
 
@@ -360,13 +362,14 @@ export default function DealerDropshipPage() {
         )}
 
         {tab === "settings" && (
+          <div className="space-y-4">
           <div className="bg-white/5 backdrop-blur rounded-2xl border border-white/10 p-6 space-y-4">
             <h2 className="text-lg font-semibold text-white">Mağaza Ayarları</h2>
 
             <div className="flex items-center gap-4">
               <div className="relative w-20 h-20 rounded-xl overflow-hidden bg-ena-dark border border-white/10 flex-shrink-0">
-                {store?.coverImage ? (
-                  <img src={store.coverImage} alt="Logo" className="w-full h-full object-cover" />
+                {store?.logo || store?.coverImage ? (
+                  <img src={store.logo || store.coverImage || ""} alt="Logo" className="w-full h-full object-cover" />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center">
                     <Image size={24} className="text-gray-500" />
@@ -438,6 +441,9 @@ export default function DealerDropshipPage() {
                 </button>
               )}
             </div>
+          </div>
+
+          <CustomDomainSection store={store} />
           </div>
         )}
 
@@ -526,10 +532,7 @@ export default function DealerDropshipPage() {
         )}
 
         {tab === "orders" && (
-          <div className="bg-white/5 backdrop-blur rounded-2xl border border-white/10 p-6">
-            <h2 className="text-lg font-semibold text-white mb-4">Siparişler</h2>
-            <p className="text-sm text-ena-light">Sipariş yönetimi M6'da eklenecek.</p>
-          </div>
+          <OrdersTab />
         )}
 
         {tab === "theme" && (
@@ -579,6 +582,209 @@ export default function DealerDropshipPage() {
           </div>
         )}
       </div>
+    </div>
+  );
+}
+
+type StoreOrder = {
+  id: string; customerName: string; customerEmail: string;
+  shippingAddress: string; totalAmount: number; status: string;
+  itemsJson: string; notes: string; createdAt: string;
+};
+
+const STATUS_MAP: Record<string, string> = {
+  PENDING: "Bekliyor", CONFIRMED: "Onaylandı", SHIPPED: "Kargoda",
+  DELIVERED: "Teslim Edildi", CANCELLED: "İptal",
+};
+
+const STATUS_COLORS: Record<string, string> = {
+  PENDING: "bg-yellow-500/20 text-yellow-400 border-yellow-500/30",
+  CONFIRMED: "bg-blue-500/20 text-blue-400 border-blue-500/30",
+  SHIPPED: "bg-purple-500/20 text-purple-400 border-purple-500/30",
+  DELIVERED: "bg-green-500/20 text-green-400 border-green-500/30",
+  CANCELLED: "bg-red-500/20 text-red-400 border-red-500/30",
+};
+
+function OrdersTab() {
+  const [orders, setOrders] = useState<StoreOrder[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [updating, setUpdating] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetch("/api/dealer/dropship/orders")
+      .then((r) => r.json())
+      .then((d) => { if (d.success) setOrders(d.data); })
+      .finally(() => setLoading(false));
+  }, []);
+
+  const updateStatus = async (id: string, status: string) => {
+    setUpdating(id);
+    await fetch("/api/dealer/dropship/orders", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id, status }),
+    });
+    setUpdating(null);
+    window.location.reload();
+  };
+
+  if (loading) return <div className="text-ena-light text-center py-8">Yükleniyor...</div>;
+
+  if (orders.length === 0) {
+    return (
+      <div className="bg-white/5 backdrop-blur rounded-2xl border border-white/10 p-6 text-center">
+        <ShoppingCart size={40} className="mx-auto text-gray-500 mb-3" />
+        <p className="text-ena-light">Henüz sipariş yok.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-3">
+      {orders.map((order) => {
+        const items = (() => { try { return JSON.parse(order.itemsJson || "[]"); } catch { return []; } })();
+        return (
+          <div key={order.id} className="bg-white/5 backdrop-blur rounded-2xl border border-white/10 p-4 space-y-3">
+            <div className="flex items-start justify-between">
+              <div>
+                <p className="text-sm font-medium text-white">{order.customerName}</p>
+                <p className="text-xs text-ena-light">{order.customerEmail}</p>
+              </div>
+              <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${STATUS_COLORS[order.status] || STATUS_COLORS.PENDING}`}>
+                {STATUS_MAP[order.status] || order.status}
+              </span>
+            </div>
+
+            <div className="text-xs text-gray-400 space-y-1">
+              {items.map((item: { storeProductId?: string; quantity?: number; unitPrice?: number; name?: string }) => (
+                <div key={item.storeProductId || "x"} className="flex items-center gap-2">
+                  <span>{item.quantity || 1}x</span>
+                  <span className="text-white">{item.name || "Ürün"}</span>
+                  <span>— {((item.unitPrice || 0) * (item.quantity || 1)).toFixed(2)} TL</span>
+                </div>
+              ))}
+            </div>
+
+            <div className="text-xs text-gray-400">
+              <p>Adres: {order.shippingAddress}</p>
+              {order.notes && <p>Not: {order.notes}</p>}
+            </div>
+
+            <div className="flex items-center justify-between pt-2 border-t border-white/10">
+              <p className="text-sm font-bold text-white">{order.totalAmount.toFixed(2)} TL</p>
+              <div className="flex items-center gap-2">
+                {order.status === "PENDING" && (
+                  <>
+                    <button onClick={() => updateStatus(order.id, "CONFIRMED")} disabled={updating === order.id}
+                      className="px-3 py-1.5 bg-blue-600/80 text-white rounded-lg text-xs font-medium hover:bg-blue-600 transition-colors disabled:opacity-50">
+                      Onayla
+                    </button>
+                    <button onClick={() => updateStatus(order.id, "CANCELLED")} disabled={updating === order.id}
+                      className="px-3 py-1.5 bg-red-600/80 text-white rounded-lg text-xs font-medium hover:bg-red-600 transition-colors disabled:opacity-50">
+                      İptal
+                    </button>
+                  </>
+                )}
+                {order.status === "CONFIRMED" && (
+                  <button onClick={() => updateStatus(order.id, "SHIPPED")} disabled={updating === order.id}
+                    className="px-3 py-1.5 bg-purple-600/80 text-white rounded-lg text-xs font-medium hover:bg-purple-600 transition-colors disabled:opacity-50">
+                    Kargoya Ver
+                  </button>
+                )}
+                {order.status === "SHIPPED" && (
+                  <button onClick={() => updateStatus(order.id, "DELIVERED")} disabled={updating === order.id}
+                    className="px-3 py-1.5 bg-green-600/80 text-white rounded-lg text-xs font-medium hover:bg-green-600 transition-colors disabled:opacity-50">
+                    Teslim Edildi
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function CustomDomainSection({ store }: { store: DealerStore | null }) {
+  const [domain, setDomain] = useState(store?.customDomain || "");
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+
+  const requestDomain = async () => {
+    setSaving(true); setError(""); setSuccess("");
+    try {
+      const res = await fetch("/api/dealer/dropship/domain", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ customDomain: domain }),
+      });
+      const d = await res.json();
+      if (d.success) { setSuccess("Domain talebin alındı, admin onayı bekleniyor."); window.location.reload(); }
+      else setError(d.error || "Hata");
+    } catch { setError("Bir hata oluştu"); }
+    finally { setSaving(false); }
+  };
+
+  const removeDomain = async () => {
+    setSaving(true); setError("");
+    try {
+      const res = await fetch("/api/dealer/dropship/domain", { method: "DELETE" });
+      const d = await res.json();
+      if (d.success) { setSuccess("Domain bağlantısı kaldırıldı."); window.location.reload(); }
+      else setError(d.error || "Hata");
+    } catch { setError("Bir hata oluştu"); }
+    finally { setSaving(false); }
+  };
+
+  return (
+    <div className="bg-white/5 backdrop-blur rounded-2xl border border-white/10 p-6 space-y-4">
+      <h2 className="text-lg font-semibold text-white flex items-center gap-2">
+        <Link size={18} className="text-orange-400" /> Custom Domain
+      </h2>
+
+      {store?.customDomainVerified ? (
+        <div>
+          <div className="flex items-center gap-2 p-3 rounded-xl bg-green-500/10 border border-green-500/20 text-green-400 text-sm mb-3">
+            <CheckCircle size={16} />
+            <span>
+              <strong>{store.customDomain}</strong> — aktif. CNAME: <code className="text-xs">{store.slug}.enaunity.com.tr</code>
+            </span>
+          </div>
+          <button onClick={removeDomain} disabled={saving}
+            className="px-3 py-2 bg-red-500/20 text-red-400 rounded-xl text-sm font-medium hover:bg-red-500/30 transition-colors">
+            {saving ? "Kaldırılıyor..." : "Domaini Kaldır"}
+          </button>
+        </div>
+      ) : store?.customDomain && !store?.customDomainVerified ? (
+        <div>
+          <div className="flex items-center gap-2 p-3 rounded-xl bg-yellow-500/10 border border-yellow-500/20 text-yellow-400 text-sm mb-3">
+            <AlertCircle size={16} />
+            <span><strong>{store.customDomain}</strong> — admin onayı bekleniyor.</span>
+          </div>
+          <button onClick={removeDomain} disabled={saving}
+            className="px-3 py-2 bg-red-500/20 text-red-400 rounded-xl text-sm font-medium hover:bg-red-500/30 transition-colors">
+            İptal Et
+          </button>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          <p className="text-sm text-ena-light">Kendi domain'ini mağazana bağla. CNAME kaydı otomatik oluşturulur.</p>
+          <div className="flex items-center gap-2">
+            <input type="text" value={domain}
+              onChange={(e) => setDomain(e.target.value.toLowerCase().replace(/[^a-z0-9.-]/g, ""))}
+              placeholder="ornek.com"
+              className="flex-1 px-3 py-2.5 bg-ena-dark border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-orange-500/50 text-sm" />
+            <button onClick={requestDomain} disabled={saving || !domain}
+              className="px-4 py-2.5 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-xl font-medium hover:from-orange-600 hover:to-red-600 transition-all disabled:opacity-50 text-sm whitespace-nowrap">
+              {saving ? "..." : "Bağla"}
+            </button>
+          </div>
+          {error && <p className="text-sm text-red-400">{error}</p>}
+          {success && <p className="text-sm text-green-400">{success}</p>}
+        </div>
+      )}
     </div>
   );
 }

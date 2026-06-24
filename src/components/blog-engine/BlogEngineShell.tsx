@@ -26,6 +26,11 @@ type Stats = {
   review: number;
   published: number;
   archived: number;
+  categoryCount: number;
+  geoCount: number;
+  avgSeoScore: number;
+  avgGeoScore: number;
+  avgQualityScore: number;
 };
 
 type BlogPostItem = {
@@ -64,6 +69,7 @@ export function BlogEngineShell() {
   const [keywords, setKeywords] = useState("cam tablo\nev dekorasyonu\nbayilik");
   const [keywordGroup, setKeywordGroup] = useState("cam tablo grubu");
   const [productId, setProductId] = useState("");
+  const [productBlogType, setProductBlogType] = useState("usage");
   const [category, setCategory] = useState("Cam Tablo");
   const [province, setProvince] = useState("");
   const [district, setDistrict] = useState("");
@@ -123,6 +129,7 @@ export function BlogEngineShell() {
       .filter(Boolean),
     keywordGroup: keywordGroup.trim() || undefined,
     productId: productId.trim() || undefined,
+    productBlogType: sourceType === "PRODUCT" ? productBlogType : undefined,
     category: category.trim() || undefined,
     province: province.trim() || undefined,
     district: district.trim() || undefined,
@@ -248,19 +255,35 @@ export function BlogEngineShell() {
       </div>
 
       {tab === "dashboard" && stats ? (
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-          {[
-            { label: "Toplam", value: stats.total },
-            { label: "Draft", value: stats.drafts },
-            { label: "Review", value: stats.review },
-            { label: "Published", value: stats.published },
-            { label: "Archive", value: stats.archived },
-          ].map(({ label, value }) => (
-            <div key={label} className="rounded-lg border border-gray-200 bg-white p-4">
-              <p className="text-xs text-gray-500 uppercase">{label}</p>
-              <p className="text-2xl font-bold text-gray-900">{value}</p>
-            </div>
-          ))}
+        <div className="space-y-6">
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+            {[
+              { label: "Toplam", value: stats.total },
+              { label: "Published", value: stats.published },
+              { label: "Draft", value: stats.drafts },
+              { label: "Archive", value: stats.archived },
+              { label: "Review", value: stats.review },
+            ].map(({ label, value }) => (
+              <div key={label} className="rounded-lg border border-gray-200 bg-white p-4">
+                <p className="text-xs text-gray-500 uppercase">{label}</p>
+                <p className="text-2xl font-bold text-gray-900">{value}</p>
+              </div>
+            ))}
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+            {[
+              { label: "Kategori", value: stats.categoryCount },
+              { label: "GEO İçerik", value: stats.geoCount },
+              { label: "Ort. SEO", value: stats.avgSeoScore },
+              { label: "Ort. GEO", value: stats.avgGeoScore },
+              { label: "Ort. Kalite", value: stats.avgQualityScore },
+            ].map(({ label, value }) => (
+              <div key={label} className="rounded-lg border border-emerald-100 bg-emerald-50/50 p-4">
+                <p className="text-xs text-emerald-700 uppercase">{label}</p>
+                <p className="text-2xl font-bold text-emerald-900">{value}</p>
+              </div>
+            ))}
+          </div>
         </div>
       ) : null}
 
@@ -311,15 +334,31 @@ export function BlogEngineShell() {
               </>
             ) : null}
             {sourceType === "PRODUCT" ? (
-              <label className="block text-xs text-gray-600">
-                Product ID
-                <input
-                  value={productId}
-                  onChange={(e) => setProductId(e.target.value)}
-                  placeholder="Product Universe ID"
-                  className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm font-mono"
-                />
-              </label>
+              <>
+                <label className="block text-xs text-gray-600">
+                  Product ID
+                  <input
+                    value={productId}
+                    onChange={(e) => setProductId(e.target.value)}
+                    placeholder="Product Universe ID"
+                    className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm font-mono"
+                  />
+                </label>
+                <label className="block text-xs text-gray-600">
+                  Blog Tipi
+                  <select
+                    value={productBlogType}
+                    onChange={(e) => setProductBlogType(e.target.value)}
+                    className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm"
+                  >
+                    <option value="usage">Kullanım Rehberi</option>
+                    <option value="benefits">Avantajlar</option>
+                    <option value="comparison">Karşılaştırma</option>
+                    <option value="purchase">Satın Alma Rehberi</option>
+                    <option value="faq">SSS</option>
+                  </select>
+                </label>
+              </>
             ) : null}
             {sourceType === "CATEGORY" ? (
               <label className="block text-xs text-gray-600">

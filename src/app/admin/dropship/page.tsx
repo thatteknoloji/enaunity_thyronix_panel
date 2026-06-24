@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Store, ExternalLink, CheckCircle, XCircle, Search } from "lucide-react";
+import { Store, ExternalLink, CheckCircle, XCircle, Search, Globe, Loader2, AlertCircle } from "lucide-react";
 
 type DealerStore = {
   id: string;
@@ -13,6 +13,8 @@ type DealerStore = {
   totalRevenue: number;
   paymentModel: string;
   logo: string;
+  customDomain: string;
+  customDomainVerified: boolean;
   createdAt: string;
   _count?: { products: number; orders: number };
 };
@@ -21,6 +23,7 @@ export default function AdminDropshipPage() {
   const [stores, setStores] = useState<DealerStore[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [acting, setActing] = useState<string | null>(null);
 
   useEffect(() => {
     fetch("/api/dropship/stores")
@@ -31,24 +34,35 @@ export default function AdminDropshipPage() {
       .finally(() => setLoading(false));
   }, []);
 
+  const handleDomainAction = async (storeId: string, action: string) => {
+    setActing(storeId);
+    await fetch("/api/dropship/stores/domain", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ storeId, action }),
+    });
+    setActing(null);
+    window.location.reload();
+  };
+
   const filtered = stores.filter(
     (s) =>
       s.name.toLowerCase().includes(search.toLowerCase()) ||
       s.slug.toLowerCase().includes(search.toLowerCase())
   );
 
+  const pendingDomains = stores.filter((s) => s.customDomain && !s.customDomainVerified);
+
   const statusBadge = (status: string) => {
-    const map: Record<string, { color: string; icon: typeof CheckCircle }> = {
-      ACTIVE: { color: "bg-green-100 text-green-800", icon: CheckCircle },
-      DRAFT: { color: "bg-yellow-100 text-yellow-800", icon: XCircle },
-      SUSPENDED: { color: "bg-red-100 text-red-800", icon: XCircle },
+    const map: Record<string, { color: string; label: string }> = {
+      ACTIVE: { color: "bg-green-100 text-green-800", label: "Aktif" },
+      DRAFT: { color: "bg-yellow-100 text-yellow-800", label: "Taslak" },
+      SUSPENDED: { color: "bg-red-100 text-red-800", label: "Askıda" },
     };
-    const m = map[status] || { color: "bg-gray-100 text-gray-800", icon: XCircle };
-    const Icon = m.icon;
+    const m = map[status] || { color: "bg-gray-100 text-gray-800", label: status };
     return (
-      <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${m.color}`}>
-        <Icon size={12} />
-        {status === "ACTIVE" ? "Aktif" : status === "DRAFT" ? "Taslak" : "Askıda"}
+      <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${m.color}`}>
+        {m.label}
       </span>
     );
   };
@@ -61,6 +75,35 @@ export default function AdminDropshipPage() {
           <p className="text-sm text-gray-500 mt-1">Bayi mağazalarını yönet</p>
         </div>
       </div>
+
+      {pendingDomains.length > 0 && (
+        <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 space-y-3">
+          <h2 className="text-sm font-semibold text-amber-800 flex items-center gap-2">
+            <AlertCircle size={16} /> Bekleyen Domain Talepleri ({pendingDomains.length})
+          </h2>
+          {pendingDomains.map((store) => (
+            <div key={store.id} className="flex items-center justify-between bg-white rounded-lg p-3 border border-amber-100">
+              <div>
+                <p className="text-sm font-medium text-gray-900">{store.name}</p>
+                <p className="text-xs text-gray-500">
+                  <strong>{store.customDomain}</strong> → {store.slug}.enaunity.com.tr
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                <button onClick={() => handleDomainAction(store.id, "verify")} disabled={acting === store.id}
+                  className="flex items-center gap-1 px-3 py-1.5 bg-green-600 text-white rounded-lg text-xs font-medium hover:bg-green-700 transition-colors disabled:opacity-50">
+                  {acting === store.id ? <Loader2 size={12} className="animate-spin" /> : <CheckCircle size={12} />}
+                  Onayla
+                </button>
+                <button onClick={() => handleDomainAction(store.id, "reject")} disabled={acting === store.id}
+                  className="flex items-center gap-1 px-3 py-1.5 bg-red-100 text-red-700 rounded-lg text-xs font-medium hover:bg-red-200 transition-colors disabled:opacity-50">
+                  <XCircle size={12} /> Reddet
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
 
       <div className="relative">
         <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
@@ -86,9 +129,9 @@ export default function AdminDropshipPage() {
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-orange-400 to-red-500 flex items-center justify-center text-white font-bold text-lg">
+                  <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-orange-400 to-red-500 flex items-center justify-center text-white font-bold text-lg overflow-hidden">
                     {store.logo ? (
-                      <img src={store.logo} alt="" className="w-full h-full object-cover rounded-lg" />
+                      <img src={store.logo} alt="" className="w-full h-full object-cover" />
                     ) : (
                       <Store size={24} />
                     )}
@@ -103,6 +146,16 @@ export default function AdminDropshipPage() {
                     </div>
                     <p className="text-sm text-gray-500 mt-0.5">
                       {store.slug}.enaunity.com.tr
+                      {store.customDomainVerified && store.customDomain && (
+                        <span className="ml-2 text-green-600">
+                          | <Globe size={12} className="inline" /> {store.customDomain}
+                        </span>
+                      )}
+                      {store.customDomain && !store.customDomainVerified && (
+                        <span className="ml-2 text-amber-600">
+                          | <Globe size={12} className="inline" /> {store.customDomain} (onay bekliyor)
+                        </span>
+                      )}
                     </p>
                   </div>
                 </div>

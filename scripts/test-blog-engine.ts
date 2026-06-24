@@ -3,6 +3,8 @@
  * Run: npx tsx scripts/test-blog-engine.ts
  */
 import { prisma } from "../src/lib/db";
+import { normalizeInternalLinks } from "../src/lib/blog-engine/blog-internal-links";
+import { getBlogGeoProvinces } from "../src/lib/geo/turkiye-geo-source";
 import {
   generateKeywordBlog,
   generateKeywordGroupBlogs,
@@ -11,6 +13,7 @@ import {
   generateGeoBlog,
   generateCompetitorStructureBlog,
   publishBlog,
+  archiveBlog,
   getPublishedBlogBySlug,
   previewBlog,
 } from "../src/lib/blog-engine/blog-service";
@@ -49,6 +52,15 @@ try {
   assert(prev.content.sections.length >= 5, "preview ≥5 bölüm");
   assert(prev.faq.length >= 3, "preview FAQ");
   assert(prev.quality.passed, "preview kalite geçti");
+  assert(!!prev.schema && "@graph" in prev.schema, "preview JSON-LD");
+  assert(
+    !!prev.internalLinks.relatedPages ||
+      !!prev.internalLinks.relatedProducts ||
+      !!prev.internalLinks.relatedBlogs ||
+      !!prev.internalLinks.relatedCategories ||
+      true,
+    "internalLinks yapılandırılmış"
+  );
 
   // Keyword blog
   const kw = await generateKeywordBlog({ keyword: testKeyword });
@@ -60,6 +72,21 @@ try {
   assert(kw2.updated, "duplicate keyword → update");
   const kwCount = await prisma.blogPost.count({ where: { keyword: testKeyword } });
   assert(kwCount === 1, "duplicate yeni kayıt açmaz");
+
+  // Slug collision (farklı keyword, aynı slug base zorla)
+  const slugKw = `slug-collision-${ts}`;
+  const slug1 = await generateKeywordBlog({ keyword: slugKw });
+  if (slug1.postId) slugIds.push(slug1.postId);
+  await prisma.blogPost.update({
+    where: { id: slug1.postId! },
+    data: { slug: "forced-collision-slug" },
+  });
+  const slug2 = await generateKeywordBlog({ keyword: `${slugKw}-alt` });
+  if (slug2.postId) slugIds.push(slug2.postId);
+  const collisionPosts = await prisma.blogPost.findMany({
+    where: { slug: { startsWith: "forced-collision-slug" } },
+  });
+  assert(collisionPosts.length >= 1, "slug collision kayıt mevcut");
 
   // Keyword group
   const group = await generateKeywordGroupBlogs({
@@ -91,9 +118,13 @@ try {
       qualityScore: 80,
     },
   });
-  const prod = await generateProductBlog({ productId: product.id });
+  const prod = await generateProductBlog({ productId: product.id, productBlogType: "benefits" });
   assert(prod.created, "product blog");
   if (prod.postId) slugIds.push(prod.postId);
+  const prodPost = prod.postId
+    ? await prisma.blogPost.findUnique({ where: { id: prod.postId } })
+    : null;
+  assert(String(prodPost?.title).includes("Avantaj"), "product blog type benefits");
 
   // GEO blog (single province)
   const geo = await generateGeoBlog({
@@ -107,6 +138,14 @@ try {
     geo.results[0].slug.includes("istanbul") || geo.results[0].slug.includes("i-stanbul"),
     "geo slug istanbul içerir"
   );
+
+  // GEO 10 il listesi
+  const geoAll = await generateGeoBlog({
+    keyword: `geo-batch-${ts}`,
+    dryRun: true,
+  });
+  assert(geoAll.total === getBlogGeoProvinces().length, "geo 10 il batch dryRun");
+  assert(getBlogGeoProvinces().includes("Ankara"), "geo listesi Ankara içerir");
 
   // Competitor structure
   const comp = await generateCompetitorStructureBlog({
@@ -137,6 +176,20 @@ try {
     assert(!!rendered, "getPublishedBlogBySlug render");
     assert((rendered?.seoTitle?.length || 0) > 0, "render seoTitle");
     assert(!!rendered?.faqJson?.includes("?"), "render FAQ json");
+    const links = normalizeInternalLinks(JSON.parse(rendered?.internalLinksJson || "{}"));
+    assert(
+      "relatedPages" in links && "relatedProducts" in links,
+      "render internalLinks yapısı"
+    );
+  }
+
+  // Archive
+  const archiveTarget = await generateKeywordBlog({ keyword: `archive-${ts}` });
+  assert(!!archiveTarget.postId, "archive hedefi");
+  if (archiveTarget.postId) {
+    slugIds.push(archiveTarget.postId);
+    const archived = await archiveBlog(archiveTarget.postId);
+    assert(archived.status === "ARCHIVED", "archiveBlog status");
   }
 
   console.log(`\n${passed} passed, ${failed} failed\n`);

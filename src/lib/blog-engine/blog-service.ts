@@ -25,7 +25,7 @@ import {
   type BlogGenerateResult,
   type BlogPreviewResult,
 } from "./blog-types";
-import { getGeoCitiesFromDbOrFallback } from "@/lib/geo/turkiye-geo-source";
+import { getBlogGeoProvinces } from "@/lib/geo/turkiye-geo-source";
 
 type BuiltPost = {
   title: string;
@@ -79,21 +79,24 @@ async function buildPostPayload(built: BuiltPost, opts: BlogGenerateOptions): Pr
     category: built.category,
     province: built.province,
     productId: built.sourceReferenceId,
+    projectId: opts.projectId,
     excludeSlug: slug,
-  });
-  const quality = runBlogQualityCheck({
-    content: built.content,
-    faq: built.faq,
-    seoTitle,
-    seoDescription,
-    province: built.province,
-    originalityHint: built.originalityHint,
   });
   const schema = buildSchemaJson({
     title: built.title,
     description: seoDescription,
     slug,
     faq: built.faq,
+  });
+  const quality = runBlogQualityCheck({
+    content: built.content,
+    faq: built.faq,
+    seoTitle,
+    seoDescription,
+    schema,
+    keyword: built.keyword,
+    province: built.province,
+    originalityHint: built.originalityHint,
   });
 
   return {
@@ -165,6 +168,10 @@ async function persistPost(
       quality: preview.quality,
       warnings: preview.quality.warnings,
     };
+  }
+
+  if (!preview.quality.passed) {
+    throw new Error(`Kalite kontrolü geçmedi: ${preview.quality.warnings.join(", ")}`);
   }
 
   let post: BlogPost;
@@ -298,10 +305,12 @@ async function buildProductBlogBuilt(opts: BlogGenerateOptions): Promise<BuiltPo
   const product = await prisma.productUniverse.findUnique({ where: { id: productId } });
   if (!product) throw new Error("Ürün bulunamadı");
   const categoryLabel = product.categoryPath.split(/[>/|]/).pop()?.trim() || product.categoryPath;
-  const content = buildProductContent(product.normalizedName, categoryLabel);
+  const blogType = opts.productBlogType || "usage";
+  const content = buildProductContent(product.normalizedName, categoryLabel, blogType);
+  const typeSlug = blogType === "usage" ? "kullanim" : blogType;
   return {
     title: content.h1,
-    slugBase: `urun-${product.slug || slugify(product.normalizedName)}`,
+    slugBase: `urun-${product.slug || slugify(product.normalizedName)}-${typeSlug}`,
     keyword: product.normalizedName,
     category: categoryLabel,
     sourceType: "PRODUCT",
@@ -309,7 +318,7 @@ async function buildProductBlogBuilt(opts: BlogGenerateOptions): Promise<BuiltPo
     content,
     faq: buildFaqItems(product.normalizedName, "PRODUCT", 6),
     tags: opts.tags || [product.normalizedName, categoryLabel, "ürün"],
-    sourceJson: { productId: product.id, productName: product.normalizedName },
+    sourceJson: { productId: product.id, productName: product.normalizedName, productBlogType: blogType },
     originalityHint: 92,
   };
 }
@@ -335,24 +344,55 @@ async function buildCategoryBlogBuilt(opts: BlogGenerateOptions): Promise<BuiltP
 async function buildGeoBlogBuilt(opts: BlogGenerateOptions): Promise<BuiltPost[]> {
   const keyword = (opts.keyword || opts.category || "").trim();
   if (!keyword) throw new Error("keyword gerekli (GEO modu)");
-  const provinces = opts.province ? [opts.province] : await getGeoCitiesFromDbOrFallback(10);
-  return provinces.map((province) => {
-    const content = buildGeoContent(keyword, province, opts.district);
-    const loc = opts.district ? `${province}-${opts.district}` : province;
-    return {
-      title: content.h1,
-      slugBase: slugify(`${loc}-${keyword}`),
+  const provinces = opts.province ? [opts.province] : getBlogGeoProvinces();
+  const slugMode = opts.geoSlugMode || (opts.district ? "DISTRICT" : "PROVINCE");
+
+  if (opts.province && opts.district) {
+    return [buildSingleGeoPost(keyword, opts)];
+  }
+
+  if (opts.province && !opts.district && slugMode === "DISTRICT") {
+    return [];
+  }
+
+  return provinces.map((province) =>
+    buildSingleGeoPost(keyword, { ...opts, province, district: opts.district })
+  );
+}
+
+function buildSingleGeoPost(keyword: string, opts: BlogGenerateOptions): BuiltPost {
+  const province = opts.province || "";
+  const district = opts.district || null;
+  const slugMode = opts.geoSlugMode || (district ? "DISTRICT" : "PROVINCE");
+  const content = buildGeoContent(keyword, province, district);
+  const loc = district ? `${province} ${district}` : province;
+  const slugBase =
+    slugMode === "DISTRICT" && district
+      ? slugify(`${district}-${keyword}`)
+      : slugify(`${province}-${keyword}`);
+
+  return {
+    title: content.h1,
+    slugBase,
+    keyword,
+    keywordGroup: opts.keywordGroup || null,
+    province,
+    district,
+    category: opts.category || null,
+    sourceType: "GEO" as BlogSourceType,
+    content,
+    faq: buildFaqItems(`${loc} ${keyword}`, "GEO"),
+    tags: opts.tags || [keyword, province, ...(district ? [district] : []), "geo"],
+    sourceJson: {
       keyword,
       province,
-      district: opts.district || null,
-      sourceType: "GEO" as BlogSourceType,
-      content,
-      faq: buildFaqItems(`${loc} ${keyword}`, "GEO"),
-      tags: opts.tags || [keyword, province, "geo"],
-      sourceJson: { keyword, province, district: opts.district, mode: "GEO" },
-      originalityHint: 86,
-    };
-  });
+      district,
+      mode: "GEO",
+      geoSlugMode: slugMode,
+      factory: "ENA_GEO_ICERIK_FABRIKASI_V1",
+    },
+    originalityHint: 86,
+  };
 }
 
 async function buildCompetitorBlogBuilt(opts: BlogGenerateOptions): Promise<BuiltPost> {
@@ -447,6 +487,8 @@ export async function publishBlog(postId: string): Promise<BlogPost> {
     faq,
     seoTitle: post.seoTitle,
     seoDescription: post.seoDescription,
+    schema: parseJson<Record<string, unknown>>(post.schemaJson, {}),
+    keyword: post.keyword,
     province: post.province,
     originalityHint: post.originalityScore,
   });
@@ -474,14 +516,43 @@ export async function archiveBlog(postId: string): Promise<BlogPost> {
 }
 
 export async function getBlogDashboardStats() {
-  const [total, drafts, review, published, archived] = await Promise.all([
-    prisma.blogPost.count(),
-    prisma.blogPost.count({ where: { status: "DRAFT" } }),
-    prisma.blogPost.count({ where: { status: "REVIEW" } }),
-    prisma.blogPost.count({ where: { status: "PUBLISHED" } }),
-    prisma.blogPost.count({ where: { status: "ARCHIVED" } }),
-  ]);
-  return { total, drafts, review, published, archived };
+  const [total, drafts, review, published, archived, posts, categories, geoCount] =
+    await Promise.all([
+      prisma.blogPost.count(),
+      prisma.blogPost.count({ where: { status: "DRAFT" } }),
+      prisma.blogPost.count({ where: { status: "REVIEW" } }),
+      prisma.blogPost.count({ where: { status: "PUBLISHED" } }),
+      prisma.blogPost.count({ where: { status: "ARCHIVED" } }),
+      prisma.blogPost.findMany({
+        select: { seoScore: true, geoScore: true, qualityScore: true },
+      }),
+      prisma.blogPost.findMany({
+        where: { category: { not: null } },
+        select: { category: true },
+        distinct: ["category"],
+      }),
+      prisma.blogPost.count({
+        where: { status: "PUBLISHED", province: { not: null } },
+      }),
+    ]);
+
+  const n = posts.length || 1;
+  const avgSeoScore = Math.round(posts.reduce((s, p) => s + p.seoScore, 0) / n);
+  const avgGeoScore = Math.round(posts.reduce((s, p) => s + p.geoScore, 0) / n);
+  const avgQualityScore = Math.round(posts.reduce((s, p) => s + p.qualityScore, 0) / n);
+
+  return {
+    total,
+    drafts,
+    review,
+    published,
+    archived,
+    categoryCount: categories.length,
+    geoCount,
+    avgSeoScore,
+    avgGeoScore,
+    avgQualityScore,
+  };
 }
 
 export async function listBlogPosts(filters: {

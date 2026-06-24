@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/auth";
-import type { BlogSourceType } from "@/lib/blog-engine/blog-types";
+import type { BlogSourceType, ProductBlogType } from "@/lib/blog-engine/blog-types";
 import {
   generateCategoryBlog,
   generateCompetitorStructureBlog,
@@ -25,6 +25,9 @@ function parseBody(body: Record<string, unknown>) {
     keywords,
     keywordGroup: body.keywordGroup ? String(body.keywordGroup) : undefined,
     productId: body.productId ? String(body.productId) : undefined,
+    productBlogType: body.productBlogType
+      ? (String(body.productBlogType) as ProductBlogType)
+      : undefined,
     category: body.category ? String(body.category) : undefined,
     province: body.province ? String(body.province) : undefined,
     district: body.district ? String(body.district) : undefined,

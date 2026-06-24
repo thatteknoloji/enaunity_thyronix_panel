@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { normalizeAdminSecretPath } from "@/lib/auth/admin-access";
-import { matchRedirectRule, type NotFoundRedirectRule } from "@/lib/site-settings/not-found";
+import { normalizeRedirectPath, matchRedirectRule, type NotFoundRedirectRule } from "@/lib/site-settings/not-found";
 
 const ADMIN_ROLES = ["SUPER_ADMIN", "ADMIN", "MANAGER", "SUPPORT", "ACCOUNTING", "WAREHOUSE"];
 function isAdminRole(role: string) { return ADMIN_ROLES.includes(role?.toUpperCase()); }
@@ -68,6 +68,57 @@ async function guardLinkSlashDealerAccess(
   }
 }
 
+async function resolveLegacyGoneRule(request: NextRequest, pathname: string): Promise<boolean> {
+  const adminSecret = normalizeAdminSecretPath(process.env.ADMIN_SECRET_PATH || "/x-control-eu-7294");
+  if (
+    pathname.startsWith("/api/") ||
+    pathname.startsWith("/_next/") ||
+    pathname.startsWith(adminSecret) ||
+    pathname.startsWith("/admin")
+  ) {
+    return false;
+  }
+  try {
+    const res = await fetch(new URL("/api/public/legacy-recovery-rules", request.url));
+    if (!res.ok) return false;
+    const data = await res.json();
+    const gone: Array<{ url: string }> = data?.data?.gone || [];
+    const normalized = normalizeRedirectPath(pathname);
+    return gone.some((g) => normalizeRedirectPath(g.url) === normalized);
+  } catch {
+    return false;
+  }
+}
+
+async function resolveLegacyRedirectRule(
+  request: NextRequest,
+  pathname: string
+): Promise<{ targetUrl: string; statusCode: 301 | 302 } | null> {
+  const adminSecret = normalizeAdminSecretPath(process.env.ADMIN_SECRET_PATH || "/x-control-eu-7294");
+  if (
+    pathname.startsWith("/api/") ||
+    pathname.startsWith("/_next/") ||
+    pathname.startsWith(adminSecret) ||
+    pathname.startsWith("/admin")
+  ) {
+    return null;
+  }
+  try {
+    const res = await fetch(new URL("/api/public/legacy-recovery-rules", request.url));
+    if (!res.ok) return null;
+    const data = await res.json();
+    const redirects: Array<{ sourceUrl: string; targetUrl: string; statusCode: number }> =
+      data?.data?.redirects || [];
+    const normalized = normalizeRedirectPath(pathname);
+    const match = redirects.find((r) => normalizeRedirectPath(r.sourceUrl) === normalized);
+    if (!match) return null;
+    const code = match.statusCode === 302 ? 302 : 301;
+    return { targetUrl: match.targetUrl, statusCode: code };
+  } catch {
+    return null;
+  }
+}
+
 async function resolveRedirectRule(request: NextRequest, pathname: string): Promise<NotFoundRedirectRule | null> {
   const adminSecret = normalizeAdminSecretPath(process.env.ADMIN_SECRET_PATH || "/x-control-eu-7294");
   if (
@@ -109,6 +160,63 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(apex, 301);
   }
 
+  // ── Custom domain routing: {customdomain.com} → /store/{slug} ──
+  const apexDomain = "enaunity.com.tr";
+  if (hostname !== apexDomain && !hostname.endsWith(`.${apexDomain}`)) {
+    try {
+      const checkRes = await fetch(
+        `${request.nextUrl.origin}/api/internal/store-by-custom-domain?domain=${encodeURIComponent(hostname)}`
+      );
+      const checkData = await checkRes.json();
+      if (checkData.success) {
+        const rewritten = request.nextUrl.clone();
+        rewritten.pathname = `/store/${checkData.data.slug}` + (pathname === "/" ? "" : pathname);
+        return NextResponse.rewrite(rewritten);
+      }
+    } catch {
+      // pas geç
+    }
+    // domain bulunamazsa normal akış devam etsin (404 değil, site normal gösterilir)
+  }
+
+  // ── Subdomain storefront routing: {slug}.enaunity.com.tr → /store/{slug} ──
+  if (hostname !== apexDomain && hostname.endsWith(`.${apexDomain}`)) {
+    const slug = hostname.slice(0, -`.${apexDomain}`.length);
+    if (slug && !slug.includes(".") && slug !== "www") {
+      try {
+        const checkRes = await fetch(
+          `${request.nextUrl.origin}/api/internal/store-by-subdomain?slug=${encodeURIComponent(slug)}`
+        );
+        const checkData = await checkRes.json();
+        if (checkData.success) {
+          const rewritten = request.nextUrl.clone();
+          rewritten.pathname = `/store/${slug}` + (pathname === "/" ? "" : pathname);
+          return NextResponse.rewrite(rewritten);
+        }
+      } catch {
+        // pas geç, normal akışa devam
+      }
+      // store bulunamazsa 404'e düşsün
+      const notFound = request.nextUrl.clone();
+      notFound.pathname = "/store-not-found";
+      return NextResponse.rewrite(notFound);
+    }
+  }
+
+  const isGone = await resolveLegacyGoneRule(request, pathname);
+  if (isGone) {
+    return new NextResponse("Bu içerik kalıcı olarak kaldırılmıştır.", {
+      status: 410,
+      headers: { "Content-Type": "text/plain; charset=utf-8" },
+    });
+  }
+
+  const legacyRedirect = await resolveLegacyRedirectRule(request, pathname);
+  if (legacyRedirect) {
+    const destination = new URL(legacyRedirect.targetUrl, request.url);
+    return NextResponse.redirect(destination, legacyRedirect.statusCode);
+  }
+
   const redirectRule = await resolveRedirectRule(request, pathname);
   if (redirectRule) {
     const destination = new URL(redirectRule.toPath, request.url);
@@ -119,7 +227,9 @@ export async function middleware(request: NextRequest) {
   const isPublicStorefront =
     pathname === "/" ||
     pathname.startsWith("/platform/") ||
-    pathname.startsWith("/products/");
+    pathname.startsWith("/products/") ||
+    pathname.startsWith("/store/") ||
+    pathname.startsWith("/store-not-found");
 
   // ── LinkSlash Mobile shell (APK / WebView) — auth redirect yok, ana site layout yok ──
   if (
@@ -669,5 +779,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/admin", "/admin/:path*", "/thyronix", "/thyronix/:path*", "/hive", "/hive/:path*", "/gateway", "/gateway/:path*", "/linkslash", "/linkslash/:path*", "/nexa", "/nexa/:path*", "/x-control-eu-7294", "/x-control-eu-7294/:path*", "/account", "/account/:path*", "/dealer", "/dealer/:path*", "/product-library", "/product-library/:path*", "/api/dealer/:path*", "/api/admin/:path*", "/api/page-factory", "/api/page-factory/:path*", "/api/product-universe", "/api/product-universe/:path*", "/api/aeo", "/api/aeo/:path*", "/api/ai-partner/:path*", "/api/thyronix/:path*", "/api/nexa/:path*", "/api/product-library", "/api/product-library/:path*", "/api/fulfillment", "/api/fulfillment/:path*", "/api/my", "/api/my/:path*", "/api/marketplace-hub", "/api/marketplace-hub/:path*", "/api/product-links", "/api/product-links/:path*", "/api/product-auth/:path*", "/api/gateway/:path*", "/api/linkslash/:path*", "/api/dropship", "/api/dropship/:path*", "/login", "/giris", "/r/:path*", "/", "/platform/:path*", "/products/:path*"],
+  matcher: ["/admin", "/admin/:path*", "/blog", "/blog/:path*", "/urun/:path*", "/kategori/:path*", "/kampanya/:path*", "/thyronix", "/thyronix/:path*", "/hive", "/hive/:path*", "/gateway", "/gateway/:path*", "/linkslash", "/linkslash/:path*", "/nexa", "/nexa/:path*", "/x-control-eu-7294", "/x-control-eu-7294/:path*", "/account", "/account/:path*", "/dealer", "/dealer/:path*", "/product-library", "/product-library/:path*", "/api/dealer/:path*", "/api/admin/:path*", "/api/page-factory", "/api/page-factory/:path*", "/api/product-universe", "/api/product-universe/:path*", "/api/aeo", "/api/aeo/:path*", "/api/ai-partner/:path*", "/api/thyronix/:path*", "/api/nexa/:path*", "/api/product-library", "/api/product-library/:path*", "/api/fulfillment", "/api/fulfillment/:path*", "/api/my", "/api/my/:path*", "/api/marketplace-hub", "/api/marketplace-hub/:path*", "/api/product-links", "/api/product-links/:path*", "/api/product-auth/:path*", "/api/gateway/:path*", "/api/linkslash/:path*", "/api/dropship", "/api/dropship/:path*", "/login", "/giris", "/r/:path*", "/", "/platform/:path*", "/products/:path*", "/store/:path*", "/store-not-found"],
 };

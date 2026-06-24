@@ -30,12 +30,27 @@ export type BlogFaqItem = {
   answer: string;
 };
 
-export type BlogInternalLink = {
-  type: "product" | "blog" | "category";
+export type BlogInternalLinkSuggestion = {
   title: string;
   href: string;
   reason: string;
 };
+
+/** @deprecated Düz dizi — BlogInternalLinksPayload kullanın */
+export type BlogInternalLink = BlogInternalLinkSuggestion & {
+  type: "product" | "blog" | "category" | "page";
+};
+
+export type BlogInternalLinksPayload = {
+  relatedPages: BlogInternalLinkSuggestion[];
+  relatedProducts: BlogInternalLinkSuggestion[];
+  relatedBlogs: BlogInternalLinkSuggestion[];
+  relatedCategories: BlogInternalLinkSuggestion[];
+  relatedGeoBlogs?: BlogInternalLinkSuggestion[];
+  relatedCategoryBlogs?: BlogInternalLinkSuggestion[];
+};
+
+export type ProductBlogType = "usage" | "benefits" | "comparison" | "purchase" | "faq";
 
 export type BlogQualityResult = {
   passed: boolean;
@@ -56,9 +71,11 @@ export type BlogGenerateOptions = {
   keywords?: string[];
   keywordGroup?: string;
   productId?: string;
+  productBlogType?: ProductBlogType;
   category?: string;
   province?: string;
   district?: string;
+  geoSlugMode?: "PROVINCE" | "DISTRICT";
   competitorStructure?: string;
   competitorUrl?: string;
   tags?: string[];
@@ -72,7 +89,7 @@ export type BlogPreviewResult = {
   content: BlogContentPayload;
   faq: BlogFaqItem[];
   schema: Record<string, unknown>;
-  internalLinks: BlogInternalLink[];
+  internalLinks: BlogInternalLinksPayload;
   seoTitle: string;
   seoDescription: string;
   quality: BlogQualityResult;

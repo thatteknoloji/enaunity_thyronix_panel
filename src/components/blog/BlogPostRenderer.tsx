@@ -1,4 +1,5 @@
-import type { BlogContentPayload, BlogFaqItem, BlogInternalLink } from "@/lib/blog-engine/blog-types";
+import Link from "next/link";
+import type { BlogContentPayload, BlogFaqItem, BlogInternalLinksPayload } from "@/lib/blog-engine/blog-types";
 import { sitePolicyProseClass } from "@/components/site/SitePageShell";
 
 type Props = {
@@ -6,19 +7,48 @@ type Props = {
   excerpt?: string;
   content: BlogContentPayload;
   faq: BlogFaqItem[];
-  internalLinks?: BlogInternalLink[];
+  related?: BlogInternalLinksPayload;
   publishedAt?: string | null;
   schema?: Record<string, unknown>;
+  category?: string | null;
 };
+
+function RelatedSection({
+  heading,
+  items,
+}: {
+  heading: string;
+  items: Array<{ title: string; href: string; reason?: string }>;
+}) {
+  if (!items.length) return null;
+  return (
+    <section>
+      <h2 className="text-lg font-semibold text-ena-text mb-3">{heading}</h2>
+      <ul className="space-y-2">
+        {items.map((link) => (
+          <li key={link.href}>
+            <Link href={link.href} className="text-ena-accent hover:underline">
+              {link.title}
+            </Link>
+            {link.reason ? (
+              <span className="text-xs text-ena-light/50 ml-2">({link.reason})</span>
+            ) : null}
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+}
 
 export function BlogPostRenderer({
   title,
   excerpt,
   content,
   faq,
-  internalLinks = [],
+  related,
   publishedAt,
   schema,
+  category,
 }: Props) {
   return (
     <article>
@@ -33,15 +63,18 @@ export function BlogPostRenderer({
           {content.h1 || title}
         </h1>
         {excerpt ? <p className="mt-3 text-ena-light/80 text-lg">{excerpt}</p> : null}
-        {publishedAt ? (
-          <p className="mt-2 text-xs text-ena-light/60">
-            {new Date(publishedAt).toLocaleDateString("tr-TR", {
-              year: "numeric",
-              month: "long",
-              day: "numeric",
-            })}
-          </p>
-        ) : null}
+        <div className="mt-3 flex flex-wrap gap-2 text-xs text-ena-light/50">
+          {category ? <span>{category}</span> : null}
+          {publishedAt ? (
+            <span>
+              {new Date(publishedAt).toLocaleDateString("tr-TR", {
+                year: "numeric",
+                month: "long",
+                day: "numeric",
+              })}
+            </span>
+          ) : null}
+        </div>
       </header>
 
       <div className={`space-y-8 ${sitePolicyProseClass}`}>
@@ -82,20 +115,14 @@ export function BlogPostRenderer({
           </section>
         ) : null}
 
-        {internalLinks.length > 0 ? (
-          <section>
-            <h2 className="text-lg font-semibold text-ena-text mb-3">İlgili İçerikler</h2>
-            <ul className="space-y-2">
-              {internalLinks.map((link) => (
-                <li key={link.href}>
-                  <a href={link.href} className="text-ena-accent hover:underline">
-                    {link.title}
-                  </a>
-                  <span className="text-xs text-ena-light/50 ml-2">({link.reason})</span>
-                </li>
-              ))}
-            </ul>
-          </section>
+        {related ? (
+          <div className="space-y-6 rounded-xl border border-white/10 bg-ena-card/10 p-5">
+            <h2 className="text-lg font-semibold text-ena-text">İlgili İçerikler</h2>
+            <RelatedSection heading="İlgili Bloglar" items={related.relatedBlogs} />
+            <RelatedSection heading="İlgili Ürünler" items={related.relatedProducts} />
+            <RelatedSection heading="İlgili Sayfalar" items={related.relatedPages} />
+            <RelatedSection heading="İlgili Kategoriler" items={related.relatedCategories} />
+          </div>
         ) : null}
       </div>
     </article>

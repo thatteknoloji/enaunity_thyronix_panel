@@ -59,6 +59,11 @@ export function normalizeProvinceName(name: string): string {
     .join(" ");
 }
 
+/** Blog Engine GEO modu — ilk etapta aktif 10 il */
+export function getBlogGeoProvinces(): string[] {
+  return [...TURKIYE_GEO_FALLBACK_PROVINCES];
+}
+
 /** Varsayılan il listesi (senkron fallback) */
 export function getDefaultGeoCities(limit = 10): string[] {
   const n = Math.max(1, limit);

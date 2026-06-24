@@ -1,8 +1,17 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { getPublishedBlogBySlug, parseJson } from "@/lib/blog-engine/blog-service";
-import type { BlogContentPayload, BlogFaqItem, BlogInternalLink } from "@/lib/blog-engine/blog-types";
+import type { BlogContentPayload, BlogFaqItem } from "@/lib/blog-engine/blog-types";
 import { BlogPostRenderer } from "@/components/blog/BlogPostRenderer";
+import { BlogBreadcrumb } from "@/components/blog/BlogBreadcrumb";
+import { resolveRelatedContentForPost } from "@/lib/blog-engine/blog-related-service";
+import { categoryToSlug } from "@/lib/blog-engine/blog-directory-service";
+import {
+  buildBlogPostMetadata,
+  buildBlogPostingSchema,
+  buildBreadcrumbSchema,
+  type BreadcrumbItem,
+} from "@/lib/blog-engine/blog-seo";
 
 export async function generateMetadata({
   params,
@@ -12,10 +21,7 @@ export async function generateMetadata({
   const { slug } = await params;
   const post = await getPublishedBlogBySlug(slug);
   if (!post) return { title: "Blog bulunamadı" };
-  return {
-    title: post.seoTitle || post.title,
-    description: post.seoDescription || post.excerpt,
-  };
+  return buildBlogPostMetadata(post);
 }
 
 export default async function BlogPostPage({ params }: { params: Promise<{ slug: string }> }) {
@@ -31,19 +37,35 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
     conclusion: "",
   });
   const faq = parseJson<BlogFaqItem[]>(post.faqJson, []);
-  const internalLinks = parseJson<BlogInternalLink[]>(post.internalLinksJson, []);
-  const schema = parseJson<Record<string, unknown>>(post.schemaJson, {});
+  const related = await resolveRelatedContentForPost(post);
+  const schema = buildBlogPostingSchema({ post, faq });
+
+  const breadcrumbs: BreadcrumbItem[] = [
+    { name: "Ana Sayfa", href: "/" },
+    { name: "Blog", href: "/blog" },
+  ];
+  if (post.category) {
+    breadcrumbs.push({
+      name: post.category,
+      href: `/blog/category/${categoryToSlug(post.category)}`,
+    });
+  }
+  breadcrumbs.push({ name: post.title });
+
+  const breadcrumbSchema = buildBreadcrumbSchema(breadcrumbs);
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-10">
+      <BlogBreadcrumb items={breadcrumbs} schema={breadcrumbSchema} />
       <BlogPostRenderer
         title={post.title}
         excerpt={post.excerpt}
         content={content}
         faq={faq}
-        internalLinks={internalLinks}
+        related={related}
         publishedAt={post.publishedAt?.toISOString()}
         schema={schema}
+        category={post.category}
       />
     </div>
   );

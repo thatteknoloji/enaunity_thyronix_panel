@@ -4036,3 +4036,161 @@ model ContentQualityAudit {
   @@index([qualityScore])
   @@index([auditedAt])
 }
+
+// ─── GEO İçerik Fabrikası ───
+
+enum GeoContentJobStatus {
+  PENDING
+  RUNNING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+model GeoContentJob {
+  id             String              @id @default(cuid())
+  keyword        String
+  keywordGroup   String?
+  category       String?
+  totalTargets   Int                 @default(0)
+  generatedCount Int                 @default(0)
+  publishedCount Int                 @default(0)
+  failedCount    Int                 @default(0)
+  status         GeoContentJobStatus @default(PENDING)
+  settingsJson   String              @default("{}")
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
+
+  @@index([status])
+  @@index([keyword])
+  @@index([createdAt])
+}
+
+// ─── İçerik Planlama Merkezi ───
+
+enum ContentPlanStatus {
+  DRAFT
+  READY
+  GENERATED
+  ARCHIVED
+}
+
+enum ContentPlanTargetType {
+  KEYWORD
+  KEYWORD_GROUP
+  CATEGORY
+  PRODUCT
+  GEO
+  CLUSTER
+}
+
+enum ContentPlanNodeType {
+  LANDING
+  BLOG
+  FAQ
+  GEO_PROVINCE
+  GEO_DISTRICT
+  PRODUCT
+  CATEGORY
+}
+
+enum ContentPlanNodeStatus {
+  PLANNED
+  READY
+  GENERATED
+  SKIPPED
+}
+
+model ContentPlan {
+  id                    String                @id @default(cuid())
+  name                  String
+  primaryKeyword        String
+  keywordGroupJson      String                @default("[]")
+  category              String?
+  targetType            ContentPlanTargetType @default(KEYWORD)
+  estimatedContentCount Int                   @default(0)
+  estimatedGeoCount     Int                   @default(0)
+  estimatedFaqCount     Int                   @default(0)
+  estimatedLandingCount Int                   @default(0)
+  contentMapJson        String                @default("{}")
+  internalLinkMapJson   String                @default("{}")
+  status                ContentPlanStatus     @default(DRAFT)
+  createdAt             DateTime              @default(now())
+  updatedAt             DateTime              @updatedAt
+  nodes                 ContentPlanNode[]
+
+  @@index([status])
+  @@index([primaryKeyword])
+  @@index([createdAt])
+}
+
+model ContentPlanNode {
+  id               String                @id @default(cuid())
+  planId           String
+  plan             ContentPlan           @relation(fields: [planId], references: [id], onDelete: Cascade)
+  parentNodeId     String?
+  nodeType         ContentPlanNodeType
+  title            String
+  keyword          String                @default("")
+  province         String?
+  district         String?
+  priority         Int                   @default(50)
+  estimatedTraffic Int                   @default(0)
+  status           ContentPlanNodeStatus @default(PLANNED)
+  metadataJson     String                @default("{}")
+  createdAt        DateTime              @default(now())
+  updatedAt        DateTime              @updatedAt
+
+  @@index([planId])
+  @@index([nodeType])
+  @@index([parentNodeId])
+  @@index([status])
+}
+
+// ─── Yayın Merkezi ───
+
+enum PublishingContentType {
+  BLOG
+  PAGE
+  PRODUCT
+  RECOVERY_PAGE
+}
+
+enum PublishingQueueStatus {
+  DRAFT
+  REVIEW
+  APPROVED
+  SCHEDULED
+  PUBLISHED
+  ARCHIVED
+  REJECTED
+}
+
+enum PublishingMode {
+  MANUAL
+  SCHEDULED
+  AUTOMATIC
+}
+
+model PublishingQueue {
+  id           String                  @id @default(cuid())
+  contentType  PublishingContentType
+  contentId    String
+  sourcePlanId String?
+  status       PublishingQueueStatus   @default(DRAFT)
+  publishMode  PublishingMode          @default(MANUAL)
+  priority     Int                     @default(50)
+  scheduledAt  DateTime?
+  publishedAt  DateTime?
+  metadataJson String                  @default("{}")
+  createdAt    DateTime                @default(now())
+  updatedAt    DateTime                @updatedAt
+
+  @@index([contentType])
+  @@index([contentId])
+  @@index([status])
+  @@index([publishMode])
+  @@index([scheduledAt])
+  @@index([sourcePlanId])
+  @@index([priority])
+}
