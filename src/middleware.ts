@@ -44,6 +44,12 @@ async function verifyJWT(token: string): Promise<Record<string, unknown> | null>
   }
 }
 
+/** Use direct loopback instead of request.nextUrl.origin to bypass Cloudflare proxy hairpin routing */
+function internalBasePath(): string {
+  const port = process.env.PORT || "3333";
+  return `http://127.0.0.1:${port}`;
+}
+
 function jsonError(status: number, message: string) {
   return NextResponse.json({ success: false, error: message }, { status });
 }
@@ -55,7 +61,7 @@ async function guardLinkSlashDealerAccess(
 ): Promise<NextResponse | null> {
   try {
     const checkRes = await fetch(
-      `${request.nextUrl.origin}/api/internal/check-module-access?dealerId=${dealerId}&moduleKey=LINKSLASH`
+      `${internalBasePath()}/api/internal/check-module-access?dealerId=${dealerId}&moduleKey=LINKSLASH`
     );
     const checkData = await checkRes.json();
     if (checkData.access) return null;
@@ -79,7 +85,7 @@ async function resolveLegacyGoneRule(request: NextRequest, pathname: string): Pr
     return false;
   }
   try {
-    const res = await fetch(new URL("/api/public/legacy-recovery-rules", request.url));
+    const res = await fetch(`${internalBasePath()}/api/public/legacy-recovery-rules`);
     if (!res.ok) return false;
     const data = await res.json();
     const gone: Array<{ url: string }> = data?.data?.gone || [];
@@ -104,7 +110,7 @@ async function resolveLegacyRedirectRule(
     return null;
   }
   try {
-    const res = await fetch(new URL("/api/public/legacy-recovery-rules", request.url));
+    const res = await fetch(`${internalBasePath()}/api/public/legacy-recovery-rules`);
     if (!res.ok) return null;
     const data = await res.json();
     const redirects: Array<{ sourceUrl: string; targetUrl: string; statusCode: number }> =
@@ -135,7 +141,7 @@ async function resolveRedirectRule(request: NextRequest, pathname: string): Prom
   }
 
   try {
-    const res = await fetch(new URL("/api/public/redirect-rules", request.url), {
+    const res = await fetch(`${internalBasePath()}/api/public/redirect-rules`, {
       headers: { accept: "application/json" },
     });
     if (!res.ok) return null;
@@ -165,7 +171,7 @@ export async function middleware(request: NextRequest) {
   if (hostname !== apexDomain && !hostname.endsWith(`.${apexDomain}`)) {
     try {
       const checkRes = await fetch(
-        `${request.nextUrl.origin}/api/internal/store-by-custom-domain?domain=${encodeURIComponent(hostname)}`
+        `${internalBasePath()}/api/internal/store-by-custom-domain?domain=${encodeURIComponent(hostname)}`
       );
       const checkData = await checkRes.json();
       if (checkData.success) {
@@ -185,7 +191,7 @@ export async function middleware(request: NextRequest) {
     if (slug && !slug.includes(".") && slug !== "www") {
       try {
         const checkRes = await fetch(
-          `${request.nextUrl.origin}/api/internal/store-by-subdomain?slug=${encodeURIComponent(slug)}`
+          `${internalBasePath()}/api/internal/store-by-subdomain?slug=${encodeURIComponent(slug)}`
         );
         const checkData = await checkRes.json();
         if (checkData.success) {
@@ -289,7 +295,7 @@ export async function middleware(request: NextRequest) {
 
   if (isReferralLanding) {
     try {
-      const trackRes = await fetch(`${request.nextUrl.origin}/api/internal/track-referral`, {
+      const trackRes = await fetch(`${internalBasePath()}/api/internal/track-referral`, {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
@@ -407,7 +413,7 @@ export async function middleware(request: NextRequest) {
     if (dealerIdPod) {
       try {
         const checkRes = await fetch(
-          `${request.nextUrl.origin}/api/internal/check-module-access?dealerId=${dealerIdPod}&moduleKey=POD_CREATOR`
+          `${internalBasePath()}/api/internal/check-module-access?dealerId=${dealerIdPod}&moduleKey=POD_CREATOR`
         );
         const checkData = await checkRes.json();
         if (!checkData.access) {
@@ -437,7 +443,7 @@ export async function middleware(request: NextRequest) {
     if (dealerIdPf) {
       try {
         const checkRes = await fetch(
-          `${request.nextUrl.origin}/api/internal/check-module-access?dealerId=${dealerIdPf}&moduleKey=AI_PAGE_FACTORY`
+          `${internalBasePath()}/api/internal/check-module-access?dealerId=${dealerIdPf}&moduleKey=AI_PAGE_FACTORY`
         );
         const checkData = await checkRes.json();
         if (!checkData.access) {
@@ -464,7 +470,7 @@ export async function middleware(request: NextRequest) {
     if (dealerIdDs) {
       try {
         const checkRes = await fetch(
-          `${request.nextUrl.origin}/api/internal/check-module-access?dealerId=${dealerIdDs}&moduleKey=AI_DROPSHIP`
+          `${internalBasePath()}/api/internal/check-module-access?dealerId=${dealerIdDs}&moduleKey=AI_DROPSHIP`
         );
         const checkData = await checkRes.json();
         if (!checkData.access) {
@@ -492,8 +498,7 @@ export async function middleware(request: NextRequest) {
     const apiKey = request.headers.get("x-api-key");
     if (apiKey) {
       try {
-        const origin = request.nextUrl.origin;
-        const verifyRes = await fetch(`${origin}/api/internal/verify-api-key`, {
+        const verifyRes = await fetch(`${internalBasePath()}/api/internal/verify-api-key`, {
           method: "POST",
           headers: { "x-api-key": apiKey, "content-type": "application/json" },
         });
@@ -570,7 +575,7 @@ export async function middleware(request: NextRequest) {
     // Lisanslı bayi: ENA oturumu yeterli — ayrı thyronix_ok cookie zorunlu değil
     if (dealerId) {
       try {
-        const checkRes = await fetch(`${request.nextUrl.origin}/api/internal/check-module-access?dealerId=${dealerId}&moduleKey=THYRONIX`);
+        const checkRes = await fetch(`${internalBasePath()}/api/internal/check-module-access?dealerId=${dealerId}&moduleKey=THYRONIX`);
         const checkData = await checkRes.json();
         if (checkData.access) return NextResponse.next();
         if (checkData.reason === "LISANS_YOK") {
@@ -598,7 +603,7 @@ export async function middleware(request: NextRequest) {
     const dealerId = (payload as any).dealerId;
     if (dealerId) {
       try {
-        const checkRes = await fetch(`${request.nextUrl.origin}/api/internal/check-module-access?dealerId=${dealerId}&moduleKey=HIVE`);
+        const checkRes = await fetch(`${internalBasePath()}/api/internal/check-module-access?dealerId=${dealerId}&moduleKey=HIVE`);
         const checkData = await checkRes.json();
         if (!checkData.access) {
           if (checkData.reason === "LISANS_YOK") return NextResponse.redirect(new URL("/platform/hive", request.url));
@@ -733,7 +738,7 @@ export async function middleware(request: NextRequest) {
       if (!dealerIdLs) return jsonError(403, "Yetkisiz erişim");
       try {
         const checkRes = await fetch(
-          `${request.nextUrl.origin}/api/internal/check-module-access?dealerId=${dealerIdLs}&moduleKey=LINKSLASH`
+          `${internalBasePath()}/api/internal/check-module-access?dealerId=${dealerIdLs}&moduleKey=LINKSLASH`
         );
         const checkData = await checkRes.json();
         if (!checkData.access) return jsonError(403, checkData.reason || "LinkSlash lisansı gerekli");
