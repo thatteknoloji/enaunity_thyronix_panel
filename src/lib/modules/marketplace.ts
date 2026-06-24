@@ -2,6 +2,7 @@ import type { LucideIcon } from "lucide-react";
 import { Package, Sparkles, Link2, Shirt, Layers, Store } from "lucide-react";
 import type { UnifiedStatus } from "@/lib/customer-products/types";
 import { PRODUCT_META, type CustomerProductKey } from "@/lib/customer-products/types";
+import { getModuleLicenseState, getDealerModuleLicense } from "./access";
 
 /** Modül Pazarı'nda listelenen premium modüller */
 export const MARKETPLACE_MODULE_KEYS = ["LINKSLASH", "HIVE", "THYRONIX", "POD_CREATOR", "AI_PAGE_FACTORY", "AI_DROPSHIP"] as const;
@@ -176,6 +177,82 @@ export function resolveMarketplaceCta(
     ctaHref: meta.checkoutPath,
     canEnter: false,
     displayStatus: "PURCHASABLE",
+  };
+}
+
+export async function buildMarketplaceCard(
+  dealerId: string,
+  key: MarketplaceModuleKey,
+  product?: {
+    status: UnifiedStatus;
+    rawStatus: string;
+    planKey: string | null;
+    planName: string | null;
+  }
+): Promise<MarketplaceCard> {
+  const meta = MARKETPLACE_MODULES[key];
+  const licenseState = await getModuleLicenseState(dealerId, key);
+  const license = await getDealerModuleLicense(dealerId, key);
+
+  const unifiedStatus = product?.status || "INACTIVE";
+  const rawStatus = product?.rawStatus || license?.status || null;
+
+  if (key === "POD_CREATOR" && licenseState === "none" && unifiedStatus !== "EXPIRED" && rawStatus !== "EXPIRED") {
+    const { getPublicPodPlans } = await import("@/lib/pod/plans");
+    const publicPlans = await getPublicPodPlans();
+    if (publicPlans.length === 0) {
+      return {
+        moduleKey: key,
+        label: meta.label,
+        description: meta.description,
+        displayStatus: "COMING_SOON",
+        statusLabel: STATUS_LABELS.COMING_SOON,
+        planKey: null,
+        planName: null,
+        endsAt: null,
+        ctaLabel: "Lisans Al",
+        ctaHref: "/gateway/pod",
+        canEnter: false,
+        licensed: false,
+      };
+    }
+  }
+
+  const { ctaLabel, ctaHref, canEnter, displayStatus } = resolveMarketplaceCta(
+    key,
+    licenseState,
+    unifiedStatus,
+    rawStatus
+  );
+
+  return {
+    moduleKey: key,
+    label: meta.label,
+    description: meta.description,
+    displayStatus,
+    statusLabel: STATUS_LABELS[displayStatus],
+    planKey: product?.planKey || license?.planKey || null,
+    planName: product?.planName || license?.planKey || null,
+    endsAt: license?.endsAt?.toISOString() || null,
+    ctaLabel,
+    ctaHref,
+    canEnter,
+    licensed: licenseState === "active",
+  };
+}
+
+export async function getDealerMarketplaceOverview(dealerId: string, products?: Array<{ moduleKey: string; status: UnifiedStatus; rawStatus: string; planKey: string | null; planName: string | null }>) {
+  const productMap = Object.fromEntries((products || []).map((p) => [p.moduleKey, p]));
+
+  const modules = await Promise.all(
+    MARKETPLACE_MODULE_KEYS.map((key) =>
+      buildMarketplaceCard(dealerId, key, productMap[key] as never)
+    )
+  );
+
+  return {
+    modules,
+    activeModules: modules.filter((m) => m.canEnter),
   };
 }
 
