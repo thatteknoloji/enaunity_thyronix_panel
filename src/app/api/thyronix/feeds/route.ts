@@ -5,7 +5,6 @@ import {
   requireThyronixDealerOrAdmin,
   tenantOwnerFields,
   thyronixErrorResponse,
-  withTenantFilter,
 } from "@/lib/thyronix/access";
 import { checkPlanLimit } from "@/lib/thyronix/workspace";
 import { resolveDealerId } from "@/lib/thyronix/workspace";
@@ -20,8 +19,9 @@ function normalizeSchedule(value: unknown): 4 | 6 | 12 | 24 {
 export async function GET() {
   try {
     const user = await requireThyronixDealerOrAdmin();
+    const feedOwnerFilter = user.role === "admin" ? {} : { dealerId: user.dealerId };
     const feeds = await prisma.thyronixFeed.findMany({
-      where: withTenantFilter(user, { sourceId: null }),
+      where: { sourceId: null, ...feedOwnerFilter },
       include: { source: { select: { name: true, type: true } } },
       orderBy: { createdAt: "desc" },
     });
@@ -36,7 +36,8 @@ export async function POST(req: Request) {
     const user = await requireThyronixDealerOrAdmin();
     const owner = tenantOwnerFields(user);
     const dealerId = await resolveDealerId(user);
-    const count = await prisma.thyronixFeed.count({ where: withTenantFilter(user, { sourceId: null }) });
+    const feedOwnerFilter = user.role === "admin" ? {} : { dealerId: user.dealerId };
+    const count = await prisma.thyronixFeed.count({ where: { sourceId: null, ...feedOwnerFilter } });
     const limitCheck = await checkPlanLimit(dealerId, "feeds", count);
     if (!limitCheck.ok) {
       return NextResponse.json(
