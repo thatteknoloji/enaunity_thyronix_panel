@@ -19,7 +19,7 @@ type FeedRecord = {
 export async function countActiveSourceProducts(sourceIds: string[]): Promise<number> {
   if (!sourceIds.length) return 0;
   return prisma.thyronixProduct.count({
-    where: { sourceId: { in: sourceIds }, status: "active" },
+    where: { sourceId: { in: sourceIds } },
   });
 }
 
@@ -46,7 +46,6 @@ export async function loadMergedFeedProducts(
     const chunk = await prisma.thyronixProduct.findMany({
       where: {
         sourceId: { in: sourceIds },
-        status: "active",
         ...(cursor ? { id: { gt: cursor } } : {}),
       },
       orderBy: { id: "asc" },

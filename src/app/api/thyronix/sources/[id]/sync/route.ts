@@ -10,7 +10,6 @@ import {
 } from "@/lib/thyronix/feed-fetch";
 import { parseExcel, mapExcelToProducts, getIdentityKey } from "@/lib/thyronix/excel-parser";
 import { parseCsvToProducts } from "@/lib/thyronix/csv-parser";
-import { upsertSourceFeed } from "@/lib/thyronix/source-feed-provision";
 
 async function preSnapshot(sourceId: string, sourceName: string) {
   try {
@@ -76,18 +75,6 @@ export async function POST(_req: Request, { params }: { params: Promise<{ id: st
         await prisma.thyronixSource.update({
           where: { id },
           data: { productCount: allData.length, lastSync: new Date(), status: "active", errorLog: null } as any,
-        });
-        await upsertSourceFeed({
-          id,
-          name: source.name,
-          type: sourceType,
-          inputFormat: (source as any).inputFormat || "custom_xml",
-          status: "active",
-          productCount: allData.length,
-          lastSync: new Date(),
-          dealerId: source.dealerId || null,
-          tenantScope: source.tenantScope,
-          ownerType: source.ownerType,
         });
         await prisma.thyronixSyncLog.create({
           data: {
@@ -173,18 +160,6 @@ export async function POST(_req: Request, { params }: { params: Promise<{ id: st
       const total = created + updated;
       await postSnapshot(id, source.name, total);
       await prisma.thyronixSource.update({ where: { id }, data: { productCount: total, lastSync: new Date(), status: "active" } as any });
-      await upsertSourceFeed({
-        id,
-        name: source.name,
-        type: sourceType,
-        inputFormat: (source as any).inputFormat || "custom_xml",
-        status: "active",
-        productCount: total,
-        lastSync: new Date(),
-        dealerId: source.dealerId || null,
-        tenantScope: source.tenantScope,
-        ownerType: source.ownerType,
-      });
       await prisma.thyronixSyncLog.create({ data: { type: "sync", referenceId: source.name, status: "success", message: `Excel: ${created} yeni, ${updated} güncelleme (batch)` } });
 
       return NextResponse.json({ success: true, data: { total, created, updated, errors: products.filter(p=>!p.valid).length, duration: Date.now() - startTime } });
@@ -231,18 +206,6 @@ export async function POST(_req: Request, { params }: { params: Promise<{ id: st
       const totalCsv = createdCsv + updatedCsv;
       await postSnapshot(id, source.name, totalCsv);
       await prisma.thyronixSource.update({ where: { id }, data: { productCount: totalCsv, lastSync: new Date(), status: "active" } as any });
-      await upsertSourceFeed({
-        id,
-        name: source.name,
-        type: sourceType,
-        inputFormat: (source as any).inputFormat || "custom_xml",
-        status: "active",
-        productCount: totalCsv,
-        lastSync: new Date(),
-        dealerId: source.dealerId || null,
-        tenantScope: source.tenantScope,
-        ownerType: source.ownerType,
-      });
       await prisma.thyronixSyncLog.create({ data: { type: "sync", referenceId: source.name, status: "success", message: `CSV: ${createdCsv} yeni, ${updatedCsv} güncelleme (batch)` } });
 
       return NextResponse.json({ success: true, data: { total: totalCsv, created: createdCsv, updated: updatedCsv, duration: Date.now() - startTime } });

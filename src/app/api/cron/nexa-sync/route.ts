@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { ensureSourceFeedsForSources, resolveFeedSourceIds } from "@/lib/thyronix/source-feed-provision";
+import { resolveFeedSourceIds } from "@/lib/thyronix/source-feed-provision";
 import { loadMergedFeedProducts } from "@/lib/thyronix/feed-output-service";
 
 export const dynamic = "force-dynamic";
@@ -15,23 +15,7 @@ export async function GET(req: Request) {
     }
 
     const now = new Date();
-    const sources = await prisma.thyronixSource.findMany({
-      select: {
-        id: true,
-        name: true,
-        type: true,
-        inputFormat: true,
-        status: true,
-        productCount: true,
-        lastSync: true,
-        dealerId: true,
-        tenantScope: true,
-        ownerType: true,
-      },
-    });
-    await ensureSourceFeedsForSources(sources.map((source) => ({ ...source, lastSync: source.lastSync || null })));
-
-    const feeds = await prisma.thyronixFeed.findMany({ where: { status: "active" } });
+    const feeds = await prisma.thyronixFeed.findMany({ where: { status: "active", sourceId: null } });
     const results: Array<{ feedId: string; products: number; duration: number; error?: string }> = [];
 
     for (const feed of feeds) {

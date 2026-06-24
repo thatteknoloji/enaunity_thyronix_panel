@@ -168,7 +168,7 @@ export default function AdminThyronixPage() {
                         <span className="text-[11px] text-gray-500">{f.source?.type || "source"} · bağlı</span>
                       </div>
                     ) : (
-                      "Manuel feed"
+                      "Tüm kaynaklar"
                     )}
                   </td>
                   <td className="px-4 py-3 text-xs text-gray-600">{f.channel}</td>

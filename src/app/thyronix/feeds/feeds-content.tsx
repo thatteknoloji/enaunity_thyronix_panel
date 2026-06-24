@@ -47,8 +47,7 @@ export default function FeedCenterPage() {
     () => planFeedChunks(activeProducts),
     [activeProducts]
   );
-  const manualFeedCount = useMemo(() => feeds.filter((feed) => !feed.sourceId).length, [feeds]);
-  const sourceFeedCount = useMemo(() => feeds.filter((feed) => !!feed.sourceId).length, [feeds]);
+  const visibleFeedCount = useMemo(() => feeds.length, [feeds]);
 
   const load = useCallback(() => {
     setLoading(true);
@@ -123,7 +122,7 @@ export default function FeedCenterPage() {
             Feedleri yönetin, yayınlayın ve doğrulayın
             {plan && (
               <span className="ml-2 text-nexa-primary">
-                (manuel {manualFeedCount}/{plan.limits.maxFeeds} · kaynak {sourceFeedCount} · {plan.key})
+                (yayın {visibleFeedCount}/{plan.limits.maxFeeds} · giriş kaynakları ayrı · {plan.key})
               </span>
             )}
           </p>
@@ -237,7 +236,7 @@ export default function FeedCenterPage() {
                             <span className="text-[11px] text-nexa-text-secondary">{f.source?.type || "source"} · bağlı</span>
                           </div>
                         ) : (
-                          <span className="text-[11px] text-nexa-text-secondary">Manuel feed</span>
+                          <span className="text-[11px] text-nexa-text-secondary">Tüm kaynaklar</span>
                         )}
                       </td>
                       <td className="px-4 py-3 text-nexa-text-secondary">{f.outputFormat}</td>

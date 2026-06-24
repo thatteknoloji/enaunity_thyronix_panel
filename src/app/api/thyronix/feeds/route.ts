@@ -11,7 +11,6 @@ import { checkPlanLimit } from "@/lib/thyronix/workspace";
 import { resolveDealerId } from "@/lib/thyronix/workspace";
 import { normalizeTemplateId } from "@/lib/thyronix/templates";
 import { FEED_REFRESH_INTERVALS } from "@/lib/thyronix/commercial";
-import { ensureSourceFeedsForSources } from "@/lib/thyronix/source-feed-provision";
 
 function normalizeSchedule(value: unknown): 4 | 6 | 12 | 24 {
   const n = Number(value);
@@ -21,30 +20,8 @@ function normalizeSchedule(value: unknown): 4 | 6 | 12 | 24 {
 export async function GET() {
   try {
     const user = await requireThyronixDealerOrAdmin();
-    const sources = await prisma.thyronixSource.findMany({
-      where: withTenantFilter(user, {}),
-      select: {
-        id: true,
-        name: true,
-        type: true,
-        inputFormat: true,
-        status: true,
-        productCount: true,
-        lastSync: true,
-        dealerId: true,
-        tenantScope: true,
-        ownerType: true,
-      },
-      orderBy: { createdAt: "asc" },
-    });
-    await ensureSourceFeedsForSources(
-      sources.map((source) => ({
-        ...source,
-        lastSync: source.lastSync || null,
-      }))
-    );
     const feeds = await prisma.thyronixFeed.findMany({
-      where: withTenantFilter(user, {}),
+      where: withTenantFilter(user, { sourceId: null }),
       include: { source: { select: { name: true, type: true } } },
       orderBy: { createdAt: "desc" },
     });
