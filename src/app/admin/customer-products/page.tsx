@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { Loader2, Package } from "lucide-react";
 import { ProductStatusBadge } from "@/components/customer-products/ProductCard";
 import type { UnifiedStatus } from "@/lib/customer-products/types";
-import { getModuleLabel } from "@/lib/modules/access";
+import { getModuleLabel } from "@/lib/modules/labels";
 import { statusLabel } from "@/lib/ui/turkish-labels";
 
 type AdminRow = {
