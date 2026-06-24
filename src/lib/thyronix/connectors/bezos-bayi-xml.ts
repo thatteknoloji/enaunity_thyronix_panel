@@ -30,6 +30,7 @@ export const BEZOS_BAYI_XML = {
   },
   /** Özel alan override yok — şablon varsayılanları %100 Bezos BAYİ XML ile uyumlu */
   fieldMapping: {} as Record<string, string>,
+  variantMapping: {} as Record<string, string>,
 };
 
 export type ConnectorMappingRow = {
@@ -80,6 +81,7 @@ export function buildBezosSourcePayload(dealerName?: string) {
     interval: 120,
     status: "active",
     fieldMapping: JSON.stringify(BEZOS_BAYI_XML.fieldMapping),
+    variantMapping: JSON.stringify(BEZOS_BAYI_XML.variantMapping),
     fixedValues: JSON.stringify(BEZOS_BAYI_XML.fixedValues),
   };
 }

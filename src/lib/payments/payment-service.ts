@@ -12,6 +12,9 @@ import {
   grantProductLibraryAccessFromPayment,
   revokeProductLibraryAccessFromPayment,
 } from "@/lib/product-library/package-access-service";
+import { completeBalanceTopUpFromPayment } from "./balance-topup-service";
+import { deductDealerBalance } from "@/lib/accounting/accounting-service";
+import { roundMoney } from "./checkout-payment-service";
 
 function getProvider(key?: PaymentProviderKey): PaymentProvider {
   const providerKey = key || "MANUAL";
@@ -103,6 +106,20 @@ export async function approvePayment(paymentId: string): Promise<PaymentResult> 
 
   await prisma.modulePayment.update({ where: { id: paymentId }, data: { status: "PAID", paidAt: new Date() } });
 
+  if (payment.moduleKey === "BALANCE_TOPUP") {
+    const result = await completeBalanceTopUpFromPayment(paymentId);
+    if (!result.success) {
+      return { success: false, status: "FAILED", message: result.error || "Bakiye yüklenemedi" };
+    }
+    return {
+      success: true,
+      status: "PAID",
+      message: "Bakiye yükleme tamamlandı",
+      paymentId,
+      redirectUrl: result.returnUrl || "/dealer/balance",
+    };
+  }
+
   if (payment.moduleKey === "B2B_ORDER") {
     const orderId = payment.planKey;
     const order = await prisma.order.findUnique({
@@ -112,10 +129,42 @@ export async function approvePayment(paymentId: string): Promise<PaymentResult> 
     if (!order) {
       return { success: false, status: "FAILED", message: "Sipariş bulunamadı" };
     }
+
+    let orderMeta: Record<string, unknown> = {};
+    try {
+      orderMeta = JSON.parse(order.metadataJson || "{}") as Record<string, unknown>;
+    } catch {
+      orderMeta = {};
+    }
+    let paymentMeta = (orderMeta.payment as Record<string, unknown>) || {};
+
+    const isSplit = paymentMeta.mode === "SPLIT";
+    const balancePortion = roundMoney(Number(paymentMeta.balancePortion || 0));
+
+    if (isSplit && order.dealerId && balancePortion > 0) {
+      await deductDealerBalance(
+        order.dealerId,
+        balancePortion,
+        orderId,
+        "ORDER_COST",
+        `Split ödeme — bakiye kısmı (#${orderId.slice(0, 8)})`
+      );
+      paymentMeta.balanceCharged = balancePortion;
+    }
+
+    paymentMeta.cardCharged = roundMoney(payment.amount);
+    paymentMeta.gatewayReference = payment.providerReference || paymentId;
+
     const nextStatus = order.dealerId ? "pending_approval" : "pending";
     await prisma.order.update({
       where: { id: orderId },
-      data: { status: nextStatus },
+      data: {
+        status: nextStatus,
+        metadataJson: JSON.stringify({
+          ...orderMeta,
+          payment: paymentMeta,
+        }),
+      },
     });
     await prisma.payment.create({
       data: {

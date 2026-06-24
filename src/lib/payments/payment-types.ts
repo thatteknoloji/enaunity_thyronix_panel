@@ -18,6 +18,8 @@ export interface CreatePaymentParams {
     orderId?: string;
     installmentCount?: number;
     buyer?: { id?: string; name?: string; surname?: string; email?: string; phone?: string };
+    topUpId?: string;
+    returnUrl?: string;
   };
 }
 

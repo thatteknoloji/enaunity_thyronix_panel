@@ -79,6 +79,7 @@ export type BlogGenerateOptions = {
   competitorStructure?: string;
   competitorUrl?: string;
   tags?: string[];
+  debugTemplateFallback?: boolean;
 };
 
 export type BlogPreviewResult = {

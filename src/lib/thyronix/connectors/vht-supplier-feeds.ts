@@ -11,6 +11,7 @@ export type VhtFeedDefinition = {
   supplier: string;
   inputFormat: string;
   fieldMapping?: Record<string, string>;
+  variantMapping?: Record<string, string>;
   fixedValues?: Record<string, string>;
 };
 
@@ -56,6 +57,7 @@ export const VHT_FEED_DEFINITIONS: VhtFeedDefinition[] = [
       urun_stok: "stock",
       urun_resim1: "image",
     },
+    variantMapping: {},
   },
 ];
 
@@ -128,6 +130,7 @@ export function buildVhtSourcePayload(def: VhtFeedDefinition, xmlUrl: string) {
     interval: 120,
     status: "active" as const,
     fieldMapping: def.fieldMapping ? JSON.stringify(def.fieldMapping) : null,
+    variantMapping: def.variantMapping ? JSON.stringify(def.variantMapping) : null,
     fixedValues: JSON.stringify(fixed),
   };
 }

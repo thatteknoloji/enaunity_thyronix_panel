@@ -1,7 +1,7 @@
 import type { FeedTemplate } from "./templates";
 
 interface ThyronixProduct {
-  id: string; name: string; description?: string | null; brand?: string | null;
+  id: string; externalId?: string | null; name: string; description?: string | null; brand?: string | null;
   category?: string | null; barcode?: string | null; stockCode?: string | null;
   modelCode?: string | null; price: number; costPrice?: number | null; stock: number;
   currency?: string | null; image?: string | null; images?: string | null;
@@ -13,7 +13,7 @@ interface ThyronixProduct {
 
 interface ThyronixVariant {
   id: string; sku?: string; barcode?: string; price?: number;
-  stock: number; options: string; image?: string;
+  stock: number; options: string | Array<{ group: string; value: string }>; image?: string;
 }
 
 function escapeXml(str: string): string {
@@ -40,6 +40,7 @@ function getField(product: ThyronixProduct, fieldName: string): unknown {
   const map: Record<string, unknown> = {
     name: product.name, description: product.description, brand: product.brand,
     category: product.category, barcode: product.barcode, stockCode: product.stockCode,
+    externalId: product.externalId,
     modelCode: product.modelCode, price: product.price, costPrice: product.costPrice,
     stock: product.stock, currency: product.currency, image: product.image,
     images: product.images, weight: product.weight, dimensions: product.dimensions,
@@ -90,7 +91,11 @@ export function generateFeedXml(
       parts.push(`    <${variantElement}>`);
       for (const v of product.variants) {
         let variantOpts: Array<{ group: string; value: string }> = [];
-        try { variantOpts = JSON.parse(v.options || "[]"); } catch {}
+        if (Array.isArray(v.options)) {
+          variantOpts = v.options;
+        } else {
+          try { variantOpts = JSON.parse(v.options || "[]"); } catch {}
+        }
         parts.push(`      <${variantItemElement || "variant"}>`);
         if (v.barcode) parts.push(`        <barcode>${escapeXml(v.barcode)}</barcode>`);
         if (v.sku) parts.push(`        <sku>${escapeXml(v.sku)}</sku>`);

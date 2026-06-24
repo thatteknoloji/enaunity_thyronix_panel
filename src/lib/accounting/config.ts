@@ -12,6 +12,8 @@ export const ACCOUNT_TRANSACTION_TYPES = [
   "PACKAGING_FEE",
   "MODULE_PAYMENT",
   "PRODUCT_PACKAGE_PAYMENT",
+  "TOPUP_CARD",
+  "TOPUP_BANK",
 ] as const;
 
 export type AccountTransactionType = (typeof ACCOUNT_TRANSACTION_TYPES)[number];

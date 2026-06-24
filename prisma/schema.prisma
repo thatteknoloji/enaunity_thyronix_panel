@@ -462,6 +462,7 @@ model Dealer {
   dealerStatements       DealerStatement[]
   dealerWarehouseMovements DealerWarehouseMovement[]
   dealerProducts         DealerProduct[]
+  balanceTopUps          DealerBalanceTopUp[]
   createdAt       DateTime           @default(now())
   updatedAt       DateTime           @updatedAt
 }
@@ -1422,6 +1423,7 @@ model ThyronixSource {
   type         String   @default("xml")
   inputFormat  String   @default("custom_xml")
   fieldMapping String?  // JSON: custom field mapping overrides
+  variantMapping String? // JSON: custom variant field mapping overrides
   fixedValues  String?  // JSON: fixed values {brand:"X", weight:"4"}
   interval     Int      @default(60)
   status      String   @default("active")
@@ -1457,10 +1459,21 @@ model ThyronixProduct {
   modelCode       String?
   price           Float    @default(0)
   discountedPrice Float?
+  costPrice       Float?
   stock           Int      @default(0)
+  image           String?
   images          String?
+  weight          Float?
+  dimensions      String?
+  vatRate         Float?
+  deliveryTime    String?
+  manufacturer    String?
+  warranty        String?
+  shippingCost    Float?
+  productUrl      String?
   currency        String   @default("TRY")
   variantData     String?  // JSON: variant array from source XML
+  metadataJson    String   @default("{}")
 
   status          String   @default("active")
   lockedFields    String?
@@ -1815,7 +1828,28 @@ model PaymentGatewaySettings {
   checkoutTitle        String   @default("Ödeme")
   checkoutDescription  String   @default("")
   require3ds           Boolean  @default(true)
+  balanceTopUpJson     String   @default("{}")
   updatedAt            DateTime @updatedAt
+}
+
+model DealerBalanceTopUp {
+  id           String    @id @default(cuid())
+  dealerId     String
+  dealer       Dealer    @relation(fields: [dealerId], references: [id])
+  amount       Float
+  method       String    // CARD | BANK_TRANSFER
+  status       String    @default("PENDING_PAYMENT") // PENDING_PAYMENT | PENDING_APPROVAL | COMPLETED | REJECTED | FAILED | CANCELLED
+  gatewayRef   String    @default("")
+  adminNote    String    @default("")
+  approvedBy   String    @default("")
+  returnUrl    String    @default("")
+  metadataJson String    @default("{}")
+  completedAt  DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@index([dealerId, status])
+  @@index([status, createdAt])
 }
 
 model HiveAccessToken {

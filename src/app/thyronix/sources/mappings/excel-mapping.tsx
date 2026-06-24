@@ -1,22 +1,8 @@
 "use client";
 
 import { Table, Upload, ChevronDown } from "lucide-react";
-
-const TARGET_FIELDS = [
-  { v:"name", l:"Ürün Adı", req:true },
-  { v:"description", l:"Açıklama" },
-  { v:"brand", l:"Marka" },
-  { v:"category", l:"Kategori" },
-  { v:"barcode", l:"Barkod" },
-  { v:"stockCode", l:"Stok Kodu" },
-  { v:"modelCode", l:"Model Kodu" },
-  { v:"price", l:"Fiyat", req:true },
-  { v:"salePrice", l:"İndirimli Fiyat" },
-  { v:"stock", l:"Stok" },
-  { v:"currency", l:"Para Birimi" },
-  { v:"images", l:"Görseller" },
-  { v:"status", l:"Durum" },
-];
+import { TARGET_FIELDS } from "./field-options";
+import type { ExcelValidationSummary } from "@/lib/thyronix/excel-parser";
 
 interface Props {
   fileName: string; setFileName: (v:string)=>void;
@@ -27,12 +13,13 @@ interface Props {
   fieldMapping: Record<string,string>; setFieldMapping: (m:Record<string,string>)=>void;
   onUpload: ()=>void; uploading: boolean;
   detectedCount: number;
+  validation?: ExcelValidationSummary | null;
 }
 
 export default function ExcelMappingUI({
   fileName, setFileName, sheetName, setSheetName, sheets,
   headerRow, setHeaderRow, columns, previewRows,
-  fieldMapping, setFieldMapping, onUpload, uploading, detectedCount,
+  fieldMapping, setFieldMapping, onUpload, uploading, detectedCount, validation,
 }: Props) {
   return (
     <div className="space-y-4">
@@ -93,6 +80,47 @@ export default function ExcelMappingUI({
               </tbody>
             </table>
           </div>
+        </div>
+      )}
+
+      {validation && (
+        <div className="p-4 rounded-xl bg-nexa-card border border-nexa-border">
+          <div className="flex items-center justify-between gap-3 mb-3">
+            <h3 className="text-sm font-semibold text-nexa-text">Doğrulama Özeti</h3>
+            <span className="text-[11px] text-nexa-text-secondary">
+              {validation.validRows} geçerli · {validation.invalidRows} hatalı
+            </span>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
+            {[
+              ["Ürün adı", validation.missingProductName],
+              ["Fiyat", validation.missingPrice],
+              ["Kimlik", validation.missingIdentity],
+              ["Geçerli", validation.validRows],
+              ["Hatalı", validation.invalidRows],
+            ].map(([label, value]) => (
+              <div key={String(label)} className="rounded-lg border border-nexa-border bg-nexa-bg px-3 py-2">
+                <p className="text-[10px] text-nexa-text-secondary">{label}</p>
+                <p className="text-sm font-semibold text-nexa-text tabular-nums">{String(value)}</p>
+              </div>
+            ))}
+          </div>
+          {validation.invalidSamples.length > 0 && (
+            <div className="mt-3">
+              <p className="text-[11px] font-medium text-nexa-text-secondary mb-2">Örnek hatalar</p>
+              <div className="space-y-2">
+                {validation.invalidSamples.slice(0, 3).map(sample => (
+                  <div key={sample.row} className="rounded-lg border border-nexa-border/70 bg-nexa-bg/70 px-3 py-2">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-xs font-medium text-nexa-text">Satır {sample.row}</span>
+                      <span className="text-[11px] text-nexa-text-secondary truncate">{sample.name}</span>
+                    </div>
+                    <p className="text-[11px] text-nexa-danger mt-1">{sample.errors.join(" · ")}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       )}
 

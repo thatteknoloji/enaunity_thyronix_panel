@@ -21,6 +21,13 @@ import {
   getPublicPaymentSettings,
 } from "@/lib/payments/payment-settings";
 import { getSystemPaymentDealer } from "@/lib/payments/system-payment-dealer";
+import {
+  assertPaymentModeAllowed,
+  buildCheckoutPaymentContext,
+  buildOrderPaymentMetadata,
+  roundMoney,
+  type PaymentMode,
+} from "@/lib/payments/checkout-payment-service";
 
 export async function GET() {
   try {
@@ -66,6 +73,7 @@ export async function POST(req: Request) {
       platform,
       shippingCost = 0,
       paymentMethod,
+      paymentMode: paymentModeInput,
       installmentCount = 1,
     } = await req.json();
 
@@ -121,12 +129,63 @@ export async function POST(req: Request) {
     const shipping = typeof shippingCost === "number" && shippingCost > 0 ? shippingCost : 0;
     const finalTotal = subTotal + termFee + (campaignFreeShip ? 0 : shipping);
 
-    const method = (paymentMethod || "DEALER_ACCOUNT") as ProductLibraryPaymentMethod | "DEALER_ACCOUNT";
-    const useGatewayPayment = method !== "DEALER_ACCOUNT" && (dealer || isAdminCheckout);
-    const isCard = method === "ESNEKPOS" || method === "IYZICO";
+    const method = (paymentMethod || "DEALER_ACCOUNT") as ProductLibraryPaymentMethod | "DEALER_ACCOUNT" | "SPLIT";
+    const paymentModeRaw = (paymentModeInput || "") as PaymentMode | "";
+    let paymentMode: PaymentMode | null = null;
+    let checkoutCtx = null;
 
     if (dealer) {
-      const allowed = await assertPaymentMethodAllowed(dealer.id, method);
+      const resolvedMethods = await resolveDealerPaymentMethods(dealer.id);
+      checkoutCtx = await buildCheckoutPaymentContext({
+        dealerId: dealer.id,
+        cartTotal: finalTotal,
+        balanceEnabled: resolvedMethods.balanceEnabled,
+      });
+
+      if (paymentModeRaw) {
+        paymentMode = paymentModeRaw;
+      } else if (method === "DEALER_ACCOUNT") {
+        paymentMode = "BALANCE_ONLY";
+      } else if (method === "SPLIT") {
+        paymentMode = "SPLIT";
+      } else if (method === "ESNEKPOS" || method === "IYZICO") {
+        paymentMode = "CARD_ONLY";
+      }
+
+      if (paymentMode) {
+        const allowedMode = assertPaymentModeAllowed(checkoutCtx, paymentMode);
+        if (!allowedMode.ok) {
+          return NextResponse.json({
+            success: false,
+            error: allowedMode.error,
+            code: paymentMode === "BALANCE_ONLY" ? "INSUFFICIENT_BALANCE" : "PAYMENT_MODE_DENIED",
+            checkout: checkoutCtx,
+          }, { status: 400 });
+        }
+      }
+    }
+
+    const useGatewayPayment =
+      paymentMode === "CARD_ONLY" ||
+      paymentMode === "SPLIT" ||
+      (method !== "DEALER_ACCOUNT" && method !== "SPLIT" && (dealer || isAdminCheckout));
+    const isCard =
+      paymentMode === "CARD_ONLY" ||
+      paymentMode === "SPLIT" ||
+      method === "ESNEKPOS" ||
+      method === "IYZICO";
+    const gatewayMethod: ProductLibraryPaymentMethod | "DEALER_ACCOUNT" | "SPLIT" =
+      paymentMode === "SPLIT"
+        ? "SPLIT"
+        : paymentMode === "CARD_ONLY"
+          ? ((method === "IYZICO" ? "IYZICO" : "ESNEKPOS") as ProductLibraryPaymentMethod)
+          : method;
+
+    if (dealer && paymentMode !== "BALANCE_ONLY") {
+      const allowed = await assertPaymentMethodAllowed(
+        dealer.id,
+        gatewayMethod === "SPLIT" ? "ESNEKPOS" : (gatewayMethod as ProductLibraryPaymentMethod)
+      );
       if (!allowed.ok) {
         return NextResponse.json({
           success: false,
@@ -139,7 +198,7 @@ export async function POST(req: Request) {
 
     if (isAdminCheckout && useGatewayPayment) {
       const publicSettings = await getPublicPaymentSettings();
-      if (!publicSettings.methods.includes(method as ProductLibraryPaymentMethod)) {
+      if (!publicSettings.methods.includes(gatewayMethod as ProductLibraryPaymentMethod) && gatewayMethod !== "SPLIT") {
         return NextResponse.json({
           success: false,
           error: "Seçilen ödeme yöntemi bu hesap için kullanılamıyor.",
@@ -149,8 +208,11 @@ export async function POST(req: Request) {
       }
     }
 
-    if (useGatewayPayment && dealer) {
-      const allowed = await assertPaymentMethodAllowed(dealer.id, method as ProductLibraryPaymentMethod);
+    if (useGatewayPayment && dealer && paymentMode !== "BALANCE_ONLY") {
+      const allowed = await assertPaymentMethodAllowed(
+        dealer.id,
+        gatewayMethod === "SPLIT" ? "ESNEKPOS" : (gatewayMethod as ProductLibraryPaymentMethod)
+      );
       if (!allowed.ok) {
         return NextResponse.json({
           success: false,
@@ -161,17 +223,22 @@ export async function POST(req: Request) {
       }
     }
 
-    if (dealer && !useGatewayPayment) {
+    if (dealer && paymentMode === "BALANCE_ONLY") {
       const creditCheck = await checkDealerCredit(dealer.id, finalTotal);
       if (!creditCheck.ok) {
         const resolved = await resolveDealerPaymentMethods(dealer.id);
-        const alternatives = resolved.methods.filter((m) => m !== "DEALER_ACCOUNT" as never);
+        const ctx = checkoutCtx || await buildCheckoutPaymentContext({
+          dealerId: dealer.id,
+          cartTotal: finalTotal,
+          balanceEnabled: resolved.balanceEnabled,
+        });
         return NextResponse.json({
           success: false,
           error: creditCheck.message,
-          alternatives,
-          suggestOnlinePayment: alternatives.length > 0,
+          alternatives: ctx.methods,
+          suggestOnlinePayment: ctx.methods.includes("CARD_ONLY") || ctx.methods.includes("SPLIT"),
           code: "INSUFFICIENT_BALANCE",
+          checkout: ctx,
         }, { status: 400 });
       }
     }
@@ -189,6 +256,27 @@ export async function POST(req: Request) {
       }
     }
 
+    const paymentMeta =
+      dealer && paymentMode && checkoutCtx
+        ? buildOrderPaymentMetadata({
+            mode: paymentMode,
+            cartTotal: finalTotal,
+            balancePortion:
+              paymentMode === "BALANCE_ONLY"
+                ? finalTotal
+                : paymentMode === "SPLIT"
+                  ? checkoutCtx.split.balancePortion
+                  : 0,
+            cardPortion:
+              paymentMode === "CARD_ONLY"
+                ? finalTotal
+                : paymentMode === "SPLIT"
+                  ? checkoutCtx.split.cardPortion
+                  : 0,
+            gateway: isCard ? "ESNEKPOS" : "",
+          })
+        : null;
+
     const metadataJson = JSON.stringify({
       platform: platform || "",
       company,
@@ -202,15 +290,17 @@ export async function POST(req: Request) {
       campaignLabel,
       campaignFreeShip,
       shippingCost: campaignFreeShip ? 0 : shipping,
-      paymentMethod: method,
+      paymentMethod: gatewayMethod,
+      paymentMode: paymentMode || null,
       installmentCount: useGatewayPayment ? installmentCount : undefined,
       rawTotal: total,
       discountTotal: totalDiscount,
       termFee,
       finalTotal,
+      payment: paymentMeta,
     });
 
-    const paymentDeadlineAt = useGatewayPayment && method === "BANK_TRANSFER" ? paymentDeadlineFromNow() : null;
+    const paymentDeadlineAt = useGatewayPayment && gatewayMethod === "BANK_TRANSFER" ? paymentDeadlineFromNow() : null;
 
     const order = await prisma.order.create({
       data: {
@@ -269,7 +359,7 @@ export async function POST(req: Request) {
       createdAt: order.createdAt.toISOString(),
     });
 
-    if (dealer && !useGatewayPayment) {
+    if (dealer && paymentMode === "BALANCE_ONLY") {
       await deductDealerBalance(dealer.id, finalTotal - termFee, order.id, "ORDER_COST", "Sipariş kesintisi");
       if (termFee > 0) {
         await deductDealerBalance(dealer.id, termFee, order.id, "SERVICE_FEE", `Vade farkı (%${paymentTermRate})`);
@@ -309,11 +399,23 @@ export async function POST(req: Request) {
         name: user.name,
         phone: userPhone,
       });
-      let payAmount = finalTotal;
-      const providerKey = resolveProviderKey(method as ProductLibraryPaymentMethod);
+      let payAmount = paymentMode === "SPLIT" && checkoutCtx
+        ? checkoutCtx.split.cardPortion
+        : finalTotal;
+      const cardProvider =
+        gatewayMethod === "IYZICO"
+          ? "IYZICO"
+          : ((await getPublicPaymentSettings()).activeCardProvider === "IYZICO" ? "IYZICO" : "ESNEKPOS");
+      const providerKey = resolveProviderKey(
+        (gatewayMethod === "SPLIT" ? cardProvider : gatewayMethod) as ProductLibraryPaymentMethod
+      );
       if (isCard) {
         const settings = await getPaymentSettings();
-        payAmount = calculatePaymentTotal(finalTotal, method as "ESNEKPOS" | "IYZICO", settings).totalAmount;
+        payAmount = calculatePaymentTotal(
+          payAmount,
+          cardProvider,
+          settings
+        ).totalAmount;
       }
 
       const result = await createPaymentIntent({
@@ -368,7 +470,7 @@ export async function POST(req: Request) {
         }).catch(() => {});
       }
 
-      if (method === "BANK_TRANSFER") {
+      if (gatewayMethod === "BANK_TRANSFER") {
         if (dealer) {
           void notifyBankTransferCreated({
             dealerId: dealer.id,
@@ -394,8 +496,9 @@ export async function POST(req: Request) {
           paymentId: result.paymentId,
           redirectUrl: result.redirectUrl || null,
           status: result.status,
-          paymentMethod: method,
-          requiresReceipt: method === "BANK_TRANSFER",
+          paymentMethod: gatewayMethod,
+          paymentMode,
+          requiresReceipt: gatewayMethod === "BANK_TRANSFER",
         },
       }, { status: 201 });
     }

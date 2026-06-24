@@ -137,6 +137,13 @@ export async function GET() {
       savedFieldMapping = {};
     }
 
+    let savedVariantMapping: Record<string, string> = {};
+    try {
+      savedVariantMapping = JSON.parse(activeSource?.variantMapping || "{}");
+    } catch {
+      savedVariantMapping = {};
+    }
+
     let savedFixedValues: Record<string, unknown> = {};
     try {
       savedFixedValues = JSON.parse(activeSource?.fixedValues || "{}");
@@ -164,6 +171,7 @@ export async function GET() {
               lastSync: activeSource.lastSync,
               errorLog: activeSource.errorLog,
               fieldMapping: savedFieldMapping,
+              variantMapping: savedVariantMapping,
               fixedValues: savedFixedValues,
               feedUrls: resolveSourceFeedUrls(activeSource.xmlUrl, activeSource.fixedValues),
             }
@@ -250,6 +258,7 @@ export async function POST(req: Request) {
           type: payload.type,
           inputFormat: payload.inputFormat,
           fieldMapping: payload.fieldMapping,
+          variantMapping: payload.variantMapping,
           fixedValues: payload.fixedValues,
           interval: payload.interval,
           status: "active",

@@ -23,8 +23,8 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
     const transformSettings = await loadFeedTransformSettings(feed.dealerId);
     const transformedProducts = applyFeedTransformSettings(products as FeedProduct[], transformSettings);
 
-    const headers = ["Ürün Adı", "Açıklama", "Marka", "Kategori", "Barkod", "Stok Kodu", "Model Kodu", "Fiyat", "Stok", "Para Birimi", "Durum", "Görseller"];
-    const keys = ["name", "description", "brand", "category", "barcode", "stockCode", "modelCode", "price", "stock", "currency", "status", "images"];
+    const headers = ["ID", "Kaynak ID", "Harici ID", "Ürün Adı", "Açıklama", "Marka", "Kategori", "Barkod", "Stok Kodu", "Model Kodu", "Fiyat", "İndirimli Fiyat", "Maliyet", "Stok", "Para Birimi", "Görsel", "Görseller", "Ağırlık", "Boyutlar", "KDV", "Teslim Süresi", "Üretici", "Garanti", "Kargo Ücreti", "Ürün Linki", "Varyant Veri", "Ham JSON", "Durum"];
+    const keys = ["id", "sourceId", "externalId", "name", "description", "brand", "category", "barcode", "stockCode", "modelCode", "price", "discountedPrice", "costPrice", "stock", "currency", "image", "images", "weight", "dimensions", "vatRate", "deliveryTime", "manufacturer", "warranty", "shippingCost", "productUrl", "variantData", "metadataJson", "status"];
     const rows = transformedProducts.map((p) => keys.map((k) => p[k] ?? ""));
     const data = [headers, ...rows];
 

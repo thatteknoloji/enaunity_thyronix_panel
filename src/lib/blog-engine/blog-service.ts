@@ -1,18 +1,15 @@
 import { prisma } from "@/lib/db";
 import { slugify } from "@/lib/utils";
 import type { BlogPost, BlogPostStatus, BlogSourceType } from "@prisma/client";
+import type { BlogFaqItem } from "./blog-types";
 import {
-  buildCategoryContent,
-  buildCompetitorStructureContent,
-  buildFaqItems,
-  buildGeoContent,
-  buildKeywordContent,
-  buildProductContent,
   buildSchemaJson,
   buildSeoDescription,
   buildSeoTitle,
   extractCompetitorStructure,
 } from "./blog-content-builder";
+import { resolveAiBlogContent } from "./blog-ai-bridge";
+import type { AiWriterMetadata } from "@/lib/ai-writer/types";
 import { suggestInternalLinks } from "./blog-internal-links";
 import { runBlogQualityCheck } from "./blog-quality";
 import { ensureUniqueBlogSlug } from "./blog-slug";
@@ -38,10 +35,15 @@ type BuiltPost = {
   sourceType: BlogSourceType;
   sourceReferenceId?: string | null;
   content: BlogContentPayload;
-  faq: ReturnType<typeof buildFaqItems>;
+  faq: BlogFaqItem[];
   tags: string[];
   sourceJson: Record<string, unknown>;
   originalityHint: number;
+  aiMetadata?: AiWriterMetadata;
+  aiSuccess?: boolean;
+  seoTitleOverride?: string;
+  seoDescriptionOverride?: string;
+  schemaOverride?: Record<string, unknown>;
 };
 
 function parseJson<T>(raw: string, fallback: T): T {
@@ -72,8 +74,9 @@ async function buildPostPayload(built: BuiltPost, opts: BlogGenerateOptions): Pr
   preview: Omit<BlogPreviewResult, "dryRun">;
 }> {
   const slug = await ensureUniqueBlogSlug(built.slugBase);
-  const seoTitle = buildSeoTitle(built.title, built.keyword);
-  const seoDescription = buildSeoDescription(built.content.intro, built.keyword);
+  const seoTitle = built.seoTitleOverride || buildSeoTitle(built.title, built.keyword);
+  const seoDescription =
+    built.seoDescriptionOverride || buildSeoDescription(built.content.intro, built.keyword);
   const internalLinks = await suggestInternalLinks({
     keyword: built.keyword,
     category: built.category,
@@ -82,12 +85,14 @@ async function buildPostPayload(built: BuiltPost, opts: BlogGenerateOptions): Pr
     projectId: opts.projectId,
     excludeSlug: slug,
   });
-  const schema = buildSchemaJson({
-    title: built.title,
-    description: seoDescription,
-    slug,
-    faq: built.faq,
-  });
+  const schema =
+    built.schemaOverride ||
+    buildSchemaJson({
+      title: built.title,
+      description: seoDescription,
+      slug,
+      faq: built.faq,
+    });
   const quality = runBlogQualityCheck({
     content: built.content,
     faq: built.faq,
@@ -122,7 +127,16 @@ async function persistPost(
   opts: BlogGenerateOptions,
   existing?: BlogPost | null
 ): Promise<BlogGenerateResult> {
-  const status: BlogPostStatus = opts.autoPublish ? "PUBLISHED" : "DRAFT";
+  const aiOk = built.aiSuccess !== false;
+  let status: BlogPostStatus = "DRAFT";
+  if (!aiOk) {
+    status = "REVIEW";
+  } else if (opts.autoPublish && preview.quality.passed) {
+    status = "PUBLISHED";
+  } else if (!preview.quality.passed) {
+    status = "REVIEW";
+  }
+
   const data = {
     projectId: opts.projectId || null,
     dealerId: opts.dealerId || null,
@@ -153,6 +167,8 @@ async function persistPost(
       version: BLOG_ENGINE_VERSION,
       qualityChecks: preview.quality.checks,
       warnings: preview.quality.warnings,
+      aiWriter: built.aiMetadata || null,
+      validationIssues: built.aiMetadata?.validationIssues || [],
     }),
     publishedAt: status === "PUBLISHED" ? new Date() : null,
   };
@@ -170,7 +186,9 @@ async function persistPost(
     };
   }
 
-  if (!preview.quality.passed) {
+  if (!aiOk) {
+    // Provider hatası — REVIEW olarak kaydet, yayınlama
+  } else if (!preview.quality.passed && status !== "REVIEW") {
     throw new Error(`Kalite kontrolü geçmedi: ${preview.quality.warnings.join(", ")}`);
   }
 
@@ -262,19 +280,29 @@ async function generateBySource(
 async function buildKeywordBlogBuilt(opts: BlogGenerateOptions): Promise<BuiltPost> {
   const keyword = (opts.keyword || "").trim();
   if (!keyword) throw new Error("keyword gerekli");
-  const content = buildKeywordContent(keyword);
+  const ai = await resolveAiBlogContent({
+    keyword,
+    sourceType: "KEYWORD",
+    category: opts.category,
+    debugTemplateFallback: opts.debugTemplateFallback,
+  });
   return {
-    title: content.h1,
+    title: ai.title,
     slugBase: slugify(keyword),
     keyword,
     keywordGroup: opts.keywordGroup || null,
     category: opts.category || null,
     sourceType: "KEYWORD",
-    content,
-    faq: buildFaqItems(keyword, "KEYWORD"),
+    content: ai.content,
+    faq: ai.faq,
     tags: opts.tags || [keyword, "rehber", "seo"],
-    sourceJson: { keyword, mode: "KEYWORD" },
-    originalityHint: 90,
+    sourceJson: { keyword, mode: "KEYWORD", aiWriter: true },
+    originalityHint: ai.aiSuccess ? 95 : 30,
+    aiMetadata: ai.aiMetadata,
+    aiSuccess: ai.aiSuccess,
+    seoTitleOverride: ai.seoTitle,
+    seoDescriptionOverride: ai.seoDescription,
+    schemaOverride: ai.schema,
   };
 }
 
@@ -282,21 +310,33 @@ async function buildKeywordGroupBuilt(opts: BlogGenerateOptions): Promise<BuiltP
   const keywords = opts.keywords?.length ? opts.keywords : opts.keyword ? [opts.keyword] : [];
   if (!keywords.length) throw new Error("keywords veya keyword gerekli");
   const group = opts.keywordGroup || keywords.join(", ");
-  return keywords.map((kw) => {
-    const content = buildKeywordContent(kw.trim());
-    return {
-      title: content.h1,
+  const results: BuiltPost[] = [];
+  for (const kw of keywords) {
+    const ai = await resolveAiBlogContent({
+      keyword: kw.trim(),
+      sourceType: "KEYWORD_GROUP",
+      category: opts.category,
+      debugTemplateFallback: opts.debugTemplateFallback,
+    });
+    results.push({
+      title: ai.title,
       slugBase: slugify(`${group}-${kw}`),
       keyword: kw.trim(),
       keywordGroup: group,
-      sourceType: "KEYWORD_GROUP" as BlogSourceType,
-      content,
-      faq: buildFaqItems(kw, "KEYWORD_GROUP"),
+      sourceType: "KEYWORD_GROUP",
+      content: ai.content,
+      faq: ai.faq,
       tags: opts.tags || [kw, group, "keyword-group"],
-      sourceJson: { keyword: kw, keywordGroup: group, mode: "KEYWORD_GROUP" },
-      originalityHint: 88,
-    };
-  });
+      sourceJson: { keyword: kw, keywordGroup: group, mode: "KEYWORD_GROUP", aiWriter: true },
+      originalityHint: ai.aiSuccess ? 93 : 30,
+      aiMetadata: ai.aiMetadata,
+      aiSuccess: ai.aiSuccess,
+      seoTitleOverride: ai.seoTitle,
+      seoDescriptionOverride: ai.seoDescription,
+      schemaOverride: ai.schema,
+    });
+  }
+  return results;
 }
 
 async function buildProductBlogBuilt(opts: BlogGenerateOptions): Promise<BuiltPost> {
@@ -306,38 +346,59 @@ async function buildProductBlogBuilt(opts: BlogGenerateOptions): Promise<BuiltPo
   if (!product) throw new Error("Ürün bulunamadı");
   const categoryLabel = product.categoryPath.split(/[>/|]/).pop()?.trim() || product.categoryPath;
   const blogType = opts.productBlogType || "usage";
-  const content = buildProductContent(product.normalizedName, categoryLabel, blogType);
+  const ai = await resolveAiBlogContent({
+    keyword: product.normalizedName,
+    sourceType: "PRODUCT",
+    category: categoryLabel,
+    productName: product.normalizedName,
+    debugTemplateFallback: opts.debugTemplateFallback,
+  });
   const typeSlug = blogType === "usage" ? "kullanim" : blogType;
   return {
-    title: content.h1,
+    title: ai.title,
     slugBase: `urun-${product.slug || slugify(product.normalizedName)}-${typeSlug}`,
     keyword: product.normalizedName,
     category: categoryLabel,
     sourceType: "PRODUCT",
     sourceReferenceId: product.id,
-    content,
-    faq: buildFaqItems(product.normalizedName, "PRODUCT", 6),
+    content: ai.content,
+    faq: ai.faq,
     tags: opts.tags || [product.normalizedName, categoryLabel, "ürün"],
-    sourceJson: { productId: product.id, productName: product.normalizedName, productBlogType: blogType },
-    originalityHint: 92,
+    sourceJson: { productId: product.id, productName: product.normalizedName, productBlogType: blogType, aiWriter: true },
+    originalityHint: ai.aiSuccess ? 95 : 30,
+    aiMetadata: ai.aiMetadata,
+    aiSuccess: ai.aiSuccess,
+    seoTitleOverride: ai.seoTitle,
+    seoDescriptionOverride: ai.seoDescription,
+    schemaOverride: ai.schema,
   };
 }
 
 async function buildCategoryBlogBuilt(opts: BlogGenerateOptions): Promise<BuiltPost> {
   const category = (opts.category || "").trim();
   if (!category) throw new Error("category gerekli");
-  const content = buildCategoryContent(category);
+  const ai = await resolveAiBlogContent({
+    keyword: category,
+    sourceType: "CATEGORY",
+    category,
+    debugTemplateFallback: opts.debugTemplateFallback,
+  });
   return {
-    title: content.h1,
+    title: ai.title,
     slugBase: `kategori-${slugify(category)}`,
     keyword: category,
     category,
     sourceType: "CATEGORY",
-    content,
-    faq: buildFaqItems(category, "CATEGORY"),
+    content: ai.content,
+    faq: ai.faq,
     tags: opts.tags || [category, "kategori"],
-    sourceJson: { category, mode: "CATEGORY" },
-    originalityHint: 87,
+    sourceJson: { category, mode: "CATEGORY", aiWriter: true },
+    originalityHint: ai.aiSuccess ? 92 : 30,
+    aiMetadata: ai.aiMetadata,
+    aiSuccess: ai.aiSuccess,
+    seoTitleOverride: ai.seoTitle,
+    seoDescriptionOverride: ai.seoDescription,
+    schemaOverride: ai.schema,
   };
 }
 
@@ -348,40 +409,48 @@ async function buildGeoBlogBuilt(opts: BlogGenerateOptions): Promise<BuiltPost[]
   const slugMode = opts.geoSlugMode || (opts.district ? "DISTRICT" : "PROVINCE");
 
   if (opts.province && opts.district) {
-    return [buildSingleGeoPost(keyword, opts)];
+    return [await buildSingleGeoPost(keyword, opts)];
   }
 
   if (opts.province && !opts.district && slugMode === "DISTRICT") {
     return [];
   }
 
-  return provinces.map((province) =>
-    buildSingleGeoPost(keyword, { ...opts, province, district: opts.district })
-  );
+  const posts: BuiltPost[] = [];
+  for (const province of provinces) {
+    posts.push(await buildSingleGeoPost(keyword, { ...opts, province, district: opts.district }));
+  }
+  return posts;
 }
 
-function buildSingleGeoPost(keyword: string, opts: BlogGenerateOptions): BuiltPost {
+async function buildSingleGeoPost(keyword: string, opts: BlogGenerateOptions): Promise<BuiltPost> {
   const province = opts.province || "";
   const district = opts.district || null;
   const slugMode = opts.geoSlugMode || (district ? "DISTRICT" : "PROVINCE");
-  const content = buildGeoContent(keyword, province, district);
-  const loc = district ? `${province} ${district}` : province;
+  const ai = await resolveAiBlogContent({
+    keyword,
+    sourceType: "GEO",
+    province,
+    district,
+    category: opts.category,
+    debugTemplateFallback: opts.debugTemplateFallback,
+  });
   const slugBase =
     slugMode === "DISTRICT" && district
       ? slugify(`${district}-${keyword}`)
       : slugify(`${province}-${keyword}`);
 
   return {
-    title: content.h1,
+    title: ai.title,
     slugBase,
     keyword,
     keywordGroup: opts.keywordGroup || null,
     province,
     district,
     category: opts.category || null,
-    sourceType: "GEO" as BlogSourceType,
-    content,
-    faq: buildFaqItems(`${loc} ${keyword}`, "GEO"),
+    sourceType: "GEO",
+    content: ai.content,
+    faq: ai.faq,
     tags: opts.tags || [keyword, province, ...(district ? [district] : []), "geo"],
     sourceJson: {
       keyword,
@@ -390,8 +459,14 @@ function buildSingleGeoPost(keyword: string, opts: BlogGenerateOptions): BuiltPo
       mode: "GEO",
       geoSlugMode: slugMode,
       factory: "ENA_GEO_ICERIK_FABRIKASI_V1",
+      aiWriter: true,
     },
-    originalityHint: 86,
+    originalityHint: ai.aiSuccess ? 90 : 30,
+    aiMetadata: ai.aiMetadata,
+    aiSuccess: ai.aiSuccess,
+    seoTitleOverride: ai.seoTitle,
+    seoDescriptionOverride: ai.seoDescription,
+    schemaOverride: ai.schema,
   };
 }
 
@@ -400,22 +475,34 @@ async function buildCompetitorBlogBuilt(opts: BlogGenerateOptions): Promise<Buil
   if (!structureInput) throw new Error("competitorStructure gerekli");
   const keyword = (opts.keyword || "konu").trim();
   const structure = extractCompetitorStructure(structureInput);
-  const content = buildCompetitorStructureContent(keyword, structure);
+  const ai = await resolveAiBlogContent({
+    keyword,
+    sourceType: "COMPETITOR_STRUCTURE",
+    competitorStructure: structureInput,
+    competitorUrl: opts.competitorUrl,
+    debugTemplateFallback: opts.debugTemplateFallback,
+  });
   return {
-    title: content.h1,
+    title: ai.title,
     slugBase: slugify(`${keyword}-rehber`),
     keyword,
     sourceType: "COMPETITOR_STRUCTURE",
-    content,
-    faq: buildFaqItems(keyword, "COMPETITOR_STRUCTURE", structure.hasFaq ? 6 : 5),
+    content: ai.content,
+    faq: ai.faq,
     tags: opts.tags || [keyword, "rakip-yapı", "özgün"],
     sourceJson: {
       competitorUrl: opts.competitorUrl || null,
       extractedHeadings: structure.headings,
       mode: "COMPETITOR_STRUCTURE",
       note: "Yalnızca yapı ilham alındı — içerik özgün",
+      aiWriter: true,
     },
-    originalityHint: 95,
+    originalityHint: ai.aiSuccess ? 96 : 30,
+    aiMetadata: ai.aiMetadata,
+    aiSuccess: ai.aiSuccess,
+    seoTitleOverride: ai.seoTitle,
+    seoDescriptionOverride: ai.seoDescription,
+    schemaOverride: ai.schema,
   };
 }
 

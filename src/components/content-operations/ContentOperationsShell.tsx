@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { fetchPageFactoryJson } from "@/lib/page-factory/fetch-json";
 import { labelContentStatus } from "@/lib/admin/ui-labels";
+import { AiWriterStatusCard } from "@/components/ai-writer/AiWriterStatusCard";
 
 type Tab =
   | "overview"
@@ -249,7 +250,9 @@ export function ContentOperationsShell() {
       ) : null}
 
       {tab === "overview" && dashboard && (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="space-y-4">
+          <AiWriterStatusCard />
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {[
             { label: "Toplam Plan", value: dashboard.totalPlans },
             { label: "Üretimler", value: dashboard.totalProductions },
@@ -265,6 +268,7 @@ export function ContentOperationsShell() {
               <div className={`text-2xl font-bold ${c.color || ""}`}>{c.value}</div>
             </div>
           ))}
+          </div>
         </div>
       )}
 

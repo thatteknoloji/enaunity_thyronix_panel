@@ -137,6 +137,7 @@ export async function fetchAndParseXmlFeeds(
   urls: string[],
   template: FeedTemplate,
   customFieldMap?: Record<string, string>,
+  variantFieldMap?: Record<string, string>,
 ): Promise<{ products: ParsedFeedProduct[]; feedStats: { url: string; count: number; error?: string }[] }> {
   const allProducts: ParsedFeedProduct[] = [];
   const feedStats: { url: string; count: number; error?: string }[] = [];
@@ -157,7 +158,7 @@ export async function fetchAndParseXmlFeeds(
 
       let batch: ParsedFeedProduct[] = [];
       for (const chunk of xmlChunks) {
-        batch = batch.concat(parseXmlToProducts(chunk, template, customFieldMap));
+        batch = batch.concat(parseXmlToProducts(chunk, template, customFieldMap, variantFieldMap));
       }
       let added = 0;
       for (const p of batch) {
@@ -203,7 +204,12 @@ export function productToThyronixRow(
   fixedValues: Record<string, string>,
 ) {
   const extId = String(
-    p.barcode || p.stockCode || (p as { externalId?: string }).externalId || p.name || Math.random().toString(36),
+    (p as { externalId?: string }).externalId ||
+      p.barcode ||
+      p.stockCode ||
+      p.modelCode ||
+      p.name ||
+      Math.random().toString(36),
   );
   return {
     sourceId,
@@ -216,10 +222,24 @@ export function productToThyronixRow(
     stockCode: p.stockCode || null,
     modelCode: p.modelCode || null,
     price: p.price || 0,
+    discountedPrice: (p as { discountedPrice?: number; salePrice?: number }).discountedPrice
+      ?? (p as { salePrice?: number }).salePrice
+      ?? null,
+    costPrice: p.costPrice ?? null,
     stock: p.stock || 0,
     currency: normalizeCurrency(fixedValues.currency || p.currency, "TRY"),
+    image: p.image || null,
     images: p.images || p.image || null,
+    weight: p.weight ?? null,
+    dimensions: p.dimensions || null,
+    vatRate: p.vatRate ?? null,
+    deliveryTime: p.deliveryTime || null,
+    manufacturer: p.manufacturer || null,
+    warranty: p.warranty || null,
+    shippingCost: p.shippingCost ?? null,
+    productUrl: p.productUrl || null,
     variantData: (p as { variantData?: string }).variantData || null,
+    metadataJson: (p as { metadataJson?: string }).metadataJson || "{}",
     status: normalizeBezosStatus(fixedValues.status || p.status),
   };
 }

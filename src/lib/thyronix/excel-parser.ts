@@ -1,4 +1,5 @@
 import * as XLSX from "xlsx";
+import { buildSourceMetadataJson } from "./source-metadata";
 
 export interface ExcelParseResult {
   sheets: string[];
@@ -14,21 +15,34 @@ export interface ExcelParseResult {
 export interface ExcelProductRow {
   rowIndex: number;
   productName: string;
+  externalId?: string;
   barcode?: string;
   stockCode?: string;
   modelCode?: string;
   brand?: string;
   category?: string;
   price: number;
+  discountedPrice?: number;
   salePrice?: number;
   stock: number;
   currency?: string;
   description?: string;
   images?: string;
+  vatRate?: number;
   status?: string;
   raw: Record<string, any>;
+  metadataJson?: string;
   errors: string[];
   valid: boolean;
+}
+
+export interface ExcelValidationSummary {
+  validRows: number;
+  invalidRows: number;
+  missingProductName: number;
+  missingPrice: number;
+  missingIdentity: number;
+  invalidSamples: Array<{ row: number; name: string; errors: string[] }>;
 }
 
 function normalizeNumber(val: any): number | null {
@@ -72,6 +86,104 @@ function normalizeStock(val: any): { value: number; error?: string } {
   const n = normalizeNumber(val);
   if (n !== null) return { value: Math.max(0, Math.floor(n)) };
   return { value: 0, error: `Tanınamadı: "${String(val).substring(0, 20)}"` };
+}
+
+function normalizeFieldValue(value: any): number | null {
+  return normalizeNumber(value);
+}
+
+function normalizeText(value: any): string {
+  return String(value ?? "").trim();
+}
+
+function applyPrefix(value: string | undefined, prefix?: string): string | undefined {
+  const current = normalizeText(value);
+  const nextPrefix = normalizeText(prefix);
+  if (!current) return current || undefined;
+  if (!nextPrefix) return current;
+  if (current.startsWith(nextPrefix)) return current;
+  return `${nextPrefix}${current}`;
+}
+
+function applySuffix(value: string | undefined, suffix?: string): string | undefined {
+  const current = normalizeText(value);
+  const nextSuffix = normalizeText(suffix);
+  if (!current) return current || undefined;
+  if (!nextSuffix) return current;
+  if (current.endsWith(nextSuffix)) return current;
+  return `${current}${nextSuffix}`;
+}
+
+function applyReplacement(value: string | undefined, from?: string, to?: string): string | undefined {
+  const current = normalizeText(value);
+  const needle = normalizeText(from);
+  if (!current || !needle) return current || undefined;
+  return current.split(needle).join(normalizeText(to));
+}
+
+function roundToStep(value: number, step?: number): number {
+  const normalizedStep = typeof step === "number" && step > 0 ? step : 0;
+  if (!normalizedStep) return value;
+  return Math.round(value / normalizedStep) * normalizedStep;
+}
+
+function normalizeExcelTransformSettings(fixedValues: Record<string, string>) {
+  return {
+    brandOverride: normalizeText(fixedValues.brandOverride),
+    namePrefix: normalizeText(fixedValues.namePrefix),
+    nameSuffix: normalizeText(fixedValues.nameSuffix),
+    nameReplaceFrom: normalizeText(fixedValues.nameReplaceFrom),
+    nameReplaceTo: normalizeText(fixedValues.nameReplaceTo),
+    descriptionPrefix: normalizeText(fixedValues.descriptionPrefix),
+    descriptionSuffix: normalizeText(fixedValues.descriptionSuffix),
+    descriptionReplaceFrom: normalizeText(fixedValues.descriptionReplaceFrom),
+    descriptionReplaceTo: normalizeText(fixedValues.descriptionReplaceTo),
+    barcodePrefix: normalizeText(fixedValues.barcodePrefix),
+    stockCodePrefix: normalizeText(fixedValues.stockCodePrefix),
+    modelCodePrefix: normalizeText(fixedValues.modelCodePrefix),
+    externalIdPrefix: normalizeText(fixedValues.externalIdPrefix),
+    priceMultiplier: normalizeNumber(fixedValues.priceMultiplier) ?? 1,
+    priceAdd: normalizeNumber(fixedValues.priceAdd) ?? 0,
+    priceMin: normalizeNumber(fixedValues.priceMin),
+    priceRoundTo: normalizeNumber(fixedValues.priceRoundTo),
+    vatRateOverride: normalizeNumber(fixedValues.vatRateOverride ?? fixedValues.vatRate),
+    stockFloor: normalizeNumber(fixedValues.stockFloor ?? fixedValues.safetyStock),
+  };
+}
+
+function applyExcelTransforms(product: ExcelProductRow, fixedValues: Record<string, string>): ExcelProductRow {
+  const cfg = normalizeExcelTransformSettings(fixedValues);
+  const next = { ...product };
+
+  next.brand = cfg.brandOverride || next.brand;
+  next.productName = applySuffix(
+    applyPrefix(applyReplacement(next.productName, cfg.nameReplaceFrom, cfg.nameReplaceTo), cfg.namePrefix),
+    cfg.nameSuffix,
+  ) || next.productName;
+  next.description = applySuffix(
+    applyPrefix(applyReplacement(next.description, cfg.descriptionReplaceFrom, cfg.descriptionReplaceTo), cfg.descriptionPrefix),
+    cfg.descriptionSuffix,
+  ) || next.description;
+  next.barcode = applyPrefix(next.barcode, cfg.barcodePrefix);
+  next.stockCode = applyPrefix(next.stockCode, cfg.stockCodePrefix);
+  next.modelCode = applyPrefix(next.modelCode, cfg.modelCodePrefix);
+  next.externalId = applyPrefix(next.externalId, cfg.externalIdPrefix) || next.externalId;
+
+  let finalPrice = next.price;
+  finalPrice = finalPrice * cfg.priceMultiplier + cfg.priceAdd;
+  if (typeof cfg.priceMin === "number" && !Number.isNaN(cfg.priceMin)) {
+    finalPrice = Math.max(finalPrice, cfg.priceMin);
+  }
+  finalPrice = roundToStep(finalPrice, cfg.priceRoundTo || undefined);
+  next.price = Number.isFinite(finalPrice) ? finalPrice : next.price;
+  if (typeof cfg.vatRateOverride === "number" && !Number.isNaN(cfg.vatRateOverride)) {
+    next.vatRate = cfg.vatRateOverride;
+  }
+  if (typeof cfg.stockFloor === "number" && !Number.isNaN(cfg.stockFloor)) {
+    next.stock = Math.max(next.stock, Math.floor(cfg.stockFloor));
+  }
+
+  return next;
 }
 
 function generateHash(row: Record<string, any>): string {
@@ -148,39 +260,52 @@ export function mapExcelToProducts(
 
     const productName = getVal("productName") || getVal("name") || "";
     if (!productName) errors.push("Ürün adı eksik");
+    const externalId = getVal("externalId") || undefined;
 
     const price = normalizeNumber(getVal("price"));
     if (price === null || price <= 0) errors.push("Geçersiz fiyat");
 
-    const stockResult = normalizeStock(getVal("stock"));
+      const stockResult = normalizeStock(getVal("stock"));
     if (stockResult.error) errors.push(`Stok: ${stockResult.error}`);
 
     // Identity fields
-    const barcode = getVal("barcode") || undefined;
-    const stockCode = getVal("stockCode") || getVal("stockCode") || undefined;
-    const modelCode = getVal("modelCode") || undefined;
-    const hasIdentity = barcode || stockCode || modelCode;
+      const barcode = getVal("barcode") || undefined;
+      const stockCode = getVal("stockCode") || getVal("stockCode") || undefined;
+      const modelCode = getVal("modelCode") || undefined;
+      const hasIdentity = barcode || stockCode || modelCode;
     if (!hasIdentity) errors.push("Kimlik alanı eksik (barkod/stok kodu/model kodu)");
 
-    return {
+    const discountedPrice = normalizeFieldValue(getVal("discountedPrice") || getVal("salePrice")) || undefined;
+
+    const product: ExcelProductRow = {
       rowIndex: idx + 1,
       productName,
+      externalId,
       barcode,
       stockCode,
       modelCode,
       brand: getVal("brand") || fixedValues.brand || undefined,
       category: getVal("category") || fixedValues.category || undefined,
       price: price || 0,
+      discountedPrice,
       salePrice: normalizeNumber(getVal("salePrice")) || undefined,
       stock: stockResult.value,
       currency: getVal("currency") || fixedValues.currency || "TRY",
       description: getVal("description") || undefined,
       images: getVal("images") || undefined,
+      vatRate: normalizeNumber(getVal("vatRate")) || undefined,
       status: getVal("status") || fixedValues.status || "active",
       raw: row,
+      metadataJson: buildSourceMetadataJson({
+        sourceType: "excel",
+        raw: row,
+        extra: { rowIndex: idx + 1, externalId: externalId || null },
+      }),
       errors,
       valid: errors.length === 0,
     };
+
+    return applyExcelTransforms(product, fixedValues);
   });
 }
 
@@ -188,5 +313,6 @@ export function getIdentityKey(product: ExcelProductRow): { field: string; value
   if (product.barcode) return { field: "barcode", value: product.barcode };
   if (product.stockCode) return { field: "stockCode", value: product.stockCode };
   if (product.modelCode) return { field: "modelCode", value: product.modelCode };
+  if (product.externalId) return { field: "externalId", value: product.externalId };
   return { field: "externalId", value: generateHash(product.raw) };
 }

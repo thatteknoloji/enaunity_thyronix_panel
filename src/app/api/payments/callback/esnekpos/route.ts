@@ -102,6 +102,13 @@ async function handleCallback(req: Request) {
         where: { id: paymentId },
         select: { moduleKey: true, planKey: true },
       });
+      if (payment?.moduleKey === "BALANCE_TOPUP" && payment.planKey) {
+        const topUp = await prisma.dealerBalanceTopUp.findUnique({
+          where: { id: payment.planKey },
+          select: { returnUrl: true },
+        });
+        return NextResponse.redirect(new URL(topUp?.returnUrl || "/dealer/balance", req.url));
+      }
       if (payment?.moduleKey === "B2B_ORDER" && payment.planKey) {
         const order = await prisma.order.findUnique({
           where: { id: payment.planKey },

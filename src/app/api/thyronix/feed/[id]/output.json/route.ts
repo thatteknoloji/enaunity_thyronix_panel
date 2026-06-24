@@ -33,20 +33,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
       part: chunk?.part || 1,
       totalParts: plan.partCount,
       maxPerFile: plan.maxPerFile,
-      products: slice.map((p) => ({
-        name: p.name,
-        description: p.description || null,
-        brand: p.brand || null,
-        category: p.category || null,
-        barcode: p.barcode || null,
-        stockCode: p.stockCode || null,
-        modelCode: p.modelCode || null,
-        price: p.price || 0,
-        stock: p.stock || 0,
-        currency: p.currency || "TRY",
-        status: p.status || "active",
-        images: p.images || null,
-      })),
+      products: slice,
     });
   } catch (e) {
     const msg = e instanceof Error ? e.message : "Sunucu hatası";

@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/db";
 import { publishBlog, archiveBlog } from "@/lib/blog-engine/blog-service";
 import { auditBlog } from "@/lib/content-quality/content-quality-service";
+import { extractAiWriterFromMetadataJson, isPublishableAiContent } from "@/lib/ai-writer/publish-gate";
 import type {
   PublishingContentType,
   PublishingMode,
@@ -92,6 +93,30 @@ export async function evaluateQualityForContent(
   return { passed: false, seoScore: 0, geoScore: 0, qualityScore: 0, suggestedStatus: "REVIEW" };
 }
 
+async function evaluateAiWriterGate(
+  contentType: PublishingContentType,
+  contentId: string
+): Promise<{ blocked: boolean; reason?: string }> {
+  if (contentType === "BLOG") {
+    const post = await prisma.blogPost.findUnique({ where: { id: contentId } });
+    if (!post) return { blocked: true, reason: "CONTENT_NOT_FOUND" };
+    const aiMeta = extractAiWriterFromMetadataJson(post.metadataJson);
+    const gate = isPublishableAiContent(aiMeta);
+    return { blocked: !gate.publishable, reason: gate.reason };
+  }
+
+  if (contentType === "PAGE" || contentType === "RECOVERY_PAGE") {
+    const draft = await prisma.pageFactoryContentDraft.findUnique({ where: { id: contentId } });
+    if (draft) {
+      const aiMeta = extractAiWriterFromMetadataJson(draft.metadataJson);
+      const gate = isPublishableAiContent(aiMeta);
+      return { blocked: !gate.publishable, reason: gate.reason };
+    }
+  }
+
+  return { blocked: false };
+}
+
 function resolveInitialStatus(
   publishMode: PublishingMode,
   quality: QualityCheckResult,
@@ -119,10 +144,17 @@ export async function queueContent(input: QueueContentInput): Promise<Publishing
     ? { passed: true, seoScore: 100, geoScore: 100, qualityScore: 100, suggestedStatus: "APPROVED" as const }
     : await evaluateQualityForContent(input.contentType, input.contentId);
 
-  const status = resolveInitialStatus(publishMode, quality, input.skipQualityCheck);
+  const aiGate = input.skipQualityCheck ? { blocked: false } : await evaluateAiWriterGate(input.contentType, input.contentId);
+  const effectiveQuality: QualityCheckResult =
+    aiGate.blocked || !quality.passed
+      ? { ...quality, passed: false, suggestedStatus: "REVIEW" as const }
+      : quality;
+
+  const status = resolveInitialStatus(publishMode, effectiveQuality, input.skipQualityCheck);
   const metadata = {
     ...(input.metadata || {}),
-    quality,
+    quality: effectiveQuality,
+    aiWriterGate: aiGate.blocked ? { blocked: true, reason: aiGate.reason } : { blocked: false },
     queuedAt: new Date().toISOString(),
   };
 

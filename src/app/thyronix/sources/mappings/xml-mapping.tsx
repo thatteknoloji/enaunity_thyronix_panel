@@ -1,28 +1,14 @@
 "use client";
 
 import { FileText, ChevronDown, Search, CheckCircle2 } from "lucide-react";
-
-const TARGET_FIELDS = [
-  { v:"name", l:"Ürün Adı", req:true },
-  { v:"description", l:"Açıklama" },
-  { v:"brand", l:"Marka" },
-  { v:"category", l:"Kategori" },
-  { v:"barcode", l:"Barkod" },
-  { v:"stockCode", l:"Stok Kodu" },
-  { v:"modelCode", l:"Model Kodu" },
-  { v:"price", l:"Fiyat", req:true },
-  { v:"salePrice", l:"İndirimli Fiyat" },
-  { v:"stock", l:"Stok" },
-  { v:"currency", l:"Para Birimi" },
-  { v:"images", l:"Görseller" },
-  { v:"status", l:"Durum" },
-];
+import { TARGET_FIELDS, VARIANT_TARGET_FIELDS } from "./field-options";
 
 interface Props {
   xmlUrl: string; setXmlUrl: (v:string)=>void;
   template: string; setTemplate: (v:string)=>void;
   detectedFields: string[]; detectedCount: number;
   fieldMapping: Record<string,string>; setFieldMapping: (m:Record<string,string>)=>void;
+  variantMapping: Record<string,string>; setVariantMapping: (m:Record<string,string>)=>void;
   variantFields: string[];
   onTest: ()=>void; testing: boolean; testResult: string;
   templates?: {id:string;name:string;group:string}[];
@@ -31,6 +17,7 @@ interface Props {
 export default function XmlMappingUI({
   xmlUrl, setXmlUrl, template, setTemplate,
   detectedFields, detectedCount, fieldMapping, setFieldMapping,
+  variantMapping, setVariantMapping,
   variantFields, onTest, testing, testResult,
   templates = [],
 }: Props) {
@@ -122,12 +109,54 @@ export default function XmlMappingUI({
       )}
 
       {/* Variant fields */}
-      {variantFields.length > 0 && (
+      {(variantFields.length > 0 || Object.keys(variantMapping).length > 0) && (
         <div className="p-3 rounded-xl bg-nexa-card border border-nexa-border">
           <p className="text-xs text-nexa-text-secondary mb-2">
-            <span className="text-nexa-warning font-semibold">Ⓥ Varyant alanları tespit edildi:</span> {variantFields.join(", ")}
+            <span className="text-nexa-warning font-semibold">Ⓥ Varyant alanları:</span> {Array.from(new Set([...variantFields, ...Object.keys(variantMapping)])).join(", ") || "—"}
           </p>
-          <p className="text-[10px] text-nexa-text-secondary">Bu alanlar otomatik olarak varyant verisi olarak işlenecek.</p>
+          <p className="text-[10px] text-nexa-text-secondary">Eşleştirmediğin alanlar otomatik özellik olarak işlenmeye devam eder.</p>
+        </div>
+      )}
+
+      {/* Variant Mapping */}
+      {(variantFields.length > 0 || Object.keys(variantMapping).length > 0) && (
+        <div className="p-4 rounded-xl bg-nexa-card border border-nexa-border">
+          <div className="flex items-center gap-2 mb-3">
+            <CheckCircle2 size={16} className="text-nexa-primary"/>
+            <h3 className="text-sm font-semibold text-nexa-text">Varyant Alan Eşleştirme</h3>
+            <span className="text-[11px] text-nexa-text-secondary ml-auto">
+              {Array.from(new Set([...variantFields, ...Object.keys(variantMapping)])).filter(f=>variantMapping[f]).length}
+              /
+              {Array.from(new Set([...variantFields, ...Object.keys(variantMapping)])).length}
+              eşleşti
+            </span>
+          </div>
+          <div className="space-y-2 max-h-[360px] overflow-y-auto scrollbar-thin">
+            {Array.from(new Set([...variantFields, ...Object.keys(variantMapping)])).map(variantField => (
+              <div key={variantField} className="flex items-center gap-3">
+                <div className="w-1/2">
+                  <span className="text-xs font-mono text-nexa-text-secondary bg-nexa-bg px-2 py-1 rounded truncate block">{variantField}</span>
+                </div>
+                <span className="text-nexa-text-secondary text-xs">→</span>
+                <div className="w-1/2">
+                  <select
+                    value={variantMapping[variantField] || ""}
+                    onChange={e=>setVariantMapping({ ...variantMapping, [variantField]: e.target.value })}
+                    className={`w-full rounded-lg border text-xs px-2 py-1.5 focus:outline-none
+                      ${variantMapping[variantField] ? "border-nexa-primary/50 bg-nexa-primary/5 text-nexa-text" : "border-nexa-border bg-nexa-bg text-nexa-text-secondary"}`}
+                  >
+                    <option value="">-- otomatik bırak --</option>
+                    {VARIANT_TARGET_FIELDS.map(f=>(
+                      <option key={f.v} value={f.v}>{f.l}{f.req ? " *" : ""}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            ))}
+          </div>
+          <p className="mt-3 text-[10px] text-nexa-text-secondary">
+            Barkod, SKU, fiyat, stok ve görsel alanlarını buradan sabitleyebilirsin. Özellik / renk / beden gibi kalan alanlar otomatik seçenek olarak işlenir.
+          </p>
         </div>
       )}
     </div>

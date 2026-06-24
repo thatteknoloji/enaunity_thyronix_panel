@@ -58,18 +58,30 @@ export async function POST(req: Request) {
         barcode: product.barcode || null,
         stockCode: product.stockCode || null,
         modelCode: product.modelCode || null,
+        externalId: product.externalId || identity.value,
         price: product.price,
-        discountedPrice: product.salePrice || null,
+        discountedPrice: product.discountedPrice ?? product.salePrice ?? null,
+        costPrice: null,
         stock: product.stock,
         currency: product.currency || "TRY",
+        image: null,
         images: product.images || null,
+        weight: null,
+        dimensions: null,
+        vatRate: product.vatRate ?? null,
+        deliveryTime: null,
+        manufacturer: null,
+        warranty: null,
+        shippingCost: null,
+        productUrl: null,
+        variantData: null,
+        metadataJson: product.metadataJson || "{}",
         status: product.status || "active",
-        externalId: !existing ? `EXCEL_${product.rowIndex}` : undefined,
         sourceId,
       };
 
       if (existing) {
-        await prisma.thyronixProduct.update({ where: { id: existing.id }, data: { ...data, externalId: undefined } as any });
+        await prisma.thyronixProduct.update({ where: { id: existing.id }, data: data as any });
         updated++;
       } else {
         await prisma.thyronixProduct.create({ data: data as any });

@@ -11,6 +11,7 @@ import type { User } from "@/types";
 import { ChevronLeft, Building2, Tag, AlertTriangle, Clock, Paperclip, X, FileText, ImageIcon, ArrowRight, MapPinned, Sparkles, BadgeCheck, CreditCard } from "lucide-react";
 import Link from "next/link";
 import { PaymentCheckoutPanel } from "@/components/payments/PaymentCheckoutPanel";
+import { DealerCheckoutPaymentPanel } from "@/components/payments/DealerCheckoutPaymentPanel";
 
 interface DealerInfo {
   discountRate: number;
@@ -222,7 +223,14 @@ export default function CheckoutPage() {
     }
   };
 
-  const submitOrder = async (paymentMethod?: string, installmentCount = 1) => {
+  const submitOrder = async (opts?: {
+    paymentMethod?: string;
+    paymentMode?: string;
+    installmentCount?: number;
+  }) => {
+    const paymentMethod = opts?.paymentMethod;
+    const paymentMode = opts?.paymentMode;
+    const installmentCount = opts?.installmentCount ?? 1;
     setSubmitting(true);
     setError("");
 
@@ -230,7 +238,7 @@ export default function CheckoutPage() {
       if (!platform) { setError("Lütfen bir platform seçin"); return false; }
       const addrToCheck = sameAddress ? invoiceAddress : deliveryAddress;
       if (!invoiceAddress.trim() || !addrToCheck.trim()) { setError("Adres bilgilerini doldurun"); return false; }
-      if (canUseDealerPayment && !paymentMethod) {
+      if (canUseDealerPayment && !paymentMethod && !paymentMode) {
         setError("Bayi siparişi için lütfen bir ödeme yöntemi seçin.");
         return false;
       }
@@ -280,6 +288,7 @@ export default function CheckoutPage() {
         body.paymentMethod = paymentMethod;
         body.installmentCount = installmentCount;
       }
+      if (paymentMode) body.paymentMode = paymentMode;
 
       const stored = window.sessionStorage.getItem("couponData");
       if (stored) {
@@ -360,7 +369,15 @@ export default function CheckoutPage() {
   };
 
   const handleOnlinePayment = async (method: string, installmentCount: number) => {
-    await submitOrder(method, installmentCount);
+    await submitOrder({ paymentMethod: method, installmentCount });
+  };
+
+  const handleDealerPayment = async (payload: {
+    paymentMode: "BALANCE_ONLY" | "CARD_ONLY" | "SPLIT";
+    paymentMethod: string;
+    installmentCount: number;
+  }) => {
+    await submitOrder(payload);
   };
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -737,13 +754,22 @@ export default function CheckoutPage() {
               ? "Ödeme yöntemini aşağıdan seçin. Bayi siparişi admin onayına gider."
               : "Ödeme yöntemini aşağıdan seçin. Admin siparişleri ödeme tamamlandıktan sonra işleme alınır."}
           </p>
-          <PaymentCheckoutPanel
-            amount={total}
-            title="B2B Online Ödeme"
-            loading={submitting || addressSyncing}
-            dealerId={paymentDealerId || undefined}
-            onConfirm={handleOnlinePayment}
-          />
+          {canUseDealerPayment ? (
+            <DealerCheckoutPaymentPanel
+              cartTotal={total}
+              dealerId={paymentDealerId!}
+              loading={submitting || addressSyncing}
+              onConfirm={handleDealerPayment}
+            />
+          ) : (
+            <PaymentCheckoutPanel
+              amount={total}
+              title="B2B Online Ödeme"
+              loading={submitting || addressSyncing}
+              dealerId={paymentDealerId || undefined}
+              onConfirm={handleOnlinePayment}
+            />
+          )}
         </div>
       )}
     </div>

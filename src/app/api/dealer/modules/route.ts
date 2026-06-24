@@ -4,8 +4,8 @@ import { isSuperAdmin } from "@/lib/auth/admin-access";
 import { getCustomerProductsOverview } from "@/lib/customer-products/service";
 import {
   getDealerMarketplaceOverview,
-  buildHeaderNavItems,
-} from "@/lib/modules/marketplace";
+} from "@/lib/modules/marketplace.server";
+import { buildHeaderNavItems } from "@/lib/modules/marketplace";
 import { buildSuperAdminMarketplaceOverview } from "@/lib/modules/super-admin-access";
 
 export async function GET() {

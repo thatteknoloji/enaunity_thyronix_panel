@@ -19,6 +19,7 @@ type FeedRecord = {
 type LeanFeedProduct = {
   id: string;
   sourceId: string;
+  externalId: string;
   name: string;
   description: string | null;
   brand: string | null;
@@ -27,9 +28,22 @@ type LeanFeedProduct = {
   stockCode: string | null;
   modelCode: string | null;
   price: number;
+  discountedPrice: number | null;
+  costPrice: number | null;
   stock: number;
   currency: string;
+  image: string | null;
   images: string | null;
+  weight: number | null;
+  dimensions: string | null;
+  vatRate: number | null;
+  deliveryTime: string | null;
+  manufacturer: string | null;
+  warranty: string | null;
+  shippingCost: number | null;
+  productUrl: string | null;
+  variantData: string | null;
+  metadataJson: string;
   status: string;
 };
 
@@ -106,6 +120,7 @@ export async function loadMergedFeedProducts(
       select: {
         id: true,
         sourceId: true,
+        externalId: true,
         name: true,
         description: true,
         brand: true,
@@ -114,9 +129,22 @@ export async function loadMergedFeedProducts(
         stockCode: true,
         modelCode: true,
         price: true,
+        discountedPrice: true,
+        costPrice: true,
         stock: true,
         currency: true,
+        image: true,
         images: true,
+        weight: true,
+        dimensions: true,
+        vatRate: true,
+        deliveryTime: true,
+        manufacturer: true,
+        warranty: true,
+        shippingCost: true,
+        productUrl: true,
+        variantData: true,
+        metadataJson: true,
         status: true,
       },
       orderBy: { id: "asc" },

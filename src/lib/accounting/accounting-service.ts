@@ -48,6 +48,8 @@ function mapTypeToLegacy(type: string, isCredit: boolean): string {
     PACKAGING_FEE: "order_debit",
     MODULE_PAYMENT: "payment_credit",
     PRODUCT_PACKAGE_PAYMENT: "payment_credit",
+    TOPUP_CARD: "payment_credit",
+    TOPUP_BANK: "payment_credit",
     order_debit: "order_debit",
     term_fee: "term_fee",
     return_credit: "return_credit",

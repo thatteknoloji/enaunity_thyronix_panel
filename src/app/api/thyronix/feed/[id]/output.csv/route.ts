@@ -27,7 +27,36 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
     const transformSettings = await loadFeedTransformSettings(feed.dealerId);
     const transformedProducts = applyFeedTransformSettings(products as FeedProduct[], transformSettings);
 
-    const headers = ["name", "description", "brand", "category", "barcode", "stockCode", "modelCode", "price", "stock", "currency", "status", "images"];
+    const headers = [
+      "id",
+      "sourceId",
+      "externalId",
+      "name",
+      "description",
+      "brand",
+      "category",
+      "barcode",
+      "stockCode",
+      "modelCode",
+      "price",
+      "discountedPrice",
+      "costPrice",
+      "stock",
+      "currency",
+      "image",
+      "images",
+      "weight",
+      "dimensions",
+      "vatRate",
+      "deliveryTime",
+      "manufacturer",
+      "warranty",
+      "shippingCost",
+      "productUrl",
+      "variantData",
+      "metadataJson",
+      "status",
+    ];
     const BOM = "\uFEFF";
     const csv =
       BOM +

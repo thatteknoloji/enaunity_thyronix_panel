@@ -7,6 +7,8 @@ import {
   mapAccountTxToLegacyShape,
 } from "@/lib/accounting/accounting-service";
 import { getAccountingEngine, isDealerAccountEngine } from "@/lib/accounting/config";
+import { getBalanceTopUpSettings } from "@/lib/payments/balance-topup-settings";
+import { listPendingTopUpsForDealer } from "@/lib/payments/balance-topup-service";
 
 function mapLegacyTx(tx: {
   id: string;
@@ -106,11 +108,14 @@ export async function GET(req: NextRequest) {
     }
 
     const summary = await getAccountSummary(dealer.id);
+    const pendingTopUps = await listPendingTopUpsForDealer(dealer.id);
+    const topUpSettings = await getBalanceTopUpSettings();
 
     return NextResponse.json({
       success: true,
       data: {
         balance: balanceInfo.balance,
+        availableBalance: balanceInfo.balance,
         openingBalance: dealer.openingBalance,
         creditLimit: balanceInfo.creditLimit,
         allowNegative: balanceInfo.allowNegative,
@@ -121,6 +126,15 @@ export async function GET(req: NextRequest) {
         total,
         engine: getAccountingEngine(),
         account: summary.account,
+        pendingTopUpTotal: pendingTopUps.reduce((s, t) => s + t.amount, 0),
+        pendingTopUps: pendingTopUps.map((t) => ({
+          id: t.id,
+          amount: t.amount,
+          method: t.method,
+          status: t.status,
+          createdAt: t.createdAt,
+        })),
+        topUpSettings,
       },
     });
   } catch (e) {

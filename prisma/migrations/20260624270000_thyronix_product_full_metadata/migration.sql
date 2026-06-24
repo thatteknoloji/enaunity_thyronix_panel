@@ -1,0 +1,11 @@
+ALTER TABLE "ThyronixProduct" ADD COLUMN "costPrice" REAL;
+ALTER TABLE "ThyronixProduct" ADD COLUMN "image" TEXT;
+ALTER TABLE "ThyronixProduct" ADD COLUMN "weight" REAL;
+ALTER TABLE "ThyronixProduct" ADD COLUMN "dimensions" TEXT;
+ALTER TABLE "ThyronixProduct" ADD COLUMN "vatRate" REAL;
+ALTER TABLE "ThyronixProduct" ADD COLUMN "deliveryTime" TEXT;
+ALTER TABLE "ThyronixProduct" ADD COLUMN "manufacturer" TEXT;
+ALTER TABLE "ThyronixProduct" ADD COLUMN "warranty" TEXT;
+ALTER TABLE "ThyronixProduct" ADD COLUMN "shippingCost" REAL;
+ALTER TABLE "ThyronixProduct" ADD COLUMN "productUrl" TEXT;
+ALTER TABLE "ThyronixProduct" ADD COLUMN "metadataJson" TEXT NOT NULL DEFAULT '{}';

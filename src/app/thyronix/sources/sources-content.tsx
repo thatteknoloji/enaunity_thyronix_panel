@@ -13,6 +13,7 @@ import ExcelMappingUI from "./mappings/excel-mapping";
 import CsvMappingUI from "./mappings/csv-mapping";
 import ApiMappingUI from "./mappings/api-mapping";
 import FixedValuesUI from "./mappings/fixed-values";
+import type { ExcelValidationSummary } from "@/lib/thyronix/excel-parser";
 
 function StatusBadge({ status }: { status: string }) {
   const map: Record<string, { bg: string; text: string; dot: string; label: string }> = {
@@ -52,6 +53,7 @@ interface Source {
   productCount: number;
   lastSync: string | null;
   errorLog: string | null;
+  variantMapping?: string | null;
 }
 
 export default function ThyronixSources() {
@@ -63,11 +65,13 @@ export default function ThyronixSources() {
   const [form, setForm] = useState({ name: "", xmlUrl: "", type: "xml", interval: 60, inputFormat: "custom_xml" });
   const [syncing, setSyncing] = useState<string | null>(null);
   const [fieldMapping, setFieldMapping] = useState<Record<string,string>>({});
+  const [variantMapping, setVariantMapping] = useState<Record<string,string>>({});
   const [fixedValues, setFixedValues] = useState<Record<string,string>>({});
   const [detectedFields, setDetectedFields] = useState<string[]>([]);
   const [variantFields, setVariantFields] = useState<string[]>([]);
   const [testResult, setTestResult] = useState<any>(null);
   const [variantSamples, setVariantSamples] = useState<Record<string,string>>({});
+  const [excelValidation, setExcelValidation] = useState<ExcelValidationSummary | null>(null);
   const [testing, setTesting] = useState(false);
   const [testCount, setTestCount] = useState(0);
 
@@ -120,10 +124,17 @@ export default function ThyronixSources() {
   const testExcel = async () => {
     if (!form.xmlUrl) return toast.error("Excel dosya yolu veya URL girin");
     setTesting(true);
+    setExcelValidation(null);
     try {
       const res = await fetch("/api/thyronix/sources/excel/test", {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url: form.xmlUrl, sheetName: excelSheet || undefined, headerRow: excelHeaderRow }),
+        body: JSON.stringify({
+          url: form.xmlUrl,
+          sheetName: excelSheet || undefined,
+          headerRow: excelHeaderRow,
+          fieldMapping,
+          fixedValues,
+        }),
       });
       const d = await res.json();
       if (d.success) {
@@ -132,6 +143,7 @@ export default function ThyronixSources() {
         setExcelColumns(d.data.columns||[]);
         setExcelPreview(d.data.previewRows||[]);
         setTestCount(d.data.totalRows||0);
+        setExcelValidation(d.data.validation || null);
         toast.success(`${d.data.totalRows||0} satır, ${(d.data.columns||[]).length} kolon bulundu`);
       } else { toast.error(d.error||"Excel test başarısız"); }
     } catch { toast.error("Bağlantı hatası"); }
@@ -183,6 +195,20 @@ export default function ThyronixSources() {
   const openNew = () => {
     setEditing(null);
     setForm({ name: "", xmlUrl: "", type: "xml", interval: 60, inputFormat: "custom_xml" });
+    setFieldMapping({});
+    setVariantMapping({});
+    setFixedValues({});
+    setTestResult(null);
+    setExcelSheet("");
+    setExcelSheets([]);
+    setExcelHeaderRow(1);
+    setExcelColumns([]);
+    setExcelPreview([]);
+    setExcelValidation(null);
+    setDetectedFields([]);
+    setVariantFields([]);
+    setVariantSamples({});
+    setTestCount(0);
     setShowModal(true);
   };
 
@@ -190,15 +216,21 @@ export default function ThyronixSources() {
     setEditing(s);
     setForm({ name: s.name, xmlUrl: s.xmlUrl, type: s.type, interval: s.interval, inputFormat: (s as any).inputFormat || "custom_xml" });
     try { setFieldMapping(JSON.parse((s as any).fieldMapping || "{}")); } catch { setFieldMapping({}); }
+    try { setVariantMapping(JSON.parse((s as any).variantMapping || "{}")); } catch { setVariantMapping({}); }
     try { setFixedValues(JSON.parse((s as any).fixedValues || "{}")); } catch { setFixedValues({}); }
-    setTestResult(null); setDetectedFields([]);
+    setTestResult(null); setExcelSheet(""); setExcelSheets([]); setExcelHeaderRow(1); setExcelColumns([]); setExcelPreview([]); setExcelValidation(null); setDetectedFields([]); setVariantFields([]); setVariantSamples({}); setTestCount(0);
     setShowModal(true);
   };
 
   const handleSave = async () => {
     const url = editing ? `/api/thyronix/sources/${editing.id}` : "/api/thyronix/sources";
     const method = editing ? "PUT" : "POST";
-    const body: any = { ...form, fieldMapping: JSON.stringify(fieldMapping), fixedValues: JSON.stringify(fixedValues) };
+    const body: any = {
+      ...form,
+      fieldMapping: JSON.stringify(fieldMapping),
+      variantMapping: JSON.stringify(variantMapping),
+      fixedValues: JSON.stringify(fixedValues),
+    };
     await fetch(url, { method, headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
     setShowModal(false);
     fetchSources();
@@ -474,6 +506,7 @@ export default function ThyronixSources() {
                   template={form.inputFormat} setTemplate={v=>setForm({...form,inputFormat:v})}
                   detectedFields={detectedFields} detectedCount={testCount}
                   fieldMapping={fieldMapping} setFieldMapping={setFieldMapping}
+                  variantMapping={variantMapping} setVariantMapping={setVariantMapping}
                   variantFields={variantFields}
                   onTest={testSource} testing={testing}
                   testResult={testResult ? `${testCount} ürün tespit edildi` : ""}
@@ -491,6 +524,7 @@ export default function ThyronixSources() {
                   fieldMapping={fieldMapping} setFieldMapping={setFieldMapping}
                   onUpload={testExcel} uploading={testing}
                   detectedCount={excelPreview.length}
+                  validation={excelValidation}
                 />
               )}
 
@@ -535,7 +569,11 @@ export default function ThyronixSources() {
 
             {/* Fixed Values (all types) */}
             <div className="border-t border-nexa-border/40 pt-3 mt-3">
-              <FixedValuesUI fixedValues={fixedValues} setFixedValues={setFixedValues}/>
+              <FixedValuesUI
+                fixedValues={fixedValues}
+                setFixedValues={setFixedValues}
+                mode={form.type === "csv" && form.inputFormat === "excel" ? "excel" : "default"}
+              />
             </div>
 
             <div className="flex items-center justify-end gap-2 mt-6">

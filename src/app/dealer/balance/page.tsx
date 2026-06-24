@@ -1,9 +1,11 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import { useSearchParams } from "next/navigation";
 import { formatPrice, formatDate } from "@/lib/utils";
-import { Wallet, TrendingDown, TrendingUp, CreditCard, Download, Search, ChevronLeft, ChevronRight } from "lucide-react";
+import { Wallet, TrendingDown, TrendingUp, CreditCard, Download, Search, ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import toast from "react-hot-toast";
 
 const TYPE_LABELS: Record<string, string> = {
   order_debit: "Sipariş Kesintisi",
@@ -20,11 +22,17 @@ const TYPE_LABELS: Record<string, string> = {
   PACKAGING_FEE: "Paketleme Bedeli",
   MODULE_PAYMENT: "Modül Ödemesi",
   PRODUCT_PACKAGE_PAYMENT: "Paket Ödemesi",
+  TOPUP_CARD: "Kart ile Bakiye",
+  TOPUP_BANK: "Havale ile Bakiye",
 };
 
 export default function DealerBalancePage() {
+  const searchParams = useSearchParams();
+  const returnUrl = searchParams.get("returnUrl") || "/dealer/balance";
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [topUpAmount, setTopUpAmount] = useState(5000);
+  const [topUpLoading, setTopUpLoading] = useState(false);
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
   const [page, setPage] = useState(0);
@@ -93,6 +101,35 @@ export default function DealerBalancePage() {
     doc.save(`ekstre-${from || "tum"}-${to || "tum"}.pdf`);
   };
 
+  const startTopUp = async (method: "CARD" | "BANK_TRANSFER") => {
+    const min = data?.topUpSettings?.minAmount || 5000;
+    if (topUpAmount < min) {
+      toast.error(data?.topUpSettings?.belowMinMessage || `Minimum ${formatPrice(min)}`);
+      return;
+    }
+    setTopUpLoading(true);
+    try {
+      const res = await fetch("/api/dealer/balance/topup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ amount: topUpAmount, method, returnUrl }),
+      });
+      const d = await res.json();
+      if (!d.success) {
+        toast.error(d.error || "İşlem başarısız");
+        return;
+      }
+      if (d.data.redirectUrl) {
+        window.location.href = d.data.redirectUrl;
+        return;
+      }
+      toast.success(method === "BANK_TRANSFER" ? "Talebiniz alındı — onay bekliyor" : "İşlem başlatıldı");
+      fetchData();
+    } finally {
+      setTopUpLoading(false);
+    }
+  };
+
   if (loading) return <div className="animate-pulse space-y-4"><div className="h-8 w-48 rounded bg-ena-card/50" /><div className="h-64 rounded bg-ena-card/50" /></div>;
   if (!data) return <p className="text-ena-light/50">Veri yüklenemedi.</p>;
 
@@ -108,6 +145,66 @@ export default function DealerBalancePage() {
         <Button onClick={exportPDF} variant="outline" className="gap-1.5 text-xs">
           <Download size={14} /> PDF İndir
         </Button>
+      </div>
+
+      {(data.pendingTopUps?.length > 0) && (
+        <div className="rounded-xl border border-amber-200 bg-amber-50/80 p-4 text-sm text-amber-900">
+          <strong>Onay bekleyen bakiye:</strong>{" "}
+          {formatPrice(data.pendingTopUpTotal || 0)}
+          <ul className="mt-2 space-y-1 text-xs">
+            {data.pendingTopUps.map((t: { id: string; amount: number; method: string; status: string }) => (
+              <li key={t.id}>
+                {formatPrice(t.amount)} — {t.method === "BANK_TRANSFER" ? "Havale" : "Kart"} ({t.status})
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      <div className="rounded-xl border border-ena-border bg-ena-card/30 p-5 shadow-sm space-y-4">
+        <h2 className="text-base font-semibold text-ena-text">Bakiye Yükle</h2>
+        <div className="flex flex-wrap gap-2">
+          {(data.topUpSettings?.presets || [5000, 10000, 20000]).map((p: number) => (
+            <button
+              key={p}
+              type="button"
+              onClick={() => setTopUpAmount(p)}
+              className={`px-3 py-1.5 rounded-lg text-sm border ${
+                topUpAmount === p ? "border-ena-primary bg-ena-primary/10" : "border-ena-border"
+              }`}
+            >
+              {formatPrice(p)}
+            </button>
+          ))}
+        </div>
+        <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-end">
+          <div>
+            <label className="text-xs text-ena-light/50 block mb-1">Özel tutar (₺)</label>
+            <input
+              type="number"
+              min={data.topUpSettings?.minAmount || 5000}
+              step={100}
+              value={topUpAmount}
+              onChange={(e) => setTopUpAmount(Number(e.target.value))}
+              className="rounded border border-ena-border bg-ena-dark px-3 py-2 text-sm w-40"
+            />
+          </div>
+          <div className="flex gap-2">
+            <Button disabled={topUpLoading} onClick={() => startTopUp("CARD")}>
+              {topUpLoading ? <Loader2 size={14} className="animate-spin mr-1" /> : <CreditCard size={14} className="mr-1" />}
+              Kart ile Yükle
+            </Button>
+            {data.topUpSettings?.bankTransferEnabled !== false && (
+              <Button variant="outline" disabled={topUpLoading} onClick={() => startTopUp("BANK_TRANSFER")}>
+                Havale / EFT
+              </Button>
+            )}
+          </div>
+        </div>
+        <p className="text-xs text-ena-light/40">
+          {data.topUpSettings?.belowMinMessage || "Minimum 5.000 ₺"}
+          {data.topUpSettings?.pendingMessage ? ` · ${data.topUpSettings.pendingMessage}` : ""}
+        </p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

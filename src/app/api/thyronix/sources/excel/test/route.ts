@@ -1,10 +1,58 @@
 import { NextResponse } from "next/server";
-import { parseExcel, mapExcelToProducts } from "@/lib/thyronix/excel-parser";
-import { requireThyronixDealerOrAdmin, thyronixErrorResponse } from "@/lib/thyronix/access";
+import { parseExcel, mapExcelToProducts, type ExcelProductRow, type ExcelValidationSummary } from "@/lib/thyronix/excel-parser";
+import { requireThyronixDealerOrAdmin } from "@/lib/thyronix/access";
 
-function getRequestBody(req: Request): Promise<any> {
-  const ct = req.headers.get("content-type") || "";
-  return ct.includes("multipart") ? req.formData() : req.json();
+function parseJsonRecord(value: unknown): Record<string, string> {
+  if (!value) return {};
+  if (typeof value === "object" && !(value instanceof File)) return value as Record<string, string>;
+  if (typeof value === "string") {
+    try {
+      const parsed = JSON.parse(value);
+      return parsed && typeof parsed === "object" ? parsed as Record<string, string> : {};
+    } catch {
+      return {};
+    }
+  }
+  return {};
+}
+
+function buildValidationSummary(products: ExcelProductRow[]): ExcelValidationSummary {
+  let validRows = 0;
+  let invalidRows = 0;
+  let missingName = 0;
+  let missingPrice = 0;
+  let missingIdentity = 0;
+  const invalidSamples: ExcelValidationSummary["invalidSamples"] = [];
+
+  for (const product of products) {
+    if (product.valid) {
+      validRows++;
+      continue;
+    }
+
+    invalidRows++;
+    const hasName = product.productName?.trim().length > 0;
+    const hasPrice = typeof product.price === "number" && product.price > 0;
+    const hasIdentity = Boolean(product.barcode || product.stockCode || product.modelCode || product.externalId);
+
+    if (!hasName) missingName++;
+    if (!hasPrice) missingPrice++;
+    if (!hasIdentity) missingIdentity++;
+
+    if (invalidSamples.length < 10) {
+      invalidSamples.push({
+        row: product.rowIndex,
+        name: product.productName || "—",
+        errors: product.errors.length > 0 ? product.errors : [
+          !hasName ? "Ürün adı eksik" : "",
+          !hasPrice ? "Geçersiz fiyat" : "",
+          !hasIdentity ? "Kimlik alanı eksik" : "",
+        ].filter(Boolean) as string[],
+      });
+    }
+  }
+
+  return { validRows, invalidRows, missingProductName: missingName, missingPrice, missingIdentity, invalidSamples };
 }
 
 export async function POST(req: Request) {
@@ -13,6 +61,8 @@ export async function POST(req: Request) {
     let buffer: Buffer;
     let sheetName: string | undefined;
     let headerRow = 1;
+    let fieldMapping: Record<string, string> = {};
+    let fixedValues: Record<string, string> = {};
 
     const ct = req.headers.get("content-type") || "";
 
@@ -22,6 +72,8 @@ export async function POST(req: Request) {
       const url = formData.get("url") as string | null;
       sheetName = (formData.get("sheetName") as string) || undefined;
       headerRow = parseInt((formData.get("headerRow") as string) || "1");
+      fieldMapping = parseJsonRecord(formData.get("fieldMapping"));
+      fixedValues = parseJsonRecord(formData.get("fixedValues"));
 
       if (file) {
         buffer = Buffer.from(await file.arrayBuffer());
@@ -34,10 +86,12 @@ export async function POST(req: Request) {
       }
     } else {
       const body = await req.json();
-      const { url, sheetName: sn, headerRow: hr } = body;
+      const { url, sheetName: sn, headerRow: hr, fieldMapping: fm, fixedValues: fv } = body;
       if (!url) return NextResponse.json({ error: "URL gerekli" }, { status: 400 });
       sheetName = sn || undefined;
       headerRow = hr || 1;
+      fieldMapping = parseJsonRecord(fm);
+      fixedValues = parseJsonRecord(fv);
 
       const res = await fetch(url, { signal: AbortSignal.timeout(30000) });
       if (!res.ok) return NextResponse.json({ error: `Dosya indirilemedi: HTTP ${res.status}` }, { status: 400 });
@@ -45,33 +99,27 @@ export async function POST(req: Request) {
     }
 
     const result = parseExcel(buffer, sheetName, headerRow);
+    const mappedRows: ExcelProductRow[] = Object.keys(fieldMapping).length > 0
+      ? mapExcelToProducts(result.allRows, fieldMapping, fixedValues)
+      : result.allRows.map((row, idx) => {
+          const hasName = result.columns.some(c => String(row[c] || "").trim().length > 1);
+          const hasPrice = result.columns.some(c => {
+            const v = String(row[c] || "").replace(/[^0-9.,-]/g, "").replace(",", ".");
+            return !isNaN(Number(v)) && Number(v) > 0;
+          });
+          const hasIdentity = result.columns.some(c => String(row[c] || "").trim().length >= 5);
+          return {
+            rowIndex: idx + 1,
+            productName: String(result.columns.map(c => row[c]).find(v => v) || ""),
+            price: hasPrice ? 1 : 0,
+            stock: 0,
+            raw: row,
+            errors: [!hasName && "Ürün adı eksik", !hasPrice && "Geçersiz fiyat", !hasIdentity && "Kimlik alanı eksik"].filter(Boolean) as string[],
+            valid: hasName && hasPrice && hasIdentity,
+          };
+        }) as ExcelProductRow[];
 
-    // Run validation on all rows
-    let validRows = 0, invalidRows = 0, missingName = 0, missingPrice = 0, missingIdentity = 0;
-    const invalidSamples: any[] = [];
-
-    // Quick validation: check each row has non-empty columns
-    for (let i = 0; i < result.allRows.length; i++) {
-      const row = result.allRows[i];
-      const vals = Object.values(row).filter(v => v !== "" && v !== null && v !== undefined);
-      if (vals.length === 0) { invalidRows++; continue; }
-
-      const hasName = result.columns.some(c => String(row[c] || "").trim().length > 1);
-      const hasPrice = result.columns.some(c => {
-        const v = String(row[c] || "").replace(/[^0-9.,-]/g, "").replace(",", ".");
-        return !isNaN(Number(v)) && Number(v) > 0;
-      });
-      const hasIdentity = result.columns.some(c => String(row[c] || "").trim().length >= 5);
-
-      if (hasName && hasPrice && hasIdentity) validRows++;
-      else {
-        invalidRows++;
-        if (!hasName) missingName++;
-        if (!hasPrice) missingPrice++;
-        if (!hasIdentity) missingIdentity++;
-        if (invalidSamples.length < 10) invalidSamples.push({ row: i + 1, name: String(result.columns.map(c => row[c]).find(v => v) || "—"), errors: [!hasName && "Ürün adı eksik", !hasPrice && "Geçersiz fiyat", !hasIdentity && "Kimlik alanı eksik"].filter(Boolean) });
-      }
-    }
+    const validation = buildValidationSummary(mappedRows);
 
     return NextResponse.json({
       success: true,
@@ -81,9 +129,10 @@ export async function POST(req: Request) {
         headerRow: result.headerRow,
         columns: result.columns,
         previewRows: result.previewRows,
-        totalRows: validRows + invalidRows,
+        totalRows: validation.validRows + validation.invalidRows,
         errors: result.errors,
-        validation: { validRows, invalidRows, missingProductName: missingName, missingPrice: missingPrice, missingIdentity: missingIdentity, invalidSamples },
+        validation,
+        mappingAware: Object.keys(fieldMapping).length > 0,
       },
     });
   } catch (e: any) {

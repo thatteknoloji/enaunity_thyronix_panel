@@ -1,18 +1,23 @@
 import { XMLParser } from "fast-xml-parser";
 import type { FeedTemplate } from "./templates";
+import { buildSourceMetadataJson, safeJsonStringify } from "./source-metadata";
 
 interface ThyronixProductInput {
   name?: string; description?: string; brand?: string; category?: string;
-  barcode?: string; stockCode?: string; modelCode?: string;
-  price?: number; costPrice?: number; stock?: number; currency?: string;
+  barcode?: string; stockCode?: string; modelCode?: string; externalId?: string;
+  price?: number; discountedPrice?: number; salePrice?: number; costPrice?: number; stock?: number; currency?: string;
   image?: string; images?: string; weight?: number; dimensions?: string;
   status?: string; vatRate?: number; deliveryTime?: string;
   manufacturer?: string; warranty?: string; shippingCost?: number; productUrl?: string;
+  variantData?: string;
+  metadataJson?: string;
   variants?: Array<{
     barcode?: string; sku?: string; price?: number; stock?: number;
     image?: string; options?: Array<{ group: string; value: string }>;
   }>;
 }
+
+type VariantFieldMap = Record<string, string>;
 
 function buildReverseMap(fieldMap: Record<string, string>): Record<string, string> {
   const map: Record<string, string> = {};
@@ -28,10 +33,36 @@ function parseNumber(val: unknown): number | undefined {
   return isNaN(n) ? undefined : n;
 }
 
+function pickString(...values: unknown[]): string | undefined {
+  for (const value of values) {
+    if (value === null || value === undefined) continue;
+    const text = String(value).trim();
+    if (text) return text;
+  }
+  return undefined;
+}
+
+function extractText(value: unknown): string {
+  if (value === null || value === undefined) return "";
+  if (typeof value === "object" && value !== null && "#text" in value) {
+    const text = (value as Record<string, unknown>)["#text"];
+    return text === null || text === undefined ? "" : String(text).trim();
+  }
+  return String(value).trim();
+}
+
+function resolveVariantFieldKey(variant: Record<string, unknown>, rawField: string): string | undefined {
+  if (rawField in variant) return rawField;
+  const lower = rawField.toLowerCase();
+  const keys = Object.keys(variant);
+  return keys.find((key) => key.toLowerCase() === lower);
+}
+
 export function parseXmlToProducts(
   xml: string,
   template: FeedTemplate,
   customFieldMap?: Record<string, string>,
+  variantFieldMap?: VariantFieldMap,
 ): ThyronixProductInput[] {
   const parser = new XMLParser({
     ignoreAttributes: false,
@@ -127,10 +158,10 @@ export function parseXmlToProducts(
         }
       }
 
-      const numFields = ["price", "costPrice", "stock", "weight", "vatRate", "shippingCost"];
+      const numFields = ["price", "discountedPrice", "salePrice", "costPrice", "stock", "weight", "vatRate", "shippingCost"];
       if (numFields.includes(internalField)) {
         if (typeof value === "object" && value !== null) {
-          if (internalField === "price" || internalField === "costPrice") {
+          if (internalField === "price" || internalField === "discountedPrice" || internalField === "salePrice" || internalField === "costPrice") {
             const nested = value as Record<string, unknown>;
             value =
               nested.bayi_fiyati ?? nested.son_kullanici ?? nested.SatisFiyati ??
@@ -191,6 +222,19 @@ export function parseXmlToProducts(
       product.image = String(r.resim1 ?? r.image1 ?? Object.values(r).find((v) => typeof v === "string") ?? "").trim() || undefined;
     }
 
+    if (!product.externalId) {
+      product.externalId =
+        pickString(
+          item.externalId,
+          item.external_id,
+          item.externalID,
+          item.id,
+          item.ID,
+          item.urun_id,
+          item.product_id,
+        ) || undefined;
+    }
+
     // Parse variants if template supports them
     if (template.variantElement && item[template.variantElement]) {
       const variantsContainer = item[template.variantElement];
@@ -207,6 +251,38 @@ export function parseXmlToProducts(
         let variantStock = parseNumber(vi.stock || vi.Stock || vi.stok || vi.quantity) ?? 0;
         let variantImage = vi.image || vi.Image;
         const variantOpts: Array<{ group: string; value: string }> = [];
+        const consumedKeys = new Set<string>(["barcode", "Barcode", "BARKOD", "sku", "Sku", "SKU", "price", "Price", "satilacakFiyat", "stock", "Stock", "stok", "quantity", "image", "Image"]);
+
+        if (variantFieldMap && typeof variantFieldMap === "object") {
+          for (const [rawField, role] of Object.entries(variantFieldMap)) {
+            const matchedKey = resolveVariantFieldKey(vi, rawField);
+            if (!matchedKey) continue;
+            consumedKeys.add(matchedKey);
+            consumedKeys.add(rawField);
+            if (!role || role === "variantIgnore") continue;
+            const rawValue = extractText(vi[matchedKey]);
+            if (!rawValue) continue;
+            switch (role) {
+              case "variantBarcode":
+                variantBarcode = rawValue;
+                break;
+              case "variantSku":
+                variantSku = rawValue;
+                break;
+              case "variantPrice":
+                variantPrice = parseNumber(rawValue) ?? variantPrice;
+                break;
+              case "variantStock":
+                variantStock = parseNumber(rawValue) ?? variantStock;
+                break;
+              case "variantImage":
+                variantImage = rawValue;
+                break;
+              default:
+                break;
+            }
+          }
+        }
 
         // Check for name1/value1, name2/value2 ... pattern (Leyna-style)
         let nameIdx = 1;
@@ -220,7 +296,7 @@ export function parseXmlToProducts(
         }
 
         // Check for attribute-style: <attribute name="Renk">Siyah</attribute>
-        if (variantOpts.length === 0 && vi["attribute"] || vi["Attribute"] || vi["attributes"] || vi["Attributes"]) {
+        if (variantOpts.length === 0 && (vi["attribute"] || vi["Attribute"] || vi["attributes"] || vi["Attributes"])) {
           const attrs = vi["attribute"] || vi["Attribute"] || vi["attributes"] || vi["Attributes"];
           const attrItems = Array.isArray(attrs) ? attrs : [attrs].filter(Boolean);
           for (const attr of attrItems) {
@@ -233,7 +309,7 @@ export function parseXmlToProducts(
         }
 
         // Check for option-style: <option><group>Renk</group><value>Siyah</value></option>
-        if (variantOpts.length === 0 && vi["option"] || vi["Option"] || vi["options"] || vi["Options"]) {
+        if (variantOpts.length === 0 && (vi["option"] || vi["Option"] || vi["options"] || vi["Options"])) {
           const opts = vi["option"] || vi["Option"] || vi["options"] || vi["Options"];
           const optItems = Array.isArray(opts) ? opts : [opts].filter(Boolean);
           for (const opt of optItems) {
@@ -265,7 +341,7 @@ export function parseXmlToProducts(
         // Fallback: try to find label/value pairs from non-standard keys
         if (variantOpts.length === 0) {
           for (const [k, v] of Object.entries(vi)) {
-            if (["barcode","sku","price","stock","image","Barcode","SKU","Price","Stock","quantity"].includes(k)) continue;
+            if (consumedKeys.has(k)) continue;
             if (k.startsWith("@_")) continue;
             if (k === "#text") continue;
             if (/^(name|value|Name|Value|spec|Spec|attr|Attr)\d*$/.test(k)) continue;
@@ -277,6 +353,30 @@ export function parseXmlToProducts(
 
         return { barcode: variantBarcode, sku: variantSku, price: variantPrice, stock: variantStock || 0, image: variantImage, options: variantOpts };
       });
+    }
+
+    const rawVariants = Array.isArray(product.variants) ? product.variants : [];
+    product.variantData = rawVariants.length > 0 ? safeJsonStringify(rawVariants, "[]") : undefined;
+    product.metadataJson = buildSourceMetadataJson({
+      sourceType: "xml",
+      templateId: template.id,
+      raw: item,
+      extra: {
+        itemIndex: idx,
+        variantCount: rawVariants.length,
+        externalId: product.externalId || null,
+      },
+    });
+
+    if (product.variants && product.variants.length > 0) {
+      if (product.metadataJson) {
+        try {
+          const parsed = JSON.parse(product.metadataJson) as Record<string, unknown>;
+          product.metadataJson = safeJsonStringify({ ...parsed, variantCount: product.variants.length }, "{}");
+        } catch {
+          /* keep existing metadataJson */
+        }
+      }
     }
 
     return product;

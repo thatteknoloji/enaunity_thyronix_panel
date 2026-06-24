@@ -9,6 +9,7 @@ import {
 import { isFeedXmlCacheFresh, readFeedXmlCache, writeFeedXmlCache } from "@/lib/thyronix/feed-output-cache";
 import { applyFeedTransformSettings, loadFeedTransformSettings, type FeedProduct } from "@/lib/thyronix/feed-transform";
 import { resolveFeedSourceIds } from "@/lib/thyronix/source-feed-provision";
+import { parseVariantData } from "@/lib/thyronix/source-metadata";
 
 export const dynamic = "force-dynamic";
 
@@ -42,7 +43,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
 
     const productsWithVariants = transformedProducts.map((p) => ({
       ...p,
-      variants: [] as Array<Record<string, unknown>>,
+      variants: parseVariantData((p as { variantData?: string | null }).variantData),
     }));
 
     const xml = generateFeedXml(productsWithVariants as never, template);

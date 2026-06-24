@@ -46,6 +46,26 @@ export async function processPaymentFailure(paymentId: string): Promise<PaymentR
   const modulePayment = await prisma.modulePayment.findUnique({ where: { id: paymentId } });
   if (modulePayment) {
     await prisma.modulePayment.update({ where: { id: paymentId }, data: { status: "FAILED" } });
+    if (modulePayment.moduleKey === "B2B_ORDER" && modulePayment.planKey) {
+      await prisma.order.updateMany({
+        where: { id: modulePayment.planKey, status: "waiting_payment" },
+        data: { status: "cancelled" },
+      });
+      await prisma.orderStatusHistory.create({
+        data: {
+          orderId: modulePayment.planKey,
+          status: "cancelled",
+          note: "Online ödeme başarısız — sipariş iptal",
+          changedBy: "system",
+        },
+      }).catch(() => {});
+    }
+    if (modulePayment.moduleKey === "BALANCE_TOPUP" && modulePayment.planKey) {
+      await prisma.dealerBalanceTopUp.updateMany({
+        where: { id: modulePayment.planKey, status: "PENDING_PAYMENT" },
+        data: { status: "FAILED" },
+      });
+    }
     return { success: true, status: "FAILED", message: "Ödeme başarısız olarak işaretlendi" };
   }
   await prisma.payment.updateMany({

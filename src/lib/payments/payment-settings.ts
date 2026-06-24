@@ -69,6 +69,7 @@ const DEFAULT_ROW = {
   checkoutTitle: "Ödeme",
   checkoutDescription: "",
   require3ds: true,
+  balanceTopUpJson: "{}",
 };
 
 function hasEnvEsnekCredentials() {

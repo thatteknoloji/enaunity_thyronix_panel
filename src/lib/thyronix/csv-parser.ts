@@ -1,10 +1,13 @@
+import { buildSourceMetadataJson } from "./source-metadata";
+
 interface ThyronixProductInput {
   name?: string; description?: string; brand?: string; category?: string;
-  barcode?: string; stockCode?: string; modelCode?: string;
-  price?: number; costPrice?: number; stock?: number; currency?: string;
+  barcode?: string; stockCode?: string; modelCode?: string; externalId?: string;
+  price?: number; discountedPrice?: number; salePrice?: number; costPrice?: number; stock?: number; currency?: string;
   image?: string; images?: string; weight?: number; dimensions?: string;
   status?: string; vatRate?: number; deliveryTime?: string;
   manufacturer?: string; warranty?: string; shippingCost?: number; productUrl?: string;
+  metadataJson?: string;
 }
 
 type RowMap = Record<string, string>;
@@ -18,9 +21,11 @@ function autoDetectHeaders(headers: string[]): RowMap {
     [["brand", "marka", "vendor", "manufacturer", "uretici", "üretici"], "brand"],
     [["category", "kategori", "cat", "type", "producttype", "ürün tipi", "product category"], "category"],
     [["barcode", "barkod", "gtin", "ean", "upc"], "barcode"],
+    [["externalid", "external id", "external_id", "id", "productid", "product id", "urun_id", "ürün id"], "externalId"],
     [["sku", "stockcode", "stokkodu", "stok kodu", "stokcode", "stock code"], "stockCode"],
     [["modelcode", "modelkodu", "model", "mpn", "productcode", "ürün kodu", "urunkodu", "code"], "modelCode"],
     [["price", "fiyat", "satis", "satış", "listprice", "regularprice", "regular price", "amount", "tutar"], "price"],
+    [["discountedprice", "saleprice", "indirimli fiyat", "kampanya fiyatı", "kampanya fiyati", "sale price"], "discountedPrice"],
     [["costprice", "alisfiyati", "alış", "maliyet", "alis"], "costPrice"],
     [["stock", "stok", "quantity", "qty", "miktar", "inventory", "adet"], "stock"],
     [["currency", "parabirimi", "para birimi", "cur"], "currency"],
@@ -52,7 +57,7 @@ function parseRow(row: Record<string, string>, fieldMap: RowMap): ThyronixProduc
     const field = fieldMap[colName] || fieldMap[colName.toLowerCase()];
     if (!field || !value) continue;
 
-    const numFields = ["price", "costPrice", "stock", "weight", "vatRate", "shippingCost"];
+    const numFields = ["price", "discountedPrice", "salePrice", "costPrice", "stock", "weight", "vatRate", "shippingCost"];
     if (numFields.includes(field)) {
       const n = Number(value.replace(/[^0-9.,-]/g, "").replace(",", "."));
       if (!isNaN(n)) (product as any)[field] = n;
@@ -60,6 +65,11 @@ function parseRow(row: Record<string, string>, fieldMap: RowMap): ThyronixProduc
       (product as any)[field] = value;
     }
   }
+
+  product.metadataJson = buildSourceMetadataJson({
+    sourceType: "csv",
+    raw: row,
+  });
 
   return product;
 }

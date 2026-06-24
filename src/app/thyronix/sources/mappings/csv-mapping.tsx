@@ -1,22 +1,7 @@
 "use client";
 
 import { FileText, Settings } from "lucide-react";
-
-const TARGET_FIELDS = [
-  { v:"name", l:"Ürün Adı", req:true },
-  { v:"description", l:"Açıklama" },
-  { v:"brand", l:"Marka" },
-  { v:"category", l:"Kategori" },
-  { v:"barcode", l:"Barkod" },
-  { v:"stockCode", l:"Stok Kodu" },
-  { v:"modelCode", l:"Model Kodu" },
-  { v:"price", l:"Fiyat", req:true },
-  { v:"salePrice", l:"İndirimli Fiyat" },
-  { v:"stock", l:"Stok" },
-  { v:"currency", l:"Para Birimi" },
-  { v:"images", l:"Görseller" },
-  { v:"status", l:"Durum" },
-];
+import { TARGET_FIELDS } from "./field-options";
 
 const DELIMITERS = [
   { v:",", l:"Virgül (,)" },

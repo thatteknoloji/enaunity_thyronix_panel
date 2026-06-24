@@ -93,9 +93,18 @@ export async function syncVhtSourceById(sourceId: string) {
     }
   }
 
+  let variantMapping: Record<string, string> | undefined;
+  if (source.variantMapping) {
+    try {
+      variantMapping = JSON.parse(source.variantMapping) as Record<string, string>;
+    } catch {
+      variantMapping = undefined;
+    }
+  }
+
   const fixedValues = parseFixedValues(source.fixedValues);
   const feedUrls = resolveSourceFeedUrls(source.xmlUrl, source.fixedValues);
-  const { products } = await fetchAndParseXmlFeeds(feedUrls, template, fieldMapping);
+  const { products } = await fetchAndParseXmlFeeds(feedUrls, template, fieldMapping, variantMapping);
 
   const seen = new Set<string>();
   const rows = [];

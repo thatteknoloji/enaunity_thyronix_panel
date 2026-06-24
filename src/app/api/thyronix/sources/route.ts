@@ -37,6 +37,7 @@ export async function POST(req: Request) {
         type: body.type || "xml",
         inputFormat: body.inputFormat || "custom_xml",
         fieldMapping: body.fieldMapping || null,
+        variantMapping: body.variantMapping || null,
         fixedValues: body.fixedValues || null,
         interval: body.interval || 60,
         status: body.status || "active",

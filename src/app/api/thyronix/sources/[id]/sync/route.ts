@@ -59,8 +59,10 @@ export async function POST(_req: Request, { params }: { params: Promise<{ id: st
     const sourceType = (source as any).type || "xml";
     const url = (source as any).xmlUrl || source.xmlUrl;
     let customFieldMap: Record<string, string> = {};
+    let variantFieldMap: Record<string, string> = {};
     let fixedValues: Record<string, string> = {};
     try { customFieldMap = JSON.parse((source as any).fieldMapping || "{}"); } catch {}
+    try { variantFieldMap = JSON.parse((source as any).variantMapping || "{}"); } catch {}
     fixedValues = parseFixedValues((source as any).fixedValues);
 
     await preSnapshot(id, source.name);
@@ -73,7 +75,7 @@ export async function POST(_req: Request, { params }: { params: Promise<{ id: st
 
       try {
         const feedUrls = resolveSourceFeedUrls(url, (source as any).fixedValues);
-        const { products, feedStats } = await fetchAndParseXmlFeeds(feedUrls, template, customFieldMap);
+        const { products, feedStats } = await fetchAndParseXmlFeeds(feedUrls, template, customFieldMap, variantFieldMap);
 
         const seen = new Set<string>();
         const allData: any[] = [];
@@ -135,6 +137,7 @@ export async function POST(_req: Request, { params }: { params: Promise<{ id: st
       const barcodes = valid.filter(p => p.barcode).map(p => p.barcode!);
       const stockCodes = valid.filter(p => p.stockCode).map(p => p.stockCode!);
       const modelCodes = valid.filter(p => p.modelCode).map(p => p.modelCode!);
+      const externalIds = valid.filter(p => p.externalId).map(p => p.externalId!);
 
       // Bulk fetch existing products
       const existingProducts = await prisma.thyronixProduct.findMany({
@@ -142,26 +145,61 @@ export async function POST(_req: Request, { params }: { params: Promise<{ id: st
           ...(barcodes.length > 0 ? [{ barcode: { in: barcodes } }] : []),
           ...(stockCodes.length > 0 ? [{ stockCode: { in: stockCodes } }] : []),
           ...(modelCodes.length > 0 ? [{ modelCode: { in: modelCodes } }] : []),
+          ...(externalIds.length > 0 ? [{ externalId: { in: externalIds } }] : []),
         ]},
-        select: { id: true, barcode: true, stockCode: true, modelCode: true },
+        select: { id: true, barcode: true, stockCode: true, modelCode: true, externalId: true },
       });
 
       // Build lookup maps
       const byBarcode = new Map(existingProducts.filter(e => e.barcode).map(e => [e.barcode!, e.id]));
       const byStockCode = new Map(existingProducts.filter(e => e.stockCode).map(e => [e.stockCode!, e.id]));
       const byModelCode = new Map(existingProducts.filter(e => e.modelCode).map(e => [e.modelCode!, e.id]));
+      const byExternalId = new Map(existingProducts.filter(e => e.externalId).map(e => [e.externalId!, e.id]));
 
       const creates: any[] = [];
       const updates: { id: string; data: any }[] = [];
 
       for (const p of valid) {
-        const existingId = p.barcode ? byBarcode.get(p.barcode) : p.stockCode ? byStockCode.get(p.stockCode) : p.modelCode ? byModelCode.get(p.modelCode) : undefined;
-        const data = { name: p.productName, description: p.description || null, brand: p.brand || null, category: p.category || null, barcode: p.barcode || null, stockCode: p.stockCode || null, modelCode: p.modelCode || null, price: p.price, discountedPrice: p.salePrice || null, stock: p.stock, currency: p.currency || "TRY", images: p.images || null, status: p.status || "active", sourceId: id };
+        const existingId =
+          (p.barcode && byBarcode.get(p.barcode)) ||
+          (p.stockCode && byStockCode.get(p.stockCode)) ||
+          (p.modelCode && byModelCode.get(p.modelCode)) ||
+          (p.externalId && byExternalId.get(p.externalId)) ||
+          undefined;
+        const data = {
+          name: p.productName,
+          description: p.description || null,
+          brand: p.brand || null,
+          category: p.category || null,
+          barcode: p.barcode || null,
+          stockCode: p.stockCode || null,
+          modelCode: p.modelCode || null,
+          externalId: p.externalId || `EXCEL_${p.rowIndex}`,
+          price: p.price,
+          discountedPrice: p.discountedPrice ?? p.salePrice ?? null,
+          costPrice: null,
+          stock: p.stock,
+          currency: p.currency || "TRY",
+          image: null,
+          images: p.images || null,
+          weight: null,
+          dimensions: null,
+          vatRate: p.vatRate ?? null,
+          deliveryTime: null,
+          manufacturer: null,
+          warranty: null,
+          shippingCost: null,
+          productUrl: null,
+          variantData: null,
+          metadataJson: p.metadataJson || "{}",
+          status: p.status || "active",
+          sourceId: id,
+        };
 
         if (existingId) {
           updates.push({ id: existingId, data });
         } else {
-          creates.push({ ...data, externalId: `EXCEL_${p.rowIndex}` });
+          creates.push(data);
         }
       }
 
@@ -196,27 +234,61 @@ export async function POST(_req: Request, { params }: { params: Promise<{ id: st
 
       const barcodes = parsed.filter(p => p.barcode).map(p => p.barcode!);
       const stockCodes = parsed.filter(p => p.stockCode).map(p => p.stockCode!);
+      const externalIds = parsed.filter(p => p.externalId).map(p => p.externalId!);
 
       const existingProducts = await prisma.thyronixProduct.findMany({
         where: { sourceId: id, OR: [
           ...(barcodes.length > 0 ? [{ barcode: { in: barcodes } }] : []),
           ...(stockCodes.length > 0 ? [{ stockCode: { in: stockCodes } }] : []),
+          ...(externalIds.length > 0 ? [{ externalId: { in: externalIds } }] : []),
         ]},
-        select: { id: true, barcode: true, stockCode: true },
+        select: { id: true, barcode: true, stockCode: true, externalId: true },
       });
 
       const byBarcode = new Map(existingProducts.filter(e => e.barcode).map(e => [e.barcode!, e.id]));
       const byStockCode = new Map(existingProducts.filter(e => e.stockCode).map(e => [e.stockCode!, e.id]));
+      const byExternalId = new Map(existingProducts.filter(e => e.externalId).map(e => [e.externalId!, e.id]));
 
       const createsCsv: any[] = [];
       const updatesCsv: { id: string; data: any }[] = [];
 
       for (const p of parsed) {
-        const extId = p.barcode || p.stockCode || `CSV_${Math.random().toString(36).substring(2, 10)}`;
-        const existingId = p.barcode ? byBarcode.get(p.barcode) : p.stockCode ? byStockCode.get(p.stockCode) : undefined;
-        const data: any = { name: p.name || "", description: p.description || null, brand: fixedValues.brand || p.brand || null, category: fixedValues.category || p.category || null, barcode: p.barcode || null, stockCode: p.stockCode || null, price: p.price || 0, stock: p.stock || 0, currency: fixedValues.currency || "TRY", status: fixedValues.status || "active", sourceId: id };
+        const extId = p.externalId || p.barcode || p.stockCode || `CSV_${Math.random().toString(36).substring(2, 10)}`;
+        const existingId =
+          (p.barcode && byBarcode.get(p.barcode)) ||
+          (p.stockCode && byStockCode.get(p.stockCode)) ||
+          (p.externalId && byExternalId.get(p.externalId)) ||
+          undefined;
+        const data: any = {
+          name: p.name || "",
+          description: p.description || null,
+          brand: fixedValues.brand || p.brand || null,
+          category: fixedValues.category || p.category || null,
+          barcode: p.barcode || null,
+          stockCode: p.stockCode || null,
+          externalId: extId,
+          price: p.price || 0,
+          discountedPrice: p.discountedPrice ?? p.salePrice ?? null,
+          costPrice: p.costPrice || null,
+          stock: p.stock || 0,
+          currency: fixedValues.currency || "TRY",
+          image: p.image || null,
+          images: p.images || null,
+          weight: p.weight || null,
+          dimensions: p.dimensions || null,
+          vatRate: p.vatRate || null,
+          deliveryTime: p.deliveryTime || null,
+          manufacturer: p.manufacturer || null,
+          warranty: p.warranty || null,
+          shippingCost: p.shippingCost || null,
+          productUrl: p.productUrl || null,
+          variantData: null,
+          metadataJson: p.metadataJson || "{}",
+          status: fixedValues.status || "active",
+          sourceId: id,
+        };
         if (existingId) { updatesCsv.push({ id: existingId, data }); }
-        else { createsCsv.push({ ...data, externalId: extId }); }
+        else { createsCsv.push(data); }
       }
 
       const B = 500;

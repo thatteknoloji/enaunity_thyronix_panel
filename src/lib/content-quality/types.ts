@@ -9,7 +9,9 @@ export type ContentQualityIssueType =
   | "LOW_AEO"
   | "LOW_SEO"
   | "BROKEN_INTERNAL_LINK"
-  | "DUPLICATE_RISK";
+  | "DUPLICATE_RISK"
+  | "AI_WRITER"
+  | "AI_VALIDATION";
 
 export type ContentQualityIssue = {
   type: ContentQualityIssueType;

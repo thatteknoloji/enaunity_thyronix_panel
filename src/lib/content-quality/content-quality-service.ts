@@ -3,6 +3,8 @@ import { parseJson } from "@/lib/blog-engine/blog-service";
 import { normalizeInternalLinks } from "@/lib/blog-engine/blog-internal-links";
 import type { BlogContentPayload, BlogFaqItem } from "@/lib/blog-engine/blog-types";
 import { blogAbsoluteUrl } from "@/lib/blog-engine/blog-seo";
+import { validateGeneratedContent } from "@/lib/ai-writer/ai-content-writer";
+import { extractAiWriterFromMetadataJson, isPublishableAiContent } from "@/lib/ai-writer/publish-gate";
 import { buildRecommendationsFromIssues, runContentAudit } from "./audit-engine";
 import type {
   ContentAuditResult,
@@ -101,6 +103,42 @@ export async function auditBlog(blogId: string): Promise<ContentAuditResult> {
     existingGeoScore: post.geoScore,
     existingQualityScore: post.qualityScore,
   });
+
+  const aiMeta = extractAiWriterFromMetadataJson(post.metadataJson);
+  const aiGate = isPublishableAiContent(aiMeta);
+  if (!aiGate.publishable) {
+    result.issues.push({
+      type: "AI_WRITER",
+      severity: "critical",
+      message: `AI içerik geçersiz: ${aiGate.reason || "bilinmeyen"}`,
+      field: "aiWriter",
+    });
+    result.qualityScore = Math.min(result.qualityScore, 40);
+  }
+
+  const validation = validateGeneratedContent({
+    contentType: post.province ? "GEO" : "BLOG",
+    h1: content.h1 || post.title,
+    intro: content.intro,
+    sections: content.sections,
+    conclusion: content.conclusion,
+    faq,
+    seoTitle: post.seoTitle,
+    seoDescription: post.seoDescription,
+    schema,
+    keyword: post.keyword,
+  });
+  if (!validation.passed) {
+    for (const issue of validation.issues) {
+      result.issues.push({
+        type: "AI_VALIDATION",
+        severity: "warning",
+        message: issue,
+        field: "content",
+      });
+    }
+    result.qualityScore = Math.min(result.qualityScore, 50);
+  }
 
   await persistAudit(result);
   return result;

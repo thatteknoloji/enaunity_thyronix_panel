@@ -18,6 +18,7 @@ import {
   resolveBlueprintContentStatus,
   resolveDraftStatus,
 } from "./publish-score-engine";
+import { enrichDraftWithAiWriter } from "./page-factory-ai-bridge";
 
 export const PLAN_ONLY_THRESHOLD = 100_000;
 export const DEFAULT_BULK_LIMIT = 100;
@@ -159,7 +160,24 @@ export async function generateContentDraftForBlueprint(
   dryRun = false
 ): Promise<ContentDraftGenerateResult> {
   const ctx = await loadDraftContext(blueprintId);
-  const payload = buildContentDraftPayload(ctx);
+  let payload = buildContentDraftPayload(ctx);
+  const { payload: enriched } = await enrichDraftWithAiWriter(ctx, payload);
+  payload = enriched;
+  payload.quality.seoScore = calculateSeoScore(payload);
+  payload.quality.geoScore = calculateGeoScore(payload);
+  payload.quality.publishScore = calculatePublishScore({
+    payload,
+    productQualityScore: Number(ctx.metadata.qualityScore ?? ctx.product?.qualityScore ?? 100),
+  });
+  if (payload.sourceJson.aiWriter && !payload.sourceJson.aiGenerated) {
+    payload.status = "NEEDS_REVIEW";
+  } else {
+    payload.status = resolveDraftStatus(
+      payload.quality.publishScore,
+      payload.noindexRecommended,
+      Number(ctx.metadata.qualityScore ?? ctx.product?.qualityScore ?? 100)
+    );
+  }
 
   if (dryRun) {
     return { blueprintId, dryRun: true, payload, written: false };
@@ -192,6 +210,7 @@ export async function generateContentDraftForBlueprint(
       version: CONTENT_DRAFT_VERSION,
       contentPolicyWarnings: payload.contentPolicyWarnings,
       blueprintType: payload.blueprintType,
+      aiWriter: payload.sourceJson.aiWriter || null,
     }),
   };
 
