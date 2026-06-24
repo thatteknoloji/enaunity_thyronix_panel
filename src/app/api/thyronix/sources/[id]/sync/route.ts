@@ -10,7 +10,7 @@ import {
 } from "@/lib/thyronix/feed-fetch";
 import { parseExcel, mapExcelToProducts, getIdentityKey } from "@/lib/thyronix/excel-parser";
 import { parseCsvToProducts } from "@/lib/thyronix/csv-parser";
-import { countActiveSourceProducts } from "@/lib/thyronix/feed-output-service";
+import { loadMergedFeedProducts } from "@/lib/thyronix/feed-output-service";
 import { resolveFeedSourceIds } from "@/lib/thyronix/source-feed-provision";
 
 async function preSnapshot(sourceId: string, sourceName: string) {
@@ -33,11 +33,17 @@ async function refreshDealerFeedTotals(dealerId: string | null) {
   if (!dealerId) return;
   try {
     const sourceIds = await resolveFeedSourceIds({ dealerId, sourceId: null });
-    const total = await countActiveSourceProducts(sourceIds);
-    await prisma.thyronixFeed.updateMany({
+    const feeds = await prisma.thyronixFeed.findMany({
       where: { dealerId, sourceId: null },
-      data: { productCount: total },
+      select: { id: true, mergeStrategy: true, outputFormat: true, dealerId: true },
     });
+    for (const feed of feeds) {
+      const merged = await loadMergedFeedProducts(feed as any, sourceIds);
+      await prisma.thyronixFeed.update({
+        where: { id: feed.id },
+        data: { productCount: merged.length },
+      });
+    }
   } catch {}
 }
 

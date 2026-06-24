@@ -221,7 +221,7 @@ export default function FeedCenterPage() {
                     return (
                     <tr key={f.id} className="hover:bg-nexa-hover">
                       <td className="px-4 py-3 font-medium text-nexa-text">
-                        {f.name}
+                        {f.sourceId ? f.name : "Bayi XML"}
                         <div className="text-xs text-nexa-text-secondary">
                           {(f.productCount || 0).toLocaleString("tr-TR")} ürün
                           {feedParts.needsSplit && (
@@ -258,7 +258,7 @@ export default function FeedCenterPage() {
                                 className="px-2 py-1 rounded text-[10px] bg-nexa-bg border border-nexa-border text-nexa-text-secondary hover:text-nexa-primary"
                                 title={`${p.label} — ${p.productCount.toLocaleString("tr-TR")} ürün`}
                               >
-                                P{p.part}
+                                Bayi XML {p.part}
                               </a>
                             ))
                           )}
