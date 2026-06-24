@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/db";
-import { mergeProducts, type MergeStrategy } from "./merge-engine";
+import { getProductKey, type MergeStrategy } from "./merge-engine";
 import {
   FEED_MAX_PRODUCTS_PER_FILE,
   parseFeedPartParam,
@@ -15,6 +15,58 @@ type FeedRecord = {
   outputFormat: string;
   dealerId: string | null;
 };
+
+type LeanFeedProduct = {
+  id: string;
+  sourceId: string;
+  name: string;
+  description: string | null;
+  brand: string | null;
+  category: string | null;
+  barcode: string | null;
+  stockCode: string | null;
+  modelCode: string | null;
+  price: number;
+  stock: number;
+  currency: string;
+  images: string | null;
+  status: string;
+};
+
+type MergeBucket = {
+  winner: LeanFeedProduct;
+  sourceIds: string[];
+};
+
+function deliveryToScore(value: string | null | undefined): number {
+  if (!value) return Number.POSITIVE_INFINITY;
+  const parsed = parseInt(value, 10);
+  return Number.isFinite(parsed) ? parsed : Number.POSITIVE_INFINITY;
+}
+
+function isBetterCandidate(
+  candidate: LeanFeedProduct,
+  winner: LeanFeedProduct,
+  strategy: MergeStrategy,
+  priorityMap: Map<string, number>
+): boolean {
+  switch (strategy) {
+    case "lowest_price":
+      return candidate.price < winner.price;
+    case "highest_stock":
+      return candidate.stock > winner.stock;
+    case "shortest_delivery":
+      return deliveryToScore((candidate as { deliveryTime?: string | null }).deliveryTime) <
+        deliveryToScore((winner as { deliveryTime?: string | null }).deliveryTime);
+    case "source_priority": {
+      const candidatePriority = priorityMap.get(candidate.sourceId || "") ?? Number.MAX_SAFE_INTEGER;
+      const winnerPriority = priorityMap.get(winner.sourceId || "") ?? Number.MAX_SAFE_INTEGER;
+      return candidatePriority < winnerPriority;
+    }
+    default:
+      return candidate.price < winner.price;
+  }
+}
 
 export async function countActiveSourceProducts(sourceIds: string[]): Promise<number> {
   if (!sourceIds.length) return 0;
@@ -39,7 +91,10 @@ export async function loadMergedFeedProducts(
   feed: FeedRecord,
   sourceIds: string[]
 ): Promise<Record<string, unknown>[]> {
-  const allProducts: Record<string, unknown>[] = [];
+  const buckets = new Map<string, MergeBucket>();
+  const priorityMap = new Map(
+    (sourceIds || []).map((id, index) => [id, index] as const)
+  );
   let cursor: string | undefined;
 
   while (true) {
@@ -48,20 +103,60 @@ export async function loadMergedFeedProducts(
         sourceId: { in: sourceIds },
         ...(cursor ? { id: { gt: cursor } } : {}),
       },
+      select: {
+        id: true,
+        sourceId: true,
+        name: true,
+        description: true,
+        brand: true,
+        category: true,
+        barcode: true,
+        stockCode: true,
+        modelCode: true,
+        price: true,
+        stock: true,
+        currency: true,
+        images: true,
+        status: true,
+      },
       orderBy: { id: "asc" },
       take: DB_CHUNK,
     });
     if (chunk.length === 0) break;
-    allProducts.push(...chunk);
+
+    for (const raw of chunk as LeanFeedProduct[]) {
+      const key = getProductKey({
+        id: raw.id,
+        name: raw.name,
+        barcode: raw.barcode,
+        stockCode: raw.stockCode,
+        price: raw.price,
+        stock: raw.stock,
+        sourceId: raw.sourceId,
+      });
+      const bucket = buckets.get(key);
+      if (!bucket) {
+        buckets.set(key, {
+          winner: { ...raw },
+          sourceIds: [raw.sourceId || raw.id],
+        });
+        continue;
+      }
+
+      bucket.sourceIds.push(raw.sourceId || raw.id);
+      if (isBetterCandidate(raw, bucket.winner, feed.mergeStrategy as MergeStrategy, priorityMap)) {
+        bucket.winner = { ...raw };
+      }
+    }
+
     cursor = chunk[chunk.length - 1].id;
   }
 
-  const strategy = (feed.mergeStrategy || "lowest_price") as MergeStrategy;
-  return mergeProducts(
-    allProducts as never[],
-    strategy,
-    strategy === "source_priority" ? sourceIds : []
-  ) as Record<string, unknown>[];
+  for (const bucket of buckets.values()) {
+    (bucket.winner as Record<string, unknown>).mergeSourceIds = JSON.stringify(bucket.sourceIds);
+  }
+
+  return [...buckets.values()].map((bucket) => bucket.winner as Record<string, unknown>);
 }
 
 export async function resolveFeedChunkSlice(

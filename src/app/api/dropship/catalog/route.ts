@@ -26,14 +26,14 @@ export async function GET(req: Request) {
         skip: (page - 1) * limit,
         take: limit,
         orderBy: { name: "asc" },
-        select: { id: true, name: true, sku: true, imagesJson: true, category: true, basePrice: true },
+        select: { id: true, name: true, sku: true, imagesJson: true, category: true, price: true },
       }),
       prisma.productCatalogItem.count({ where }),
     ]);
 
     return NextResponse.json({
       success: true,
-      data: items.map((item) => ({ ...item, description: "" })),
+      data: items.map((item) => ({ ...item, description: "", basePrice: item.price })),
       total,
       page,
       totalPages: Math.ceil(total / limit),

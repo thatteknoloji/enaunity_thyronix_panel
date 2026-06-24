@@ -22,10 +22,12 @@ export async function GET(_req: Request, { params }: Params) {
     const catalogItems = catalogItemIds.length > 0
       ? await prisma.productCatalogItem.findMany({
           where: { id: { in: catalogItemIds } },
-          select: { id: true, name: true, sku: true, imagesJson: true, category: true, description: true, basePrice: true },
+          select: { id: true, name: true, sku: true, imagesJson: true, category: true, price: true },
         })
       : [];
-    const catalogMap = Object.fromEntries(catalogItems.map((c) => [c.id, c]));
+    const catalogMap = Object.fromEntries(
+      catalogItems.map((c) => [c.id, { ...c, description: "", basePrice: c.price }])
+    );
     const enrichedProducts = store.products.map((p) => ({ ...p, catalogItem: catalogMap[p.productCatalogItemId] || null }));
     return NextResponse.json({ success: true, data: { ...store, products: enrichedProducts } });
   } catch {
