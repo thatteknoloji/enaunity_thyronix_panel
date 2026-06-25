@@ -1,6 +1,6 @@
 "use client";
 
-import { ThyronixAnalysisWorkspace, type AnalysisWorkspaceConfig } from "@/app/thyronix/analysis/page";
+import { ThyronixAnalysisWorkspace, type AnalysisWorkspaceConfig } from "@/app/thyronix/analysis/workspace";
 
 const ENA_ANALYSIS_CONFIG: AnalysisWorkspaceConfig = {
   apiPath: "/api/dealer/analysis",
