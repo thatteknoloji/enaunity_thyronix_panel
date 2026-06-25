@@ -1,6 +1,12 @@
 import { createHash } from "crypto";
-import { DEFAULT_MODELS } from "./constants";
+import { DEFAULT_MODELS, MODEL_ENV_KEYS } from "./constants";
 import type { AiProviderName, ProviderCallResult, ProviderStatus } from "./types";
+
+export function resolveModelForProvider(provider: AiProviderName): string {
+  const envKey = MODEL_ENV_KEYS[provider];
+  const fromEnv = envKey ? process.env[envKey]?.trim() : "";
+  return fromEnv || DEFAULT_MODELS[provider] || "";
+}
 
 const PROVIDER_ORDER: AiProviderName[] = ["OPENAI", "GEMINI", "ANTHROPIC", "OPENROUTER", "OLLAMA"];
 
@@ -28,7 +34,7 @@ export function getConfiguredProviders(): AiProviderName[] {
 export function resolveActiveProvider(): { provider: AiProviderName; model: string } | null {
   for (const provider of PROVIDER_ORDER) {
     if (isConfigured(provider)) {
-      return { provider, model: DEFAULT_MODELS[provider] };
+      return { provider, model: resolveModelForProvider(provider) };
     }
   }
   return null;
