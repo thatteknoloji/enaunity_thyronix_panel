@@ -129,8 +129,7 @@ function findBestCategoryMatch(
   return categories[0]?.value || "genel";
 }
 
-export default function ThyronixAnalysisPage() {
-  const config = DEFAULT_CONFIG;
+export function ThyronixAnalysisWorkspace({ config }: { config: AnalysisWorkspaceConfig }) {
   const [tab, setTab] = useState<TabKey>("profit");
   const [loadingData, setLoadingData] = useState(true);
   const [dataError, setDataError] = useState<string | null>(null);
@@ -971,4 +970,8 @@ export default function ThyronixAnalysisPage() {
       )}
     </div>
   );
+}
+
+export default function ThyronixAnalysisPage() {
+  return <ThyronixAnalysisWorkspace config={DEFAULT_CONFIG} />;
 }

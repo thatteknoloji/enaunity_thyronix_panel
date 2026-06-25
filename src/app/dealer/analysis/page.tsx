@@ -1,6 +1,6 @@
 "use client";
 
-import ThyronixAnalysisPage, { type AnalysisWorkspaceConfig } from "@/app/thyronix/analysis/page";
+import { ThyronixAnalysisWorkspace, type AnalysisWorkspaceConfig } from "@/app/thyronix/analysis/page";
 
 const ENA_ANALYSIS_CONFIG: AnalysisWorkspaceConfig = {
   apiPath: "/api/dealer/analysis",
@@ -21,5 +21,5 @@ const ENA_ANALYSIS_CONFIG: AnalysisWorkspaceConfig = {
 };
 
 export default function DealerAnalysisPage() {
-  return <ThyronixAnalysisPage config={ENA_ANALYSIS_CONFIG} />;
+  return <ThyronixAnalysisWorkspace config={ENA_ANALYSIS_CONFIG} />;
 }
