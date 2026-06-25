@@ -25,11 +25,22 @@ import {
   type ThyronixAnalysisCargoPreset,
   type ThyronixAnalysisMarketplacePreset,
 } from "@/lib/thyronix/analysis-presets";
+import type { AnalysisFeedQuality, AnalysisProductSource, AnalysisSourceCounts } from "@/lib/analysis/types";
+import { scoreProductAnalysis } from "@/lib/thyronix/analysis-product-scoring";
+import {
+  createScenarioId,
+  deleteProfitScenario,
+  listProfitScenarios,
+  saveProfitScenario,
+  type ProfitScenarioSnapshot,
+} from "@/lib/thyronix/profit-scenario-store";
 
 type TabKey = "profit" | "product" | "competitor";
 
 type AnalysisProduct = {
   id: string;
+  source?: AnalysisProductSource;
+  sourceLabel?: string;
   name: string;
   description: string | null;
   brand: string | null;
@@ -46,6 +57,7 @@ type AnalysisProduct = {
   vatRate: number | null;
   shippingCost: number | null;
   deliveryTime: string | null;
+  feedQuality?: AnalysisFeedQuality;
 };
 
 export type AnalysisWorkspaceConfig = {
@@ -92,10 +104,6 @@ function asMoney(value: number) {
   }).format(Number.isFinite(value) ? value : 0);
 }
 
-function clamp(value: number, min = 0, max = 100) {
-  return Math.max(min, Math.min(max, value));
-}
-
 function findBestCategoryMatch(
   categories: ThyronixAnalysisCategoryPreset[],
   rawCategory?: string | null,
@@ -136,7 +144,13 @@ export function ThyronixAnalysisWorkspace({ config }: { config: AnalysisWorkspac
   const [marketplaces, setMarketplaces] = useState<ThyronixAnalysisMarketplacePreset[]>(THYRONIX_MARKETPLACE_PRESETS);
   const [cargoes, setCargoes] = useState<ThyronixAnalysisCargoPreset[]>(THYRONIX_CARGO_PRESETS);
   const [products, setProducts] = useState<AnalysisProduct[]>([]);
+  const [sourceCounts, setSourceCounts] = useState<AnalysisSourceCounts | null>(null);
   const [selectedProductId, setSelectedProductId] = useState("");
+  const [profitScenarios, setProfitScenarios] = useState<ProfitScenarioSnapshot[]>([]);
+  const [activeScenarioId, setActiveScenarioId] = useState("");
+  const [scenarioName, setScenarioName] = useState("Yeni Senaryo");
+  const [competitorCrawling, setCompetitorCrawling] = useState(false);
+  const [competitorCrawlNote, setCompetitorCrawlNote] = useState<string | null>(null);
 
   const [marketplace, setMarketplace] = useState("trendyol");
   const [category, setCategory] = useState("cam-tablo");
@@ -202,6 +216,7 @@ export function ThyronixAnalysisWorkspace({ config }: { config: AnalysisWorkspac
         setMarketplaces(nextMarketplaces);
         setCargoes(nextCargoes);
         setProducts(nextProducts);
+        setSourceCounts(payload.data?.sourceCounts ?? null);
         setMarketplace((current) => current || nextMarketplaces[0]?.value || "trendyol");
         setSelectedCargo((current) => current || nextCargoes[0]?.value || "yurtici");
       } catch (error) {
@@ -220,6 +235,10 @@ export function ThyronixAnalysisWorkspace({ config }: { config: AnalysisWorkspac
     return () => {
       cancelled = true;
     };
+  }, [config.apiPath]);
+
+  useEffect(() => {
+    setProfitScenarios(listProfitScenarios(config.apiPath));
   }, [config.apiPath]);
 
   useEffect(() => {
@@ -328,36 +347,138 @@ export function ThyronixAnalysisWorkspace({ config }: { config: AnalysisWorkspac
   }, [cost, vatRate, shippingFee, packagingFee, extraFixedFee, paymentFeeRate, adRate, campaignRate, targetProfitTl, targetMarginRate, manualPrice, commissionRate]);
 
   const productScore = useMemo(() => {
-    const titleLen = productTitle.trim().length;
-    const descLen = productDescription.trim().length;
-    const imageCount = Number(productImages) || 0;
     const attrCount = productAttributes.split(",").map((item) => item.trim()).filter(Boolean).length;
+    return scoreProductAnalysis({
+      title: productTitle,
+      description: productDescription,
+      brand: productBrand,
+      barcode: productBarcode,
+      imageCount: Number(productImages) || 0,
+      attributeCount: attrCount,
+      feedQuality: selectedProduct?.feedQuality ?? null,
+    });
+  }, [
+    productTitle,
+    productDescription,
+    productBrand,
+    productBarcode,
+    productImages,
+    productAttributes,
+    selectedProduct?.feedQuality,
+  ]);
 
-    const titleScore = clamp((titleLen / 70) * 25, 0, 25);
-    const descScore = clamp((descLen / 220) * 25, 0, 25);
-    const imageScore = clamp((imageCount / 6) * 20, 0, 20);
-    const idScore = (productBrand.trim() ? 8 : 0) + (productBarcode.trim() ? 12 : 0);
-    const attrScore = clamp((attrCount / 6) * 10, 0, 10);
+  function buildCurrentScenario(id?: string): ProfitScenarioSnapshot {
+    const now = new Date().toISOString();
+    return {
+      id: id || activeScenarioId || createScenarioId(),
+      name: scenarioName.trim() || "Kârlılık Senaryosu",
+      createdAt: now,
+      updatedAt: now,
+      marketplace,
+      category,
+      cost,
+      vatRate,
+      selectedCargo,
+      shippingFee,
+      packagingFee,
+      extraFixedFee,
+      paymentFeeRate,
+      adRate,
+      campaignRate,
+      targetProfitTl,
+      targetMarginRate,
+      manualPrice,
+      productTitle,
+      linkedProductId: selectedProductId || undefined,
+    };
+  }
 
-    const total = Math.round(titleScore + descScore + imageScore + idScore + attrScore);
-    const risks = [
-      titleLen < 45 ? "Başlık kısa, pazaryeri aramalarında zayıf kalabilir." : null,
-      descLen < 120 ? "Açıklama yetersiz, dönüşüm oranı düşebilir." : null,
-      imageCount < 4 ? "Görsel sayısı düşük, güven hissi azalır." : null,
-      !productBarcode.trim() ? "Barkod eksik, eşleştirme ve yayın sorunları çıkabilir." : null,
-      attrCount < 3 ? "Varyant/özellik alanı zayıf, kategori beslemesi eksik kalabilir." : null,
-    ].filter(Boolean) as string[];
+  function applyScenario(scenario: ProfitScenarioSnapshot) {
+    setActiveScenarioId(scenario.id);
+    setScenarioName(scenario.name);
+    setMarketplace(scenario.marketplace);
+    setCategory(scenario.category);
+    setCost(scenario.cost);
+    setVatRate(scenario.vatRate);
+    setSelectedCargo(scenario.selectedCargo);
+    setShippingFee(scenario.shippingFee);
+    setPackagingFee(scenario.packagingFee);
+    setExtraFixedFee(scenario.extraFixedFee);
+    setPaymentFeeRate(scenario.paymentFeeRate);
+    setAdRate(scenario.adRate);
+    setCampaignRate(scenario.campaignRate);
+    setTargetProfitTl(scenario.targetProfitTl);
+    setTargetMarginRate(scenario.targetMarginRate);
+    setManualPrice(scenario.manualPrice);
+    setProductTitle(scenario.productTitle);
+    if (scenario.linkedProductId) setSelectedProductId(scenario.linkedProductId);
+  }
 
-    const strengths = [
-      titleLen >= 55 ? "Başlık uzunluğu güçlü." : null,
-      descLen >= 180 ? "Açıklama doluluk seviyesi iyi." : null,
-      imageCount >= 5 ? "Görsel zenginliği yeterli." : null,
-      productBarcode.trim() ? "Kimlik alanı hazır." : null,
-      attrCount >= 4 ? "Özellik seti güçlü." : null,
-    ].filter(Boolean) as string[];
+  function handleSaveScenario() {
+    const existing = profitScenarios.find((item) => item.id === activeScenarioId);
+    const scenario = buildCurrentScenario(activeScenarioId || undefined);
+    const payload: ProfitScenarioSnapshot = {
+      ...scenario,
+      createdAt: existing?.createdAt ?? scenario.createdAt,
+      updatedAt: new Date().toISOString(),
+    };
+    const next = saveProfitScenario(config.apiPath, payload);
+    setProfitScenarios(next);
+    setActiveScenarioId(payload.id);
+  }
 
-    return { total, risks, strengths };
-  }, [productTitle, productDescription, productBrand, productBarcode, productImages, productAttributes]);
+  function handleDeleteScenario(id: string) {
+    const next = deleteProfitScenario(config.apiPath, id);
+    setProfitScenarios(next);
+    if (activeScenarioId === id) setActiveScenarioId("");
+  }
+
+  async function handleCompetitorCrawl() {
+    if (!competitorUrl.trim()) return;
+    setCompetitorCrawling(true);
+    setCompetitorCrawlNote(null);
+    try {
+      const competitorApi = config.apiPath.replace(/\/analysis\/?$/, "/analysis/competitor");
+      const res = await fetch(competitorApi, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url: competitorUrl, marketplace }),
+      });
+      const payload = await res.json();
+      if (!res.ok || !payload?.success || !payload.data) {
+        throw new Error(payload?.error || "Rakip taraması başarısız");
+      }
+      const snap = payload.data as {
+        storeName: string;
+        productCount: number;
+        bestSellerCount: number;
+        reviewScore: number;
+        reviewCount: number;
+        minPrice: number;
+        maxPrice: number;
+        shippingDays: number;
+        campaignRate: number;
+        crawlMode: string;
+        notes?: string[];
+      };
+      setCompetitorStoreName(snap.storeName);
+      setCompetitorProductCount(String(snap.productCount));
+      setCompetitorBestSellerCount(String(snap.bestSellerCount));
+      setCompetitorReviewScore(String(snap.reviewScore));
+      setCompetitorReviewCount(String(snap.reviewCount));
+      setCompetitorMinPrice(String(snap.minPrice));
+      setCompetitorMaxPrice(String(snap.maxPrice));
+      setCompetitorShippingDays(String(snap.shippingDays));
+      setCompetitorCampaignRate(String(snap.campaignRate));
+      setCompetitorCrawlNote(
+        `${snap.crawlMode === "live" ? "Canlı okuma" : "Heuristik"} — ${snap.notes?.[0] || "Tarama tamamlandı."}`,
+      );
+    } catch (error) {
+      setCompetitorCrawlNote(error instanceof Error ? error.message : "Tarama hatası");
+    } finally {
+      setCompetitorCrawling(false);
+    }
+  }
 
   const competitorInsights = useMemo(() => {
     const totalProducts = Number(competitorProductCount) || 0;
@@ -426,6 +547,15 @@ export function ThyronixAnalysisWorkspace({ config }: { config: AnalysisWorkspac
             <p className="mt-2 max-w-3xl text-sm text-nexa-text-secondary">
               {config.description}
             </p>
+            {sourceCounts ? (
+              <p className="mt-2 text-xs text-nexa-text-secondary">
+                Kaynak dağılımı:
+                {sourceCounts.dealerProduct ? ` Bayi ${sourceCounts.dealerProduct}` : ""}
+                {sourceCounts.storeCatalog ? ` · Mağaza ${sourceCounts.storeCatalog}` : ""}
+                {sourceCounts.packageCatalog ? ` · Depo ${sourceCounts.packageCatalog}` : ""}
+                {sourceCounts.thyronix ? ` · THYRONIX ${sourceCounts.thyronix}` : ""}
+              </p>
+            ) : null}
             {dataError ? (
               <p className="mt-3 text-xs text-amber-400">
                 Canlı analiz verisi alınamadı, güvenli presetlerle devam ediyoruz: {dataError}
@@ -485,7 +615,7 @@ export function ThyronixAnalysisWorkspace({ config }: { config: AnalysisWorkspac
                       <option value="">Ürün seç</option>
                       {products.map((item) => (
                         <option key={item.id} value={item.id}>
-                          {item.name}
+                          {item.sourceLabel ? `[${item.sourceLabel}] ` : ""}{item.name}
                         </option>
                       ))}
                     </select>
@@ -612,6 +742,69 @@ export function ThyronixAnalysisWorkspace({ config }: { config: AnalysisWorkspac
                 </label>
               </div>
             </div>
+
+            <div className="rounded-2xl border border-nexa-border bg-nexa-card p-5">
+              <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+                <div>
+                  <h2 className="text-lg font-semibold text-nexa-text">Kârlılık Senaryoları</h2>
+                  <p className="mt-1 text-sm text-nexa-text-secondary">Hesap kurulumunu kaydet, sonra aynı senaryoyu tekrar aç.</p>
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setActiveScenarioId("");
+                      setScenarioName("Yeni Senaryo");
+                    }}
+                    className="rounded-xl border border-nexa-border px-3 py-2 text-xs font-medium text-nexa-text-secondary hover:text-nexa-text"
+                  >
+                    Yeni
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleSaveScenario}
+                    className="rounded-xl border border-nexa-primary/30 bg-nexa-primary/10 px-4 py-2 text-xs font-medium text-nexa-primary hover:bg-nexa-primary/15"
+                  >
+                    Kaydet
+                  </button>
+                </div>
+              </div>
+              <label className="mt-4 block space-y-1.5">
+                <span className="text-xs font-medium text-nexa-text-secondary">Senaryo adı</span>
+                <input
+                  value={scenarioName}
+                  onChange={(e) => setScenarioName(e.target.value)}
+                  className="w-full rounded-xl border border-nexa-border bg-nexa-bg px-3 py-2 text-sm text-nexa-text focus:outline-none"
+                />
+              </label>
+              {profitScenarios.length > 0 ? (
+                <div className="mt-4 space-y-2">
+                  {profitScenarios.slice(0, 6).map((item) => (
+                    <div key={item.id} className="flex items-center justify-between gap-2 rounded-xl border border-nexa-border bg-nexa-bg px-3 py-2">
+                      <button
+                        type="button"
+                        onClick={() => applyScenario(item)}
+                        className="min-w-0 flex-1 text-left text-sm text-nexa-text hover:text-nexa-primary"
+                      >
+                        <span className="block truncate font-medium">{item.name}</span>
+                        <span className="text-[11px] text-nexa-text-secondary">
+                          {item.marketplace} · {asMoney(Number(item.manualPrice) || 0)} · {new Date(item.updatedAt).toLocaleString("tr-TR")}
+                        </span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteScenario(item.id)}
+                        className="text-[11px] text-rose-400 hover:text-rose-300"
+                      >
+                        Sil
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="mt-4 text-xs text-nexa-text-secondary">Henüz kayıtlı senaryo yok.</p>
+              )}
+            </div>
           </div>
 
           <div className="space-y-6">
@@ -691,7 +884,7 @@ export function ThyronixAnalysisWorkspace({ config }: { config: AnalysisWorkspac
                       <option value="">Ürün seç</option>
                       {products.map((item) => (
                         <option key={item.id} value={item.id}>
-                          {item.name}
+                          {item.sourceLabel ? `[${item.sourceLabel}] ` : ""}{item.name}
                         </option>
                       ))}
                     </select>
@@ -793,19 +986,28 @@ export function ThyronixAnalysisWorkspace({ config }: { config: AnalysisWorkspac
               <div className="mt-4 grid gap-3 sm:grid-cols-2">
                 <div className="rounded-xl border border-nexa-border p-3">
                   <div className="flex items-center gap-2 text-sm font-medium text-nexa-text"><BarChart3 size={15} /> Başlık</div>
-                  <p className="mt-2 text-xs text-nexa-text-secondary">{productTitle.length} karakter</p>
+                  <p className="mt-2 text-xs text-nexa-text-secondary">{productTitle.length} karakter · {productScore.dimensions.title} puan</p>
                 </div>
                 <div className="rounded-xl border border-nexa-border p-3">
                   <div className="flex items-center gap-2 text-sm font-medium text-nexa-text"><Boxes size={15} /> Açıklama</div>
-                  <p className="mt-2 text-xs text-nexa-text-secondary">{productDescription.length} karakter</p>
+                  <p className="mt-2 text-xs text-nexa-text-secondary">{productDescription.length} karakter · {productScore.dimensions.description} puan</p>
                 </div>
                 <div className="rounded-xl border border-nexa-border p-3">
                   <div className="flex items-center gap-2 text-sm font-medium text-nexa-text"><Camera size={15} /> Görseller</div>
-                  <p className="mt-2 text-xs text-nexa-text-secondary">{productImages} adet</p>
+                  <p className="mt-2 text-xs text-nexa-text-secondary">{productImages} adet · {productScore.dimensions.images} puan</p>
                 </div>
                 <div className="rounded-xl border border-nexa-border p-3">
                   <div className="flex items-center gap-2 text-sm font-medium text-nexa-text"><ShieldCheck size={15} /> Kimlik</div>
-                  <p className="mt-2 text-xs text-nexa-text-secondary">{productBarcode ? "Hazır" : "Eksik"}</p>
+                  <p className="mt-2 text-xs text-nexa-text-secondary">{productBarcode ? "Hazır" : "Eksik"} · {productScore.dimensions.identity} puan</p>
+                </div>
+                <div className="rounded-xl border border-nexa-border p-3 sm:col-span-2">
+                  <div className="flex items-center gap-2 text-sm font-medium text-nexa-text"><LineChart size={15} /> Feed Kalitesi</div>
+                  <p className="mt-2 text-xs text-nexa-text-secondary">
+                    {productScore.dimensions.feedQuality} puan
+                    {selectedProduct?.feedQuality?.missingFields.length
+                      ? ` · Eksik: ${selectedProduct.feedQuality.missingFields.join(", ")}`
+                      : " · Besleme alanları dolu"}
+                  </p>
                 </div>
               </div>
             </div>
@@ -822,13 +1024,26 @@ export function ThyronixAnalysisWorkspace({ config }: { config: AnalysisWorkspac
             <div className="mt-5 space-y-4">
               <label className="space-y-1.5">
                 <span className="text-xs font-medium text-nexa-text-secondary">Rakip mağaza linki</span>
-                <input
-                  value={competitorUrl}
-                  onChange={(e) => setCompetitorUrl(e.target.value)}
-                  placeholder="https://www.trendyol.com/magaza/..."
-                  className="w-full rounded-xl border border-nexa-border bg-nexa-bg px-3 py-2 text-sm text-nexa-text focus:outline-none"
-                />
+                <div className="flex gap-2">
+                  <input
+                    value={competitorUrl}
+                    onChange={(e) => setCompetitorUrl(e.target.value)}
+                    placeholder="https://www.trendyol.com/magaza/..."
+                    className="w-full rounded-xl border border-nexa-border bg-nexa-bg px-3 py-2 text-sm text-nexa-text focus:outline-none"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => void handleCompetitorCrawl()}
+                    disabled={competitorCrawling || !competitorUrl.trim()}
+                    className="shrink-0 rounded-xl border border-nexa-primary/30 bg-nexa-primary/10 px-4 py-2 text-xs font-medium text-nexa-primary disabled:opacity-50"
+                  >
+                    {competitorCrawling ? "..." : "Tara"}
+                  </button>
+                </div>
               </label>
+              {competitorCrawlNote ? (
+                <p className="text-xs text-nexa-text-secondary">{competitorCrawlNote}</p>
+              ) : null}
               <label className="space-y-1.5">
                 <span className="text-xs font-medium text-nexa-text-secondary">Pazaryeri</span>
                 <select className="w-full rounded-xl border border-nexa-border bg-nexa-bg px-3 py-2 text-sm text-nexa-text focus:outline-none">
@@ -876,7 +1091,7 @@ export function ThyronixAnalysisWorkspace({ config }: { config: AnalysisWorkspac
               </div>
 
               <div className="rounded-xl border border-dashed border-nexa-border p-4 text-sm text-nexa-text-secondary">
-                Gerçek tarama bağlanınca bu alanlar otomatik dolacak. Şu an veri sözleşmesi ve karar katmanı hazır; sonraki fazda connector yalnızca bu kutuları canlı veriyle besleyecek.
+                Crawler katmanı aktif. Link girildiğinde public sayfa okunur; login gerektiren mağazalarda güvenli heuristik devreye girer.
               </div>
             </div>
           </div>

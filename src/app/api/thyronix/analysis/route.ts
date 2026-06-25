@@ -9,6 +9,7 @@ import {
   THYRONIX_CARGO_PRESETS,
   THYRONIX_MARKETPLACE_PRESETS,
 } from "@/lib/thyronix/analysis-presets";
+import { buildFeedQuality } from "@/lib/analysis/types";
 
 export async function GET() {
   try {
@@ -42,12 +43,27 @@ export async function GET() {
       data: {
         marketplaces: THYRONIX_MARKETPLACE_PRESETS,
         cargoes: THYRONIX_CARGO_PRESETS,
-        products: products.map((product) => ({
-          ...product,
-          imageCount: [product.image, ...(product.images || "").split(",").map((item) => item.trim())]
-            .filter(Boolean)
-            .length,
-        })),
+        products: products.map((product) => {
+          const imageList = [product.image, ...(product.images || "").split(",").map((item) => item.trim())].filter(Boolean);
+          return {
+            ...product,
+            source: "thyronix" as const,
+            sourceLabel: "THYRONIX",
+            imageCount: imageList.length,
+            feedQuality: buildFeedQuality({
+              category: product.category,
+              barcode: product.barcode,
+              stockCode: product.stockCode,
+              modelCode: product.modelCode,
+              vatRate: product.vatRate,
+              costPrice: product.costPrice,
+              description: product.description,
+              imageCount: imageList.length,
+              variantCount: product.modelCode ? 1 : 0,
+            }),
+            updatedAt: new Date().toISOString(),
+          };
+        }),
       },
     });
   } catch (error) {
