@@ -128,6 +128,7 @@ export function buildAdminNavGroups(t: (key: string) => string, legacyMarketplac
         { href: "/admin/product-universe", label: "Ürün Evreni", icon: Layers },
         { href: "/admin/products", label: "Canlı Ürünler", icon: Package },
         { href: "/admin/product-library", label: "Hazır Ürün Deposu", icon: PackagePlus },
+        { href: "/admin/fiyat-hesaplama-merkezi", label: "Fiyat Hesaplama Merkezi", icon: DollarSign },
         { href: "/admin/categories", label: "Kategori Yönetimi", icon: Layers },
         { href: "/admin/reviews", label: "Ürün Yorumları", icon: MessageSquare },
       ],

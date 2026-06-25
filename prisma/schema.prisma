@@ -4359,3 +4359,176 @@ model JobLog {
 
   @@index([jobId])
 }
+
+// ─── ENA_PRICING_ENGINE_V1 ───────────────────────────────────────────────────
+
+enum PricingMaterialUnit {
+  M2
+  CM2
+  PIECE
+  METER
+  KG
+  LITER
+}
+
+enum PricingProductType {
+  GLASS_PRINT
+  MDF_PRINT
+  CANVAS
+  CARPET
+  RUG
+  DOORMAT
+  CURTAIN
+  DTF
+  UV_PRINT
+  SUBLIMATION
+  TSHIRT
+  MUG
+  PUZZLE
+  PLEXI
+  WOOD
+  STICKER
+  POSTER
+  CUSTOM
+}
+
+enum PricingFormulaType {
+  AREA_BASED
+  PIECE_BASED
+  METER_BASED
+  FIXED
+  CUSTOM_FORMULA
+}
+
+enum PricingRoundingMode {
+  NONE
+  NEAREST_1
+  NEAREST_5
+  NEAREST_10
+  NEAREST_50
+  NEAREST_100
+}
+
+enum PricingRuleStatus {
+  DRAFT
+  ACTIVE
+  ARCHIVED
+}
+
+enum PricingAdjustmentType {
+  FIXED
+  PERCENT
+  MULTIPLIER
+}
+
+enum PricingOptionAdjustmentType {
+  FIXED
+  PERCENT
+  PER_M2
+  PER_METER
+  PER_PIECE
+}
+
+model PricingMaterial {
+  id           String              @id @default(cuid())
+  name         String
+  code         String              @unique
+  unit         PricingMaterialUnit
+  baseCost     Float               @default(0)
+  currency     String              @default("TRY")
+  metadataJson String              @default("{}")
+  isActive     Boolean             @default(true)
+  createdAt    DateTime            @default(now())
+  updatedAt    DateTime            @updatedAt
+
+  rules PricingRule[]
+
+  @@index([isActive])
+}
+
+model PricingRule {
+  id                    String               @id @default(cuid())
+  name                  String
+  code                  String               @unique
+  productType           PricingProductType
+  materialId            String?
+  material              PricingMaterial?     @relation(fields: [materialId], references: [id], onDelete: SetNull)
+  formulaType           PricingFormulaType
+  basePrice             Float                @default(0)
+  minPrice              Float                @default(0)
+  wastePercent          Float                @default(0)
+  laborCost             Float                @default(0)
+  printCost             Float                @default(0)
+  cuttingCost           Float                @default(0)
+  packagingCost         Float                @default(0)
+  shippingCost          Float                @default(0)
+  commissionPercent     Float                @default(0)
+  profitPercent         Float                @default(0)
+  dealerDiscountPercent Float                @default(0)
+  taxPercent            Float                @default(20)
+  roundingMode          PricingRoundingMode  @default(NONE)
+  formulaJson           String               @default("{}")
+  metadataJson          String               @default("{}")
+  version               Int                  @default(1)
+  status                PricingRuleStatus    @default(DRAFT)
+  createdAt             DateTime             @default(now())
+  updatedAt             DateTime             @updatedAt
+
+  variants PricingVariant[]
+  options  PricingOption[]
+  logs     PricingCalculationLog[]
+
+  @@index([status])
+  @@index([productType])
+  @@index([materialId])
+}
+
+model PricingVariant {
+  id              String                @id @default(cuid())
+  ruleId          String
+  rule            PricingRule           @relation(fields: [ruleId], references: [id], onDelete: Cascade)
+  name            String
+  code            String
+  adjustmentType  PricingAdjustmentType
+  adjustmentValue Float                 @default(0)
+  metadataJson    String                @default("{}")
+  isActive        Boolean               @default(true)
+  createdAt       DateTime              @default(now())
+  updatedAt       DateTime              @updatedAt
+
+  @@unique([ruleId, code])
+  @@index([ruleId])
+  @@index([isActive])
+}
+
+model PricingOption {
+  id              String                      @id @default(cuid())
+  ruleId          String
+  rule            PricingRule                 @relation(fields: [ruleId], references: [id], onDelete: Cascade)
+  name            String
+  code            String
+  adjustmentType  PricingOptionAdjustmentType
+  adjustmentValue Float                       @default(0)
+  metadataJson    String                      @default("{}")
+  isActive        Boolean                     @default(true)
+  createdAt       DateTime                    @default(now())
+  updatedAt       DateTime                    @updatedAt
+
+  @@unique([ruleId, code])
+  @@index([ruleId])
+  @@index([isActive])
+}
+
+model PricingCalculationLog {
+  id                String       @id @default(cuid())
+  ruleId            String?
+  rule              PricingRule? @relation(fields: [ruleId], references: [id], onDelete: SetNull)
+  inputJson         String       @default("{}")
+  resultJson        String       @default("{}")
+  sourceType        String?
+  sourceReferenceId String?
+  createdAt         DateTime     @default(now())
+
+  @@index([ruleId])
+  @@index([createdAt])
+}
