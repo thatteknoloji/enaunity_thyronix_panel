@@ -26,6 +26,7 @@ export async function GET(req: NextRequest) {
       success: true,
       data: {
         ...ctx,
+        bankTransferEnabled: resolved.bankTransferEnabled,
         cardMethods: resolved.methods.filter((m) => m === "ESNEKPOS" || m === "IYZICO"),
       },
     });

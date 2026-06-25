@@ -2,10 +2,11 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { CreditCard, Loader2, Wallet, Split } from "lucide-react";
+import { CreditCard, Landmark, Loader2, Wallet, Split } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 type PaymentMode = "BALANCE_ONLY" | "CARD_ONLY" | "SPLIT";
+type DealerPaymentSelection = PaymentMode | "BANK_TRANSFER";
 
 type CheckoutContext = {
   availableBalance: number;
@@ -16,13 +17,14 @@ type CheckoutContext = {
   split: { balancePortion: number; cardPortion: number };
   methods: PaymentMode[];
   shortfall: number;
+  bankTransferEnabled?: boolean;
   cardMethods?: string[];
 };
 
 type Props = {
   cartTotal: number;
   dealerId: string;
-  onConfirm: (payload: { paymentMode: PaymentMode; paymentMethod: string; installmentCount: number }) => void | Promise<void>;
+  onConfirm: (payload: { paymentMode?: PaymentMode; paymentMethod: string; installmentCount: number }) => void | Promise<void>;
   loading?: boolean;
   returnUrl?: string;
   confirmLabel?: string;
@@ -43,7 +45,7 @@ export function DealerCheckoutPaymentPanel({
   confirmLabel,
 }: Props) {
   const [ctx, setCtx] = useState<CheckoutContext | null>(null);
-  const [mode, setMode] = useState<PaymentMode>("CARD_ONLY");
+  const [mode, setMode] = useState<DealerPaymentSelection>("CARD_ONLY");
   const [installment, setInstallment] = useState(1);
   const [fetching, setFetching] = useState(true);
 
@@ -55,7 +57,15 @@ export function DealerCheckoutPaymentPanel({
       .then((d) => {
         if (d.success && d.data) {
           setCtx(d.data);
-          setMode(d.data.methods[0] || "CARD_ONLY");
+          const hasBalance = d.data.methods.includes("BALANCE_ONLY");
+          const hasCard = d.data.methods.includes("CARD_ONLY");
+          const hasSplit = d.data.methods.includes("SPLIT");
+          const hasBankTransfer = Boolean(d.data.bankTransferEnabled);
+          if (hasBalance) setMode("BALANCE_ONLY");
+          else if (hasSplit) setMode("SPLIT");
+          else if (hasCard) setMode("CARD_ONLY");
+          else if (hasBankTransfer) setMode("BANK_TRANSFER");
+          else setMode("CARD_ONLY");
         }
       })
       .finally(() => setFetching(false));
@@ -66,6 +76,16 @@ export function DealerCheckoutPaymentPanel({
   const cardMethod = useMemo(() => {
     const methods = ctx?.cardMethods || ["ESNEKPOS"];
     return methods.includes("ESNEKPOS") ? "ESNEKPOS" : methods[0] || "ESNEKPOS";
+  }, [ctx]);
+
+  const selections = useMemo(() => {
+    if (!ctx) return [] as DealerPaymentSelection[];
+    const next: DealerPaymentSelection[] = [];
+    if (ctx.methods.includes("BALANCE_ONLY")) next.push("BALANCE_ONLY");
+    if (ctx.methods.includes("SPLIT")) next.push("SPLIT");
+    if (ctx.methods.includes("CARD_ONLY")) next.push("CARD_ONLY");
+    if (ctx.bankTransferEnabled) next.push("BANK_TRANSFER");
+    return next;
   }, [ctx]);
 
   if (fetching) {
@@ -97,8 +117,9 @@ export function DealerCheckoutPaymentPanel({
       </div>
 
       <div className="space-y-2">
-        {(["BALANCE_ONLY", "SPLIT", "CARD_ONLY"] as PaymentMode[]).map((m) => {
-          const enabled = ctx.methods.includes(m);
+        {(["BALANCE_ONLY", "SPLIT", "CARD_ONLY", "BANK_TRANSFER"] as DealerPaymentSelection[]).map((m) => {
+          const enabled =
+            m === "BANK_TRANSFER" ? Boolean(ctx.bankTransferEnabled) : ctx.methods.includes(m as PaymentMode);
           return (
             <button
               key={m}
@@ -113,11 +134,15 @@ export function DealerCheckoutPaymentPanel({
                 <Wallet size={18} className="text-gray-600 mt-0.5" />
               ) : m === "SPLIT" ? (
                 <Split size={18} className="text-gray-600 mt-0.5" />
+              ) : m === "BANK_TRANSFER" ? (
+                <Landmark size={18} className="text-gray-600 mt-0.5" />
               ) : (
                 <CreditCard size={18} className="text-gray-600 mt-0.5" />
               )}
               <div>
-                <div className="text-sm font-medium text-gray-900">{MODE_LABELS[m]}</div>
+                <div className="text-sm font-medium text-gray-900">
+                  {m === "BANK_TRANSFER" ? "Havale / EFT ile öde" : MODE_LABELS[m as PaymentMode]}
+                </div>
                 {m === "BALANCE_ONLY" && !enabled && ctx.shortfall > 0 && (
                   <p className="text-xs text-amber-600 mt-0.5">
                     {ctx.shortfall.toLocaleString("tr-TR")} ₺ eksik —{" "}
@@ -134,6 +159,11 @@ export function DealerCheckoutPaymentPanel({
                 )}
                 {m === "CARD_ONLY" && (
                   <p className="text-xs text-gray-500 mt-0.5">Bakiye kullanılmaz</p>
+                )}
+                {m === "BANK_TRANSFER" && (
+                  <p className="text-xs text-gray-500 mt-0.5">
+                    Sipariş açılır, havale onayı ve dekont ile ilerler
+                  </p>
                 )}
               </div>
             </button>
@@ -154,8 +184,12 @@ export function DealerCheckoutPaymentPanel({
       <Button
         type="button"
         className="w-full"
-        disabled={loading || !ctx.methods.includes(mode)}
+        disabled={loading || !selections.includes(mode)}
         onClick={() => {
+          if (mode === "BANK_TRANSFER") {
+            void onConfirm({ paymentMethod: "BANK_TRANSFER", installmentCount: 1 });
+            return;
+          }
           const paymentMethod =
             mode === "BALANCE_ONLY" ? "DEALER_ACCOUNT" : mode === "SPLIT" ? "SPLIT" : cardMethod;
           void onConfirm({ paymentMode: mode, paymentMethod, installmentCount: installment });
@@ -167,7 +201,7 @@ export function DealerCheckoutPaymentPanel({
           </>
         ) : confirmLabel ? (
           confirmLabel
-        ) : mode === "BALANCE_ONLY" ? (
+        ) : mode === "BALANCE_ONLY" || mode === "BANK_TRANSFER" ? (
           "Siparişi Oluştur"
         ) : (
           "Ödemeye Devam Et"

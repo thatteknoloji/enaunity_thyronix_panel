@@ -373,7 +373,7 @@ export default function CheckoutPage() {
   };
 
   const handleDealerPayment = async (payload: {
-    paymentMode: "BALANCE_ONLY" | "CARD_ONLY" | "SPLIT";
+    paymentMode?: "BALANCE_ONLY" | "CARD_ONLY" | "SPLIT";
     paymentMethod: string;
     installmentCount: number;
   }) => {

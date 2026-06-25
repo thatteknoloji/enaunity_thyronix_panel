@@ -96,6 +96,7 @@ async function activateModuleLicense(dealerId: string, moduleKey: string, planKe
 export async function processModulePurchase(input: ModulePurchaseInput): Promise<ModulePurchaseResult> {
   const { dealerId, moduleKey, planKey, installmentCount = 1 } = input;
   const method = (input.paymentMethod || "BANK_TRANSFER") as ProductLibraryPaymentMethod | "DEALER_ACCOUNT" | "SPLIT";
+  const isManualBankTransfer = method === "BANK_TRANSFER" && !input.paymentMode;
 
   const canPurchase = await canDealerPurchaseModule(dealerId);
   if (!canPurchase) {
@@ -127,28 +128,32 @@ export async function processModulePurchase(input: ModulePurchaseInput): Promise
   if (!paymentMode) {
     if (method === "DEALER_ACCOUNT") paymentMode = "BALANCE_ONLY";
     else if (method === "SPLIT") paymentMode = "SPLIT";
-    else paymentMode = "CARD_ONLY";
+    else if (!isManualBankTransfer) paymentMode = "CARD_ONLY";
   }
 
-  const modeCheck = assertPaymentModeAllowed(checkoutCtx, paymentMode);
-  if (!modeCheck.ok) throw new Error(modeCheck.error || "Ödeme modu kullanılamaz");
+  if (paymentMode) {
+    const modeCheck = assertPaymentModeAllowed(checkoutCtx, paymentMode);
+    if (!modeCheck.ok) throw new Error(modeCheck.error || "Ödeme modu kullanılamaz");
+  }
 
-  const paymentMeta = buildOrderPaymentMetadata({
-    mode: paymentMode,
-    cartTotal: baseAmount,
-    balancePortion:
-      paymentMode === "BALANCE_ONLY"
-        ? baseAmount
-        : paymentMode === "SPLIT"
-          ? checkoutCtx.split.balancePortion
-          : 0,
-    cardPortion:
-      paymentMode === "CARD_ONLY"
-        ? baseAmount
-        : paymentMode === "SPLIT"
-          ? checkoutCtx.split.cardPortion
-          : 0,
-  });
+  const paymentMeta = paymentMode
+    ? buildOrderPaymentMetadata({
+        mode: paymentMode,
+        cartTotal: baseAmount,
+        balancePortion:
+          paymentMode === "BALANCE_ONLY"
+            ? baseAmount
+            : paymentMode === "SPLIT"
+              ? checkoutCtx.split.balancePortion
+              : 0,
+        cardPortion:
+          paymentMode === "CARD_ONLY"
+            ? baseAmount
+            : paymentMode === "SPLIT"
+              ? checkoutCtx.split.cardPortion
+              : 0,
+      })
+    : null;
 
   if (paymentMode === "BALANCE_ONLY") {
     const credit = await checkDealerCredit(dealerId, baseAmount);
@@ -196,6 +201,11 @@ export async function processModulePurchase(input: ModulePurchaseInput): Promise
   const cardMethod: ProductLibraryPaymentMethod =
     method === "IYZICO" ? "IYZICO" : method === "BANK_TRANSFER" ? "BANK_TRANSFER" : "ESNEKPOS";
 
+  if (method === "BANK_TRANSFER") {
+    const allowed = await assertPaymentMethodAllowed(dealerId, "BANK_TRANSFER");
+    if (!allowed.ok) throw new Error(allowed.error);
+  }
+
   if (paymentMode === "CARD_ONLY" || paymentMode === "SPLIT") {
     if (paymentMode === "SPLIT" && method === "BANK_TRANSFER") {
       throw new Error("Bölünmüş ödeme için kart sağlayıcısı gerekir");
@@ -229,8 +239,8 @@ export async function processModulePurchase(input: ModulePurchaseInput): Promise
         phone: dealer.phone || "5550000000",
       },
       installmentCount,
-      paymentMode,
-      paymentMeta,
+      ...(paymentMode ? { paymentMode } : {}),
+      ...(paymentMeta ? { paymentMeta } : {}),
     },
   });
 
@@ -262,6 +272,6 @@ export async function processModulePurchase(input: ModulePurchaseInput): Promise
     moduleKey,
     planKey,
     paymentMethod: paymentMode === "SPLIT" ? "SPLIT" : cardMethod,
-    paymentMode,
+    paymentMode: paymentMode || undefined,
   };
 }

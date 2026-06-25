@@ -56,7 +56,7 @@ function CheckoutContent() {
   }, [type, moduleKey, planKey, packageId, router]);
 
   const handleDealerModulePayment = async (payload: {
-    paymentMode: "BALANCE_ONLY" | "CARD_ONLY" | "SPLIT";
+    paymentMode?: "BALANCE_ONLY" | "CARD_ONLY" | "SPLIT";
     paymentMethod: string;
     installmentCount: number;
   }) => {
@@ -79,7 +79,7 @@ function CheckoutContent() {
           moduleKey: ctx.moduleKey,
           planKey: ctx.planKey,
           paymentMethod: payload.paymentMethod,
-          paymentMode: payload.paymentMode,
+          ...(payload.paymentMode ? { paymentMode: payload.paymentMode } : {}),
           installmentCount: payload.installmentCount,
         }),
       });
