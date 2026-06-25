@@ -317,3 +317,47 @@ Eger yeni oturum acilacaksa prompt'a su kisa cümle yeterli olur:
 
 `Repo kokundeki AI_HANDOFF_ENAUNITY_2026-06-25.md dosyasini oku, oradaki son THYRONIX ve Hazir Urun Deposu durumundan devam et, once mevcut degisiklikleri koruyup smoke test al sonra secilen faza gec.`
 
+---
+
+## 10. Dropship Storefront CMS — Eklenenler (25 Haziran)
+
+Bu bolum, THYRONIX ve Hazir Urun Deposu disinda ayni worktree icinde eklenen dropship storefront ozelliklerini anlatir.
+
+### Prisma Model Eklemeleri
+- `StoreMedia` — medya dosyasi (url, type, storeId)
+- `StoreBanner` — banner (imageUrl, title, subtitle, ctaText, ctaLink, sortOrder, isActive, storeId)
+- `DealerStore.sector` — sektor alani (String?)
+- `StoreCategory.imageUrl` — kategori gorseli (String?)
+
+### API Route'lari
+- `POST /api/dealer/dropship/media` — resim yukle (public/uploads/stores/{storeId}/)
+- `GET /api/dealer/dropship/media` — medya listele
+- `DELETE /api/dealer/dropship/media` — medya sil
+- `GET /api/dealer/dropship/banners` — banner listele (sortOrder sirali)
+- `POST /api/dealer/dropship/banners` — banner olustur
+- `PATCH /api/dealer/dropship/banners` — banner guncelle
+- `DELETE /api/dealer/dropship/banners` — banner sil
+- `PATCH /api/dealer/dropship/store` — sector alanini kabul ediyor
+- `PATCH /api/dealer/dropship/categories` — imageUrl alanini kabul ediyor
+- `GET /api/public/store?slug=X` — artik `banners[]` donuyor
+
+### Dealer Panel Bilesenleri
+- `MediaTab.tsx` — grid, upload, preview, copy URL, delete
+- `BannersTab.tsx` — ekle/guncelle, surukle-siralama, active toggle, delete, inline text
+
+### Storefront Tema Renk Duzeltmesi
+- `Header.tsx` — `text-white`, `border-white/10` yerine `c.textColor`, `c.textColor+"15"` kullanir
+- `Footer.tsx` — ayni sekilde tema renklerine baglandi
+- `Banner.tsx` — **multi-banner carousel** olarak yeniden yazildi (auto-play 5s, prev/next, dots; `banners[]` API'sinden; fallback `theme.banner`)
+- `CartDrawer` (page.tsx) — `bg-[#1a1a2e]` yerine `c.cardBg`
+- Checkout, urun detay, arama — tum `rgba(255,255,255,*)` -> `c.textColor + "15"`
+- Kategori filtre butonlari — `imageUrl` varsa thumbnail gosterir
+- Tum degisiklikler **TypeScript clean** (--skipLibCheck ile dogrulandi)
+- **`npm run build` time out** yiyor (makine kaynakli), tam build henuz dogrulanmadi
+
+### Bilinen Eksikler
+1. Sektore ozel temalar — user input bekliyor (ayakkabi, aksesuar, kadin giyim vb.)
+2. CMS page builder (StorePage model + blok editor) — henuz baslanmadi
+3. `npm run build` zaman asimi — smoke test ile gecilmesi gerekiyor
+4. Siparis takip sayfasinda `bg-[#1a1a2e]` hala hardcode (storefront degil, ayri sayfa)
+

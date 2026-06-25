@@ -48,6 +48,36 @@ type AnalysisProduct = {
   deliveryTime: string | null;
 };
 
+export type AnalysisWorkspaceConfig = {
+  apiPath: string;
+  badgeLabel: string;
+  title: string;
+  description: string;
+  countCardLabel: string;
+  productPickerLabel: string;
+  productPickerButton: string;
+  productPickerHelp: string;
+  productAnalysisPickerLabel: string;
+  productAnalysisPickerButton: string;
+  productAnalysisPickerHelp: string;
+  loadingSourceLabel: string;
+};
+
+const DEFAULT_CONFIG: AnalysisWorkspaceConfig = {
+  apiPath: "/api/thyronix/analysis",
+  badgeLabel: "THYRONIX Analiz Merkezi",
+  title: "Rakip, ürün ve kârlılık kararlarını tek merkezde topla",
+  description: "Bu fazda kârlılık motorunu çalışır şekilde açtım. Ürün analizi de hazır. Rakip analizi ise veri toplayıcı katmana bağlanacak şekilde hazırlanmış durumda.",
+  countCardLabel: "Hazır Ürün",
+  productPickerLabel: "THYRONIX ürününden doldur",
+  productPickerButton: "Ürünü forma işle",
+  productPickerHelp: "Son 40 ürün içinden maliyet, satış fiyatı ve içerik alanlarını tek tıkla bu motora taşı.",
+  productAnalysisPickerLabel: "THYRONIX ürün seç",
+  productAnalysisPickerButton: "Analize taşı",
+  productAnalysisPickerHelp: "Görsel sayısı, başlık ve açıklama uzunluğu en son THYRONIX ürün verisiyle otomatik dolabilir.",
+  loadingSourceLabel: "THYRONIX ürünleri",
+};
+
 const tabs = [
   { id: "profit", label: "Kârlılık", icon: CircleDollarSign },
   { id: "product", label: "Ürün Analizi", icon: PackageSearch },
@@ -99,7 +129,7 @@ function findBestCategoryMatch(
   return categories[0]?.value || "genel";
 }
 
-export default function ThyronixAnalysisPage() {
+export default function ThyronixAnalysisPage({ config = DEFAULT_CONFIG }: { config?: AnalysisWorkspaceConfig }) {
   const [tab, setTab] = useState<TabKey>("profit");
   const [loadingData, setLoadingData] = useState(true);
   const [dataError, setDataError] = useState<string | null>(null);
@@ -148,7 +178,7 @@ export default function ThyronixAnalysisPage() {
         setLoadingData(true);
         setDataError(null);
 
-        const response = await fetch("/api/thyronix/analysis", {
+        const response = await fetch(config.apiPath, {
           cache: "no-store",
         });
         const payload = await response.json().catch(() => null);
@@ -190,7 +220,7 @@ export default function ThyronixAnalysisPage() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [config.apiPath]);
 
   useEffect(() => {
     const nextMarketplace =

@@ -24,6 +24,7 @@ type ProductData = {
 type StoreCategoryData = {
   id: string; name: string; catalogCategory: string | null;
   slug: string; sortOrder: number; isActive: boolean;
+  imageUrl: string | null;
 };
 
 export default function StorefrontPage() {
@@ -84,7 +85,7 @@ export default function StorefrontPage() {
     }
     const cats = new Set(products.map((p) => p.category).filter(Boolean));
     return Array.from(cats).sort().map((name) => ({
-      id: name, name, catalogCategory: name, slug: name, sortOrder: 0, isActive: true,
+      id: name, name, catalogCategory: name, slug: name, sortOrder: 0, isActive: true, imageUrl: null,
     }));
   }, [storeCategories, products]);
 
@@ -304,21 +305,29 @@ export default function StorefrontPage() {
             >
               Tümü
             </button>
-            {categories.map((cat) => (
-              <button
-                key={cat.id}
-                onClick={() => setSelectedCategory(selectedCategory === cat.id ? "" : cat.id)}
-                style={{
-                  background: selectedCategory === cat.id ? c.primaryColor : "transparent",
-                  color: selectedCategory === cat.id ? "#fff" : c.textColor,
-                  borderColor: c.textColor + "20",
-                  borderRadius: buttonRadius,
-                }}
-                className="shrink-0 px-3 py-1.5 text-xs font-medium border whitespace-nowrap transition-all hover:opacity-80"
-              >
-                {cat.name}
-              </button>
-            ))}
+            {categories.map((cat) => {
+              const active = selectedCategory === cat.id;
+              const hasImage = !!cat.imageUrl;
+              return (
+                <button
+                  key={cat.id}
+                  onClick={() => setSelectedCategory(active ? "" : cat.id)}
+                  style={{
+                    background: active ? c.primaryColor : c.cardBg,
+                    color: active ? "#fff" : c.textColor,
+                    borderColor: active ? c.primaryColor : c.textColor + "15",
+                    borderRadius: buttonRadius,
+                  }}
+                  className={`shrink-0 flex items-center gap-2 px-2 py-1 text-xs font-medium border whitespace-nowrap transition-all hover:opacity-80 ${hasImage ? "pr-3" : "px-3 py-1.5"}`}
+                >
+                  {hasImage && (
+                    <img src={cat.imageUrl!} alt="" className="w-6 h-6 rounded-md object-cover"
+                      style={{ background: c.backgroundColor }} />
+                  )}
+                  {cat.name}
+                </button>
+              );
+            })}
           </div>
         )}
 
