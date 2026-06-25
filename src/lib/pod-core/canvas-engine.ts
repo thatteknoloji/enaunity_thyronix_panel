@@ -14,12 +14,23 @@ import {
   serializeCanvas,
 } from "./design-export-engine";
 import { PodHistoryEngine } from "./history-engine";
+import { printAreaBundleFromTemplate } from "./print-area-engine";
+import { getMockupTemplate } from "./mockup-template-registry";
+import {
+  clearCanvasClip,
+  clipToPrintableArea,
+  isSystemObject,
+  syncPrintOverlays,
+} from "./print-area-overlay";
 import { ensureObjectId } from "./selection-engine";
 import {
   POD_CORE_DEFAULTS,
+  type MockupTemplate,
   type PodCoreDocument,
   type PodCoreTool,
   type PodCoreViewport,
+  type PodOverlayVisibility,
+  type PodPrintAreaBundle,
 } from "./pod-types";
 
 export type PodCanvasEngineCallbacks = {
@@ -50,6 +61,15 @@ export class PodCanvasEngine {
   private panLast = { x: 0, y: 0 };
   private historyTimer: ReturnType<typeof setTimeout> | null = null;
   private mounted = false;
+  private mockupTemplate: MockupTemplate | null = null;
+  private printAreaBundle: PodPrintAreaBundle | null = null;
+  private overlayVisibility: PodOverlayVisibility = {
+    printable: true,
+    safe: true,
+    bleed: true,
+    grid: false,
+  };
+  private clipEnabled = false;
 
   constructor(options: PodCanvasEngineOptions = {}) {
     this.width = options.width ?? POD_CORE_DEFAULTS.width;
@@ -70,7 +90,11 @@ export class PodCanvasEngine {
     this.mounted = true;
     this.bindCanvasEvents();
     this.applyViewport();
-    const snap = canvasToHistorySnapshot(this.canvas, this.viewport);
+    if (this.mockupTemplate) {
+      this.refreshPrintOverlays();
+      if (this.clipEnabled) clipToPrintableArea(this.canvas, this.printAreaBundle);
+    }
+    const snap = canvasToHistorySnapshot(this.canvas, this.viewport, this.historyTemplateId());
     this.history.reset(snap);
     this.callbacks.onHistoryChange?.();
     this.callbacks.onChange?.();
@@ -86,6 +110,60 @@ export class PodCanvasEngine {
 
   getViewport(): PodCoreViewport {
     return { ...this.viewport };
+  }
+
+  getPrintAreaBundle(): PodPrintAreaBundle | null {
+    return this.printAreaBundle;
+  }
+
+  getMockupTemplate(): MockupTemplate | null {
+    return this.mockupTemplate;
+  }
+
+  getOverlayVisibility(): PodOverlayVisibility {
+    return { ...this.overlayVisibility };
+  }
+
+  setOverlayVisibility(patch: Partial<PodOverlayVisibility>): void {
+    this.overlayVisibility = { ...this.overlayVisibility, ...patch };
+    this.refreshPrintOverlays();
+    this.callbacks.onChange?.();
+  }
+
+  setClipEnabled(enabled: boolean): void {
+    this.clipEnabled = enabled;
+    if (enabled) {
+      clipToPrintableArea(this.canvas, this.printAreaBundle);
+    } else {
+      clearCanvasClip(this.canvas);
+    }
+    this.callbacks.onChange?.();
+  }
+
+  isClipEnabled(): boolean {
+    return this.clipEnabled;
+  }
+
+  setMockupTemplate(template: MockupTemplate | null): void {
+    this.mockupTemplate = template;
+    if (template) {
+      this.printAreaBundle = printAreaBundleFromTemplate(template, this.width, this.height);
+    } else {
+      this.printAreaBundle = null;
+    }
+    this.refreshPrintOverlays();
+    if (this.clipEnabled) {
+      clipToPrintableArea(this.canvas, this.printAreaBundle);
+    }
+    this.callbacks.onChange?.();
+  }
+
+  refreshPrintOverlays(): void {
+    syncPrintOverlays(this.canvas, this.printAreaBundle, this.overlayVisibility);
+  }
+
+  private historyTemplateId(): string | undefined {
+    return this.mockupTemplate?.id;
   }
 
   getActiveTool(): PodCoreTool {
@@ -106,6 +184,7 @@ export class PodCanvasEngine {
 
     c.on("object:added", (e) => {
       const obj = e.target;
+      if (obj && isSystemObject(obj)) return;
       if (obj) ensureObjectId(obj, this.nextObjectId(obj.type || "obj"));
       this.scheduleHistory("Nesne eklendi");
       this.callbacks.onChange?.();
@@ -181,7 +260,7 @@ export class PodCanvasEngine {
     if (!this.canvas || !this.mounted) return;
     if (this.historyTimer) clearTimeout(this.historyTimer);
     this.historyTimer = setTimeout(() => {
-      const snap = canvasToHistorySnapshot(this.canvas, this.viewport);
+      const snap = canvasToHistorySnapshot(this.canvas, this.viewport, this.historyTemplateId());
       this.history.push(snap, label);
       this.callbacks.onHistoryChange?.();
     }, delayMs);
@@ -307,7 +386,7 @@ export class PodCanvasEngine {
 
   async undo(): Promise<void> {
     if (!this.canvas || !this.history.canUndo) return;
-    const current = canvasToHistorySnapshot(this.canvas, this.viewport);
+    const current = canvasToHistorySnapshot(this.canvas, this.viewport, this.historyTemplateId());
     const prev = this.history.undo(current);
     if (!prev) return;
     await this.history.runRestore(async () => {
@@ -335,17 +414,22 @@ export class PodCanvasEngine {
   }
 
   serialize(): PodCoreDocument {
-    return serializeCanvas(this.canvas, this.viewport);
+    return serializeCanvas(this.canvas, this.viewport, this.historyTemplateId());
   }
 
   async loadDocument(doc: PodCoreDocument): Promise<void> {
     if (!this.canvas) return;
+    if (doc.templateId) {
+      const tpl = getMockupTemplate(doc.templateId);
+      if (tpl) this.setMockupTemplate(tpl);
+    }
     await this.history.runRestore(async () => {
       this.viewport = doc.viewport ?? { zoom: 1, panX: 0, panY: 0 };
       await restoreCanvasFromDocument(this.canvas, doc);
       this.applyViewport();
+      this.refreshPrintOverlays();
     });
-    const snap = canvasToHistorySnapshot(this.canvas, this.viewport);
+    const snap = canvasToHistorySnapshot(this.canvas, this.viewport, this.historyTemplateId());
     this.history.reset(snap);
     this.callbacks.onHistoryChange?.();
     this.callbacks.onChange?.();

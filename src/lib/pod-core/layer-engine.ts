@@ -1,10 +1,11 @@
 import type { Canvas, FabricObject } from "fabric";
 import { kindFromFabricType, type PodCoreLayerItem } from "./pod-types";
+import { isSystemObject } from "./print-area-overlay";
 import { ensureObjectId, getObjectId } from "./selection-engine";
 
 export function buildLayerList(canvas: Canvas | null): PodCoreLayerItem[] {
   if (!canvas) return [];
-  const objects = canvas.getObjects();
+  const objects = canvas.getObjects().filter((o) => !isSystemObject(o));
   return objects.map((obj, index) => {
     const id = ensureObjectId(obj, `layer-${index}-${obj.type || "obj"}`);
     const kind = kindFromFabricType(obj.type);
