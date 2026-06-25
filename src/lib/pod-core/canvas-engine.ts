@@ -417,7 +417,10 @@ export class PodCanvasEngine {
     return serializeCanvas(this.canvas, this.viewport, this.historyTemplateId());
   }
 
-  async loadDocument(doc: PodCoreDocument): Promise<void> {
+  async loadDocument(
+    doc: PodCoreDocument,
+    historyState?: import("./pod-types").PodCoreHistoryPersisted
+  ): Promise<void> {
     if (!this.canvas) return;
     if (doc.templateId) {
       const tpl = getMockupTemplate(doc.templateId);
@@ -429,8 +432,12 @@ export class PodCanvasEngine {
       this.applyViewport();
       this.refreshPrintOverlays();
     });
-    const snap = canvasToHistorySnapshot(this.canvas, this.viewport, this.historyTemplateId());
-    this.history.reset(snap);
+    if (historyState) {
+      this.history.importState(historyState);
+    } else {
+      const snap = canvasToHistorySnapshot(this.canvas, this.viewport, this.historyTemplateId());
+      this.history.reset(snap);
+    }
     this.callbacks.onHistoryChange?.();
     this.callbacks.onChange?.();
   }

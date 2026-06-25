@@ -21,6 +21,7 @@ import {
   POD_CORE_DEFAULTS,
   type MockupTemplate,
   type PodPricingSnapshot,
+  type PodPricingSnapshotPersisted,
 } from "@/lib/pod-core/pod-types";
 
 type PodCoreContextValue = {
@@ -43,6 +44,21 @@ type PodCoreContextValue = {
   pricingError: string | null;
   pricingUpdatedAt: number | null;
   recalculatePricing: () => Promise<void>;
+  projectId: string | null;
+  projectName: string;
+  setProjectName: (name: string) => void;
+  lastSavedAt: number | null;
+  lastLoadedAt: number | null;
+  exportCount: number;
+  setProjectMeta: (meta: {
+    projectId?: string | null;
+    projectName?: string;
+    lastSavedAt?: number | null;
+    lastLoadedAt?: number | null;
+    exportCount?: number;
+    pricingSnapshot?: PodPricingSnapshotPersisted | null;
+  }) => void;
+  restorePricingSnapshot: (snapshot: PodPricingSnapshotPersisted | null) => void;
 };
 
 const PodCoreContext = createContext<PodCoreContextValue | null>(null);
@@ -64,6 +80,12 @@ export function PodCoreProvider({ children }: { children: ReactNode }) {
   const [pricingError, setPricingError] = useState<string | null>(null);
   const [pricingUpdatedAt, setPricingUpdatedAt] = useState<number | null>(null);
   const pricingSeq = useRef(0);
+  const [projectId, setProjectId] = useState<string | null>(null);
+  const [projectName, setProjectNameState] = useState("Yeni Proje");
+  const [lastSavedAt, setLastSavedAt] = useState<number | null>(null);
+  const [lastLoadedAt, setLastLoadedAt] = useState<number | null>(null);
+  const [exportCount, setExportCount] = useState(0);
+  const skipPricingEffect = useRef(false);
 
   const refresh = useCallback(() => setTick((n) => n + 1), []);
 
@@ -109,6 +131,70 @@ export function PodCoreProvider({ children }: { children: ReactNode }) {
     }
   }, [widthCm, heightCm, quantity, customerType]);
 
+  const setProjectName = useCallback((name: string) => setProjectNameState(name), []);
+
+  const setProjectMeta = useCallback(
+    (meta: {
+      projectId?: string | null;
+      projectName?: string;
+      lastSavedAt?: number | null;
+      lastLoadedAt?: number | null;
+      exportCount?: number;
+      pricingSnapshot?: PodPricingSnapshotPersisted | null;
+    }) => {
+      if (meta.projectId !== undefined) setProjectId(meta.projectId);
+      if (meta.projectName !== undefined) setProjectNameState(meta.projectName);
+      if (meta.lastSavedAt !== undefined) setLastSavedAt(meta.lastSavedAt);
+      if (meta.lastLoadedAt !== undefined) setLastLoadedAt(meta.lastLoadedAt);
+      if (meta.exportCount !== undefined) setExportCount(meta.exportCount);
+      if (meta.pricingSnapshot !== undefined && meta.pricingSnapshot) {
+        skipPricingEffect.current = true;
+        setPricing({
+          areaM2: meta.pricingSnapshot.areaM2,
+          ruleCode: meta.pricingSnapshot.pricingRule,
+          retailPrice: meta.pricingSnapshot.retailPrice,
+          dealerPrice: meta.pricingSnapshot.dealerPrice,
+          finalPrice: meta.pricingSnapshot.finalPrice,
+          materialCost: 0,
+          laborCost: 0,
+          printCost: 0,
+          wasteCost: 0,
+          commissionAmount: 0,
+          taxAmount: 0,
+          currency: meta.pricingSnapshot.currency,
+          breakdown: [],
+          calculationTimeMs: 0,
+        });
+        setPricingUpdatedAt(meta.pricingSnapshot.timestamp);
+        setPricingError(null);
+      }
+    },
+    []
+  );
+
+  const restorePricingSnapshot = useCallback((snapshot: PodPricingSnapshotPersisted | null) => {
+    if (!snapshot) return;
+    skipPricingEffect.current = true;
+    setPricing({
+      areaM2: snapshot.areaM2,
+      ruleCode: snapshot.pricingRule,
+      retailPrice: snapshot.retailPrice,
+      dealerPrice: snapshot.dealerPrice,
+      finalPrice: snapshot.finalPrice,
+      materialCost: 0,
+      laborCost: 0,
+      printCost: 0,
+      wasteCost: 0,
+      commissionAmount: 0,
+      taxAmount: 0,
+      currency: snapshot.currency,
+      breakdown: [],
+      calculationTimeMs: 0,
+    });
+    setPricingUpdatedAt(snapshot.timestamp);
+    setPricingError(null);
+  }, []);
+
   const setMockupTemplate = useCallback(
     (t: MockupTemplate) => {
       templateRef.current = t;
@@ -123,6 +209,10 @@ export function PodCoreProvider({ children }: { children: ReactNode }) {
   );
 
   useEffect(() => {
+    if (skipPricingEffect.current) {
+      skipPricingEffect.current = false;
+      return;
+    }
     const t = setTimeout(() => {
       void recalculatePricing();
     }, PRICING_DEBOUNCE_MS);
@@ -150,6 +240,14 @@ export function PodCoreProvider({ children }: { children: ReactNode }) {
       pricingError,
       pricingUpdatedAt,
       recalculatePricing,
+      projectId,
+      projectName,
+      setProjectName,
+      lastSavedAt,
+      lastLoadedAt,
+      exportCount,
+      setProjectMeta,
+      restorePricingSnapshot,
     }),
     [
       tick,
@@ -166,6 +264,14 @@ export function PodCoreProvider({ children }: { children: ReactNode }) {
       pricingError,
       pricingUpdatedAt,
       recalculatePricing,
+      projectId,
+      projectName,
+      setProjectName,
+      lastSavedAt,
+      lastLoadedAt,
+      exportCount,
+      setProjectMeta,
+      restorePricingSnapshot,
     ]
   );
 

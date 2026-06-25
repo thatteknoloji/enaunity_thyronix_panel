@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/db";
 import { requirePodCreatorApiAccess } from "@/lib/pod/api-guard";
 import { getPodDealerFilter, assertPodResourceOwner } from "@/lib/pod/tenant-access";
 import {
@@ -8,6 +7,84 @@ import {
   overlayFromTemplate,
   serializePlacement,
 } from "@/lib/pod/pod-design-engine";
+import { prisma } from "@/lib/db";
+import { POD_CORE_SOURCE } from "@/lib/pod-core/pod-types";
+import {
+  duplicatePodCoreProject,
+  listPodCoreProjects,
+  loadPodCoreProject,
+  savePodCoreProject,
+} from "@/lib/pod-core/project-store";
+import type { PodCoreProjectRecord } from "@/lib/pod-core/pod-types";
+
+async function handlePodCoreGet(userId: string) {
+  const items = await listPodCoreProjects(userId);
+  return NextResponse.json({
+    success: true,
+    data: {
+      items: items.map((p) => ({
+        projectId: p.projectId,
+        projectName: p.projectName,
+        templateId: p.templateId,
+        templateName: p.mockupTemplate.name,
+        updatedAt: p.updatedAt,
+        pricingSnapshot: p.pricingSnapshot,
+      })),
+      total: items.length,
+      source: POD_CORE_SOURCE,
+    },
+  });
+}
+
+async function handlePodCorePost(userId: string, body: Record<string, unknown>) {
+  const action = String(body.action || "save");
+
+  if (action === "load") {
+    const projectId = String(body.projectId || "");
+    if (!projectId) {
+      return NextResponse.json({ success: false, error: "projectId gerekli" }, { status: 400 });
+    }
+    const record = await loadPodCoreProject(userId, projectId);
+    if (!record) {
+      return NextResponse.json({ success: false, error: "Proje bulunamadı" }, { status: 404 });
+    }
+    return NextResponse.json({ success: true, data: record });
+  }
+
+  if (action === "duplicate") {
+    const projectId = String(body.projectId || "");
+    if (!projectId) {
+      return NextResponse.json({ success: false, error: "projectId gerekli" }, { status: 400 });
+    }
+    const projectName = body.projectName ? String(body.projectName) : undefined;
+    const copy = await duplicatePodCoreProject(userId, projectId, projectName);
+    if (!copy) {
+      return NextResponse.json({ success: false, error: "Proje kopyalanamadı" }, { status: 404 });
+    }
+    return NextResponse.json({ success: true, data: copy });
+  }
+
+  if (action === "save") {
+    const document = body.document as PodCoreProjectRecord | undefined;
+    if (!document?.design?.fabricJson) {
+      return NextResponse.json({ success: false, error: "Geçersiz proje belgesi" }, { status: 400 });
+    }
+    const existing = document.projectId
+      ? await loadPodCoreProject(userId, document.projectId)
+      : null;
+    const record: PodCoreProjectRecord = {
+      ...document,
+      ownerUserId: userId,
+      createdAt: existing?.createdAt ?? document.createdAt,
+      exportCount: existing?.exportCount ?? document.exportCount ?? 0,
+      updatedAt: new Date().toISOString(),
+    };
+    const saved = await savePodCoreProject(record);
+    return NextResponse.json({ success: true, data: saved });
+  }
+
+  return NextResponse.json({ success: false, error: "Geçersiz pod_core action" }, { status: 400 });
+}
 
 export async function GET(req: Request) {
   try {
@@ -15,6 +92,10 @@ export async function GET(req: Request) {
     if (error) return error;
 
     const { searchParams } = new URL(req.url);
+    if (searchParams.get("source") === POD_CORE_SOURCE) {
+      return handlePodCoreGet(user!.id);
+    }
+
     const page = parseInt(searchParams.get("page") || "1", 10) || 1;
     const limit = Math.min(50, parseInt(searchParams.get("limit") || "20", 10) || 20);
     const status = searchParams.get("status") || undefined;
@@ -51,11 +132,16 @@ export async function POST(req: Request) {
     const { error, user } = await requirePodCreatorApiAccess();
     if (error) return error;
 
+    const body = await req.json();
+
+    if (body.source === POD_CORE_SOURCE) {
+      return handlePodCorePost(user!.id, body);
+    }
+
     if (!user!.dealerId) {
       return NextResponse.json({ success: false, error: "Bayi hesabı gerekli" }, { status: 400 });
     }
 
-    const body = await req.json();
     const designId = String(body.designId || "");
     const templateId = String(body.templateId || "");
     const projectId = body.projectId ? String(body.projectId) : undefined;

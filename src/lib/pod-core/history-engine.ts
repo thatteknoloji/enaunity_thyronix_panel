@@ -80,4 +80,20 @@ export class PodHistoryEngine {
     this.redoStack = [];
     this.entries = [{ id: "h-init", label: "Başlangıç", timestamp: Date.now() }];
   }
+
+  exportState(): { undoStack: string[]; redoStack: string[]; entries: PodCoreHistoryEntry[] } {
+    return {
+      undoStack: [...this.undoStack],
+      redoStack: [...this.redoStack],
+      entries: [...this.entries],
+    };
+  }
+
+  importState(state: { undoStack: string[]; redoStack: string[]; entries: PodCoreHistoryEntry[] }): void {
+    this.undoStack = state.undoStack.length ? [...state.undoStack] : [];
+    this.redoStack = [...state.redoStack];
+    this.entries = state.entries.length
+      ? [...state.entries]
+      : [{ id: "h-init", label: "Başlangıç", timestamp: Date.now() }];
+  }
 }

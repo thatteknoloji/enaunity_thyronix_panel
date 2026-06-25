@@ -9,16 +9,18 @@ import { PodHistoryPanel } from "@/components/pod-core/PodHistoryPanel";
 import { PodLayerPanel } from "@/components/pod-core/PodLayerPanel";
 import { PodMockupPreview } from "@/components/pod-core/PodMockupPreview";
 import { PodPricingPanel } from "@/components/pod-core/PodPricingPanel";
+import { PodProjectPanel } from "@/components/pod-core/PodProjectPanel";
 import { PodPrintAreaPanel } from "@/components/pod-core/PodPrintAreaPanel";
 import { PodToolbar } from "@/components/pod-core/PodToolbar";
 import { PodUploadPanel } from "@/components/pod-core/PodUploadPanel";
 import { PodVariantSelector } from "@/components/pod-core/PodVariantSelector";
 import { POD_CORE_VERSION } from "@/lib/pod-core/pod-types";
 
-type DevTab = "canvas" | "print-area" | "mockup" | "export" | "pricing" | "debug";
+type DevTab = "canvas" | "print-area" | "mockup" | "export" | "pricing" | "projects" | "debug";
 
 const TABS: { id: DevTab; label: string }[] = [
   { id: "canvas", label: "Canvas" },
+  { id: "projects", label: "Projects" },
   { id: "pricing", label: "Pricing" },
   { id: "print-area", label: "Print Area" },
   { id: "mockup", label: "Mockup" },
@@ -73,6 +75,23 @@ export function PodCoreDevShell() {
               <PodVariantSelector />
               <PodPricingPanel />
               <PodLayerPanel />
+            </aside>
+          </div>
+        )}
+
+        {tab === "projects" && (
+          <div className="grid grid-cols-1 xl:grid-cols-[280px_1fr_280px] gap-4">
+            <aside className="rounded-xl border border-ena-border bg-white/5 p-4">
+              <PodProjectPanel />
+            </aside>
+            <main className="min-w-0">
+              <PodDesignerCanvas />
+            </main>
+            <aside className="space-y-5 rounded-xl border border-ena-border bg-white/5 p-4">
+              <PodVariantSelector />
+              <PodPricingPanel />
+              <PodLayerPanel />
+              <PodHistoryPanel />
             </aside>
           </div>
         )}

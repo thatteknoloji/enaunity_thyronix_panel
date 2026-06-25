@@ -3,7 +3,7 @@
 import { useMemo } from "react";
 import { buildLayerList } from "@/lib/pod-core/layer-engine";
 import { documentToJsonString } from "@/lib/pod-core/design-export-engine";
-import { POD_CORE_VERSION } from "@/lib/pod-core/pod-types";
+import { POD_CORE_VERSION, PROJECT_SERIALIZER_VERSION } from "@/lib/pod-core/pod-types";
 import { usePodCore } from "./pod-core-context";
 
 export function PodDebugPanel() {
@@ -16,6 +16,10 @@ export function PodDebugPanel() {
     pricingError,
     widthCm,
     heightCm,
+    projectId,
+    lastSavedAt,
+    lastLoadedAt,
+    exportCount,
   } = usePodCore();
 
   const debug = useMemo(() => {
@@ -49,12 +53,22 @@ export function PodDebugPanel() {
       calculationTime: pricing?.calculationTimeMs != null ? `${pricing.calculationTimeMs}ms` : "—",
       pricingError: pricingError ?? "—",
       dimensions: `${widthCm}×${heightCm} cm`,
+      projectId: projectId ?? "—",
+      exportCount: String(exportCount),
+      lastSave: lastSavedAt ? new Date(lastSavedAt).toLocaleString("tr-TR") : "—",
+      lastLoad: lastLoadedAt ? new Date(lastLoadedAt).toLocaleString("tr-TR") : "—",
+      serializerVersion: PROJECT_SERIALIZER_VERSION,
     };
-  }, [engine, tick, selectedObjectIds, mockupTemplate.id, mockupTemplate.pricingRuleCode, pricing, pricingError, widthCm, heightCm]);
+  }, [engine, tick, selectedObjectIds, mockupTemplate.id, mockupTemplate.pricingRuleCode, pricing, pricingError, widthCm, heightCm, projectId, lastSavedAt, lastLoadedAt, exportCount]);
 
   return (
     <div className="space-y-3 text-xs font-mono" key={tick}>
       <Row k="version" v={debug.version} />
+      <Row k="serializer" v={debug.serializerVersion} />
+      <Row k="projectId" v={debug.projectId} />
+      <Row k="exportCount" v={debug.exportCount} />
+      <Row k="lastSave" v={debug.lastSave} />
+      <Row k="lastLoad" v={debug.lastLoad} />
       <Row k="template" v={debug.templateId} />
       <Row k="pricingRule" v={debug.pricingRule} />
       <Row k="dimensions" v={debug.dimensions} />
