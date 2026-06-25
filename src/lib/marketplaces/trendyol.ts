@@ -1,6 +1,5 @@
 import { prisma } from "@/lib/db";
-
-const TRENDYOL_BASE = "https://api.trendyol.com/sapigw/suppliers";
+import { readJsonResponse } from "./http";
 
 function basicAuth(apiKey: string, apiSecret: string): string {
   return Buffer.from(`${apiKey}:${apiSecret}`).toString("base64");
@@ -12,8 +11,8 @@ interface TrendyolConnection {
   apiSecret: string;
 }
 
-async function fetchTrendyol<T>(conn: TrendyolConnection, path: string, options?: RequestInit): Promise<T> {
-  const res = await fetch(`${TRENDYOL_BASE}/${conn.sellerId}${path}`, {
+async function fetchTrendyol<T>(url: string, conn: TrendyolConnection, options?: RequestInit): Promise<T> {
+  const res = await fetch(url, {
     ...options,
     headers: {
       Authorization: `Basic ${basicAuth(conn.apiKey, conn.apiSecret)}`,
@@ -22,11 +21,7 @@ async function fetchTrendyol<T>(conn: TrendyolConnection, path: string, options?
       ...options?.headers,
     },
   });
-  if (!res.ok) {
-    const text = await res.text();
-    throw new Error(`Trendyol API ${res.status}: ${text.substring(0, 200)}`);
-  }
-  return res.json();
+  return readJsonResponse<T>(res, "Trendyol API");
 }
 
 export interface TrendyolPackage {
@@ -116,8 +111,8 @@ export const trendyol = {
     if (params.createdDateEnd) query.set("createdDateEnd", params.createdDateEnd.toString());
 
     return fetchTrendyol<TrendyolProductsResponse>(
-      conn,
-      `/products?${query.toString()}`
+      `https://apigw.trendyol.com/integration/product/sellers/${conn.sellerId}/products?${query.toString()}`,
+      conn
     );
   },
 
@@ -137,8 +132,8 @@ export const trendyol = {
     query.set("orderByDirection", "DESC");
 
     return fetchTrendyol<TrendyolPackagesResponse>(
-      conn,
-      `/orders?${query.toString()}`
+      `https://apigw.trendyol.com/integration/order/sellers/${conn.sellerId}/orders?${query.toString()}`,
+      conn
     );
   },
 
@@ -177,8 +172,8 @@ export const trendyol = {
     };
 
     return fetchTrendyol(
+      `https://apigw.trendyol.com/integration/order/sellers/${conn.sellerId}/shipment-packages/${packageId}`,
       conn,
-      `/shipment-packages/${packageId}`,
       { method: "PUT", body: JSON.stringify(body) }
     );
   },
@@ -190,8 +185,8 @@ export const trendyol = {
     }];
 
     return fetchTrendyol(
+      `https://apigw.trendyol.com/integration/sellers/${conn.sellerId}/invoices/link/${packageId}`,
       conn,
-      `/suppliers/${conn.sellerId}/invoices/link/${packageId}`,
       { method: "POST", body: JSON.stringify(body) }
     );
   },

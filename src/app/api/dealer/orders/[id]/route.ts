@@ -17,6 +17,9 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
       include: {
         items: { include: { product: true, productCatalogItem: true } },
         statusHistory: { orderBy: { createdAt: "asc" } },
+        attachments: true,
+        payments: { orderBy: { createdAt: "asc" } },
+        invoices: { orderBy: { createdAt: "desc" } },
       },
     });
     if (!order) {

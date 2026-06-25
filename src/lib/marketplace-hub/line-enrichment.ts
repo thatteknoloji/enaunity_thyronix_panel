@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/db";
 import { trendyol } from "@/lib/marketplaces/trendyol";
+import { readJsonResponse } from "@/lib/marketplaces/http";
 import {
   isUsableImageUrl,
   marketplaceImagePlaceholder,
@@ -49,7 +50,10 @@ async function fetchTrendyolProductImage(tyConn: TyConn, code: string): Promise<
       },
     });
     if (!res.ok) return "";
-    const json = (await res.json()) as { content?: Array<{ images?: Array<{ url?: string }> }> };
+    const json = await readJsonResponse<{ content?: Array<{ images?: Array<{ url?: string }> }> }>(
+      res,
+      "Trendyol product image lookup"
+    );
     return normalizeImageUrl(json.content?.[0]?.images?.[0]?.url);
   } catch {
     return "";

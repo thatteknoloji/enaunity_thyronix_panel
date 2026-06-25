@@ -1,4 +1,5 @@
 import type { TrendyolPackage } from "@/lib/marketplaces/trendyol";
+import { readJsonResponse } from "@/lib/marketplaces/http";
 import type { TrendyolConnectionCredentials } from "./providers/trendyol-provider";
 
 const INTEGRATION_ORDER_BASE = "https://apigw.trendyol.com/integration/order/sellers";
@@ -116,7 +117,7 @@ export async function fetchTrendyolIntegrationPackages(
       throw new Error(`Trendyol integration orders ${res.status}: ${text.slice(0, 200)}`);
     }
 
-    const json = (await res.json()) as IntegrationOrdersResponse;
+    const json = await readJsonResponse<IntegrationOrdersResponse>(res, "Trendyol integration orders");
     const batch = (json.content || []).map(mapPackage).filter((p) => p.orderNumber);
     all.push(...batch);
     hasMore = page < (json.totalPages || 1) - 1;
@@ -138,7 +139,7 @@ export async function fetchTrendyolOrderByNumber(
   const url = `${INTEGRATION_ORDER_BASE}/${credentials.sellerId}/orders?${query}`;
   const res = await fetch(url, { headers: authHeaders(credentials) });
   if (!res.ok) return null;
-  const json = (await res.json()) as IntegrationOrdersResponse;
+  const json = await readJsonResponse<IntegrationOrdersResponse>(res, "Trendyol order lookup");
   const pkg = json.content?.[0];
   return pkg ? mapPackage(pkg) : null;
 }

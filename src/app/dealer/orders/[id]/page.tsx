@@ -1,16 +1,30 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { formatPrice, formatDate } from "@/lib/utils";
-import { ChevronLeft, Package, FileText, XCircle, CheckCircle, Clock, Truck, Ban, PencilLine } from "lucide-react";
 import toast from "react-hot-toast";
 import { useCartStore } from "@/lib/cart-store";
+import { formatDate, formatPrice } from "@/lib/utils";
 import { getOrderPaymentInfo } from "@/lib/orders/payment-metadata";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  AlertTriangle,
+  ArrowLeft,
+  Building2,
+  Copy,
+  Download,
+  ExternalLink,
+  FileText,
+  Paperclip,
+  PencilLine,
+  Package,
+  Truck,
+  Wallet,
+  XCircle,
+} from "lucide-react";
 
 const statusVariant: Record<string, "default" | "success" | "warning" | "danger"> = {
   pending_approval: "warning",
@@ -19,6 +33,7 @@ const statusVariant: Record<string, "default" | "success" | "warning" | "danger"
   delivered: "success",
   cancelled: "danger",
 };
+
 const statusText: Record<string, string> = {
   pending_approval: "Onay Bekliyor",
   approved: "Onaylandı",
@@ -28,18 +43,94 @@ const statusText: Record<string, string> = {
   cancelled: "İptal Edildi",
 };
 
+type OrderAttachment = { id: string; fileName: string; fileUrl: string; fileType: string };
+type OrderPayment = { id: string; amount: number; type: string; status: string; note: string; createdAt: string };
+type OrderInvoice = { id: string; number: string; status: string; paymentStatus: string; total: number; pdfUrl: string; createdAt: string };
+
+type OrderDetail = {
+  id: string;
+  orderNumber?: string;
+  sourceType?: string;
+  marketplace?: string;
+  trackingNumber?: string;
+  carrier?: string;
+  status: string;
+  total: number;
+  discount: number;
+  address: string;
+  notes: string;
+  metadataJson?: string | null;
+  paymentDeadlineAt?: string | null;
+  hasBackorder?: boolean;
+  createdAt: string;
+  updatedAt: string;
+  items: Array<{
+    id: string;
+    quantity: number;
+    price: number;
+    product?: { name?: string | null; image?: string | null } | null;
+    productCatalogItem?: { name?: string | null; imagesJson?: string | null } | null;
+  }>;
+  statusHistory?: Array<{ id: string; status: string; note: string; changedBy: string; createdAt: string }>;
+  attachments?: OrderAttachment[];
+  payments?: OrderPayment[];
+  invoices?: OrderInvoice[];
+  warehouseStatus?: {
+    reserved: boolean;
+    hasWarnings: boolean;
+    warnings: string[];
+    items: Array<{
+      orderItemId: string;
+      productId: string | null;
+      productName?: string;
+      quantity: number;
+      reserved: boolean;
+      availableStock?: number;
+      insufficient: boolean;
+      unmatched: boolean;
+      warning?: string;
+    }>;
+  } | null;
+};
+
+function parseMetadata(value?: string | null) {
+  if (!value) return {};
+  try {
+    const parsed = JSON.parse(value);
+    return parsed && typeof parsed === "object" ? (parsed as Record<string, unknown>) : {};
+  } catch {
+    return {};
+  }
+}
+
+function getFileKind(fileType?: string, fileName?: string) {
+  const name = (fileName || "").toLowerCase();
+  const type = (fileType || "").toLowerCase();
+  if (type.includes("image") || /\.(png|jpe?g|webp|gif|bmp|svg)$/i.test(name)) return "image";
+  return "pdf";
+}
+
+function MetaRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex items-start justify-between gap-4">
+      <span className="text-xs font-semibold uppercase tracking-wider text-ena-light/50">{label}</span>
+      <span className="text-right text-ena-text break-words">{value}</span>
+    </div>
+  );
+}
+
 export default function DealerOrderDetailPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
   const addItem = useCartStore((s) => s.addItem);
-  const [order, setOrder] = useState<any>(null);
+  const [order, setOrder] = useState<OrderDetail | null>(null);
   const [loading, setLoading] = useState(true);
-  const [showInvoice, setShowInvoice] = useState(false);
   const [draftAddress, setDraftAddress] = useState("");
   const [draftNotes, setDraftNotes] = useState("");
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
+    if (!id) return;
     fetch(`/api/dealer/orders/${id}`)
       .then((r) => r.json())
       .then((d) => {
@@ -54,6 +145,8 @@ export default function DealerOrderDetailPage() {
 
   const paymentInfo = order ? getOrderPaymentInfo(order) : { method: "", label: "", locked: false };
   const canEditOrder = !!order && ["pending", "pending_approval", "waiting_payment"].includes(order.status);
+  const metadata = useMemo(() => parseMetadata(order?.metadataJson), [order?.metadataJson]);
+  const invoice = order?.invoices?.[0] || null;
 
   const handleSave = async () => {
     if (!canEditOrder) return;
@@ -66,7 +159,7 @@ export default function DealerOrderDetailPage() {
     const d = await res.json();
     if (d.success) {
       toast.success("Sipariş güncellendi");
-      setOrder((prev: any) => ({ ...prev, address: draftAddress, notes: draftNotes }));
+      setOrder((prev) => (prev ? { ...prev, address: draftAddress, notes: draftNotes } : prev));
     } else {
       toast.error(d.error || "Güncelleme başarısız");
     }
@@ -74,7 +167,7 @@ export default function DealerOrderDetailPage() {
   };
 
   const handleCancel = async () => {
-    if (!confirm("Sipariş iptal edilsin mi?")) return;
+    if (!order || !confirm("Sipariş iptal edilsin mi?")) return;
     const res = await fetch(`/api/dealer/orders/${id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
@@ -83,19 +176,24 @@ export default function DealerOrderDetailPage() {
     const d = await res.json();
     if (d.success) {
       toast.success("Sipariş iptal edildi");
-      setOrder((prev: any) => ({ ...prev, status: "cancelled" }));
+      setOrder((prev) => (prev ? { ...prev, status: "cancelled" } : prev));
     } else {
       toast.error(d.error || "İptal başarısız");
     }
   };
 
   const handleReorder = async () => {
+    if (!order) return;
     let success = 0;
     for (const item of order.items) {
+      const productId = (item as { productId?: string }).productId;
+      if (!productId) continue;
       try {
-        await addItem(item.productId, item.quantity);
+        await addItem(productId, item.quantity);
         success++;
-      } catch { /* skip */ }
+      } catch {
+        /* ignore */
+      }
     }
     if (success > 0) {
       toast.success(`${success} ürün sepete eklendi`);
@@ -103,7 +201,14 @@ export default function DealerOrderDetailPage() {
     }
   };
 
+  const copyOrderId = async () => {
+    if (!order) return;
+    await navigator.clipboard.writeText(order.id);
+    toast.success("Sipariş no kopyalandı");
+  };
+
   const generatePdf = async () => {
+    if (!order) return;
     const { default: jsPDF } = await import("jspdf");
     const doc = new jsPDF();
     const pageWidth = doc.internal.pageSize.getWidth();
@@ -138,12 +243,15 @@ export default function DealerOrderDetailPage() {
     doc.setFont("helvetica", "normal");
 
     for (const item of order.items) {
-      doc.text(item.product.name.substring(0, 40), 20, y);
+      doc.text((item.product?.name || item.productCatalogItem?.name || "Ürün").substring(0, 40), 20, y);
       doc.text(String(item.quantity), 120, y);
       doc.text(formatPrice(item.price), 140, y);
       doc.text(formatPrice(item.price * item.quantity), pageWidth - 20, y, { align: "right" });
       y += 6;
-      if (y > 270) { doc.addPage(); y = 20; }
+      if (y > 270) {
+        doc.addPage();
+        y = 20;
+      }
     }
 
     y += 2;
@@ -160,20 +268,28 @@ export default function DealerOrderDetailPage() {
     doc.save(`INV-${order.id.slice(0, 8).toUpperCase()}.pdf`);
   };
 
-  if (loading) return <div className="animate-pulse space-y-4"><div className="h-8 w-48 rounded bg-ena-card/50" /><div className="h-64 rounded bg-ena-card/50" /></div>;
-  if (!order) return <p className="text-ena-light/50">Sipariş bulunamadı.</p>;
+  if (loading) {
+    return <div className="animate-pulse space-y-4"><div className="h-8 w-48 rounded bg-ena-card/50" /><div className="h-64 rounded bg-ena-card/50" /></div>;
+  }
+
+  if (!order) {
+    return <p className="text-ena-light/50">Sipariş bulunamadı.</p>;
+  }
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-3">
         <div>
           <Link href="/dealer/orders" className="inline-flex items-center gap-1 text-sm text-ena-light/50 hover:text-ena-text mb-2">
-            <ChevronLeft size={16} /> Siparişlerime Dön
+            <ArrowLeft size={16} /> Siparişlerime Dön
           </Link>
           <h1 className="text-2xl font-bold text-ena-text">Sipariş Detayı</h1>
           <p className="text-sm text-ena-light/50 mt-1">#{order.id.slice(0, 8).toUpperCase()}</p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <Button variant="outline" onClick={copyOrderId} className="gap-2 border-ena-border text-ena-light">
+            <Copy size={16} /> Kopyala
+          </Button>
           {canEditOrder && (
             <Button variant="outline" onClick={handleCancel} className="gap-2 text-ena-primary border-red-200 hover:bg-ena-primary/5">
               <XCircle size={16} /> İptal Et
@@ -200,6 +316,9 @@ export default function DealerOrderDetailPage() {
         <div className="rounded-xl border border-ena-border bg-ena-card/30 p-5 shadow-sm">
           <p className="text-xs font-semibold uppercase text-ena-light/50 mb-1">Toplam</p>
           <p className="text-xl font-bold text-ena-text">{formatPrice(order.total)}</p>
+          {order.discount > 0 && (
+            <p className="mt-2 text-xs text-emerald-500">İndirim: -{formatPrice(order.discount)}</p>
+          )}
           {paymentInfo.method && (
             <p className="mt-2 inline-flex rounded-full border border-ena-border bg-white px-2.5 py-1 text-[11px] font-medium text-ena-light/70">
               {paymentInfo.label}
@@ -219,131 +338,255 @@ export default function DealerOrderDetailPage() {
         </div>
       </div>
 
-      {order.warehouseStatus && (
-        <div className="rounded-xl border border-ena-border bg-ena-card/30 p-5 shadow-sm">
-          <h2 className="text-sm font-semibold text-ena-text mb-3">Depo / Stok Durumu</h2>
-          <div className="flex flex-wrap gap-2 mb-3">
-            <Badge variant={order.warehouseStatus.reserved ? "success" : "warning"}>
-              {order.warehouseStatus.reserved ? "Rezerve edildi" : "Rezervasyon yok"}
-            </Badge>
-            {order.warehouseStatus.hasWarnings && (
-              <Badge variant="danger">Stok uyarısı</Badge>
-            )}
-            {order.fulfillmentStatus && (
-              <Badge variant="default">{order.fulfillmentStatus}</Badge>
-            )}
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+        <div className="xl:col-span-2 space-y-6">
+          <div className="rounded-xl border border-ena-border bg-ena-card/30 shadow-sm overflow-hidden">
+            <div className="px-5 py-4 border-b border-ena-border flex items-center justify-between">
+              <h2 className="text-sm font-semibold text-ena-text">Sipariş İçeriği</h2>
+              <span className="text-xs text-ena-light/50">{order.items.length} satır</span>
+            </div>
+            <div className="divide-y divide-ena-border">
+              {order.items.map((item) => {
+                const name = item.product?.name || item.productCatalogItem?.name || "Ürün";
+                const image = item.product?.image || "/placeholder.svg";
+                return (
+                  <div key={item.id} className="flex items-center justify-between gap-4 px-5 py-4 hover:bg-ena-card/40 transition-colors">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <img src={image} alt={name} className="h-12 w-12 rounded object-cover shrink-0 bg-black/10" />
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium text-ena-text truncate">{name}</p>
+                        <p className="text-xs text-ena-light/50">{item.quantity} adet x {formatPrice(item.price)}</p>
+                      </div>
+                    </div>
+                    <p className="text-sm font-bold text-ena-text shrink-0">{formatPrice(item.price * item.quantity)}</p>
+                  </div>
+                );
+              })}
+            </div>
+            <div className="px-5 py-4 bg-ena-card/20 border-t border-ena-border flex justify-between text-base">
+              <span className="font-semibold text-ena-text">Genel Toplam</span>
+              <span className="font-bold text-ena-text">{formatPrice(order.total)}</span>
+            </div>
           </div>
-          {order.warehouseStatus.warnings?.length > 0 && (
-            <ul className="text-xs text-amber-600 mb-3 space-y-1">
-              {order.warehouseStatus.warnings.map((w: string, i: number) => (
-                <li key={i}>• {w}</li>
-              ))}
-            </ul>
-          )}
-          <div className="space-y-2">
-            {order.warehouseStatus.items?.map((item: any) => (
-              <div key={item.orderItemId} className="flex justify-between text-sm border-t border-ena-border pt-2">
-                <span className="text-ena-text">{item.productName || "Ürün"}</span>
-                <span className="text-ena-light/60">
-                  {item.unmatched ? "Eşleşmedi" : item.insufficient ? "Yetersiz stok" : item.reserved ? "Rezerve" : "Bekliyor"}
-                  {item.availableStock != null ? ` · Mevcut: ${item.availableStock}` : ""}
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
 
-      {order.statusHistory && order.statusHistory.length > 0 && (
-        <div className="rounded-xl border border-ena-border bg-ena-card/30 shadow-sm p-5">
-          <h2 className="text-sm font-semibold text-ena-text mb-4">Sipariş Geçmişi</h2>
-          <div className="space-y-0">
-            {order.statusHistory.map((h: any, i: number) => (
-              <div key={h.id} className="flex gap-3">
-                <div className="flex flex-col items-center">
-                  <div className={`w-2.5 h-2.5 rounded-full ring-2 ${
-                    h.status === "delivered" ? "bg-green-500 ring-green-200" :
-                    h.status === "cancelled" ? "bg-ena-primary/50 ring-red-200" :
-                    h.status === "shipped" ? "bg-blue-500 ring-blue-200" :
-                    "bg-amber-500 ring-amber-200"
-                  }`} />
-                  {i < order.statusHistory.length - 1 && <div className="w-px flex-1 bg-ena-card/50 my-1" />}
-                </div>
-                <div className="pb-4 flex-1">
-                  <p className="text-sm font-medium text-ena-text">{statusText[h.status] || h.status}</p>
-                  <p className="text-xs text-ena-light/50">{h.note}</p>
-                  <p className="text-xs text-ena-light/40">{formatDate(h.createdAt)}</p>
-                </div>
+          {order.statusHistory && order.statusHistory.length > 0 && (() => {
+            const history = order.statusHistory;
+            return (
+            <div className="rounded-xl border border-ena-border bg-ena-card/30 shadow-sm p-5">
+              <h2 className="text-sm font-semibold text-ena-text mb-4">Sipariş Geçmişi</h2>
+              <div className="space-y-0">
+                {history.map((h, i) => (
+                  <div key={h.id} className="flex gap-3">
+                    <div className="flex flex-col items-center">
+                      <div className={`w-2.5 h-2.5 rounded-full ring-2 ${
+                        h.status === "delivered" ? "bg-green-500 ring-green-200" :
+                        h.status === "cancelled" ? "bg-ena-primary/50 ring-red-200" :
+                        h.status === "shipped" ? "bg-blue-500 ring-blue-200" :
+                        "bg-amber-500 ring-amber-200"
+                      }`} />
+                      {i < history.length - 1 && <div className="w-px flex-1 bg-ena-card/50 my-1" />}
+                    </div>
+                    <div className="pb-4 flex-1">
+                      <p className="text-sm font-medium text-ena-text">{statusText[h.status] || h.status}</p>
+                      <p className="text-xs text-ena-light/50">{h.note}</p>
+                      <p className="text-xs text-ena-light/40">{formatDate(h.createdAt)}</p>
+                    </div>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
-        </div>
-      )}
+            </div>
+            );
+          })()}
 
-      <div className="rounded-xl border border-ena-border bg-ena-card/30 shadow-sm overflow-hidden">
-        <div className="px-5 py-4 border-b border-ena-border">
-          <h2 className="text-sm font-semibold text-ena-text">Sipariş İçeriği</h2>
-        </div>
-        <div className="divide-y divide-ena-border">
-          {order.items.map((item: any) => (
-            <div key={item.id} className="flex items-center justify-between px-5 py-4 hover:bg-ena-card/40">
-              <div className="flex items-center gap-3">
-                <img src={item.product.image} alt="" className="h-12 w-12 rounded object-cover" />
+          <div className="rounded-xl border border-ena-border bg-ena-card/30 p-5 shadow-sm">
+            <h2 className="text-sm font-semibold text-ena-text mb-2">Teslimat Adresi</h2>
+            {canEditOrder ? (
+              <div className="space-y-3">
+                <Input value={draftAddress} onChange={(e) => setDraftAddress(e.target.value)} label="Adres" />
                 <div>
-                  <p className="text-sm font-medium text-ena-text">{item.product.name}</p>
-                  <p className="text-xs text-ena-light/50">{item.quantity} adet x {formatPrice(item.price)}</p>
+                  <label className="block text-sm font-medium text-ena-light mb-1">Sipariş Notu</label>
+                  <textarea
+                    value={draftNotes}
+                    onChange={(e) => setDraftNotes(e.target.value)}
+                    rows={4}
+                    className="w-full rounded border border-ena-border bg-ena-card/50 px-3 py-2.5 text-sm text-ena-text shadow-sm placeholder:text-ena-text-muted/50 focus:border-ena-text/40 focus:outline-none focus:ring-1 focus:ring-ena-border"
+                    placeholder="Not ekleyin..."
+                  />
+                </div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <Button onClick={handleSave} disabled={saving} className="gap-2">
+                    <PencilLine size={16} /> {saving ? "Kaydediliyor..." : "Değişiklikleri Kaydet"}
+                  </Button>
+                  <span className="text-xs text-ena-light/50">Admin onayı gelmeden adres ve notu değiştirebilirsiniz.</span>
                 </div>
               </div>
-              <p className="text-sm font-bold text-ena-text">{formatPrice(item.price * item.quantity)}</p>
-            </div>
-          ))}
-        </div>
-        <div className="px-5 py-4 bg-ena-card/20 border-t border-ena-border">
-          <div className="flex justify-between text-base">
-            <span className="font-semibold text-ena-text">Genel Toplam</span>
-            <span className="font-bold text-ena-text">{formatPrice(order.total)}</span>
+            ) : (
+              <div className="space-y-3">
+                <p className="text-sm text-ena-light/70 whitespace-pre-wrap">{order.address}</p>
+                <div className="rounded-lg border border-ena-border bg-white/60 p-3">
+                  <p className="text-xs font-semibold uppercase text-ena-light/50 mb-1">Sipariş Notu</p>
+                  <p className="text-sm text-ena-light/70 whitespace-pre-wrap">{order.notes || "Not eklenmemiş"}</p>
+                </div>
+              </div>
+            )}
           </div>
+        </div>
+
+        <div className="space-y-6">
+          <div className="rounded-xl border border-ena-border bg-ena-card/30 p-5 shadow-sm">
+            <h2 className="text-sm font-semibold text-ena-text mb-3 flex items-center gap-2"><Building2 size={16} /> Sipariş Meta</h2>
+            <div className="space-y-3 text-sm">
+              <MetaRow label="Platform" value={String(metadata.platform || order.marketplace || "Yok")} />
+              <MetaRow label="Sipariş No" value={String(order.orderNumber || order.id.slice(0, 8).toUpperCase())} />
+              <MetaRow label="Kaynak" value={String(order.sourceType || "Bilinmiyor")} />
+              <MetaRow label="Fatura" value={String(metadata.invoiceAddress || order.address || "Yok")} />
+              <MetaRow label="Teslimat" value={String(metadata.deliveryAddress || order.address || "Yok")} />
+              <MetaRow label="Ödeme yöntemi" value={paymentInfo.label || "Belirsiz"} />
+              <MetaRow label="Vade" value={order.paymentDeadlineAt ? formatDate(order.paymentDeadlineAt) : "Yok"} />
+              <MetaRow label="Backorder" value={order.hasBackorder ? "Var" : "Yok"} />
+            </div>
+          </div>
+
+          <div className="rounded-xl border border-ena-border bg-ena-card/30 p-5 shadow-sm">
+            <h2 className="text-sm font-semibold text-ena-text mb-3 flex items-center gap-2"><Wallet size={16} /> Ödeme</h2>
+            <div className="space-y-3 text-sm">
+              <MetaRow label="Yöntem" value={paymentInfo.label || "Belirsiz"} />
+              <MetaRow label="Taksit" value={String(Number(metadata.installmentCount || 1) || 1)} />
+              <MetaRow label="Kargo ücreti" value={metadata.shippingCost ? formatPrice(Number(metadata.shippingCost)) : "0"} />
+              <MetaRow label="İndirim" value={formatPrice(order.discount || 0)} />
+              <MetaRow label="Nihai toplam" value={formatPrice(order.total)} />
+            </div>
+            {order.payments?.length ? (
+              <div className="mt-4 space-y-2">
+                {order.payments.map((p) => (
+                  <div key={p.id} className="rounded-lg border border-ena-border px-3 py-2 bg-black/10">
+                    <div className="flex items-center justify-between gap-3">
+                      <div>
+                        <p className="text-sm font-medium text-ena-text">{p.type}</p>
+                        <p className="text-xs text-ena-light/50">{p.note || "Ödeme kaydı"}</p>
+                      </div>
+                      <p className="font-semibold text-ena-text">{formatPrice(p.amount)}</p>
+                    </div>
+                    <div className="mt-1 flex items-center justify-between text-xs text-ena-light/50">
+                      <span>{p.status}</span>
+                      <span>{formatDate(p.createdAt)}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="mt-3 text-sm text-ena-light/50">Ödeme kaydı yok.</p>
+            )}
+          </div>
+
+          <div className="rounded-xl border border-ena-border bg-ena-card/30 p-5 shadow-sm">
+            <h2 className="text-sm font-semibold text-ena-text mb-3 flex items-center gap-2"><Paperclip size={16} /> Ekler</h2>
+            {order.attachments?.length ? (
+              <div className="space-y-2">
+                {order.attachments.map((att) => {
+                  const kind = getFileKind(att.fileType, att.fileName);
+                  return (
+                    <a
+                      key={att.id}
+                      href={att.fileUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-3 rounded-lg border border-ena-border px-3 py-2 hover:bg-ena-card/40 transition-colors"
+                    >
+                      {kind === "image" ? (
+                        <img src={att.fileUrl} alt={att.fileName} className="h-10 w-10 rounded object-cover bg-black/10" />
+                      ) : (
+                        <div className="flex h-10 w-10 items-center justify-center rounded bg-amber-50">
+                          <FileText size={16} className="text-amber-500" />
+                        </div>
+                      )}
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-medium text-ena-text truncate">{att.fileName}</p>
+                        <p className="text-xs text-ena-light/50">{kind === "image" ? "Görsel" : "PDF / Belge"}</p>
+                      </div>
+                      <ExternalLink size={14} className="text-ena-light/40" />
+                    </a>
+                  );
+                })}
+              </div>
+            ) : (
+              <p className="text-sm text-ena-light/50">Ek dosya yok.</p>
+            )}
+          </div>
+
+          <div className="rounded-xl border border-ena-border bg-ena-card/30 p-5 shadow-sm">
+            <h2 className="text-sm font-semibold text-ena-text mb-3 flex items-center gap-2"><Truck size={16} /> Kargo ve Operasyon</h2>
+            <div className="space-y-3 text-sm">
+              <MetaRow label="Kargo firması" value={order.carrier || "Yok"} />
+              <MetaRow label="Takip no" value={order.trackingNumber || "Yok"} />
+              <MetaRow label="Oluşturulma" value={formatDate(order.createdAt)} />
+              <MetaRow label="Güncelleme" value={formatDate(order.updatedAt)} />
+            </div>
+
+            {order.warehouseStatus ? (
+              <div className="mt-4 rounded-lg border border-ena-border bg-black/10 p-3">
+                <div className="flex items-center gap-2 mb-2">
+                  <Badge variant={order.warehouseStatus.reserved ? "success" : "warning"}>
+                    {order.warehouseStatus.reserved ? "Rezerve" : "Rezerv yok"}
+                  </Badge>
+                  {order.warehouseStatus.hasWarnings && <Badge variant="danger">Uyarı</Badge>}
+                </div>
+                {order.warehouseStatus.warnings.length > 0 && (
+                  <ul className="space-y-1 text-xs text-amber-300">
+                    {order.warehouseStatus.warnings.map((w, i) => <li key={i}>• {w}</li>)}
+                  </ul>
+                )}
+                <div className="mt-3 space-y-2">
+                  {order.warehouseStatus.items.map((item) => (
+                    <div key={item.orderItemId} className="flex items-center justify-between text-xs border-t border-ena-border pt-2">
+                      <span className="text-ena-text">{item.productName || "Ürün"}</span>
+                      <span className="text-ena-light/50">
+                        {item.unmatched ? "Eşleşmedi" : item.insufficient ? "Yetersiz stok" : item.reserved ? "Rezerve" : "Bekliyor"}
+                        {item.availableStock != null ? ` • ${item.availableStock}` : ""}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <div className="mt-3 text-sm text-ena-light/50">Stok durumu okunamadı.</div>
+            )}
+          </div>
+
+          {invoice ? (
+            <div className="rounded-xl border border-ena-border bg-ena-card/30 p-5 shadow-sm">
+              <h2 className="text-sm font-semibold text-ena-text mb-3 flex items-center gap-2"><Download size={16} /> Faturalar</h2>
+              <div className="space-y-2">
+                {order.invoices!.map((inv) => (
+                  <a
+                    key={inv.id}
+                    href={inv.pdfUrl || "#"}
+                    target={inv.pdfUrl ? "_blank" : undefined}
+                    rel={inv.pdfUrl ? "noopener noreferrer" : undefined}
+                    className="flex items-center justify-between rounded-lg border border-ena-border px-3 py-2 hover:bg-ena-card/40 transition-colors"
+                  >
+                    <div>
+                      <p className="text-sm font-medium text-ena-text">{inv.number}</p>
+                      <p className="text-xs text-ena-light/50">{inv.paymentStatus} • {inv.status}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-sm font-semibold text-ena-text">{formatPrice(inv.total)}</p>
+                      <p className="text-xs text-ena-light/50">{formatDate(inv.createdAt)}</p>
+                    </div>
+                  </a>
+                ))}
+              </div>
+            </div>
+          ) : null}
+
+          {!canEditOrder && (
+            <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800 flex items-start gap-2">
+              <AlertTriangle size={16} className="mt-0.5 shrink-0" />
+              Sipariş admin onayından sonra kilitlenir. Bu aşamada iptal, adres ve not değişikliği kapalıdır.
+            </div>
+          )}
         </div>
       </div>
-
-      <div className="rounded-xl border border-ena-border bg-ena-card/30 p-5 shadow-sm">
-        <h2 className="text-sm font-semibold text-ena-text mb-2">Teslimat Adresi</h2>
-        {canEditOrder ? (
-          <div className="space-y-3">
-            <Input value={draftAddress} onChange={(e) => setDraftAddress(e.target.value)} label="Adres" />
-            <div>
-              <label className="block text-sm font-medium text-ena-light mb-1">Sipariş Notu</label>
-              <textarea
-                value={draftNotes}
-                onChange={(e) => setDraftNotes(e.target.value)}
-                rows={4}
-                className="w-full rounded border border-ena-border bg-ena-card/50 px-3 py-2.5 text-sm text-ena-text shadow-sm placeholder:text-ena-text-muted/50 focus:border-ena-text/40 focus:outline-none focus:ring-1 focus:ring-ena-border"
-                placeholder="Not ekleyin..."
-              />
-            </div>
-            <div className="flex flex-wrap items-center gap-2">
-              <Button onClick={handleSave} disabled={saving} className="gap-2">
-                <PencilLine size={16} /> {saving ? "Kaydediliyor..." : "Değişiklikleri Kaydet"}
-              </Button>
-              <span className="text-xs text-ena-light/50">Admin onayı gelmeden adres ve notu değiştirebilirsiniz.</span>
-            </div>
-          </div>
-        ) : (
-          <div className="space-y-3">
-            <p className="text-sm text-ena-light/70 whitespace-pre-wrap">{order.address}</p>
-            <div className="rounded-lg border border-ena-border bg-white/60 p-3">
-              <p className="text-xs font-semibold uppercase text-ena-light/50 mb-1">Sipariş Notu</p>
-              <p className="text-sm text-ena-light/70 whitespace-pre-wrap">{order.notes || "Not eklenmemiş"}</p>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {!canEditOrder && (
-        <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
-          Sipariş admin onayından sonra kilitlenir. Bu aşamada iptal, adres ve not değişikliği kapalıdır.
-        </div>
-      )}
     </div>
   );
 }

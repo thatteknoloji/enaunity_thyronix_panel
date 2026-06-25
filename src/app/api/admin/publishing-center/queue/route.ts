@@ -92,11 +92,30 @@ export async function POST(req: Request) {
         });
       case "archive":
         return NextResponse.json({ success: true, data: await archiveContent(body.queueId) });
-      case "publishBatch":
+      case "publishBatch": {
+        const queueIds: string[] = body.queueIds || [];
+        if (queueIds.length > 5) {
+          const user = await requireAdmin();
+          const { enqueueJob } = await import("@/lib/job-center/enqueue");
+          const job = await enqueueJob({
+            jobType: "BATCH_PUBLISH",
+            entityType: "PUBLISHING_QUEUE",
+            entityId: String(queueIds.length),
+            priority: body.priority || "NORMAL",
+            totalSteps: queueIds.length,
+            createdBy: user.id || user.email || "admin",
+            metadata: { queueIds },
+          });
+          return NextResponse.json(
+            { success: true, jobId: job.id, status: job.status },
+            { status: 202 }
+          );
+        }
         return NextResponse.json({
           success: true,
-          data: await publishBatch(body.queueIds || []),
+          data: await publishBatch(queueIds),
         });
+      }
       case "archiveBatch":
         return NextResponse.json({
           success: true,

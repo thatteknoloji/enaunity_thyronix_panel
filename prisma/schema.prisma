@@ -4250,3 +4250,77 @@ model PublishingQueue {
   @@index([sourcePlanId])
   @@index([priority])
 }
+
+enum JobStatus {
+  WAITING
+  RUNNING
+  PAUSED
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+enum JobPriority {
+  LOW
+  NORMAL
+  HIGH
+  CRITICAL
+}
+
+enum JobType {
+  BLOG_GENERATION
+  PAGE_GENERATION
+  GEO_GENERATION
+  RECOVERY_GENERATION
+  AI_REWRITE
+  CONTENT_AUDIT
+  CONTENT_PLAN
+  PUBLISH
+  BATCH_PUBLISH
+  IMPORT
+  EXPORT
+}
+
+model Job {
+  id                        String      @id @default(cuid())
+  jobType                   JobType
+  entityType                String      @default("")
+  entityId                  String      @default("")
+  status                    JobStatus   @default(WAITING)
+  priority                  JobPriority @default(NORMAL)
+  progress                  Float       @default(0)
+  totalSteps                Int         @default(0)
+  completedSteps            Int         @default(0)
+  startedAt                 DateTime?
+  finishedAt                DateTime?
+  createdAt                 DateTime    @default(now())
+  updatedAt                 DateTime    @updatedAt
+  createdBy                 String      @default("")
+  lastHeartbeat             DateTime?
+  estimatedRemainingSeconds Int?
+  currentStep               String      @default("")
+  currentMessage            String      @default("")
+  errorMessage              String      @default("")
+  retryCount                Int         @default(0)
+  maxRetry                  Int         @default(3)
+  metadataJson              String      @default("{}")
+  resultJson                String      @default("{}")
+
+  logs JobLog[]
+
+  @@index([status])
+  @@index([jobType])
+  @@index([priority])
+  @@index([createdAt])
+}
+
+model JobLog {
+  id        String   @id @default(cuid())
+  jobId     String
+  job       Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  level     String   @default("INFO")
+  message   String
+  createdAt DateTime @default(now())
+
+  @@index([jobId])
+}

@@ -6,18 +6,21 @@ export async function POST(req: Request) {
   try {
     const user = await requireAdmin();
     const body = await req.json().catch(() => ({}));
-    const limit = body.limit ? Number(body.limit) : 500;
+    const slug = String(body.slug || "");
+    if (!slug) {
+      return NextResponse.json({ success: false, error: "slug zorunlu" }, { status: 400 });
+    }
 
     const job = await enqueueJob({
-      jobType: "RECOVERY_GENERATION",
-      entityType: "LEGACY_RECOVERY",
-      entityId: body.projectId ? String(body.projectId) : "all",
-      priority: body.priority || "NORMAL",
-      totalSteps: limit,
+      jobType: "AI_REWRITE",
+      entityType: "BLOG",
+      entityId: slug,
+      priority: body.priority || "HIGH",
+      totalSteps: 7,
       createdBy: user.id || user.email || "admin",
       metadata: {
-        projectId: body.projectId ? String(body.projectId) : undefined,
-        limit,
+        slug,
+        autoPublish: body.autoPublish === true,
       },
     });
 
@@ -26,7 +29,7 @@ export async function POST(req: Request) {
       { status: 202 }
     );
   } catch (e) {
-    const msg = e instanceof Error ? e.message : "Üretim başarısız";
+    const msg = e instanceof Error ? e.message : "Rewrite kuyruğa alınamadı";
     return NextResponse.json({ success: false, error: msg }, { status: 400 });
   }
 }

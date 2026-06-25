@@ -9,6 +9,7 @@ import {
   generateKeywordGroupBlogs,
   generateProductBlog,
 } from "@/lib/blog-engine/blog-service";
+import { enqueueJob } from "@/lib/job-center/enqueue";
 
 function parseBody(body: Record<string, unknown>) {
   const sourceType = String(body.sourceType || "KEYWORD") as BlogSourceType;
@@ -36,40 +37,57 @@ function parseBody(body: Record<string, unknown>) {
     tags: Array.isArray(body.tags) ? body.tags.map(String) : undefined,
     dryRun: body.dryRun === true,
     autoPublish: body.autoPublish === true,
+    priority: body.priority as "LOW" | "NORMAL" | "HIGH" | "CRITICAL" | undefined,
   };
 }
 
 export async function POST(req: Request) {
   try {
-    await requireAdmin();
+    const user = await requireAdmin();
     const body = await req.json();
     const opts = parseBody(body);
 
-    let data: unknown;
-    switch (opts.sourceType) {
-      case "KEYWORD":
-        data = await generateKeywordBlog(opts);
-        break;
-      case "KEYWORD_GROUP":
-        data = await generateKeywordGroupBlogs(opts);
-        break;
-      case "PRODUCT":
-        data = await generateProductBlog(opts);
-        break;
-      case "CATEGORY":
-        data = await generateCategoryBlog(opts);
-        break;
-      case "GEO":
-        data = await generateGeoBlog(opts);
-        break;
-      case "COMPETITOR_STRUCTURE":
-        data = await generateCompetitorStructureBlog(opts);
-        break;
-      default:
-        return NextResponse.json({ success: false, error: "Geçersiz sourceType" }, { status: 400 });
+    if (opts.dryRun) {
+      let data: unknown;
+      switch (opts.sourceType) {
+        case "KEYWORD":
+          data = await generateKeywordBlog({ ...opts, dryRun: true });
+          break;
+        case "KEYWORD_GROUP":
+          data = await generateKeywordGroupBlogs({ ...opts, dryRun: true });
+          break;
+        case "PRODUCT":
+          data = await generateProductBlog({ ...opts, dryRun: true });
+          break;
+        case "CATEGORY":
+          data = await generateCategoryBlog({ ...opts, dryRun: true });
+          break;
+        case "GEO":
+          data = await generateGeoBlog({ ...opts, dryRun: true });
+          break;
+        case "COMPETITOR_STRUCTURE":
+          data = await generateCompetitorStructureBlog({ ...opts, dryRun: true });
+          break;
+        default:
+          return NextResponse.json({ success: false, error: "Geçersiz sourceType" }, { status: 400 });
+      }
+      return NextResponse.json({ success: true, data });
     }
 
-    return NextResponse.json({ success: true, data });
+    const job = await enqueueJob({
+      jobType: "BLOG_GENERATION",
+      entityType: "BLOG",
+      entityId: opts.keyword || opts.keywords?.[0] || opts.sourceType,
+      priority: opts.priority || "NORMAL",
+      totalSteps: 6,
+      createdBy: user.id || user.email || "admin",
+      metadata: opts,
+    });
+
+    return NextResponse.json(
+      { success: true, jobId: job.id, status: job.status },
+      { status: 202 }
+    );
   } catch (e) {
     const msg = e instanceof Error ? e.message : "Generate başarısız";
     return NextResponse.json({ success: false, error: msg }, { status: 400 });

@@ -137,6 +137,7 @@ export function buildAdminNavGroups(t: (key: string) => string, legacyMarketplac
       icon: Workflow,
       items: [
         { href: "/admin/icerik-operasyon-merkezi", label: "İçerik Operasyon Merkezi", icon: Workflow },
+        { href: "/admin/gorev-merkezi", label: "Görev Merkezi", icon: Activity },
         { href: "/admin/yayin-merkezi?tab=queue", label: "Yayın Kuyruğu", icon: Layers },
         { href: "/admin/icerik-operasyon-merkezi?tab=overview", label: "Sistem Durumu", icon: Activity },
       ],

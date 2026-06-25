@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, type ReactNode } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import {
@@ -13,7 +13,7 @@ import { buildAdminNavGroups, navItemPath, resolveActiveNavItemHref } from "@/li
 import NotificationBell from "@/components/NotificationBell";
 import { useT } from "@/lib/i18n/provider";
 
-export default function AdminLayout({ children }: { children: React.ReactNode }) {
+export default function AdminLayout({ children }: { children: ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
   const { t } = useT();
@@ -32,19 +32,24 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const isLoginPage = isAdminLoginPath(pathname);
 
   const navGroups = useMemo(() => {
-    const allNavGroups = buildAdminNavGroups(t, isLegacyMarketplaceEnabledClient());
-    const fullAccess = isSuperAdmin(userRole) || userPermissions.length === 0 || userPermissions.includes("*");
-    return allNavGroups
-      .map((group) => ({
-        ...group,
-        items: group.items.filter((item) => {
-          if (fullAccess) return true;
-          const perms = permMap[navItemPath(item.href)];
-          if (!perms || perms.length === 0) return false;
-          return hasAnyPermission(userPermissions, ...perms);
-        }),
-      }))
-      .filter((group) => group.items.length > 0);
+    try {
+      const allNavGroups = buildAdminNavGroups(t, isLegacyMarketplaceEnabledClient());
+      const fullAccess = isSuperAdmin(userRole) || userPermissions.length === 0 || userPermissions.includes("*");
+      return allNavGroups
+        .map((group) => ({
+          ...group,
+          items: group.items.filter((item) => {
+            if (fullAccess) return true;
+            const perms = permMap[navItemPath(item.href)];
+            if (!perms || perms.length === 0) return false;
+            return hasAnyPermission(userPermissions, ...perms);
+          }),
+        }))
+        .filter((group) => group.items.length > 0);
+    } catch (e) {
+      console.error("ADMIN LAYOUT: navGroups useMemo error", e);
+      return [];
+    }
   }, [userPermissions, userRole, permMap, t]);
 
   useEffect(() => {
@@ -73,7 +78,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       });
   }, [router, t, isLoginPage]);
 
-  // Fetch low stock count for sidebar badge
   useEffect(() => {
     fetch("/api/admin/products").then(r=>r.json()).then(d => {
       if (d.data) {
@@ -82,7 +86,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     }).catch(() => {});
   }, []);
 
-  // Auto-expand groups that contain the active route
   useEffect(() => {
     if (navGroups.length === 0) return;
     const active = new Set(expandedGroups);

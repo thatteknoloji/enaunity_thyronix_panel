@@ -259,6 +259,7 @@ async function runTargets(
     projectId?: string | null;
     dealerId?: string | null;
     jobId?: string;
+    onProgress?: (completed: number, total: number, message: string) => void | Promise<void>;
   }
 ): Promise<GeoBatchResult> {
   const results: GeoGenerationItemResult[] = [];
@@ -287,6 +288,10 @@ async function runTargets(
           failedCount: failed,
         },
       });
+    }
+
+    if (opts.onProgress) {
+      await opts.onProgress(generated + failed, targets.length, `${target.province}${target.district ? ` / ${target.district}` : ""}`);
     }
   }
 
@@ -357,6 +362,7 @@ export async function startGeoJob(opts: {
   projectId?: string | null;
   dealerId?: string | null;
   provinces?: string[];
+  onProgress?: (completed: number, total: number, message: string) => void | Promise<void>;
 }): Promise<{ job: GeoContentJob; result: GeoBatchResult }> {
   const targets = buildGeoTargetsForKeyword(opts.keyword, opts.mode, {
     mode: opts.mode,
@@ -401,6 +407,7 @@ export async function startGeoJob(opts: {
       dealerId: opts.dealerId,
       provinces: opts.provinces,
       jobId: job.id,
+      onProgress: opts.onProgress,
     };
 
     if (opts.mode === "PROVINCE") result = await generateProvinceBlogs(common);

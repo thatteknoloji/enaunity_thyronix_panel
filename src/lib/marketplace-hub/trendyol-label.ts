@@ -9,6 +9,7 @@ import {
   formatTrendyolLabelError,
   isTrendyolLabelPermissionError,
 } from "./trendyol-label-policy";
+import { readJsonResponse } from "@/lib/marketplaces/http";
 
 const INTEGRATION_BASE = "https://apigw.trendyol.com/integration/sellers";
 
@@ -49,7 +50,15 @@ async function tyRequest(
   }
 
   if (method === "POST") return null;
-  const json = text ? (JSON.parse(text) as { data?: TrendyolLabelResult[] }) : { data: [] };
+  const contentType = res.headers.get("content-type") || "";
+  if (!contentType.toLowerCase().includes("application/json")) {
+    throw new Error(
+      formatTrendyolLabelError(
+        `Trendyol etiket API JSON bekleniyordu ama "${contentType || "bilinmiyor"}" döndü: ${text.slice(0, 300)}`
+      )
+    );
+  }
+  const json = await readJsonResponse<{ data?: TrendyolLabelResult[] }>(new Response(text, { status: res.status, headers: res.headers }), "Trendyol etiket API");
   return json.data || [];
 }
 
