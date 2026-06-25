@@ -100,6 +100,7 @@
     "chokidar": "^5.0.0",
     "clsx": "^2.1.0",
     "dotenv": "^17.4.2",
+    "fabric": "^6.9.1",
     "fast-xml-parser": "^5.9.0",
     "framer-motion": "^12.40.0",
     "jsonwebtoken": "^9.0.2",
