@@ -6,7 +6,7 @@ import Link from "next/link";
 import {
   LayoutDashboard, ShoppingCart, User, LogOut, ChevronLeft, ChevronRight, Home, Store, Wallet,
   FileText, Users, RotateCcw, Bell, ReceiptText, Menu, Upload, Heart, Zap, MapPin,
-  FileSignature, Truck, Plug, Package, Handshake, Sparkles,
+  FileSignature, Truck, Plug, Package, Handshake, Sparkles, LineChart,
   type LucideIcon,
 } from "lucide-react";
 import NotificationBell from "@/components/NotificationBell";
@@ -62,6 +62,7 @@ function buildStaticGroups(t: (key: string) => string): NavGroup[] {
       items: [
         { href: "/dealer/marketplace/connections", label: "Pazaryeri Bağlantıları", icon: Plug },
         { href: "/dealer/marketplace/orders", label: "Pazaryeri Siparişleri", icon: ShoppingCart },
+        { href: "/dealer/analysis", label: "Analiz Merkezi", icon: LineChart },
       ],
     },
     {

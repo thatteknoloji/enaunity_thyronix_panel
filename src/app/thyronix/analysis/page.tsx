@@ -420,11 +420,11 @@ export default function ThyronixAnalysisPage({ config = DEFAULT_CONFIG }: { conf
           <div>
             <div className="inline-flex items-center gap-2 rounded-full border border-nexa-primary/20 bg-nexa-primary/10 px-3 py-1 text-xs font-medium text-nexa-primary">
               <Sparkles size={14} />
-              THYRONIX Analiz Merkezi
+              {config.badgeLabel}
             </div>
-            <h1 className="mt-3 text-3xl font-bold tracking-tight text-nexa-text">Rakip, ürün ve kârlılık kararlarını tek merkezde topla</h1>
+            <h1 className="mt-3 text-3xl font-bold tracking-tight text-nexa-text">{config.title}</h1>
             <p className="mt-2 max-w-3xl text-sm text-nexa-text-secondary">
-              Bu fazda kârlılık motorunu çalışır şekilde açtım. Ürün analizi de hazır. Rakip analizi ise veri toplayıcı katmana bağlanacak şekilde hazırlanmış durumda.
+              {config.description}
             </p>
             {dataError ? (
               <p className="mt-3 text-xs text-amber-400">
@@ -435,7 +435,7 @@ export default function ThyronixAnalysisPage({ config = DEFAULT_CONFIG }: { conf
           <div className="grid grid-cols-3 gap-3 text-center">
             <div className="rounded-xl border border-nexa-border px-4 py-3">
               <p className="text-xl font-semibold text-nexa-text">{products.length}</p>
-              <p className="text-[10px] uppercase tracking-wide text-nexa-text-secondary">Hazır Ürün</p>
+              <p className="text-[10px] uppercase tracking-wide text-nexa-text-secondary">{config.countCardLabel}</p>
             </div>
             <div className="rounded-xl border border-nexa-border px-4 py-3">
               <p className="text-xl font-semibold text-nexa-primary">%{Math.max(0, Math.round(profitCalc.margin))}</p>
@@ -476,7 +476,7 @@ export default function ThyronixAnalysisPage({ config = DEFAULT_CONFIG }: { conf
               <div className="mt-5 rounded-2xl border border-nexa-border/80 bg-nexa-bg p-4">
                 <div className="flex flex-col gap-3 md:flex-row md:items-end">
                   <label className="flex-1 space-y-1.5">
-                    <span className="text-xs font-medium text-nexa-text-secondary">THYRONIX ürününden doldur</span>
+                    <span className="text-xs font-medium text-nexa-text-secondary">{config.productPickerLabel}</span>
                     <select
                       value={selectedProductId}
                       onChange={(e) => setSelectedProductId(e.target.value)}
@@ -500,11 +500,11 @@ export default function ThyronixAnalysisPage({ config = DEFAULT_CONFIG }: { conf
                     disabled={!selectedProduct}
                     className="rounded-xl border border-nexa-primary/30 bg-nexa-primary/10 px-4 py-2 text-sm font-medium text-nexa-primary transition hover:bg-nexa-primary/15 disabled:cursor-not-allowed disabled:opacity-50"
                   >
-                    Ürünü forma işle
+                    {config.productPickerButton}
                   </button>
                 </div>
                 <p className="mt-2 text-xs text-nexa-text-secondary">
-                  Son 40 ürün içinden maliyet, satış fiyatı ve içerik alanlarını tek tıkla bu motora taşı.
+                  {config.productPickerHelp}
                 </p>
                 {selectedProduct ? (
                   <div className="mt-3 flex flex-wrap gap-2 text-[11px] text-nexa-text-secondary">
@@ -682,7 +682,7 @@ export default function ThyronixAnalysisPage({ config = DEFAULT_CONFIG }: { conf
               <div className="rounded-2xl border border-nexa-border/80 bg-nexa-bg p-4">
                 <div className="flex flex-col gap-3 md:flex-row md:items-end">
                   <label className="flex-1 space-y-1.5">
-                    <span className="text-xs font-medium text-nexa-text-secondary">THYRONIX ürün seç</span>
+                    <span className="text-xs font-medium text-nexa-text-secondary">{config.productAnalysisPickerLabel}</span>
                     <select
                       value={selectedProductId}
                       onChange={(e) => setSelectedProductId(e.target.value)}
@@ -706,11 +706,11 @@ export default function ThyronixAnalysisPage({ config = DEFAULT_CONFIG }: { conf
                     disabled={!selectedProduct}
                     className="rounded-xl border border-nexa-primary/30 bg-nexa-primary/10 px-4 py-2 text-sm font-medium text-nexa-primary transition hover:bg-nexa-primary/15 disabled:cursor-not-allowed disabled:opacity-50"
                   >
-                    Analize taşı
+                    {config.productAnalysisPickerButton}
                   </button>
                 </div>
                 <p className="mt-2 text-xs text-nexa-text-secondary">
-                  Görsel sayısı, başlık ve açıklama uzunluğu en son THYRONIX ürün verisiyle otomatik dolabilir.
+                  {config.productAnalysisPickerHelp}
                 </p>
                 {selectedProduct ? (
                   <div className="mt-3 flex flex-wrap gap-2 text-[11px] text-nexa-text-secondary">
@@ -961,7 +961,7 @@ export default function ThyronixAnalysisPage({ config = DEFAULT_CONFIG }: { conf
               </div>
 
               <div className="mt-5 inline-flex items-center gap-2 rounded-full border border-nexa-primary/20 bg-nexa-primary/10 px-3 py-1 text-xs font-medium text-nexa-primary">
-                {loadingData ? "THYRONIX ürünleri yükleniyor" : `${products.length} ürün bağlandı, sıradaki faz connector`}
+                {loadingData ? `${config.loadingSourceLabel} yükleniyor` : `${products.length} ürün bağlandı, sıradaki faz connector`}
                 <ArrowRight size={13} />
               </div>
             </div>

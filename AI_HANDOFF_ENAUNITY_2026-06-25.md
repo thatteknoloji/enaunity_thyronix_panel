@@ -1,14 +1,15 @@
 # ENAUNITY AI Handoff
 
 Tarih: 2026-06-25
-Durum: local calisiyor, commit yok, push yok, canliya alim yok
+Durum: local calisiyor, commit var, push var, canliya alindi
 Hazirlayan: Codex
 
 Bu dosya, baska bir AI agent'in veya yeni bir oturumun buradan devam edebilmesi icin yazildi.
-Bu handoff ozellikle su iki ana hatta odaklanir:
+Bu handoff ozellikle su ana hatlara odaklanir:
 
 1. THYRONIX feed, urun, duplicate ve analiz gelistirmeleri
 2. Hazir Urun Deposu / Excel-XML paket motoru / bayi aktarim akisi
+3. ENA bayi paneline tasinan rakip / urun / karlilik analiz modulu
 
 Onemli: worktree kirli. Bu dosyada anlatilan isler dogrudan bu turne ait olan ve son durumda anlamli olan parcalardir. `git status` ciktisinda bunlar disinda baska degisiklikler de vardir. Rastgele revert yapilmaz.
 
@@ -28,6 +29,7 @@ Bu surecte su bloklar uzerinde ilerleme yapildi:
   - Urun Analizi sekmesi aktif hale getirildi
   - Rakip Analizi sekmesi iskelet olmaktan cikartilip karar motoru katmani ile zenginlestirildi
   - Sayfa hardcoded demodan cikarilip gercek THYRONIX API verisine baglandi
+- Ayni analiz mantigi ENA bayi paneline de tasindi
 - Hazir Urun Deposu tarafinda:
   - Paket, lisans, import, preview, recipe, export ve marketplace queue taraflari daha da oturtuldu
   - `scripts/test-product-library.ts` regression testi surekli yesil tutuldu
@@ -150,6 +152,41 @@ Donen urun alanlari:
 - maliyet, fiyat, KDV, kaynak kargo, barkod, model kodu ve stok kodunu analize tasiyabiliyor
 - urun analizi tarafinda ayni secilen urunun besleme alanlarini kullanabiliyor
 
+### 2.5 ENA Bayi Paneline Tasima
+
+Bu handoff'un son asamasinda rakip / urun / karlilik analizleri yalnizca THYRONIX icinde kalmadi, ENA tarafina da tasindi.
+
+Eklenen yeni dosyalar:
+
+- `src/app/api/dealer/analysis/route.ts`
+- `src/app/dealer/analysis/page.tsx`
+
+Guncellenen dosyalar:
+
+- `src/app/dealer/layout.tsx`
+- `src/app/thyronix/analysis/page.tsx`
+
+Ne yapildi:
+
+- mevcut THYRONIX analiz sayfasi parametreli hale getirildi
+- ayni analiz motoru artik farkli `apiPath` ve farkli arayuz metinleriyle tekrar kullanilabiliyor
+- ENA tarafinda yeni rota:
+  - `/dealer/analysis`
+- dealer sidebar'a `Analiz Merkezi` linki eklendi
+- ENA analizi `api/dealer/analysis` endpointinden besleniyor
+- bu endpoint bayi urunlerini aliyor ve analiz panelinin anlayacagi ortak forma donusturuyor
+
+Bugunku ENA veri kaynagi:
+
+- `DealerProduct`
+
+Bugunku kisit:
+
+- ENA tarafinda urun verisi THYRONIX kadar zengin degil
+- bu nedenle barkod / kategori / stok kodu / model kodu gibi alanlar ENA'da kismen bos gelebilir
+- ama arayuz, hesap motoru ve rakip/urun/karlilik akisi aktif durumda
+- sonraki fazda `StoreProduct`, `ProductCatalogItem` veya diger ENA kaynaklari da bu beslemeye dahil edilebilir
+
 ---
 
 ## 3. Hazir Urun Deposu / Excel XML Paket Motoru Tarafi
@@ -198,11 +235,15 @@ Bu turne boyunca en net calisan kontroller:
 
 - `npx tsx -e "import('./src/app/api/thyronix/analysis/route.ts').then(() => console.log('analysis-route-ok'))"`
 - `npx tsx -e "import('./src/app/thyronix/analysis/page.tsx').then(() => console.log('analysis-page-ok'))"`
+- `npx tsx -e "import('./src/app/api/dealer/analysis/route.ts').then(() => console.log('dealer-analysis-route-ok'))"`
+- `npx tsx -e "import('./src/app/dealer/analysis/page.tsx').then(() => console.log('dealer-analysis-page-ok'))"`
 
 Beklenen sonuc:
 
 - `analysis-route-ok`
 - `analysis-page-ok`
+- `dealer-analysis-route-ok`
+- `dealer-analysis-page-ok`
 
 ### Basarili regression testi
 
@@ -225,18 +266,20 @@ Eger yeni agent sadece en onemli yerleri okuyacaksa su sira ile baslamasi mantik
 
 1. `AI_HANDOFF_ENAUNITY_2026-06-25.md`
 2. `src/app/thyronix/analysis/page.tsx`
-3. `src/app/api/thyronix/analysis/route.ts`
-4. `src/lib/thyronix/analysis-presets.ts`
-5. `src/components/thyronix/DuplicateProductsPanel.tsx`
-6. `src/lib/thyronix/duplicate-merge.ts`
-7. `src/lib/thyronix/duplicate-insights.ts`
-8. `src/app/thyronix/processing/page.tsx`
-9. `src/app/api/thyronix/dashboard/route.ts`
-10. `src/app/api/thyronix/reports/route.ts`
-11. `src/components/product-library/AdminProductLibraryPanel.tsx`
-12. `src/components/product-library/DealerProductLibraryPanel.tsx`
-13. `src/lib/product-library/recipe-engine.ts`
-14. `scripts/test-product-library.ts`
+3. `src/app/dealer/analysis/page.tsx`
+4. `src/app/api/thyronix/analysis/route.ts`
+5. `src/app/api/dealer/analysis/route.ts`
+6. `src/lib/thyronix/analysis-presets.ts`
+7. `src/components/thyronix/DuplicateProductsPanel.tsx`
+8. `src/lib/thyronix/duplicate-merge.ts`
+9. `src/lib/thyronix/duplicate-insights.ts`
+10. `src/app/thyronix/processing/page.tsx`
+11. `src/app/api/thyronix/dashboard/route.ts`
+12. `src/app/api/thyronix/reports/route.ts`
+13. `src/components/product-library/AdminProductLibraryPanel.tsx`
+14. `src/components/product-library/DealerProductLibraryPanel.tsx`
+15. `src/lib/product-library/recipe-engine.ts`
+16. `scripts/test-product-library.ts`
 
 ---
 
@@ -261,6 +304,11 @@ En mantikli sonraki adimlar:
 4. Karlilikta gercek marketplace komisyon katalogu
    - bugunku presetler baslangic icin iyi
    - ama ideal hedef her pazaryeri ve kategori icin gercek tablo ile senkron olmak
+
+5. ENA analiz veri kaynagini genisletme
+   - su an `DealerProduct` ile calisiyor
+   - sonraki adimda `StoreProduct`, `ProductCatalogItem`, `ProductPackageItem` veya ilgili ENA urun kaynaklari dahil edilmeli
+   - boylece ENA analizinde kategori, barkod, varyant ve stok gibi alanlar daha dolu gelir
 
 ### Duplicate merkezi icin
 
@@ -301,11 +349,15 @@ Eger baska bir AI buradan devam edecekse tavsiye edilen sira:
 1. `git status --short`
 2. bu handoff dosyasini oku
 3. `src/app/thyronix/analysis/page.tsx` ve `src/app/api/thyronix/analysis/route.ts` oku
-4. `npx tsx -e "import('./src/app/thyronix/analysis/page.tsx').then(() => console.log('analysis-page-ok'))"`
-5. `npx tsx -e "import('./src/app/api/thyronix/analysis/route.ts').then(() => console.log('analysis-route-ok'))"`
-6. `npx tsx scripts/test-product-library.ts`
-7. sonra secilecek faza gore devam et:
+4. `src/app/dealer/analysis/page.tsx` ve `src/app/api/dealer/analysis/route.ts` oku
+5. `npx tsx -e "import('./src/app/thyronix/analysis/page.tsx').then(() => console.log('analysis-page-ok'))"`
+6. `npx tsx -e "import('./src/app/api/thyronix/analysis/route.ts').then(() => console.log('analysis-route-ok'))"`
+7. `npx tsx -e "import('./src/app/dealer/analysis/page.tsx').then(() => console.log('dealer-analysis-page-ok'))"`
+8. `npx tsx -e "import('./src/app/api/dealer/analysis/route.ts').then(() => console.log('dealer-analysis-route-ok'))"`
+9. `npx tsx scripts/test-product-library.ts`
+10. sonra secilecek faza gore devam et:
    - `Analiz Merkezi` derinlestirme
+   - `ENA Analiz Merkezi` veri kaynagini buyutme
    - `Duplicate Merkezi` otomasyon
    - `Hazir Urun Deposu` genisletme
 
@@ -315,11 +367,15 @@ Eger baska bir AI buradan devam edecekse tavsiye edilen sira:
 
 Eger yeni oturum acilacaksa prompt'a su kisa cümle yeterli olur:
 
-`Repo kokundeki AI_HANDOFF_ENAUNITY_2026-06-25.md dosyasini oku, oradaki son THYRONIX ve Hazir Urun Deposu durumundan devam et, once mevcut degisiklikleri koruyup smoke test al sonra secilen faza gec.`
+`Repo kokundeki AI_HANDOFF_ENAUNITY_2026-06-25.md dosyasini oku, oradaki son THYRONIX, ENA Analiz Merkezi ve Hazir Urun Deposu durumundan devam et, once mevcut degisiklikleri koruyup smoke test al sonra secilen faza gec.`
 
 ---
 
-## 10. Dropship Storefront CMS — Eklenenler (25 Haziran)
+## 10. Dropship Storefront CMS + ENA Analiz Merkezi — Canliya Alindi (25 Haziran)
+
+**Son karar**: Tum dropship CMS ve ENA Analiz Merkezi isleri commit, push ve canliya alindi. Worktree hala kirli olabilir, rastgele revert yapma.
+
+### Dropship Storefront CMS
 
 Bu bolum, THYRONIX ve Hazir Urun Deposu disinda ayni worktree icinde eklenen dropship storefront ozelliklerini anlatir.
 
@@ -353,11 +409,19 @@ Bu bolum, THYRONIX ve Hazir Urun Deposu disinda ayni worktree icinde eklenen dro
 - Checkout, urun detay, arama — tum `rgba(255,255,255,*)` -> `c.textColor + "15"`
 - Kategori filtre butonlari — `imageUrl` varsa thumbnail gosterir
 - Tum degisiklikler **TypeScript clean** (--skipLibCheck ile dogrulandi)
-- **`npm run build` time out** yiyor (makine kaynakli), tam build henuz dogrulanmadi
 
-### Bilinen Eksikler
-1. Sektore ozel temalar — user input bekliyor (ayakkabi, aksesuar, kadin giyim vb.)
-2. CMS page builder (StorePage model + blok editor) — henuz baslanmadi
-3. `npm run build` zaman asimi — smoke test ile gecilmesi gerekiyor
-4. Siparis takip sayfasinda `bg-[#1a1a2e]` hala hardcode (storefront degil, ayri sayfa)
+### ENA Analiz Merkezi (Bayi Paneli)
+- `src/app/dealer/analysis/page.tsx` — `ThyronixAnalysisPage` bilesenini ENA config'i ile cagiriyor
+- `src/app/api/dealer/analysis/route.ts` — bayi urunlerini (`DealerProduct`) ayni analiz motoruna veriyor
+- `src/app/dealer/layout.tsx` — nav'e "Analiz Merkezi" linki eklendi (`LineChart` ikonu)
+- THYRONIX Analiz sayfasi artik `config` prop'u ile parametrize edildi (badge, title, description, picker label'lari disaridan aliyor)
 
+### Bilinen Eksikler (sonraki faz)
+1. ENA analiz veri kaynagi sadece `DealerProduct` — `StoreProduct`, `ProductCatalogItem`, `ProductPackageItem` dahil degil
+2. Rakip analizi icin gercek crawler/connector katmani henuz bagli degil
+3. Karlilik motoruna senaryo kaydi eklenmedi
+4. Urun analizi feed/veri kalitesi ile derinlestirilmedi
+5. Duplicate merkezi otomasyonu ilerletilmedi
+6. Sektore ozel dropship temalar — user input bekliyor
+7. CMS page builder (StorePage model + blok editor) — baslanmadi
+8. `npm run build` zaman asimi yiyor — smoke test ile gecilmeli
