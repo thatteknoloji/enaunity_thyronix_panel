@@ -551,6 +551,7 @@ export async function rewriteThinContent(opts: {
     generationError: v2.error || null,
     validationIssues: v2.metadata.qualityIssues,
     thinContent: true,
+    finalQualityScore: v2.metadata.finalQualityScore,
   };
   return { success: v2.success, error: v2.error, data: v2.data, metadata };
 }

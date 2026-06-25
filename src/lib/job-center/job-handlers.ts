@@ -255,7 +255,7 @@ async function handleAiRewrite(job: Job, ctx: JobExecutionContext) {
     contentType: "BLOG",
   });
 
-  if (!rewrite.success || !rewrite.data) {
+  if (!rewrite.data) {
     throw new Error(rewrite.error || rewrite.metadata.generationError || "Rewrite başarısız");
   }
 
@@ -311,6 +311,7 @@ async function handleAiRewrite(job: Job, ctx: JobExecutionContext) {
         aiWriter: rewrite.metadata,
         aiBrain: {
           brainVersion: "ENA_AKILLI_ICERIK_BEYNI_V2",
+          finalQualityScore: rewrite.metadata.finalQualityScore ?? null,
           qualityIssues: rewrite.metadata.validationIssues || [],
           provider: rewrite.metadata.provider,
           model: rewrite.metadata.model,

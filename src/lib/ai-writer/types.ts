@@ -17,6 +17,7 @@ export type AiWriterMetadata = {
   generationError: string | null;
   validationIssues?: string[];
   thinContent?: boolean;
+  finalQualityScore?: number;
 };
 
 export type ContentValidationResult = {
