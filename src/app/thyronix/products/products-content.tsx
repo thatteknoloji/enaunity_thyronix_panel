@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { Package, Search, ChevronLeft, ChevronRight, Pencil, Eye, Trash2, DollarSign, Layers, Tag, GitBranch, XCircle, Check, Brain, Sparkles } from "lucide-react";
 import { formatPrice } from "@/lib/utils";
 import toast from "react-hot-toast";
@@ -18,6 +19,7 @@ const BULK_ACTIONS = [
   { key: "category", label: "Kategori Değiştir", icon: Tag, needsCategory: true },
   { key: "brand", label: "Marka Değiştir", icon: Tag, needsBrand: true },
   { key: "apply_rules", label: "Kuralları Uygula", icon: GitBranch },
+  { key: "exclude", label: "Hariç Tut", icon: XCircle },
   { key: "ai_titles", label: "AI Başlık Optimize", icon: Brain, isAi: true },
   { key: "ai_descriptions", label: "AI Açıklama Oluştur", icon: Brain, isAi: true },
   { key: "ai_categories", label: "AI Kategori Öner", icon: Brain, isAi: true },
@@ -27,6 +29,7 @@ const BULK_ACTIONS = [
 ];
 
 export default function ThyronixProductsPage() {
+  const searchParams = useSearchParams();
   const [products, setProducts] = useState<ThyronixProduct[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -68,6 +71,35 @@ export default function ThyronixProductsPage() {
   const [detailTab, setDetailTab] = useState("overview");
   const [cachedProvider, setCachedProvider] = useState<any>(null);
   const SIZE = 50;
+
+  useEffect(() => {
+    const nextSource = searchParams.get("sourceId") || "";
+    const nextCategory = searchParams.get("category") || "";
+    const nextBarcode = searchParams.get("barcode") || "";
+    const nextStockCode = searchParams.get("stockCode") || "";
+    const nextModelCode = searchParams.get("modelCode") || "";
+    const nextExternalId = searchParams.get("externalId") || "";
+    const nextStatus = searchParams.get("status") || "";
+    const nextPriceMin = searchParams.get("priceMin") || "";
+    const nextPriceMax = searchParams.get("priceMax") || "";
+    const nextSearch =
+      searchParams.get("search") ||
+      nextBarcode ||
+      nextStockCode ||
+      nextModelCode ||
+      nextExternalId ||
+      "";
+
+    setSearch(nextSearch);
+    setSearchInput(nextSearch);
+    setFSource(nextSource);
+    setFCategory(nextCategory);
+    setFBarcode(nextBarcode);
+    setFStatus(nextStatus);
+    setFPriceMin(nextPriceMin);
+    setFPriceMax(nextPriceMax);
+    setPage(1);
+  }, [searchParams]);
 
   const getProvider = async () => {
     if (cachedProvider) return cachedProvider;
@@ -388,6 +420,7 @@ export default function ThyronixProductsPage() {
             <button key={a.key} onClick={() => { setBulkAction(a.key); setBulkOpen(true); }}
               className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors ${
                 a.key === "delete" ? "bg-nexa-danger/10 text-nexa-danger border border-nexa-danger/30 hover:bg-nexa-danger/20" :
+                a.key === "exclude" ? "bg-nexa-warning/10 text-nexa-warning border border-nexa-warning/30 hover:bg-nexa-warning/20" :
                 "bg-nexa-card border border-nexa-border text-nexa-text hover:bg-nexa-hover"
               }`}>
               <a.icon size={13} /> {a.label}
@@ -442,6 +475,10 @@ export default function ThyronixProductsPage() {
               <p className="text-sm text-nexa-text-secondary">Aktif kurallar seçili ürünlere uygulanacak. Devam edilsin mi?</p>
             )}
 
+            {bulkAction === "exclude" && (
+              <p className="text-sm text-nexa-warning">{bulkTargetCount.toLocaleString("tr-TR")} ürün hariç tutulacak. Kayıtlar silinmeyecek, durumları sadece <b>excluded</b> olacak.</p>
+            )}
+
             {bulkAction === "delete" && (
               <p className="text-sm text-nexa-danger">{bulkTargetCount.toLocaleString("tr-TR")} ürün silinecek. Bu işlem geri alınamaz!</p>
             )}
@@ -449,7 +486,13 @@ export default function ThyronixProductsPage() {
             <div className="flex gap-2 justify-end pt-2 border-t border-nexa-border">
               <button onClick={() => setBulkOpen(false)} className="px-4 py-2 text-sm text-nexa-text-secondary hover:text-nexa-text">İptal</button>
               <button onClick={executeBulk} disabled={bulkLoading}
-                className={`px-4 py-2 text-sm rounded-lg text-white font-medium disabled:opacity-50 ${bulkAction === "delete" ? "bg-nexa-danger hover:bg-red-600" : "bg-nexa-primary hover:bg-blue-600"}`}>
+                className={`px-4 py-2 text-sm rounded-lg text-white font-medium disabled:opacity-50 ${
+                  bulkAction === "delete"
+                    ? "bg-nexa-danger hover:bg-red-600"
+                    : bulkAction === "exclude"
+                      ? "bg-nexa-warning hover:bg-amber-500"
+                      : "bg-nexa-primary hover:bg-blue-600"
+                }`}>
                 {bulkLoading ? "İşleniyor..." : `${bulkTargetCount.toLocaleString("tr-TR")} ürüne uygula`}
               </button>
             </div>

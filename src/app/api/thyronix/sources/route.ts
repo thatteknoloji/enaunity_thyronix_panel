@@ -7,6 +7,7 @@ import {
   withTenantFilter,
 } from "@/lib/thyronix/access";
 import { resolveSourceFeedUrls } from "@/lib/thyronix/feed-fetch";
+import { buildSourceMappingSummary } from "@/lib/thyronix/source-mapping-summary";
 
 export async function GET() {
   try {
@@ -18,6 +19,7 @@ export async function GET() {
     const data = sources.map((s) => ({
       ...s,
       feedUrls: resolveSourceFeedUrls(s.xmlUrl, s.fixedValues),
+      mappingSummary: buildSourceMappingSummary(s),
     }));
     return NextResponse.json({ success: true, data });
   } catch (e) {

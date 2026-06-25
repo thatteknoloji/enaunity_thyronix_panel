@@ -1,10 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { BarChart3, TrendingUp, Package, AlertTriangle, Link2, Radio, Brain, RefreshCw } from "lucide-react";
+import Link from "next/link";
+import { BarChart3, TrendingUp, Package, AlertTriangle, Link2, Radio, Brain, RefreshCw, Copy } from "lucide-react";
 
 const TABS = [
   { id: "overview", label: "Genel", icon: BarChart3 },
+  { id: "duplicates", label: "Duplicate Analizi", icon: Copy },
   { id: "sources", label: "Kaynak Performansı", icon: Link2 },
   { id: "feeds", label: "Feed Performansı", icon: Radio },
   { id: "ai", label: "AI Kullanımı", icon: Brain },
@@ -13,11 +15,13 @@ const TABS = [
 
 export default function ThyronixReportsPage() {
   const [data, setData] = useState<any>(null);
+  const [duplicateData, setDuplicateData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState("overview");
 
   useEffect(() => {
     fetch("/api/thyronix/reports").then((r) => r.json()).then((d) => { if (d.success) setData(d.data); setLoading(false); });
+    fetch("/api/thyronix/products/duplicates?field=all&limit=20").then((r) => r.json()).then((d) => { if (d.success) setDuplicateData(d.data); });
   }, []);
 
   if (loading) return <div className="animate-pulse space-y-4"><div className="h-32 rounded-xl bg-nexa-card"/><div className="h-40 rounded-xl bg-nexa-card"/></div>;
@@ -55,6 +59,27 @@ export default function ThyronixReportsPage() {
               </div>
             ))}
           </div>
+          <div className="grid gap-3 md:grid-cols-3">
+            <div className="rounded-xl border border-nexa-border bg-nexa-card p-4">
+              <p className="text-2xl font-bold text-nexa-warning">{data.duplicates?.totalGroups?.toLocaleString?.("tr-TR") ?? 0}</p>
+              <p className="mt-1 text-[10px] text-nexa-text-secondary">Toplam duplicate grup</p>
+            </div>
+            <div className="rounded-xl border border-nexa-border bg-nexa-card p-4">
+              <p className="text-2xl font-bold text-nexa-primary">{data.duplicates?.totalAffectedProducts?.toLocaleString?.("tr-TR") ?? 0}</p>
+              <p className="mt-1 text-[10px] text-nexa-text-secondary">Etkilenen kayıt</p>
+            </div>
+            <div className="rounded-xl border border-nexa-border bg-nexa-card p-4">
+              <p className="text-sm font-semibold text-nexa-text">Alan Dağılımı</p>
+              <div className="mt-2 space-y-1.5 text-xs text-nexa-text-secondary">
+                {(data.duplicates?.byField || []).map((item: any) => (
+                  <div key={item.field} className="flex items-center justify-between">
+                    <span>{item.field}</span>
+                    <span>{item.groupCount?.toLocaleString?.("tr-TR") ?? 0}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
           <div className="rounded-xl border border-nexa-border bg-nexa-card overflow-hidden">
             <div className="p-5 border-b border-nexa-border"><h2 className="font-semibold text-nexa-text text-sm">Kategori Dağılımı</h2></div>
             <table className="w-full text-sm">
@@ -88,6 +113,61 @@ export default function ThyronixReportsPage() {
               ))}
             </tbody>
           </table>
+        </div>
+      )}
+
+      {tab === "duplicates" && (
+        <div className="space-y-4">
+          <div className="grid gap-3 md:grid-cols-3">
+            <div className="rounded-xl border border-nexa-border bg-nexa-card p-4">
+              <p className="text-2xl font-bold text-nexa-warning">{duplicateData?.summary?.groupCount?.toLocaleString?.("tr-TR") ?? 0}</p>
+              <p className="mt-1 text-[10px] text-nexa-text-secondary">Duplicate grup</p>
+            </div>
+            <div className="rounded-xl border border-nexa-border bg-nexa-card p-4">
+              <p className="text-2xl font-bold text-nexa-primary">{duplicateData?.summary?.affectedProducts?.toLocaleString?.("tr-TR") ?? 0}</p>
+              <p className="mt-1 text-[10px] text-nexa-text-secondary">Etkilenen kayıt</p>
+            </div>
+            <div className="rounded-xl border border-nexa-border bg-nexa-card p-4">
+              <p className="text-2xl font-bold text-nexa-text">{duplicateData?.summary?.crossSourceGroups?.toLocaleString?.("tr-TR") ?? 0}</p>
+              <p className="mt-1 text-[10px] text-nexa-text-secondary">Çok kaynaklı grup</p>
+            </div>
+          </div>
+
+          <div className="rounded-xl border border-nexa-border overflow-hidden">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-nexa-border bg-nexa-bg/50">
+                  <th className="px-4 py-3 text-left text-nexa-text-secondary">Alan</th>
+                  <th className="px-4 py-3 text-left text-nexa-text-secondary">Değer</th>
+                  <th className="px-4 py-3 text-right text-nexa-text-secondary">Kayıt</th>
+                  <th className="px-4 py-3 text-right text-nexa-text-secondary">Kaynak</th>
+                  <th className="px-4 py-3 text-right text-nexa-text-secondary">İşlem</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-nexa-border">
+                {(duplicateData?.groups || []).map((group: any) => (
+                  <tr key={`${group.field}-${group.value}`} className="hover:bg-nexa-hover">
+                    <td className="px-4 py-3 text-xs text-nexa-text-secondary">{group.fieldLabel}</td>
+                    <td className="px-4 py-3 text-nexa-text font-mono text-xs">{group.value}</td>
+                    <td className="px-4 py-3 text-right">{group.count?.toLocaleString?.("tr-TR") ?? group.count}</td>
+                    <td className="px-4 py-3 text-right text-xs text-nexa-text-secondary">{group.sourceCount}</td>
+                    <td className="px-4 py-3 text-right">
+                      <Link href={`/thyronix/processing?tab=duplicates&field=${encodeURIComponent(group.field)}`} className="text-xs text-nexa-primary hover:underline">
+                        İncele
+                      </Link>
+                    </td>
+                  </tr>
+                ))}
+                {(!duplicateData?.groups || duplicateData.groups.length === 0) && (
+                  <tr>
+                    <td colSpan={5} className="px-4 py-10 text-center text-sm text-nexa-text-secondary">
+                      Duplicate grup bulunamadı
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
 

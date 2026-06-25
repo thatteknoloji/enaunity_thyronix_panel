@@ -230,7 +230,10 @@ export async function POST(_req: Request, { params }: { params: Promise<{ id: st
       const csvRes = await fetch(url, { signal: AbortSignal.timeout(60000) });
       if (!csvRes.ok) { await prisma.thyronixSource.update({ where: { id }, data: { errorLog: `HTTP ${csvRes.status}`, status: "error" } as any }); return NextResponse.json({ success: false, error: `HTTP ${csvRes.status}` }, { status: 400 }); }
       const csvText = await csvRes.text();
-      const parsed = parseCsvToProducts(csvText);
+      const parsed = parseCsvToProducts(csvText, {
+        delimiter: fixedValues._delimiter || undefined,
+        hasHeader: fixedValues._hasHeader !== "false",
+      });
 
       const barcodes = parsed.filter(p => p.barcode).map(p => p.barcode!);
       const stockCodes = parsed.filter(p => p.stockCode).map(p => p.stockCode!);

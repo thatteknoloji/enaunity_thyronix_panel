@@ -74,6 +74,13 @@ async function applyBulkToIds(ids: string[], params: BulkParams): Promise<number
       const r = await prisma.thyronixProduct.updateMany({ where: { id: { in: ids } }, data: { brand } });
       return r.count;
     }
+    case "exclude": {
+      const r = await prisma.thyronixProduct.updateMany({
+        where: { id: { in: ids } },
+        data: { status: "excluded" },
+      });
+      return r.count;
+    }
     case "delete": {
       const r = await prisma.thyronixProduct.deleteMany({ where: { id: { in: ids } } });
       return r.count;

@@ -12,6 +12,30 @@ interface ThyronixProductInput {
 
 type RowMap = Record<string, string>;
 
+type CsvParseOptions = {
+  delimiter?: string;
+  hasHeader?: boolean;
+};
+
+function detectDelimiter(line: string): string {
+  const counts: Record<string, number> = { ",": 0, ";": 0, "\t": 0, "|": 0 };
+  for (const ch of line) {
+    if (ch in counts) counts[ch]++;
+  }
+  const max = Math.max(...Object.values(counts));
+  if (max === 0) return ",";
+  return Object.entries(counts).find(([_, count]) => count === max)?.[0] || ",";
+}
+
+function splitLine(line: string, delimiter: string): string[] {
+  if (delimiter === ",") return line.split(/,(?=(?:[^"]*"[^"]*")*[^"]*$)/);
+  return line.split(delimiter);
+}
+
+function cleanCell(value: string): string {
+  return value.trim().replace(/^"|"$/g, "").replace(/^'|'$/g, "");
+}
+
 function autoDetectHeaders(headers: string[]): RowMap {
   const map: RowMap = {};
   const lowerHeaders = headers.map(h => h.toLowerCase().trim());
@@ -74,20 +98,25 @@ function parseRow(row: Record<string, string>, fieldMap: RowMap): ThyronixProduc
   return product;
 }
 
-export function parseCsvToProducts(csvText: string): ThyronixProductInput[] {
+export function parseCsvToProducts(csvText: string, options?: CsvParseOptions): ThyronixProductInput[] {
   // Use built-in parsing for simple CSV
   const lines = csvText.trim().split(/\r?\n/);
   if (lines.length < 2) return [];
 
-  const headers = lines[0].split(/[,;\t]/).map(h => h.trim().replace(/^"|"$/g, ""));
+  const delimiter = options?.delimiter || detectDelimiter(lines[0]);
+  const hasHeader = options?.hasHeader !== false;
+  const firstRow = splitLine(lines[0], delimiter).map(cleanCell);
+  const headers = hasHeader
+    ? firstRow
+    : firstRow.map((_, index) => `Column ${index + 1}`);
   const fieldMap = autoDetectHeaders(headers);
 
   const products: ThyronixProductInput[] = [];
-  for (let i = 1; i < lines.length; i++) {
-    const values = lines[i].split(/,(?=(?:[^"]*"[^"]*")*[^"]*$)/);
+  for (let i = hasHeader ? 1 : 0; i < lines.length; i++) {
+    const values = splitLine(lines[i], delimiter).map(cleanCell);
     if (values.length === 0) continue;
     const row: Record<string, string> = {};
-    headers.forEach((h, idx) => { row[h] = (values[idx] || "").trim().replace(/^"|"$/g, ""); });
+    headers.forEach((h, idx) => { row[h] = values[idx] || ""; });
     products.push(parseRow(row, fieldMap));
   }
 

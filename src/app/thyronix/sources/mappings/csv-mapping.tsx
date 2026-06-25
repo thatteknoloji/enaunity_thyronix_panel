@@ -24,13 +24,26 @@ interface Props {
   columns: string[]; previewRows: Record<string,string>[];
   fieldMapping: Record<string,string>; setFieldMapping: (m:Record<string,string>)=>void;
   onLoad: ()=>void; loading: boolean;
+  validation?: {
+    validRows: number;
+    invalidRows: number;
+    missingProductName: number;
+    missingPrice: number;
+    missingIdentity: number;
+    invalidSamples?: Array<{ row: number; name: string; errors: string[] }>;
+  } | null;
 }
 
 export default function CsvMappingUI({
   fileName, setFileName, delimiter, setDelimiter, encoding, setEncoding,
   hasHeader, setHasHeader, columns, previewRows,
-  fieldMapping, setFieldMapping, onLoad, loading,
+  fieldMapping, setFieldMapping, onLoad, loading, validation,
 }: Props) {
+  const mappedTargets = new Set(Object.values(fieldMapping).filter(Boolean));
+  const mappedCount = columns.filter((col) => fieldMapping[col]).length;
+  const requiredComplete = mappedTargets.has("name") && mappedTargets.has("price");
+  const identityComplete = ["barcode", "stockCode", "modelCode", "externalId"].some((field) => mappedTargets.has(field));
+
   return (
     <div className="space-y-4">
       <div className="p-4 rounded-xl bg-nexa-card border border-nexa-border">
@@ -77,6 +90,22 @@ export default function CsvMappingUI({
         </div>
       </div>
 
+      {columns.length > 0 && (
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+          {[
+            { label: "Kolon", value: columns.length, tone: "text-nexa-text" },
+            { label: "Eşleşen", value: mappedCount, tone: "text-amber-400" },
+            { label: "Zorunlu Alan", value: requiredComplete ? "Hazır" : "Eksik", tone: requiredComplete ? "text-emerald-400" : "text-amber-400" },
+            { label: "Kimlik Alanı", value: identityComplete ? "Hazır" : "Eksik", tone: identityComplete ? "text-emerald-400" : "text-amber-400" },
+          ].map((item) => (
+            <div key={item.label} className="rounded-lg border border-nexa-border bg-nexa-bg px-3 py-2">
+              <p className="text-[10px] text-nexa-text-secondary">{item.label}</p>
+              <p className={`text-sm font-semibold ${item.tone}`}>{String(item.value)}</p>
+            </div>
+          ))}
+        </div>
+      )}
+
       {/* Preview */}
       {previewRows.length > 0 && (
         <div className="p-4 rounded-xl bg-nexa-card border border-nexa-border">
@@ -100,6 +129,47 @@ export default function CsvMappingUI({
         </div>
       )}
 
+      {validation && (
+        <div className="p-4 rounded-xl bg-nexa-card border border-nexa-border">
+          <div className="flex items-center justify-between gap-3 mb-3">
+            <h3 className="text-sm font-semibold text-nexa-text">Doğrulama Özeti</h3>
+            <span className="text-[11px] text-nexa-text-secondary">
+              {validation.validRows} geçerli · {validation.invalidRows} hatalı
+            </span>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
+            {[
+              ["Ürün adı", validation.missingProductName],
+              ["Fiyat", validation.missingPrice],
+              ["Kimlik", validation.missingIdentity],
+              ["Geçerli", validation.validRows],
+              ["Hatalı", validation.invalidRows],
+            ].map(([label, value]) => (
+              <div key={String(label)} className="rounded-lg border border-nexa-border bg-nexa-bg px-3 py-2">
+                <p className="text-[10px] text-nexa-text-secondary">{label}</p>
+                <p className="text-sm font-semibold text-nexa-text tabular-nums">{String(value)}</p>
+              </div>
+            ))}
+          </div>
+          {validation.invalidSamples && validation.invalidSamples.length > 0 && (
+            <div className="mt-3">
+              <p className="text-[11px] font-medium text-nexa-text-secondary mb-2">Örnek hatalar</p>
+              <div className="space-y-2">
+                {validation.invalidSamples.slice(0, 3).map((sample) => (
+                  <div key={sample.row} className="rounded-lg border border-nexa-border/70 bg-nexa-bg/70 px-3 py-2">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-xs font-medium text-nexa-text">Satır {sample.row}</span>
+                      <span className="text-[11px] text-nexa-text-secondary truncate">{sample.name}</span>
+                    </div>
+                    <p className="text-[11px] text-nexa-danger mt-1">{sample.errors.join(" · ")}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Column Mapping */}
       {columns.length > 0 && (
         <div className="p-4 rounded-xl bg-nexa-card border border-nexa-border">
@@ -108,7 +178,14 @@ export default function CsvMappingUI({
             {columns.map(col => (
               <div key={col} className="flex items-center gap-3">
                 <div className="w-1/2">
-                  <span className="text-xs font-medium text-nexa-text bg-nexa-bg px-2 py-1 rounded truncate block">{col}</span>
+                  <div className="rounded bg-nexa-bg px-2 py-1.5">
+                    <span className="text-xs font-medium text-nexa-text truncate block">{col}</span>
+                    {previewRows[0]?.[col] && (
+                      <span className="mt-1 block text-[10px] text-nexa-text-secondary/70 truncate">
+                        Örnek: {String(previewRows[0][col])}
+                      </span>
+                    )}
+                  </div>
                 </div>
                 <span className="text-nexa-text-secondary text-xs">→</span>
                 <div className="w-1/2">

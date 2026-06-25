@@ -2,6 +2,44 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { requireThyronixAdmin, thyronixErrorResponse } from "@/lib/thyronix/access";
 
+function buildRollbackUpdateData(product: Record<string, unknown>) {
+  const allowedFields = [
+    "name",
+    "description",
+    "brand",
+    "category",
+    "barcode",
+    "stockCode",
+    "modelCode",
+    "externalId",
+    "price",
+    "discountedPrice",
+    "costPrice",
+    "stock",
+    "image",
+    "images",
+    "weight",
+    "dimensions",
+    "vatRate",
+    "deliveryTime",
+    "manufacturer",
+    "warranty",
+    "shippingCost",
+    "productUrl",
+    "currency",
+    "status",
+    "metadataJson",
+  ] as const;
+
+  const data: Record<string, unknown> = {};
+  for (const field of allowedFields) {
+    if (Object.prototype.hasOwnProperty.call(product, field)) {
+      data[field] = product[field];
+    }
+  }
+  return data;
+}
+
 export async function POST(req: Request) {
   try {
     await requireThyronixAdmin();
@@ -22,10 +60,7 @@ export async function POST(req: Request) {
         if (!p.id) continue;
         await prisma.thyronixProduct.update({
           where: { id: p.id },
-          data: {
-            price: p.price, stock: p.stock, brand: p.brand, category: p.category,
-            name: p.name, status: p.status, barcode: p.barcode,
-          } as any,
+          data: buildRollbackUpdateData(p) as any,
         });
         restored++;
       }

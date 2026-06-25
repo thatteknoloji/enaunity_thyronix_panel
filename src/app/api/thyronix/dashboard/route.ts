@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { requireThyronixDealerOrAdmin, thyronixErrorResponse, withTenantFilter } from "@/lib/thyronix/access";
 import { getWorkspaceSettings } from "@/lib/thyronix/workspace";
+import { getThyronixDuplicateInsights } from "@/lib/thyronix/duplicate-insights";
 
 export async function GET() {
   try {
@@ -57,6 +58,7 @@ export async function GET() {
     ]);
 
     const workspace = await getWorkspaceSettings(user);
+    const duplicateInsights = await getThyronixDuplicateInsights(productWhere);
     const feedHealthScore = totalFeeds === 0 ? 0 : Math.round((activeFeeds / totalFeeds) * 100);
     const syncSuccessRate = syncTotal > 0 ? Math.round((syncSuccess / syncTotal) * 100) : 100;
 
@@ -82,6 +84,7 @@ export async function GET() {
           syncSuccessRate,
           errorCount: errorProducts + failedProducts,
         },
+        duplicates: duplicateInsights,
         plan: { key: workspace.planKey, limits: workspace.limits },
         onboarding: {
           completed: workspace.onboardingCompleted,

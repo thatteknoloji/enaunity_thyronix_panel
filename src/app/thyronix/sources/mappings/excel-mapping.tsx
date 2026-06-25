@@ -21,6 +21,11 @@ export default function ExcelMappingUI({
   headerRow, setHeaderRow, columns, previewRows,
   fieldMapping, setFieldMapping, onUpload, uploading, detectedCount, validation,
 }: Props) {
+  const mappedTargets = new Set(Object.values(fieldMapping).filter(Boolean));
+  const mappedCount = columns.filter((col) => fieldMapping[col]).length;
+  const requiredComplete = mappedTargets.has("name") && mappedTargets.has("price");
+  const identityComplete = ["barcode", "stockCode", "modelCode", "externalId"].some((field) => mappedTargets.has(field));
+
   return (
     <div className="space-y-4">
       <div className="p-4 rounded-xl bg-nexa-card border border-nexa-border">
@@ -59,6 +64,22 @@ export default function ExcelMappingUI({
           </div>
         )}
       </div>
+
+      {columns.length > 0 && (
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+          {[
+            { label: "Kolon", value: columns.length, tone: "text-nexa-text" },
+            { label: "Eşleşen", value: mappedCount, tone: "text-emerald-400" },
+            { label: "Zorunlu Alan", value: requiredComplete ? "Hazır" : "Eksik", tone: requiredComplete ? "text-emerald-400" : "text-amber-400" },
+            { label: "Kimlik Alanı", value: identityComplete ? "Hazır" : "Eksik", tone: identityComplete ? "text-emerald-400" : "text-amber-400" },
+          ].map((item) => (
+            <div key={item.label} className="rounded-lg border border-nexa-border bg-nexa-bg px-3 py-2">
+              <p className="text-[10px] text-nexa-text-secondary">{item.label}</p>
+              <p className={`text-sm font-semibold ${item.tone}`}>{String(item.value)}</p>
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* Preview */}
       {previewRows.length > 0 && (
@@ -132,7 +153,14 @@ export default function ExcelMappingUI({
             {columns.map(col => (
               <div key={col} className="flex items-center gap-3">
                 <div className="w-1/2">
-                  <span className="text-xs font-medium text-nexa-text bg-nexa-bg px-2 py-1 rounded truncate block">{col}</span>
+                  <div className="rounded bg-nexa-bg px-2 py-1.5">
+                    <span className="text-xs font-medium text-nexa-text truncate block">{col}</span>
+                    {previewRows[0]?.[col] && (
+                      <span className="mt-1 block text-[10px] text-nexa-text-secondary/70 truncate">
+                        Örnek: {String(previewRows[0][col])}
+                      </span>
+                    )}
+                  </div>
                 </div>
                 <span className="text-nexa-text-secondary text-xs">→</span>
                 <div className="w-1/2">

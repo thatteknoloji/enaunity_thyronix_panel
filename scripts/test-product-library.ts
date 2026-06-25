@@ -193,18 +193,23 @@ async function main() {
   console.log("\n7) Recipe engine");
   const template = resolvePackageTemplate(pkgFree, items);
   assert(template.fieldRules.some((r) => r.key === "barcode" && r.behavior === "PREFIX"), "Default barcode prefix rule exists");
+  assert(template.fieldRules.some((r) => r.key === "name" && r.behavior === "FIND_REPLACE"), "Default title text rule exists");
   const preview = buildRecipePreview({
     items,
     fieldRules: template.fieldRules,
     recipeValues: {
       barcode: { prefix: "ENA-" },
+      name: { findText: "Test", replaceText: "ENA" },
       brand: { value: "ENA Marka" },
       salePrice: { formulaType: "MULTIPLY", formulaValue: 1.2 },
+      stock: { formulaType: "SET", formulaValue: 0 },
     },
   });
   assert(preview.itemCount === 1, "Recipe preview row count matches");
   assert(String(preview.sampleRows[0].barcode).startsWith("ENA-"), "Recipe applies barcode prefix");
+  assert(String(preview.sampleRows[0].name).includes("ENA Ürün"), "Recipe applies find-replace on title");
   assert(preview.sampleRows[0].brand === "ENA Marka", "Recipe applies brand replace");
+  assert(preview.sampleRows[0].stock === 0, "Recipe can set numeric field to zero");
 
   // 8) Package source preview + commit
   console.log("\n8) Package import wizard");

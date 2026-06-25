@@ -10,6 +10,8 @@ import {
 } from "lucide-react";
 import ThemeTab from "./ThemeTab";
 import CategoriesTab from "./CategoriesTab";
+import MediaTab from "./MediaTab";
+import BannersTab from "./BannersTab";
 
 type CatalogItem = {
   id: string;
@@ -49,7 +51,7 @@ type DealerStore = {
   products: StoreProduct[];
 };
 
-type Tab = "settings" | "products" | "orders" | "categories" | "theme";
+type Tab = "settings" | "products" | "orders" | "categories" | "theme" | "media" | "banners";
 
 export default function DealerDropshipPage() {
   const router = useRouter();
@@ -323,6 +325,8 @@ export default function DealerDropshipPage() {
     { key: "products", label: "Ürünler", icon: <Package size={16} /> },
     { key: "orders", label: "Siparişler", icon: <ShoppingCart size={16} /> },
     { key: "categories", label: "Kategoriler", icon: <Tag size={16} /> },
+    { key: "media", label: "Medya", icon: <Image size={16} /> },
+    { key: "banners", label: "Banner", icon: <Image size={16} /> },
     { key: "theme", label: "Tema", icon: <Palette size={16} /> },
   ];
 
@@ -615,6 +619,14 @@ export default function DealerDropshipPage() {
 
         {tab === "categories" && (
           <CategoriesTab storeId={store?.id || ""} />
+        )}
+
+        {tab === "media" && (
+          <MediaTab />
+        )}
+
+        {tab === "banners" && (
+          <BannersTab />
         )}
 
         {tab === "theme" && (

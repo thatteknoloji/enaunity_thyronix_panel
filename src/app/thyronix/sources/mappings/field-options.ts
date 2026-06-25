@@ -33,6 +33,8 @@ export const TARGET_FIELDS: MappingFieldOption[] = [
 ];
 
 export const VARIANT_TARGET_FIELDS: MappingFieldOption[] = [
+  { v: "variantGroup", l: "Varyant Grup Adı" },
+  { v: "variantValue", l: "Varyant Değeri" },
   { v: "variantBarcode", l: "Varyant Barkod" },
   { v: "variantSku", l: "Varyant SKU" },
   { v: "variantPrice", l: "Varyant Fiyat" },

@@ -7,18 +7,20 @@ interface Props {
   xmlUrl: string; setXmlUrl: (v:string)=>void;
   template: string; setTemplate: (v:string)=>void;
   detectedFields: string[]; detectedCount: number;
+  sampleValues?: Record<string, string>;
   fieldMapping: Record<string,string>; setFieldMapping: (m:Record<string,string>)=>void;
   variantMapping: Record<string,string>; setVariantMapping: (m:Record<string,string>)=>void;
   variantFields: string[];
+  variantSamples?: Record<string, string>;
   onTest: ()=>void; testing: boolean; testResult: string;
   templates?: {id:string;name:string;group:string}[];
 }
 
 export default function XmlMappingUI({
   xmlUrl, setXmlUrl, template, setTemplate,
-  detectedFields, detectedCount, fieldMapping, setFieldMapping,
+  detectedFields, detectedCount, sampleValues = {}, fieldMapping, setFieldMapping,
   variantMapping, setVariantMapping,
-  variantFields, onTest, testing, testResult,
+  variantFields, variantSamples = {}, onTest, testing, testResult,
   templates = [],
 }: Props) {
   const grouped = templates.reduce((acc:Record<string,any[]>,t)=>{
@@ -88,7 +90,14 @@ export default function XmlMappingUI({
             {detectedFields.map(xmlField => (
               <div key={xmlField} className="flex items-center gap-3">
                 <div className="w-1/2">
-                  <span className="text-xs font-mono text-nexa-text-secondary bg-nexa-bg px-2 py-1 rounded truncate block">{xmlField}</span>
+                  <div className="rounded bg-nexa-bg px-2 py-1.5">
+                    <span className="text-xs font-mono text-nexa-text-secondary truncate block">{xmlField}</span>
+                    {sampleValues[xmlField] && (
+                      <span className="mt-1 block text-[10px] text-nexa-text-secondary/70 truncate">
+                        Örnek: {sampleValues[xmlField]}
+                      </span>
+                    )}
+                  </div>
                 </div>
                 <span className="text-nexa-text-secondary text-xs">→</span>
                 <div className="w-1/2">
@@ -135,7 +144,14 @@ export default function XmlMappingUI({
             {Array.from(new Set([...variantFields, ...Object.keys(variantMapping)])).map(variantField => (
               <div key={variantField} className="flex items-center gap-3">
                 <div className="w-1/2">
-                  <span className="text-xs font-mono text-nexa-text-secondary bg-nexa-bg px-2 py-1 rounded truncate block">{variantField}</span>
+                  <div className="rounded bg-nexa-bg px-2 py-1.5">
+                    <span className="text-xs font-mono text-nexa-text-secondary truncate block">{variantField}</span>
+                    {variantSamples[variantField] && (
+                      <span className="mt-1 block text-[10px] text-nexa-text-secondary/70 truncate">
+                        Örnek: {variantSamples[variantField]}
+                      </span>
+                    )}
+                  </div>
                 </div>
                 <span className="text-nexa-text-secondary text-xs">→</span>
                 <div className="w-1/2">

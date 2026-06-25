@@ -63,6 +63,19 @@ export function licenseLevelLabel(level: string): string {
   return map[level] || level;
 }
 
+export function packageFieldBehaviorLabel(behavior: string): string {
+  const map: Record<string, string> = {
+    LOCKED: "Kilitli",
+    REPLACE: "Sabit Değer",
+    PREFIX: "Önek Ekle",
+    SUFFIX: "Sonek Ekle",
+    FIND_REPLACE: "Metin Düzelt",
+    NUMBER_FORMULA: "Sayı Formülü",
+    HIDDEN: "Gizle",
+  };
+  return map[behavior] || behavior;
+}
+
 export function catalogFieldLabel(field: string): string {
   const map: Record<string, string> = {
     barcode: "Barkod",
@@ -74,6 +87,9 @@ export function catalogFieldLabel(field: string): string {
     salePrice: "İndirimli Fiyat",
     stock: "Stok",
     vatRate: "KDV Oranı",
+    description: "Açıklama",
+    title: "Başlık",
+    stockCode: "Stok Kodu",
   };
   return map[field] || field;
 }

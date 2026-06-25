@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { requireThyronixDealerOrAdmin, thyronixErrorResponse } from "@/lib/thyronix/access";
 
 type Dict = Record<string, string>;
+type InvalidSample = { row: number; name: string; errors: string[] };
 
 function detectDelimiter(line: string): string {
   const counts: Record<string, number> = { ",": 0, ";": 0, "\t": 0, "|": 0 };
@@ -32,7 +33,7 @@ export async function POST(req: Request) {
   try {
     await requireThyronixDealerOrAdmin();
     const body = await req.json();
-    const { url, delimiter: inputDelimiter } = body;
+    const { url, delimiter: inputDelimiter, hasHeader = true } = body;
 
     if (!url) return NextResponse.json({ error: "CSV URL gerekli" }, { status: 400 });
 
@@ -47,15 +48,19 @@ export async function POST(req: Request) {
 
     const delimiter = inputDelimiter || detectDelimiter(lines[0]);
 
-    const headers = splitLine(lines[0], delimiter).map(clean).filter(h => h.length > 0);
+    const firstRow = splitLine(lines[0], delimiter).map(clean);
+    const headers = (hasHeader
+      ? firstRow
+      : firstRow.map((_, index) => `Column ${index + 1}`)).filter(h => h.length > 0);
     if (headers.length === 0) return NextResponse.json({ error: "Başlık satırı algılanamadı" }, { status: 400 });
 
     // Parse preview rows + validation
     const previewRows: Dict[] = [];
     let validRows = 0, invalidRows = 0;
     let missingProductName = 0, missingPrice = 0, missingIdentity = 0;
+    const invalidSamples: InvalidSample[] = [];
 
-    for (let i = 1; i < lines.length; i++) {
+    for (let i = hasHeader ? 1 : 0; i < lines.length; i++) {
       const vals = splitLine(lines[i], delimiter).map(clean);
       if (vals.length === 0 || vals.every(v => !v)) continue;
 
@@ -69,6 +74,17 @@ export async function POST(req: Request) {
         if (!check.productName) missingProductName++;
         if (!check.price) missingPrice++;
         if (!check.identity) missingIdentity++;
+        if (invalidSamples.length < 10) {
+          invalidSamples.push({
+            row: i + 1,
+            name: headers.map((h) => row[h]).find((value) => value)?.substring(0, 80) || "—",
+            errors: [
+              !check.productName ? "Ürün adı eksik" : "",
+              !check.price ? "Geçersiz fiyat" : "",
+              !check.identity ? "Kimlik alanı eksik" : "",
+            ].filter(Boolean),
+          });
+        }
       }
 
       if (previewRows.length < 20) previewRows.push(row);
@@ -81,7 +97,7 @@ export async function POST(req: Request) {
         previewRows,
         detectedDelimiter: delimiter,
         totalRows: validRows + invalidRows,
-        validation: { validRows, invalidRows, missingProductName, missingPrice, missingIdentity },
+        validation: { validRows, invalidRows, missingProductName, missingPrice, missingIdentity, invalidSamples },
       },
     });
   } catch (e: any) {

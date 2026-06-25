@@ -19,6 +19,14 @@ interface ThyronixProductInput {
 
 type VariantFieldMap = Record<string, string>;
 
+export type XmlInspectionResult = {
+  totalItems: number;
+  detectedFields: string[];
+  sampleValues: Record<string, string>;
+  variantFields: string[];
+  variantSampleValues: Record<string, string>;
+};
+
 function buildReverseMap(fieldMap: Record<string, string>): Record<string, string> {
   const map: Record<string, string> = {};
   for (const [key, xmlTag] of Object.entries(fieldMap)) {
@@ -58,6 +66,141 @@ function resolveVariantFieldKey(variant: Record<string, unknown>, rawField: stri
   return keys.find((key) => key.toLowerCase() === lower);
 }
 
+export function findXmlItems(parsed: unknown, template: FeedTemplate): unknown[] {
+  if (!parsed || typeof parsed !== "object") return [];
+  if (Array.isArray(parsed)) return parsed;
+
+  let root = (parsed as Record<string, unknown>)[template.rootElement];
+  if (!root || typeof root !== "object") {
+    for (const val of Object.values(parsed as Record<string, unknown>)) {
+      if (val && typeof val === "object" && !Array.isArray(val)) {
+        const nested = (val as Record<string, unknown>)[template.rootElement];
+        if (nested && typeof nested === "object") {
+          root = nested;
+          break;
+        }
+      }
+    }
+  }
+  if (root && typeof root === "object") {
+    const items = (root as Record<string, unknown>)[template.itemElement];
+    if (items) return Array.isArray(items) ? items : [items];
+    for (const val of Object.values(root as Record<string, unknown>)) {
+      if (Array.isArray(val) && val.length > 0 && typeof val[0] === "object") return val;
+    }
+  }
+
+  const direct = (parsed as Record<string, unknown>)[template.itemElement];
+  if (direct) return Array.isArray(direct) ? direct : [direct];
+
+  for (const val of Object.values(parsed as Record<string, unknown>)) {
+    if (Array.isArray(val) && val.length > 0 && typeof val[0] === "object") return val;
+  }
+
+  return [];
+}
+
+export function inspectXmlFeed(xml: string, template: FeedTemplate): XmlInspectionResult {
+  const parser = new XMLParser({
+    ignoreAttributes: false,
+    attributeNamePrefix: "@_",
+    textNodeName: "#text",
+    parseTagValue: false,
+    parseAttributeValue: false,
+    trimValues: true,
+  });
+
+  const parsed = parser.parse(xml);
+  const items = findXmlItems(parsed, template);
+  const detectedFields = new Set<string>();
+  const sampleValues: Record<string, string> = {};
+  const variantFields = new Set<string>();
+  const variantSampleValues: Record<string, string> = {};
+  const variantTags = new Set([
+    template.variantElement,
+    "variants",
+    "variant",
+    "Varyantlar",
+    "varyant",
+    "Variants",
+    "Variant",
+    "VARIANTS",
+    "variaciones",
+    "variations",
+  ].filter(Boolean) as string[]);
+  const variantItemTags = new Set([
+    template.variantItemElement,
+    "variant",
+    "Variant",
+    "item",
+    "varyant",
+    "Varyant",
+    "variation",
+    "Variation",
+  ].filter(Boolean) as string[]);
+
+  for (let i = 0; i < Math.min(5, items.length); i++) {
+    const item = items[i] as Record<string, unknown>;
+    for (const key of Object.keys(item)) {
+      if (key.startsWith("@") || key === "#text") continue;
+      detectedFields.add(key);
+      if (!sampleValues[key]) {
+        const raw = item[key];
+        sampleValues[key] =
+          typeof raw === "object" && raw !== null
+            ? Array.isArray(raw)
+              ? `[${raw.length} items]`
+              : `{${Object.keys(raw as Record<string, unknown>).filter((innerKey) => !innerKey.startsWith("@")).length} alt alan}`
+            : String(raw || "").substring(0, 80);
+      }
+    }
+
+    const variantContainerKey = Object.keys(item).find((key) => variantTags.has(key));
+    if (!variantContainerKey) continue;
+    const variantContainer = item[variantContainerKey];
+    if (!variantContainer || typeof variantContainer !== "object") continue;
+
+    let variantItems: unknown[] = [];
+    if (Array.isArray(variantContainer)) {
+      variantItems = variantContainer;
+    } else {
+      const containerObject = variantContainer as Record<string, unknown>;
+      const nestedKey = Object.keys(containerObject).find((key) => variantItemTags.has(key) || Array.isArray(containerObject[key]));
+      if (nestedKey) {
+        const nestedValue = containerObject[nestedKey];
+        variantItems = Array.isArray(nestedValue) ? nestedValue : nestedValue ? [nestedValue] : [];
+      } else {
+        variantItems = [containerObject];
+      }
+    }
+
+    for (const variant of variantItems) {
+      if (!variant || typeof variant !== "object") continue;
+      for (const key of Object.keys(variant as Record<string, unknown>)) {
+        if (key.startsWith("@") || key === "#text") continue;
+        variantFields.add(key);
+        if (!variantSampleValues[key]) {
+          const raw = (variant as Record<string, unknown>)[key];
+          variantSampleValues[key] =
+            typeof raw === "object" && raw !== null
+              ? Array.isArray(raw)
+                ? `[${raw.length} items]`
+                : `{${Object.keys(raw as Record<string, unknown>).filter((innerKey) => !innerKey.startsWith("@")).length} alt alan}`
+              : String(raw || "").substring(0, 80);
+        }
+      }
+    }
+  }
+
+  return {
+    totalItems: items.length,
+    detectedFields: [...detectedFields],
+    sampleValues,
+    variantFields: [...variantFields],
+    variantSampleValues,
+  };
+}
+
 export function parseXmlToProducts(
   xml: string,
   template: FeedTemplate,
@@ -88,46 +231,7 @@ export function parseXmlToProducts(
   
   const reverseMap = buildReverseMap(effectiveMap);
 
-  // Find items in the parsed XML
-  const findItems = (obj: unknown): unknown[] => {
-    if (!obj || typeof obj !== "object") return [];
-    if (Array.isArray(obj)) return obj;
-
-    // Try rootElement.itemElement path (top-level or one level nested e.g. Root > Urunler)
-    let root = (obj as Record<string, unknown>)[template.rootElement];
-    if (!root || typeof root !== "object") {
-      for (const val of Object.values(obj as object)) {
-        if (val && typeof val === "object" && !Array.isArray(val)) {
-          const nested = (val as Record<string, unknown>)[template.rootElement];
-          if (nested && typeof nested === "object") {
-            root = nested;
-            break;
-          }
-        }
-      }
-    }
-    if (root && typeof root === "object") {
-      const items = (root as Record<string, unknown>)[template.itemElement];
-      if (items) return Array.isArray(items) ? items : [items];
-      // If itemElement not directly found, search for arrays in root
-      for (const val of Object.values(root as object)) {
-        if (Array.isArray(val) && val.length > 0 && typeof val[0] === "object") return val;
-      }
-    }
-
-    // Try direct itemElement match
-    const direct = (obj as any)[template.itemElement];
-    if (direct) return Array.isArray(direct) ? direct : [direct];
-
-    // Fallback: search for first array value
-    for (const val of Object.values(obj as object)) {
-      if (Array.isArray(val) && val.length > 0 && typeof val[0] === "object") return val;
-    }
-
-    return [];
-  };
-
-  const items = findItems(parsed);
+  const items = findXmlItems(parsed, template);
 
   return items.map((item: any, idx: number) => {
     const product: ThyronixProductInput = {};
@@ -235,13 +339,34 @@ export function parseXmlToProducts(
         ) || undefined;
     }
 
-    // Parse variants if template supports them
-    if (template.variantElement && item[template.variantElement]) {
-      const variantsContainer = item[template.variantElement];
-      const variantItems = Array.isArray(variantsContainer?.[template.variantItemElement || "variant"])
-        ? variantsContainer[template.variantItemElement || "variant"]
-        : (variantsContainer?.[template.variantItemElement || "variant"]
-          ? [variantsContainer[template.variantItemElement || "variant"]]
+    // Parse variants using template config first, then generic auto-detection.
+    const variantContainerKey = [
+      template.variantElement,
+      "variants",
+      "Variants",
+      "Varyantlar",
+      "varyantlar",
+      "variations",
+      "VARIANTS",
+      "variant",
+      "Variant",
+    ].find((key) => key && item[key]);
+
+    if (variantContainerKey) {
+      const variantsContainer = item[variantContainerKey];
+      const nestedVariantKey =
+        template.variantItemElement ||
+        (typeof variantsContainer === "object" && variantsContainer
+          ? Object.keys(variantsContainer).find((key) =>
+              ["variant", "Variant", "varyant", "Varyant", "variation", "Variation"].includes(key) ||
+              Array.isArray((variantsContainer as Record<string, unknown>)[key])
+            )
+          : undefined) ||
+        "variant";
+      const variantItems = Array.isArray((variantsContainer as Record<string, unknown> | undefined)?.[nestedVariantKey])
+        ? (variantsContainer as Record<string, unknown>)[nestedVariantKey] as unknown[]
+        : ((variantsContainer as Record<string, unknown> | undefined)?.[nestedVariantKey]
+          ? [(variantsContainer as Record<string, unknown>)[nestedVariantKey]]
           : (Array.isArray(variantsContainer) ? variantsContainer : [variantsContainer]).filter(Boolean));
 
       product.variants = variantItems.map((vi: any) => {
@@ -251,6 +376,8 @@ export function parseXmlToProducts(
         let variantStock = parseNumber(vi.stock || vi.Stock || vi.stok || vi.quantity) ?? 0;
         let variantImage = vi.image || vi.Image;
         const variantOpts: Array<{ group: string; value: string }> = [];
+        let mappedVariantGroup = "";
+        let mappedVariantValue = "";
         const consumedKeys = new Set<string>(["barcode", "Barcode", "BARKOD", "sku", "Sku", "SKU", "price", "Price", "satilacakFiyat", "stock", "Stock", "stok", "quantity", "image", "Image"]);
 
         if (variantFieldMap && typeof variantFieldMap === "object") {
@@ -278,10 +405,20 @@ export function parseXmlToProducts(
               case "variantImage":
                 variantImage = rawValue;
                 break;
+              case "variantGroup":
+                mappedVariantGroup = rawValue;
+                break;
+              case "variantValue":
+                mappedVariantValue = rawValue;
+                break;
               default:
                 break;
             }
           }
+        }
+
+        if (mappedVariantGroup && mappedVariantValue) {
+          variantOpts.push({ group: mappedVariantGroup, value: mappedVariantValue });
         }
 
         // Check for name1/value1, name2/value2 ... pattern (Leyna-style)

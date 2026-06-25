@@ -36,6 +36,11 @@ function isNumericColumn(values: string[]) {
   return cleaned.every((value) => Number.isFinite(Number(value.replace(",", "."))));
 }
 
+function matchesColumnKey(key: string, candidates: string[]) {
+  const normalized = key.trim().toLowerCase();
+  return candidates.some((candidate) => normalized === candidate || normalized.includes(candidate));
+}
+
 export function readItemAttributes(item: ProductCatalogItem): Record<string, string> {
   const raw = parseJson<Record<string, unknown>>(item.attributesJson, {});
   return Object.fromEntries(
@@ -83,7 +88,12 @@ export function buildDefaultFieldRules(columns: ProductPackageColumn[]): Product
     let behavior: ProductPackageFieldRule["behavior"] = "LOCKED";
     if (column.key === "brand") behavior = "REPLACE";
     if (column.key === "barcode" || column.key === "sku") behavior = "PREFIX";
-    if (column.key === "name") behavior = "SUFFIX";
+    if (matchesColumnKey(column.key, ["name", "title", "description", "aciklama", "urun_adi", "productname"])) {
+      behavior = "FIND_REPLACE";
+    }
+    if (matchesColumnKey(column.key, ["stockcode", "stok_kodu", "model_kodu", "modelcode"])) {
+      behavior = "PREFIX";
+    }
     if (["price", "salePrice", "stock", "vatRate"].includes(column.key)) behavior = "NUMBER_FORMULA";
 
     return {

@@ -32,8 +32,8 @@ export default function StorefrontHeader({
 
   return (
     <header
-      style={{ background: c.headerBg, fontFamily: f.bodyFont }}
-      className={`sticky top-0 z-30 border-b border-white/10 ${headerMinimal ? "py-2" : "py-3"}`}
+      style={{ background: c.headerBg, fontFamily: f.bodyFont, borderColor: c.textColor + "15" }}
+      className={`sticky top-0 z-30 border-b ${headerMinimal ? "py-2" : "py-3"}`}
     >
       <div className={`max-w-5xl mx-auto px-6 flex items-center gap-4 ${headerCenter ? "flex-col" : "justify-between"}`}>
         <div className="flex items-center gap-3 shrink-0">
@@ -44,7 +44,7 @@ export default function StorefrontHeader({
               <Store size={18} className="text-white" />
             </div>
           )}
-          <span style={{ fontFamily: f.headingFont }} className="text-lg font-bold text-white truncate max-w-[200px]">
+          <span style={{ fontFamily: f.headingFont, color: c.textColor }} className="text-lg font-bold truncate max-w-[200px]">
             {storeName}
           </span>
         </div>
@@ -55,7 +55,8 @@ export default function StorefrontHeader({
               <button
                 key={link.label + link.href}
                 onClick={() => handleNav(link.href)}
-                className="px-3 py-1.5 text-sm text-gray-300 hover:text-white hover:bg-white/5 rounded-lg transition-all"
+                className="px-3 py-1.5 text-sm rounded-lg transition-all hover:opacity-70"
+                style={{ color: c.textColor, opacity: 0.7 }}
               >
                 {link.label}
               </button>
@@ -63,7 +64,7 @@ export default function StorefrontHeader({
           </nav>
         )}
 
-        <button onClick={onCartClick} className="relative p-2 text-gray-400 hover:text-white shrink-0">
+        <button onClick={onCartClick} className="relative p-2 shrink-0" style={{ color: c.textColor }}>
           <ShoppingCart size={22} />
           {cartCount > 0 && (
             <span

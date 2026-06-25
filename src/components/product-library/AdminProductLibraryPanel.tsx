@@ -11,7 +11,7 @@ import {
   PlSelect, PlStat, PlStatusBadge, PlTable, PlTabs, PlTextarea, fmtDate, fmtMoney,
 } from "./pl-ui";
 import { CATALOG_STATUSES, LICENSE_LEVELS, PACKAGE_FIELD_BEHAVIORS } from "@/lib/product-library/types";
-import { UI, billingTypeLabel, catalogFieldLabel, licenseLevelLabel, statusLabel } from "@/lib/ui/turkish-labels";
+import { UI, billingTypeLabel, catalogFieldLabel, licenseLevelLabel, packageFieldBehaviorLabel, statusLabel } from "@/lib/ui/turkish-labels";
 
 type Tab = "dashboard" | "catalogs" | "products" | "packages" | "suppliers" | "imports" | "distribution" | "upload-jobs" | "access";
 
@@ -61,6 +61,7 @@ export default function AdminProductLibraryPanel() {
   const [marketplaceJobs, setMarketplaceJobs] = useState<any[]>([]);
   const [accessRows, setAccessRows] = useState<any[]>([]);
   const [dealers, setDealers] = useState<any[]>([]);
+  const [dealerGroups, setDealerGroups] = useState<any[]>([]);
 
   const [productQuery, setProductQuery] = useState({ catalogId: "", q: "", brand: "", category: "", status: "ACTIVE", page: 1 });
   const [productData, setProductData] = useState<Paginated<any> & { filters?: { brands: string[]; categories: string[] } } | null>(null);
@@ -81,7 +82,7 @@ export default function AdminProductLibraryPanel() {
   const [newSupplier, setNewSupplier] = useState({
     name: "", type: "XML", contactName: "", contactEmail: "", xmlUrl: "", notes: "", catalogId: "", status: "ACTIVE",
   });
-  const [grantAccess, setGrantAccess] = useState({ packageId: "", dealerId: "" });
+  const [grantAccess, setGrantAccess] = useState({ packageId: "", dealerId: "", dealerGroup: "" });
 
   const [xmlForm, setXmlForm] = useState({ xmlUrl: "", name: "", category: "", catalogId: "", supplierName: "" });
   const [xmlTest, setXmlTest] = useState<any>(null);
@@ -134,12 +135,14 @@ export default function AdminProductLibraryPanel() {
         setMarketplaceJobs(await plApi("/api/product-library/marketplace-jobs?scope=admin&limit=200"));
       }
       if (t === "access") {
-        const [access, dealerList] = await Promise.all([
+        const [access, dealerList, groupList] = await Promise.all([
           plApi<any[]>("/api/product-library/access"),
           plApi<any[]>("/api/admin/dealers"),
+          plApi<any[]>("/api/admin/dealer-groups"),
         ]);
         setAccessRows(access);
         setDealers(dealerList);
+        setDealerGroups(groupList);
       }
       if (t === "products") {
         const params = new URLSearchParams();
@@ -409,15 +412,15 @@ export default function AdminProductLibraryPanel() {
       method: "POST", headers: { "Content-Type": "application/json" },
       body: JSON.stringify(grantAccess),
     });
-    setGrantAccess({ packageId: "", dealerId: "" });
+    setGrantAccess({ packageId: "", dealerId: "", dealerGroup: "" });
     notify("Erişim verildi");
     load("access");
   };
 
-  const revokeAccess = async (packageId: string, dealerId: string) => {
+  const revokeAccess = async (packageId: string, dealerId?: string, dealerGroup?: string) => {
     await plApi("/api/product-library/access", {
       method: "DELETE", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ packageId, dealerId }),
+      body: JSON.stringify({ packageId, dealerId, dealerGroup }),
     });
     notify("Erişim iptal edildi");
     load("access");
@@ -918,25 +921,47 @@ export default function AdminProductLibraryPanel() {
             <div className="space-y-4">
               <PlCard className="p-4">
                 <h3 className="font-semibold text-sm text-slate-800 mb-3 flex items-center gap-2"><Users size={16} /> Manuel Erişim Ver</h3>
-                <div className="grid md:grid-cols-3 gap-3">
+                <div className="grid md:grid-cols-4 gap-3">
                   <PlSelect value={grantAccess.packageId} onChange={(e) => setGrantAccess({ ...grantAccess, packageId: e.target.value })}>
                     <option value="">Paket seç</option>
                     {packages.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
                   </PlSelect>
-                  <PlSelect value={grantAccess.dealerId} onChange={(e) => setGrantAccess({ ...grantAccess, dealerId: e.target.value })}>
+                  <PlSelect
+                    value={grantAccess.dealerId}
+                    onChange={(e) => setGrantAccess({ ...grantAccess, dealerId: e.target.value, dealerGroup: "" })}
+                  >
                     <option value="">Bayi seç</option>
                     {dealers.map((d) => <option key={d.id} value={d.id}>{d.company || d.name} ({d.email})</option>)}
                   </PlSelect>
-                  <PlBtn onClick={grantPackageAccess} disabled={!grantAccess.packageId || !grantAccess.dealerId}>Erişim Ver</PlBtn>
+                  <PlSelect
+                    value={grantAccess.dealerGroup}
+                    onChange={(e) => setGrantAccess({ ...grantAccess, dealerGroup: e.target.value, dealerId: "" })}
+                  >
+                    <option value="">Bayi grubu seç</option>
+                    {dealerGroups.map((group) => (
+                      <option key={group.id} value={group.name}>{group.name} ({group._count?.dealers || 0} bayi)</option>
+                    ))}
+                  </PlSelect>
+                  <PlBtn
+                    onClick={grantPackageAccess}
+                    disabled={!grantAccess.packageId || (!grantAccess.dealerId && !grantAccess.dealerGroup)}
+                  >
+                    Erişim Ver
+                  </PlBtn>
                 </div>
+                <p className="mt-3 text-xs text-slate-500">
+                  Tek bayi ya da tüm bayi grubuna erişim verebilirsin. Grup seçildiğinde paket o gruptaki mevcut bayilere toplu atanır.
+                </p>
               </PlCard>
               <PlCard className="overflow-hidden">
                 <PlTable>
                   <thead className="bg-slate-50 text-xs text-slate-500 uppercase">
                     <tr>
                       <th className="p-3 text-left">Bayi</th>
+                      <th className="p-3 text-left">Grup</th>
                       <th className="p-3 text-left">Paket</th>
                       <th className="p-3 text-left">Verildi</th>
+                      <th className="p-3 text-left">Kaynak</th>
                       <th className="p-3 text-left">Durum</th>
                       <th className="p-3"></th>
                     </tr>
@@ -945,12 +970,29 @@ export default function AdminProductLibraryPanel() {
                     {accessRows.map((r) => (
                       <tr key={r.id}>
                         <td className="p-3">{r.dealer?.company || r.dealer?.name || r.dealerId}</td>
+                        <td className="p-3 text-xs text-slate-500">{r.dealer?.group || "—"}</td>
                         <td className="p-3">{r.package?.name || r.packageId}</td>
                         <td className="p-3 text-xs">{fmtDate(r.grantedAt)}</td>
+                        <td className="p-3 text-xs text-slate-500">{r.grantedBy || "system"}</td>
                         <td className="p-3"><PlStatusBadge status={r.status} /></td>
                         <td className="p-3">
                           {r.status === "ACTIVE" && (
-                            <PlBtn variant="danger" size="sm" onClick={() => revokeAccess(r.packageId, r.dealerId)}>İptal</PlBtn>
+                            <PlBtn
+                              variant="danger"
+                              size="sm"
+                              onClick={() => {
+                                const groupGrant = typeof r.grantedBy === "string" && r.grantedBy.startsWith("admin-group:")
+                                  ? r.grantedBy.replace("admin-group:", "")
+                                  : "";
+                                if (groupGrant) {
+                                  revokeAccess(r.packageId, undefined, groupGrant);
+                                  return;
+                                }
+                                revokeAccess(r.packageId, r.dealerId);
+                              }}
+                            >
+                              {typeof r.grantedBy === "string" && r.grantedBy.startsWith("admin-group:") ? "Grubu Kaldır" : "İptal"}
+                            </PlBtn>
                           )}
                         </td>
                       </tr>
@@ -1096,7 +1138,7 @@ export default function AdminProductLibraryPanel() {
                         }))
                       }
                     >
-                      {PACKAGE_FIELD_BEHAVIORS.map((behavior) => <option key={behavior} value={behavior}>{behavior}</option>)}
+                      {PACKAGE_FIELD_BEHAVIORS.map((behavior) => <option key={behavior} value={behavior}>{packageFieldBehaviorLabel(behavior)}</option>)}
                     </PlSelect>
                     <div className="flex items-center gap-3 text-xs">
                       <label className="flex items-center gap-1">

@@ -54,6 +54,74 @@ interface Source {
   lastSync: string | null;
   errorLog: string | null;
   variantMapping?: string | null;
+  mappingSummary?: {
+    readiness: "ready" | "partial" | "needs_attention";
+    tested: boolean;
+    syncHealthy: boolean;
+    mappedFieldCount: number;
+    mappedVariantCount: number;
+    requiredReady: boolean;
+    identityReady: boolean;
+    lastTestedAt: string | null;
+    lastTestCount: number | null;
+    lastDetectedFieldCount: number | null;
+    lastVariantFieldCount: number | null;
+    lastValidRows: number | null;
+    lastInvalidRows: number | null;
+    hasError: boolean;
+  };
+}
+
+type MappingValidationSummary = {
+  validRows: number;
+  invalidRows: number;
+  missingProductName: number;
+  missingPrice: number;
+  missingIdentity: number;
+  invalidSamples?: Array<{ row: number; name: string; errors: string[] }>;
+};
+
+const REQUIRED_TARGETS = ["name", "price"];
+const IDENTITY_TARGETS = ["barcode", "stockCode", "modelCode", "externalId"];
+
+function getMappedTargets(mapping: Record<string, string>) {
+  return new Set(Object.values(mapping).filter(Boolean));
+}
+
+function getMissingRequiredMappings(mapping: Record<string, string>) {
+  const mappedTargets = getMappedTargets(mapping);
+  const missing: string[] = [];
+  for (const field of REQUIRED_TARGETS) {
+    if (!mappedTargets.has(field)) missing.push(field);
+  }
+  if (!IDENTITY_TARGETS.some((field) => mappedTargets.has(field))) {
+    missing.push("identity");
+  }
+  return missing;
+}
+
+function mappingErrorLabel(key: string) {
+  if (key === "name") return "Ürün adı";
+  if (key === "price") return "Fiyat";
+  if (key === "identity") return "Kimlik alanı (barkod / stok kodu / model kodu / harici ID)";
+  return key;
+}
+
+function MappingSummaryBadge({ summary }: { summary?: Source["mappingSummary"] }) {
+  if (!summary) return null;
+  const tone =
+    summary.readiness === "ready"
+      ? "bg-nexa-success/10 text-nexa-success"
+      : summary.readiness === "partial"
+        ? "bg-nexa-warning/10 text-nexa-warning"
+        : "bg-nexa-danger/10 text-nexa-danger";
+  const label =
+    summary.readiness === "ready"
+      ? "Mapping Hazır"
+      : summary.readiness === "partial"
+        ? "Kısmi Hazır"
+        : "Kontrol Gerekli";
+  return <span className={`inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-[10px] font-medium ${tone}`}>{label}</span>;
 }
 
 export default function ThyronixSources() {
@@ -71,7 +139,9 @@ export default function ThyronixSources() {
   const [variantFields, setVariantFields] = useState<string[]>([]);
   const [testResult, setTestResult] = useState<any>(null);
   const [variantSamples, setVariantSamples] = useState<Record<string,string>>({});
+  const [fieldSamples, setFieldSamples] = useState<Record<string,string>>({});
   const [excelValidation, setExcelValidation] = useState<ExcelValidationSummary | null>(null);
+  const [csvValidation, setCsvValidation] = useState<MappingValidationSummary | null>(null);
   const [testing, setTesting] = useState(false);
   const [testCount, setTestCount] = useState(0);
 
@@ -101,6 +171,7 @@ export default function ThyronixSources() {
   const [apiJsonFields, setApiJsonFields] = useState<string[]>([]);
   const [apiResponse, setApiResponse] = useState("");
   const [apiCount, setApiCount] = useState(0);
+  const [lastTestMeta, setLastTestMeta] = useState<Record<string, string>>({});
 
   const THYRONIX_FIELDS = ["name","description","brand","category","subcategory","barcode","stockCode","modelCode","externalId","price","costPrice","salePrice","stock","currency","image","images","weight","dimensions","vatRate","deliveryTime","warranty","shippingCost","productUrl","status"];
   const VARIANT_FIELDS = ["variantGroup","variantValue","variantBarcode","variantPrice","variantStock","variantImage"];
@@ -115,7 +186,17 @@ export default function ThyronixSources() {
       setVariantFields(d.data.variantFields || []);
       setTestResult(d.data);
       setFieldMapping(d.data.currentMapping || {});
+      setFieldSamples(d.data.sampleValues || {});
       setVariantSamples(d.data.variantSampleValues || {});
+      setLastTestMeta({
+        _lastTestType: "xml",
+        _lastTestedAt: new Date().toISOString(),
+        _lastTestCount: String(d.data.totalItems || 0),
+        _lastDetectedFieldCount: String((d.data.detectedFields || []).length),
+        _lastVariantFieldCount: String((d.data.variantFields || []).length),
+        _lastValidRows: "",
+        _lastInvalidRows: "",
+      });
       toast.success(`${d.data.totalItems} ürün, ${d.data.detectedFields.length} alan, ${(d.data.variantFields||[]).length} varyant alanı`);
     } else toast.error(d.error || "Test başarısız");
     setTesting(false);
@@ -125,6 +206,7 @@ export default function ThyronixSources() {
     if (!form.xmlUrl) return toast.error("Excel dosya yolu veya URL girin");
     setTesting(true);
     setExcelValidation(null);
+    setCsvValidation(null);
     try {
       const res = await fetch("/api/thyronix/sources/excel/test", {
         method: "POST", headers: { "Content-Type": "application/json" },
@@ -144,6 +226,15 @@ export default function ThyronixSources() {
         setExcelPreview(d.data.previewRows||[]);
         setTestCount(d.data.totalRows||0);
         setExcelValidation(d.data.validation || null);
+        setLastTestMeta({
+          _lastTestType: "excel",
+          _lastTestedAt: new Date().toISOString(),
+          _lastTestCount: String(d.data.totalRows || 0),
+          _lastDetectedFieldCount: String((d.data.columns || []).length),
+          _lastVariantFieldCount: "0",
+          _lastValidRows: String(d.data.validation?.validRows || 0),
+          _lastInvalidRows: String(d.data.validation?.invalidRows || 0),
+        });
         toast.success(`${d.data.totalRows||0} satır, ${(d.data.columns||[]).length} kolon bulundu`);
       } else { toast.error(d.error||"Excel test başarısız"); }
     } catch { toast.error("Bağlantı hatası"); }
@@ -153,6 +244,7 @@ export default function ThyronixSources() {
   const testCsv = async () => {
     if (!form.xmlUrl) return toast.error("CSV dosya yolu veya URL girin");
     setTesting(true);
+    setCsvValidation(null);
     try {
       const res = await fetch("/api/thyronix/sources/csv/test", {
         method: "POST", headers: { "Content-Type": "application/json" },
@@ -164,6 +256,16 @@ export default function ThyronixSources() {
         setCsvPreview(d.data.previewRows||[]);
         setCsvDelimiter(d.data.detectedDelimiter||csvDelimiter);
         setTestCount(d.data.totalRows||0);
+        setCsvValidation(d.data.validation || null);
+        setLastTestMeta({
+          _lastTestType: "csv",
+          _lastTestedAt: new Date().toISOString(),
+          _lastTestCount: String(d.data.totalRows || 0),
+          _lastDetectedFieldCount: String((d.data.columns || []).length),
+          _lastVariantFieldCount: "0",
+          _lastValidRows: String(d.data.validation?.validRows || 0),
+          _lastInvalidRows: String(d.data.validation?.invalidRows || 0),
+        });
         toast.success(`${d.data.totalRows||0} satır, ${(d.data.columns||[]).length} kolon bulundu`);
       } else { toast.error(d.error||"CSV test başarısız"); }
     } catch { toast.error("Bağlantı hatası"); }
@@ -205,10 +307,18 @@ export default function ThyronixSources() {
     setExcelColumns([]);
     setExcelPreview([]);
     setExcelValidation(null);
+    setCsvValidation(null);
+    setCsvDelimiter(",");
+    setCsvEncoding("utf-8");
+    setCsvHasHeader(true);
+    setCsvColumns([]);
+    setCsvPreview([]);
     setDetectedFields([]);
     setVariantFields([]);
     setVariantSamples({});
+    setFieldSamples({});
     setTestCount(0);
+    setLastTestMeta({});
     setShowModal(true);
   };
 
@@ -217,19 +327,88 @@ export default function ThyronixSources() {
     setForm({ name: s.name, xmlUrl: s.xmlUrl, type: s.type, interval: s.interval, inputFormat: (s as any).inputFormat || "custom_xml" });
     try { setFieldMapping(JSON.parse((s as any).fieldMapping || "{}")); } catch { setFieldMapping({}); }
     try { setVariantMapping(JSON.parse((s as any).variantMapping || "{}")); } catch { setVariantMapping({}); }
-    try { setFixedValues(JSON.parse((s as any).fixedValues || "{}")); } catch { setFixedValues({}); }
-    setTestResult(null); setExcelSheet(""); setExcelSheets([]); setExcelHeaderRow(1); setExcelColumns([]); setExcelPreview([]); setExcelValidation(null); setDetectedFields([]); setVariantFields([]); setVariantSamples({}); setTestCount(0);
+    try {
+      const parsedFixed = JSON.parse((s as any).fixedValues || "{}");
+      setFixedValues(parsedFixed);
+      setExcelSheet(parsedFixed._sheetName || "");
+      setExcelHeaderRow(Number(parsedFixed._headerRow || 1));
+      setCsvDelimiter(parsedFixed._delimiter || ",");
+      setCsvEncoding(parsedFixed._encoding || "utf-8");
+      setCsvHasHeader(parsedFixed._hasHeader !== "false");
+    } catch {
+      setFixedValues({});
+      setExcelSheet("");
+      setExcelHeaderRow(1);
+      setCsvDelimiter(",");
+      setCsvEncoding("utf-8");
+      setCsvHasHeader(true);
+    }
+    setTestResult(null);
+    setExcelSheets([]);
+    setExcelColumns([]);
+    setExcelPreview([]);
+    setExcelValidation(null);
+    setCsvValidation(null);
+    setCsvColumns([]);
+    setCsvPreview([]);
+    setDetectedFields([]);
+    setVariantFields([]);
+    setVariantSamples({});
+    setFieldSamples({});
+    setTestCount(0);
+    setLastTestMeta({});
     setShowModal(true);
   };
 
   const handleSave = async () => {
+    if (form.type === "excel") {
+      if (excelColumns.length === 0) {
+        toast.error("Excel kaynağını kaydetmeden önce dosyayı test et");
+        return;
+      }
+      const missing = getMissingRequiredMappings(fieldMapping);
+      if (missing.length > 0) {
+        toast.error(`Eksik eşleştirme: ${missing.map(mappingErrorLabel).join(", ")}`);
+        return;
+      }
+    }
+
+    if (form.type === "csv") {
+      if (csvColumns.length === 0) {
+        toast.error("CSV kaynağını kaydetmeden önce dosyayı test et");
+        return;
+      }
+      const missing = getMissingRequiredMappings(fieldMapping);
+      if (missing.length > 0) {
+        toast.error(`Eksik eşleştirme: ${missing.map(mappingErrorLabel).join(", ")}`);
+        return;
+      }
+    }
+
     const url = editing ? `/api/thyronix/sources/${editing.id}` : "/api/thyronix/sources";
     const method = editing ? "PUT" : "POST";
+    const missingMappings = getMissingRequiredMappings(fieldMapping);
+    const persistedFixedValues = {
+      ...fixedValues,
+      ...lastTestMeta,
+      _mappedFieldCount: String(Object.keys(fieldMapping).filter((key) => fieldMapping[key]).length),
+      _mappedVariantCount: String(Object.keys(variantMapping).filter((key) => variantMapping[key] && variantMapping[key] !== "variantIgnore").length),
+      _requiredMappingReady: String(!missingMappings.includes("name") && !missingMappings.includes("price")),
+      _identityMappingReady: String(!missingMappings.includes("identity")),
+      ...(form.type === "excel" ? { _sheetName: excelSheet, _headerRow: String(excelHeaderRow) } : {}),
+      ...(form.type === "csv"
+        ? {
+            _delimiter: csvDelimiter,
+            _encoding: csvEncoding,
+            _hasHeader: csvHasHeader ? "true" : "false",
+          }
+        : {}),
+    };
     const body: any = {
       ...form,
       fieldMapping: JSON.stringify(fieldMapping),
       variantMapping: JSON.stringify(variantMapping),
-      fixedValues: JSON.stringify(fixedValues),
+      fixedValues: JSON.stringify(persistedFixedValues),
     };
     await fetch(url, { method, headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
     setShowModal(false);
@@ -369,12 +548,31 @@ export default function ThyronixSources() {
                         <TypeIcon type={s.type} />
                       </div>
                       <div className="min-w-0">
-                        <p className="text-sm font-medium text-nexa-text">{s.name}</p>
+                        <div className="flex flex-wrap items-center gap-2">
+                          <p className="text-sm font-medium text-nexa-text">{s.name}</p>
+                          <MappingSummaryBadge summary={s.mappingSummary} />
+                        </div>
                         <p className="text-xs text-nexa-text-secondary truncate max-w-[280px]" title={(s.feedUrls || [s.xmlUrl]).join("\n")}>
                           {(s.feedUrls?.length || 0) > 1
                             ? `${s.feedUrls!.length} feed URL · ${s.xmlUrl}`
                             : s.xmlUrl}
                         </p>
+                        {s.mappingSummary && (
+                          <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-[10px] text-nexa-text-secondary">
+                            <span>{s.mappingSummary.mappedFieldCount} alan eşleşti</span>
+                            {s.mappingSummary.mappedVariantCount > 0 && (
+                              <span>{s.mappingSummary.mappedVariantCount} varyant alanı</span>
+                            )}
+                            <span>{s.mappingSummary.requiredReady ? "Zorunlu hazır" : "Zorunlu eksik"}</span>
+                            <span>{s.mappingSummary.identityReady ? "Kimlik hazır" : "Kimlik eksik"}</span>
+                            {typeof s.mappingSummary.lastTestCount === "number" && s.mappingSummary.lastTestCount > 0 && (
+                              <span>Son test: {s.mappingSummary.lastTestCount.toLocaleString("tr-TR")} kayıt</span>
+                            )}
+                            {typeof s.mappingSummary.lastInvalidRows === "number" && s.mappingSummary.lastInvalidRows > 0 && (
+                              <span className="text-nexa-warning">{s.mappingSummary.lastInvalidRows} hatalı satır</span>
+                            )}
+                          </div>
+                        )}
                       </div>
                     </div>
                   </td>
@@ -505,9 +703,11 @@ export default function ThyronixSources() {
                   xmlUrl={form.xmlUrl} setXmlUrl={v=>setForm({...form,xmlUrl:v})}
                   template={form.inputFormat} setTemplate={v=>setForm({...form,inputFormat:v})}
                   detectedFields={detectedFields} detectedCount={testCount}
+                  sampleValues={fieldSamples}
                   fieldMapping={fieldMapping} setFieldMapping={setFieldMapping}
                   variantMapping={variantMapping} setVariantMapping={setVariantMapping}
                   variantFields={variantFields}
+                  variantSamples={variantSamples}
                   onTest={testSource} testing={testing}
                   testResult={testResult ? `${testCount} ürün tespit edildi` : ""}
                   templates={Object.entries(getTemplatesByGroup()).flatMap(([g,ts])=>ts.filter(t=>t.id!=="custom_csv").map(t=>({id:t.id,name:t.name,group:g})))}
@@ -515,7 +715,7 @@ export default function ThyronixSources() {
               )}
 
               {/* Excel Mapping */}
-              {form.type === "csv" && form.inputFormat === "excel" && (
+              {form.type === "excel" && (
                 <ExcelMappingUI
                   fileName={form.xmlUrl} setFileName={v=>setForm({...form,xmlUrl:v})}
                   sheetName={excelSheet} setSheetName={setExcelSheet} sheets={excelSheets}
@@ -538,6 +738,7 @@ export default function ThyronixSources() {
                   columns={csvColumns} previewRows={csvPreview}
                   fieldMapping={fieldMapping} setFieldMapping={setFieldMapping}
                   onLoad={testCsv} loading={testing}
+                  validation={csvValidation}
                 />
               )}
 

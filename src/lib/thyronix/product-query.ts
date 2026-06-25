@@ -82,6 +82,7 @@ export async function buildThyronixProductWhere(
       { name: { contains: cleanSearch } },
       { barcode: { contains: cleanSearch } },
       { stockCode: { contains: cleanSearch } },
+      { modelCode: { contains: cleanSearch } },
       { brand: { contains: cleanSearch } },
       { externalId: { contains: cleanSearch } },
     ];

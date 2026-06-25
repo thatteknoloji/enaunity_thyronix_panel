@@ -107,7 +107,7 @@ export async function PATCH(req: Request) {
     const user = await requireDropshipAccess();
     const dealerId = user.dealerId!;
     const body = await req.json();
-    const { id, name, isActive, sortOrder } = body;
+    const { id, name, isActive, sortOrder, imageUrl } = body;
 
     const store = await prisma.dealerStore.findUnique({ where: { dealerId } });
     if (!store) {
@@ -128,6 +128,7 @@ export async function PATCH(req: Request) {
     }
     if (isActive !== undefined) data.isActive = isActive;
     if (sortOrder !== undefined) data.sortOrder = sortOrder;
+    if (imageUrl !== undefined) data.imageUrl = imageUrl;
 
     const updated = await prisma.storeCategory.update({ where: { id }, data });
     return NextResponse.json({ success: true, data: updated });

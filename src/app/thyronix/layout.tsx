@@ -6,7 +6,7 @@ import Link from "next/link";
 import {
   LayoutDashboard, Link2, Package, GitBranch, Radio,
   BarChart3, Settings, LogOut, ChevronLeft, ChevronRight,
-  Menu, Brain, Workflow, Rocket, HelpCircle, ListChecks, Activity, Users,
+  Menu, Brain, Workflow, Rocket, HelpCircle, ListChecks, Activity, Users, TrendingUp,
 } from "lucide-react";
 import { isPlatformAdmin } from "@/lib/product-auth/admin-bypass";
 import { OnboardingWizard } from "@/components/thyronix/OnboardingWizard";
@@ -17,6 +17,7 @@ const navItems = [
   { href: "/thyronix/sources", label: "Kaynaklar", icon: Link2 },
   { href: "/thyronix/products", label: "Ürünler", icon: Package },
   { href: "/thyronix/processing", label: "İşleme", icon: GitBranch },
+  { href: "/thyronix/analysis", label: "Analiz Merkezi", icon: TrendingUp },
   { href: "/thyronix/feeds", label: "Feedler", icon: Radio },
   { href: "/thyronix/ai", label: "THYRONIX AI", icon: Brain, adminOnly: true, planFeature: "aiEnabled" as const },
   { href: "/thyronix/automation", label: "Otomasyon", icon: Workflow, planFeature: "automationEnabled" as const },

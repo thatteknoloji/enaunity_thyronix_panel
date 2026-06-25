@@ -13,6 +13,10 @@ function toNumber(value: unknown) {
   return Number.isFinite(parsed) ? parsed : 0;
 }
 
+function hasOwn(recipe: ProductPackageRecipeValue | undefined, key: keyof ProductPackageRecipeValue) {
+  return !!recipe && Object.prototype.hasOwnProperty.call(recipe, key);
+}
+
 function roundValue(value: number, step?: number) {
   if (!step || step <= 0) return value;
   return Math.round(value / step) * step;
@@ -24,14 +28,24 @@ function applyNumberFormula(value: number, recipe: ProductPackageRecipeValue | u
   const formulaValue = Number(recipe.formulaValue ?? 0);
 
   let next = value;
-  if (formulaType === "SET") next = formulaValue || value;
+  if (formulaType === "SET") next = formulaValue;
   if (formulaType === "ADD") next = value + formulaValue;
-  if (formulaType === "MULTIPLY") next = value * (formulaValue || 1);
+  if (formulaType === "MULTIPLY") next = value * formulaValue;
   if (formulaType === "PERCENT") next = value * (1 + formulaValue / 100);
 
   if (typeof recipe.minValue === "number") next = Math.max(next, recipe.minValue);
   next = roundValue(next, recipe.roundTo);
   return Number(next.toFixed(2));
+}
+
+function escapeRegExp(value: string) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function applyFindReplace(value: string, recipe: ProductPackageRecipeValue | undefined) {
+  if (!recipe?.findText) return value;
+  const replacement = recipe.replaceText ?? "";
+  return value.replace(new RegExp(escapeRegExp(recipe.findText), "gi"), replacement);
 }
 
 function getRawItemValue(item: ProductCatalogItem, rule: ProductPackageFieldRule) {
@@ -50,14 +64,15 @@ function applyRule(
   if (rule.dataType === "number") {
     const base = toNumber(value);
     if (rule.behavior === "NUMBER_FORMULA") return applyNumberFormula(base, recipe);
-    if (rule.behavior === "REPLACE" && recipe?.value) return toNumber(recipe.value);
+    if (rule.behavior === "REPLACE" && hasOwn(recipe, "value")) return toNumber(recipe?.value);
     return base;
   }
 
   const base = String(value ?? "");
-  if (rule.behavior === "REPLACE" && recipe?.value) return recipe.value;
+  if (rule.behavior === "REPLACE" && hasOwn(recipe, "value")) return recipe?.value ?? "";
   if (rule.behavior === "PREFIX" && recipe?.prefix) return `${recipe.prefix}${base}`;
   if (rule.behavior === "SUFFIX" && recipe?.suffix) return `${base}${recipe.suffix}`;
+  if (rule.behavior === "FIND_REPLACE") return applyFindReplace(base, recipe);
   return base;
 }
 

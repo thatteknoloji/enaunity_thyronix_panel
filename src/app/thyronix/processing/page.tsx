@@ -1,12 +1,14 @@
 "use client";
 
-import { useState } from "react";
-import { GitBranch, Tag, Layers, ShieldBan, AlertTriangle, Copy } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { GitBranch, Tag, Layers, ShieldBan, AlertTriangle } from "lucide-react";
 import RulesPage from "../rules/page";
 import BrandMappingPage from "../brand-mapping/page";
 import CategoryMappingPage from "../category-mapping/page";
 import ExclusionsPage from "../exclusions/page";
 import IssuesPage from "../issues/page";
+import DuplicateProductsPanel from "@/components/thyronix/DuplicateProductsPanel";
 
 const tabs = [
   { id: "rules", label: "Kurallar", icon: GitBranch },
@@ -14,11 +16,20 @@ const tabs = [
   { id: "category", label: "Kategori Eşleştirme", icon: Layers },
   { id: "exclusions", label: "Hariç Tutmalar", icon: ShieldBan },
   { id: "issues", label: "Sorunlar", icon: AlertTriangle },
-  { id: "duplicates", label: "Kopya Ürünler", icon: Copy },
+  { id: "duplicates", label: "Kopya Ürünler", icon: AlertTriangle },
 ];
 
 export default function ProcessingCenterPage() {
+  const searchParams = useSearchParams();
   const [activeTab, setActiveTab] = useState("rules");
+  const duplicateField = (searchParams.get("field") || "all") as "all" | "barcode" | "stockCode" | "modelCode" | "externalId";
+
+  useEffect(() => {
+    const requestedTab = searchParams.get("tab");
+    if (requestedTab && tabs.some((tab) => tab.id === requestedTab)) {
+      setActiveTab(requestedTab);
+    }
+  }, [searchParams]);
 
   return (
     <div className="space-y-6">
@@ -52,15 +63,7 @@ export default function ProcessingCenterPage() {
         {activeTab === "category" && <CategoryMappingPage />}
         {activeTab === "exclusions" && <ExclusionsPage />}
         {activeTab === "issues" && <IssuesPage />}
-        {activeTab === "duplicates" && (
-          <div className="rounded-xl border border-nexa-border bg-nexa-card p-12 text-center">
-            <Copy size={48} className="mx-auto text-nexa-text-secondary/30 mb-4" />
-            <h3 className="text-lg font-semibold text-nexa-text mb-2">Kopya Ürün Tespiti</h3>
-            <p className="text-sm text-nexa-text-secondary">
-              Bu özellik yakında aktif olacak. Kopya ürünleri otomatik olarak tespit edecek ve birleştirebileceksiniz.
-            </p>
-          </div>
-        )}
+        {activeTab === "duplicates" && <DuplicateProductsPanel initialField={duplicateField} />}
       </div>
     </div>
   );

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { requireThyronixDealerOrAdmin, thyronixErrorResponse, withTenantFilter } from "@/lib/thyronix/access";
+import { getThyronixDuplicateInsights } from "@/lib/thyronix/duplicate-insights";
 
 export async function GET() {
   try {
@@ -60,6 +61,7 @@ export async function GET() {
       orderBy: { _count: { id: "desc" } },
       take: 10,
     });
+    const duplicateInsights = await getThyronixDuplicateInsights(productWhere);
 
     return NextResponse.json({
       success: true,
@@ -78,6 +80,7 @@ export async function GET() {
           successRate: syncTotal > 0 ? Math.round((syncSuccess / syncTotal) * 100) : 100,
           recent: recentSyncs,
         },
+        duplicates: duplicateInsights,
         lastActivity: { sync: lastSync, feed: lastFeedLog, snapshot: null },
         categories: categoryBreakdown.map((c) => ({
           name: c.category || "Kategorisiz",

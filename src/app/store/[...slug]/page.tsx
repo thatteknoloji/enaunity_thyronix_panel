@@ -35,6 +35,7 @@ export default function StorefrontPage() {
   const [store, setStore] = useState<StoreData | null>(null);
   const [products, setProducts] = useState<ProductData[]>([]);
   const [storeCategories, setStoreCategories] = useState<StoreCategoryData[]>([]);
+  const [banners, setBanners] = useState<Array<{ id: string; imageUrl: string; title: string; subtitle: string; ctaText: string; ctaLink: string }>>([]);
   const [loading, setLoading] = useState(true);
   const [theme, setTheme] = useState<StoreTheme | null>(null);
   const [viewingProduct, setViewingProduct] = useState<ProductData | null>(null);
@@ -55,6 +56,7 @@ export default function StorefrontPage() {
           setStore(d.data.store);
           setProducts(d.data.products);
           setStoreCategories(d.data.categories || []);
+          setBanners(d.data.banners || []);
           const parsed = parseTheme(d.data.store.themeJson || "{}");
           setTheme(parsed);
           if (parsed.seo?.title) document.title = parsed.seo.title;
@@ -155,7 +157,8 @@ export default function StorefrontPage() {
         <div className="max-w-4xl mx-auto p-6">
           <div className="flex items-center justify-between mb-6">
             <button onClick={() => setViewingProduct(null)}
-              className="flex items-center gap-1 text-sm text-gray-400 hover:text-white transition-colors">
+              className="flex items-center gap-1 text-sm transition-colors"
+              style={{ color: c.textColor, opacity: 0.5 }}>
               <ChevronRight size={16} className="rotate-180" /> Geri
             </button>
           </div>
@@ -239,7 +242,7 @@ export default function StorefrontPage() {
         </div>
         <CartDrawer show={showCart} onClose={() => setShowCart(false)} items={items}
           total={total} count={count} updateQuantity={updateQuantity} removeItem={removeItem}
-          primary={c.primaryColor} buttonRadius={buttonRadius} slug={slug} />
+          primary={c.primaryColor} buttonRadius={buttonRadius} slug={slug} theme={theme} />
         <StorefrontFooter theme={theme} storeName={store.name} />
       </div>
     );
@@ -260,7 +263,7 @@ export default function StorefrontPage() {
         </div>
       )}
 
-      <StorefrontBanner theme={theme} />
+      <StorefrontBanner theme={theme} banners={banners} />
 
       <div className="max-w-5xl mx-auto px-6 py-8">
         <div className="flex items-start justify-between mb-8">
@@ -282,8 +285,8 @@ export default function StorefrontPage() {
             <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: c.textColor, opacity: 0.4 }} />
             <input type="text" placeholder="Ürünlerde ara..." value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              style={{ background: c.cardBg, borderColor: "rgba(255,255,255,0.1)", color: c.textColor }}
-              className="w-full pl-10 pr-4 py-2.5 border rounded-xl placeholder-gray-500 focus:outline-none focus:ring-2 text-sm" />
+              className="w-full pl-10 pr-4 py-2.5 border rounded-xl placeholder:text-sm focus:outline-none focus:ring-2 text-sm"
+              style={{ background: c.cardBg, borderColor: c.textColor + "15", color: c.textColor }} />
           </div>
         </div>
 
@@ -294,7 +297,7 @@ export default function StorefrontPage() {
               style={{
                 background: !selectedCategory ? c.primaryColor : "transparent",
                 color: !selectedCategory ? "#fff" : c.textColor,
-                borderColor: "rgba(255,255,255,0.15)",
+                borderColor: c.textColor + "20",
                 borderRadius: buttonRadius,
               }}
               className="shrink-0 px-3 py-1.5 text-xs font-medium border transition-all hover:opacity-80"
@@ -308,7 +311,7 @@ export default function StorefrontPage() {
                 style={{
                   background: selectedCategory === cat.id ? c.primaryColor : "transparent",
                   color: selectedCategory === cat.id ? "#fff" : c.textColor,
-                  borderColor: "rgba(255,255,255,0.15)",
+                  borderColor: c.textColor + "20",
                   borderRadius: buttonRadius,
                 }}
                 className="shrink-0 px-3 py-1.5 text-xs font-medium border whitespace-nowrap transition-all hover:opacity-80"
@@ -322,7 +325,7 @@ export default function StorefrontPage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
           {filteredProducts.map((p) => (
             <div key={p.id}
-              style={{ background: c.cardBg, borderColor: "rgba(255,255,255,0.08)" }}
+              style={{ background: c.cardBg, borderColor: c.textColor + "15" }}
               className="rounded-2xl border overflow-hidden hover:opacity-90 transition-all group">
               <div onClick={() => setViewingProduct(p)} className="aspect-square overflow-hidden cursor-pointer"
                 style={{ background: c.backgroundColor }}>
@@ -371,46 +374,50 @@ export default function StorefrontPage() {
 
       <CartDrawer show={showCart} onClose={() => setShowCart(false)} items={items}
         total={total} count={count} updateQuantity={updateQuantity} removeItem={removeItem}
-        primary={c.primaryColor} buttonRadius={buttonRadius} slug={slug} />
+        primary={c.primaryColor} buttonRadius={buttonRadius} slug={slug} theme={theme} />
     </div>
   );
 }
 
-function CartDrawer({ show, onClose, items, total, count, updateQuantity, removeItem, primary, buttonRadius, slug }: {
+function CartDrawer({ show, onClose, items, total, count, updateQuantity, removeItem, primary, buttonRadius, slug, theme }: {
   show: boolean; onClose: () => void;
   items: Array<{ storeProductId: string; name: string; image: string; price: number; quantity: number }>;
   total: number; count: number; updateQuantity: (id: string, q: number) => void;
   removeItem: (id: string) => void; primary: string; buttonRadius: string; slug: string;
+  theme: StoreTheme;
 }) {
   const router = useRouter();
+  const c = theme.colors;
 
   return (
     <>
       {show && <div className="fixed inset-0 bg-black/60 z-40" onClick={onClose} />}
-      <div className={`fixed top-0 right-0 h-full w-full max-w-md bg-[#1a1a2e] z-50 transform transition-transform border-l border-white/10 ${show ? "translate-x-0" : "translate-x-full"}`}>
-        <div className="flex items-center justify-between p-4 border-b border-white/10">
-          <h2 className="text-lg font-semibold text-white">Sepet ({count})</h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-white"><X size={20} /></button>
+      <div className={`fixed top-0 right-0 h-full w-full max-w-md z-50 transform transition-transform border-l ${show ? "translate-x-0" : "translate-x-full"}`}
+        style={{ background: c.cardBg, borderColor: c.textColor + "15" }}>
+        <div className="flex items-center justify-between p-4 border-b" style={{ borderColor: c.textColor + "15" }}>
+          <h2 className="text-lg font-semibold" style={{ color: c.textColor }}>Sepet ({count})</h2>
+          <button onClick={onClose} style={{ color: c.textColor, opacity: 0.5 }}><X size={20} /></button>
         </div>
 
         <div className="flex-1 overflow-y-auto p-4 space-y-3" style={{ maxHeight: "calc(100vh - 180px)" }}>
           {items.length === 0 && (
-            <p className="text-gray-400 text-center py-8">Sepet boş</p>
+            <p className="text-center py-8" style={{ color: c.textColor, opacity: 0.5 }}>Sepet boş</p>
           )}
           {items.map((item) => (
-            <div key={item.storeProductId} className="flex items-center gap-3 bg-white/5 rounded-xl p-3">
+            <div key={item.storeProductId} className="flex items-center gap-3 rounded-xl p-3"
+              style={{ background: c.backgroundColor + "80" }}>
               <img src={item.image || "/placeholder.svg"} alt={item.name}
-                className="w-14 h-14 rounded-lg object-cover bg-ena-dark" />
+                className="w-14 h-14 rounded-lg object-cover" style={{ background: c.backgroundColor }} />
               <div className="flex-1 min-w-0">
-                <p className="text-sm text-white truncate">{item.name}</p>
+                <p className="text-sm truncate" style={{ color: c.textColor }}>{item.name}</p>
                 <p style={{ color: primary }} className="text-sm font-semibold">{item.price.toFixed(2)} TL</p>
               </div>
               <div className="flex items-center gap-1">
                 <button onClick={() => updateQuantity(item.storeProductId, item.quantity - 1)}
-                  className="p-1 rounded hover:bg-white/10 text-gray-400"><Minus size={14} /></button>
-                <span className="text-white text-sm w-6 text-center">{item.quantity}</span>
+                  className="p-1 rounded hover:opacity-70" style={{ color: c.textColor, opacity: 0.5 }}><Minus size={14} /></button>
+                <span className="text-sm w-6 text-center" style={{ color: c.textColor }}>{item.quantity}</span>
                 <button onClick={() => updateQuantity(item.storeProductId, item.quantity + 1)}
-                  className="p-1 rounded hover:bg-white/10 text-gray-400"><Plus size={14} /></button>
+                  className="p-1 rounded hover:opacity-70" style={{ color: c.textColor, opacity: 0.5 }}><Plus size={14} /></button>
               </div>
               <button onClick={() => removeItem(item.storeProductId)}
                 className="p-1 text-red-400 hover:bg-red-500/20 rounded"><X size={14} /></button>
@@ -419,8 +426,8 @@ function CartDrawer({ show, onClose, items, total, count, updateQuantity, remove
         </div>
 
         {items.length > 0 && (
-          <div className="border-t border-white/10 p-4 space-y-3">
-            <div className="flex items-center justify-between text-white">
+          <div className="border-t p-4 space-y-3" style={{ borderColor: c.textColor + "15" }}>
+            <div className="flex items-center justify-between" style={{ color: c.textColor }}>
               <span className="font-medium">Toplam</span>
               <span style={{ color: primary }} className="text-xl font-bold">{total.toFixed(2)} TL</span>
             </div>
@@ -512,7 +519,7 @@ function CheckoutPage({ slug, store, theme, items, total, clearCart, router }: {
         </h1>
 
         <div className="space-y-4">
-          <div className="rounded-2xl border p-4" style={{ background: c.cardBg, borderColor: "rgba(255,255,255,0.08)" }}>
+          <div className="rounded-2xl border p-4" style={{ background: c.cardBg, borderColor: c.textColor + "15" }}>
             <h2 className="text-sm font-semibold mb-3" style={{ color: c.textColor }}>Teslimat Bilgileri</h2>
             <div className="space-y-3">
               <div className="grid grid-cols-2 gap-3">
@@ -521,14 +528,14 @@ function CheckoutPage({ slug, store, theme, items, total, clearCart, router }: {
                   <input type="text" value={form.customerName}
                     onChange={(e) => setForm({ ...form, customerName: e.target.value })}
                     className="w-full px-3 py-2 border rounded-xl text-sm focus:outline-none focus:ring-2"
-                    style={{ background: c.backgroundColor, borderColor: "rgba(255,255,255,0.1)", color: c.textColor }} />
+                    style={{ background: c.backgroundColor, borderColor: c.textColor + "15", color: c.textColor }} />
                 </div>
                 <div>
                   <label className="block text-xs mb-1" style={{ color: c.textColor, opacity: 0.6 }}>E-posta *</label>
                   <input type="email" value={form.customerEmail}
                     onChange={(e) => setForm({ ...form, customerEmail: e.target.value })}
                     className="w-full px-3 py-2 border rounded-xl text-sm focus:outline-none focus:ring-2"
-                    style={{ background: c.backgroundColor, borderColor: "rgba(255,255,255,0.1)", color: c.textColor }} />
+                    style={{ background: c.backgroundColor, borderColor: c.textColor + "15", color: c.textColor }} />
                 </div>
               </div>
               <div>
@@ -536,7 +543,7 @@ function CheckoutPage({ slug, store, theme, items, total, clearCart, router }: {
                 <input type="tel" value={form.customerPhone}
                   onChange={(e) => setForm({ ...form, customerPhone: e.target.value })}
                   className="w-full px-3 py-2 border rounded-xl text-sm focus:outline-none focus:ring-2"
-                  style={{ background: c.backgroundColor, borderColor: "rgba(255,255,255,0.1)", color: c.textColor }} />
+                  style={{ background: c.backgroundColor, borderColor: c.textColor + "15", color: c.textColor }} />
               </div>
               <div>
                 <label className="block text-xs mb-1" style={{ color: c.textColor, opacity: 0.6 }}>Adres *</label>
@@ -544,7 +551,7 @@ function CheckoutPage({ slug, store, theme, items, total, clearCart, router }: {
                   onChange={(e) => setForm({ ...form, shippingAddress: e.target.value })}
                   rows={3}
                   className="w-full px-3 py-2 border rounded-xl text-sm focus:outline-none focus:ring-2 resize-none"
-                  style={{ background: c.backgroundColor, borderColor: "rgba(255,255,255,0.1)", color: c.textColor }} />
+                  style={{ background: c.backgroundColor, borderColor: c.textColor + "15", color: c.textColor }} />
               </div>
               <div className="grid grid-cols-3 gap-3">
                 <div>
@@ -552,21 +559,21 @@ function CheckoutPage({ slug, store, theme, items, total, clearCart, router }: {
                   <input type="text" value={form.city}
                     onChange={(e) => setForm({ ...form, city: e.target.value })}
                     className="w-full px-3 py-2 border rounded-xl text-sm focus:outline-none focus:ring-2"
-                    style={{ background: c.backgroundColor, borderColor: "rgba(255,255,255,0.1)", color: c.textColor }} />
+                    style={{ background: c.backgroundColor, borderColor: c.textColor + "15", color: c.textColor }} />
                 </div>
                 <div>
                   <label className="block text-xs mb-1" style={{ color: c.textColor, opacity: 0.6 }}>İlçe</label>
                   <input type="text" value={form.district}
                     onChange={(e) => setForm({ ...form, district: e.target.value })}
                     className="w-full px-3 py-2 border rounded-xl text-sm focus:outline-none focus:ring-2"
-                    style={{ background: c.backgroundColor, borderColor: "rgba(255,255,255,0.1)", color: c.textColor }} />
+                    style={{ background: c.backgroundColor, borderColor: c.textColor + "15", color: c.textColor }} />
                 </div>
                 <div>
                   <label className="block text-xs mb-1" style={{ color: c.textColor, opacity: 0.6 }}>Posta Kodu</label>
                   <input type="text" value={form.zipCode}
                     onChange={(e) => setForm({ ...form, zipCode: e.target.value })}
                     className="w-full px-3 py-2 border rounded-xl text-sm focus:outline-none focus:ring-2"
-                    style={{ background: c.backgroundColor, borderColor: "rgba(255,255,255,0.1)", color: c.textColor }} />
+                    style={{ background: c.backgroundColor, borderColor: c.textColor + "15", color: c.textColor }} />
                 </div>
               </div>
               <div>
@@ -575,12 +582,12 @@ function CheckoutPage({ slug, store, theme, items, total, clearCart, router }: {
                   onChange={(e) => setForm({ ...form, notes: e.target.value })}
                   rows={2}
                   className="w-full px-3 py-2 border rounded-xl text-sm focus:outline-none focus:ring-2 resize-none"
-                  style={{ background: c.backgroundColor, borderColor: "rgba(255,255,255,0.1)", color: c.textColor }} />
+                  style={{ background: c.backgroundColor, borderColor: c.textColor + "15", color: c.textColor }} />
               </div>
             </div>
           </div>
 
-          <div className="rounded-2xl border p-4" style={{ background: c.cardBg, borderColor: "rgba(255,255,255,0.08)" }}>
+          <div className="rounded-2xl border p-4" style={{ background: c.cardBg, borderColor: c.textColor + "15" }}>
             <h2 className="text-sm font-semibold mb-3" style={{ color: c.textColor }}>Sipariş Özeti ({items.length} ürün)</h2>
             <div className="space-y-2">
               {items.map((item) => (
@@ -591,7 +598,7 @@ function CheckoutPage({ slug, store, theme, items, total, clearCart, router }: {
                 </div>
               ))}
             </div>
-            <div className="flex items-center justify-between mt-3 pt-3 border-t" style={{ borderColor: "rgba(255,255,255,0.08)" }}>
+            <div className="flex items-center justify-between mt-3 pt-3 border-t" style={{ borderColor: c.textColor + "15" }}>
               <span className="font-medium" style={{ color: c.textColor }}>Toplam</span>
               <span style={{ color: c.primaryColor }} className="text-xl font-bold">{total.toFixed(2)} TL</span>
             </div>

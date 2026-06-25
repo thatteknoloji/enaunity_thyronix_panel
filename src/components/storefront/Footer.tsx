@@ -26,7 +26,7 @@ export default function StorefrontFooter({ theme, storeName, onNavigate }: Store
 
   if (l.footerStyle === "minimal") {
     return (
-      <footer style={{ background: c.footerBg, borderColor: "rgba(255,255,255,0.1)" }} className="border-t py-6 mt-16">
+        <footer style={{ background: c.footerBg, borderColor: c.textColor + "15" }} className="border-t py-6 mt-16">
         <div className="max-w-5xl mx-auto px-6 text-center">
           <p className="text-sm" style={{ color: c.textColor }}>
             © 2026 {storeName}
@@ -63,17 +63,17 @@ export default function StorefrontFooter({ theme, storeName, onNavigate }: Store
   }
 
   return (
-    <footer style={{ background: c.footerBg, borderColor: "rgba(255,255,255,0.1)" }} className="border-t mt-16">
+    <footer style={{ background: c.footerBg, borderColor: c.textColor + "15" }} className="border-t mt-16">
       <div className={`max-w-5xl mx-auto px-6 py-10 ${l.footerStyle === "center" ? "text-center" : ""}`}>
         <div className={`grid grid-cols-2 md:grid-cols-4 gap-8 ${l.footerStyle === "center" ? "justify-items-center" : ""}`}>
           <div>
             <h3
-              style={{ fontFamily: theme.fonts.headingFont }}
-              className="text-white font-semibold mb-3"
+              style={{ fontFamily: theme.fonts.headingFont, color: c.textColor }}
+              className="font-semibold mb-3"
             >
               {storeName}
             </h3>
-            <p className="text-sm" style={{ color: c.textColor }}>
+            <p className="text-sm" style={{ color: c.textColor, opacity: 0.7 }}>
               ENAUNITY
             </p>
           </div>
@@ -81,8 +81,8 @@ export default function StorefrontFooter({ theme, storeName, onNavigate }: Store
           {theme.footerGroups.map((group) => (
             <div key={group.title}>
               <h4
-                style={{ fontFamily: theme.fonts.headingFont }}
-                className="text-white font-semibold mb-3 text-sm"
+                style={{ fontFamily: theme.fonts.headingFont, color: c.textColor }}
+                className="font-semibold mb-3 text-sm"
               >
                 {group.title}
               </h4>
@@ -91,7 +91,7 @@ export default function StorefrontFooter({ theme, storeName, onNavigate }: Store
                   <li key={link.label + link.href}>
                     <button
                       onClick={() => handleClick(link.href)}
-                      className="text-sm hover:text-white transition-colors"
+                      className="text-sm hover:opacity-70 transition-opacity"
                       style={{ color: c.textColor }}
                     >
                       {link.label}
@@ -105,8 +105,8 @@ export default function StorefrontFooter({ theme, storeName, onNavigate }: Store
           {theme.socialLinks.length > 0 && (
             <div>
               <h4
-                style={{ fontFamily: theme.fonts.headingFont }}
-                className="text-white font-semibold mb-3 text-sm"
+                style={{ fontFamily: theme.fonts.headingFont, color: c.textColor }}
+                className="font-semibold mb-3 text-sm"
               >
                 Bizi Takip Et
               </h4>
@@ -131,7 +131,7 @@ export default function StorefrontFooter({ theme, storeName, onNavigate }: Store
 
         <div
           className="mt-8 pt-6 border-t text-center"
-          style={{ borderColor: "rgba(255,255,255,0.08)", color: c.textColor }}
+          style={{ borderColor: c.textColor + "15", color: c.textColor }}
         >
           <button onClick={() => handleClick("/siparis-takip")}
             className="text-sm underline underline-offset-2 opacity-60 hover:opacity-100 transition-opacity mb-2"

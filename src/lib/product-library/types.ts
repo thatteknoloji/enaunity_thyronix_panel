@@ -3,7 +3,7 @@ export const SUPPLIER_TYPES = ["XML", "CSV", "EXCEL", "API"] as const;
 export const LICENSE_LEVELS = ["FREE", "STARTER", "PRO", "ENTERPRISE"] as const;
 export const IMPORT_TYPES = ["XML", "EXCEL", "CSV"] as const;
 export const DISTRIBUTION_FORMATS = ["XML", "CSV", "EXCEL"] as const;
-export const PACKAGE_FIELD_BEHAVIORS = ["LOCKED", "REPLACE", "PREFIX", "SUFFIX", "NUMBER_FORMULA", "HIDDEN"] as const;
+export const PACKAGE_FIELD_BEHAVIORS = ["LOCKED", "REPLACE", "PREFIX", "SUFFIX", "FIND_REPLACE", "NUMBER_FORMULA", "HIDDEN"] as const;
 export const PACKAGE_COLUMN_TYPES = ["text", "number"] as const;
 export const PACKAGE_FORMULA_TYPES = ["SET", "ADD", "MULTIPLY", "PERCENT"] as const;
 
@@ -38,6 +38,8 @@ export type ProductPackageRecipeValue = {
   value?: string;
   prefix?: string;
   suffix?: string;
+  findText?: string;
+  replaceText?: string;
   formulaType?: PackageFormulaType;
   formulaValue?: number;
   minValue?: number;

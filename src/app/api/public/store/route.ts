@@ -38,12 +38,16 @@ export async function GET(req: NextRequest) {
       return Response.json({ success: false, error: "Mağaza bulunamadı" }, { status: 404 });
     }
 
-    const [products, categories] = await Promise.all([
+    const [products, categories, banners] = await Promise.all([
       prisma.storeProduct.findMany({
         where: { storeId: store.id, isActive: true },
         orderBy: { sortOrder: "asc" },
       }),
       prisma.storeCategory.findMany({
+        where: { storeId: store.id, isActive: true },
+        orderBy: { sortOrder: "asc" },
+      }),
+      prisma.storeBanner.findMany({
         where: { storeId: store.id, isActive: true },
         orderBy: { sortOrder: "asc" },
       }),
@@ -74,6 +78,7 @@ export async function GET(req: NextRequest) {
       data: {
         store,
         categories,
+        banners,
         products: products.map((p) => {
           const catalogItem = catalogMap[p.productCatalogItemId];
           return {

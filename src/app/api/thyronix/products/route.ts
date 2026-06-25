@@ -84,6 +84,7 @@ export async function GET(req: Request) {
         { name: { contains: cleanSearch } },
         { barcode: { contains: cleanSearch } },
         { stockCode: { contains: cleanSearch } },
+        { modelCode: { contains: cleanSearch } },
         { brand: { contains: cleanSearch } },
         { externalId: { contains: cleanSearch } },
       ];

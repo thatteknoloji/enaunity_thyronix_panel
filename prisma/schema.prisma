@@ -3877,6 +3877,7 @@ model DealerStore {
   taxNumber           String?
   taxOffice           String?
   status              String   @default("DRAFT")
+  sector              String   @default("general")
   orderCount          Int      @default(0)
   totalRevenue        Float    @default(0)
   createdAt           DateTime @default(now())
@@ -3885,6 +3886,8 @@ model DealerStore {
   products            StoreProduct[]
   orders              StoreOrder[]
   categories          StoreCategory[]
+  media               StoreMedia[]
+  banners             StoreBanner[]
 
   @@index([dealerId])
   @@index([slug])
@@ -3916,6 +3919,7 @@ model StoreCategory {
   name            String
   catalogCategory String?
   slug            String
+  imageUrl        String      @default("")
   sortOrder       Int         @default(0)
   isActive        Boolean     @default(true)
   createdAt       DateTime    @default(now())
@@ -3951,6 +3955,37 @@ model StoreOrder {
   @@index([storeId])
   @@index([status])
   @@index([createdAt])
+}
+
+model StoreMedia {
+  id        String   @id @default(cuid())
+  storeId   String
+  url       String
+  filename  String
+  mimetype  String   @default("image/jpeg")
+  size      Int      @default(0)
+  createdAt DateTime @default(now())
+
+  store     DealerStore @relation(fields: [storeId], references: [id], onDelete: Cascade)
+
+  @@index([storeId])
+}
+
+model StoreBanner {
+  id        String   @id @default(cuid())
+  storeId   String
+  imageUrl  String
+  title     String   @default("")
+  subtitle  String   @default("")
+  ctaText   String   @default("")
+  ctaLink   String   @default("")
+  sortOrder Int      @default(0)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  store     DealerStore @relation(fields: [storeId], references: [id], onDelete: Cascade)
+
+  @@index([storeId])
 }
 
 enum ProductUniverseBlueprintJobStatus {

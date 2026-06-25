@@ -10,7 +10,7 @@ import {
   PL_PANEL, PlAlert, PlBadge, PlBtn, PlCard, PlEmpty, PlHeader, PlInput, PlModal,
   PlSelect, PlStat, PlTabs, fmtDate, fmtMoney,
 } from "./pl-ui";
-import { UI } from "@/lib/ui/turkish-labels";
+import { UI, packageFieldBehaviorLabel } from "@/lib/ui/turkish-labels";
 import { PaymentCheckoutPanel } from "@/components/payments/PaymentCheckoutPanel";
 
 type DealerState = "ACCESSIBLE" | "PURCHASE" | "PENDING" | "INACTIVE";
@@ -737,7 +737,7 @@ export default function DealerProductLibraryPanel() {
                         <div className="flex items-center justify-between gap-2 mb-2">
                           <div>
                             <div className="font-medium text-slate-900">{rule.label}</div>
-                            <div className="text-[11px] text-slate-500">{rule.key} · {rule.behavior}</div>
+                            <div className="text-[11px] text-slate-500">{rule.key} · {packageFieldBehaviorLabel(rule.behavior)}</div>
                           </div>
                           {rule.required && <PlBadge tone="amber">Zorunlu</PlBadge>}
                         </div>
@@ -773,6 +773,27 @@ export default function DealerProductLibraryPanel() {
                               values: { ...current.values, [rule.key]: { ...value, suffix: e.target.value } },
                             }))}
                           />
+                        )}
+
+                        {rule.behavior === "FIND_REPLACE" && (
+                          <div className="grid md:grid-cols-2 gap-2">
+                            <PlInput
+                              placeholder="Bulunacak metin"
+                              value={value.findText || ""}
+                              onChange={(e) => setRecipeForm((current) => ({
+                                ...current,
+                                values: { ...current.values, [rule.key]: { ...value, findText: e.target.value } },
+                              }))}
+                            />
+                            <PlInput
+                              placeholder="Yeni metin"
+                              value={value.replaceText || ""}
+                              onChange={(e) => setRecipeForm((current) => ({
+                                ...current,
+                                values: { ...current.values, [rule.key]: { ...value, replaceText: e.target.value } },
+                              }))}
+                            />
+                          </div>
                         )}
 
                         {rule.behavior === "NUMBER_FORMULA" && (

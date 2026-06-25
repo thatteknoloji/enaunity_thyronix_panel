@@ -82,6 +82,7 @@ export async function PATCH(req: Request) {
     const allowedFields = [
       "name", "logo", "coverImage", "aboutText",
       "contactEmail", "contactPhone", "themeJson", "status",
+      "sector",
     ];
     const data: Record<string, unknown> = {};
     for (const field of allowedFields) {

@@ -2,10 +2,10 @@
 
 import { useEffect, useState, useRef } from "react";
 import Link from "next/link";
-import { 
-  Package, Link2, Radio, GitBranch, Zap, TrendingUp, Clock, 
-  Play, ArrowRight, ArrowDown, RefreshCw, Brain, FileText, 
-  Download, Upload, CheckCircle2, AlertTriangle,
+import {
+  Package, Link2, Radio, GitBranch, Zap, TrendingUp, Clock,
+  Play, ArrowRight, ArrowDown, RefreshCw, Brain, FileText,
+  Download, Upload, CheckCircle2, AlertTriangle, Copy,
 } from "lucide-react";
 
 function AnimatedCounter({ value }: { value: number }) {
@@ -29,6 +29,7 @@ export default function DashboardContent() {
   const totalProducts = d.totalProducts||0;
   const totalRules = d.rules?.length||0;
   const totalFeeds = (d.activeFeeds||0) + (d.feeds?.filter((f:any)=>f.status!=="active").length||0);
+  const duplicateGroups = d.duplicates?.totalGroups || 0;
   const hasData = totalSources > 0;
 
   const flowSteps = [
@@ -43,6 +44,7 @@ export default function DashboardContent() {
   const quickActions = [
     { icon: Link2, label: "Kaynak Ekle", desc: "XML, Excel veya CSV kaynağı", href: "/thyronix/sources", color: "from-blue-500/10 to-blue-600/5 border-blue-500/20" },
     { icon: Radio, label: "Feed Oluştur", desc: "İlk canlı feedinizi yayınlayın", href: "/thyronix/feeds", color: "from-emerald-500/10 to-emerald-600/5 border-emerald-500/20" },
+    ...(duplicateGroups > 0 ? [{ icon: Copy, label: "Kopya Gruplar", desc: `${duplicateGroups.toLocaleString("tr-TR")} duplicate grup çözüm bekliyor`, href: "/thyronix/processing?tab=duplicates", color: "from-amber-500/10 to-orange-600/5 border-amber-500/20" }] : []),
     ...(aiEnabled ? [{ icon: Brain, label: "AI Optimizasyonu", desc: "Ürünlerinizi AI ile iyileştirin", href: "/thyronix/ai", color: "from-violet-500/10 to-violet-600/5 border-violet-500/20" }] : []),
     { icon: Play, label: "Hızlı Başlangıç", desc: "15 dakikada ilk feedinizi oluşturun", href: "/thyronix/getting-started", color: "from-amber-500/10 to-amber-600/5 border-amber-500/20" },
   ];
