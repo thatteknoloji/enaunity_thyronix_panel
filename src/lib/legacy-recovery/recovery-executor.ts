@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/db";
 import { generateKeywordBlog } from "@/lib/blog-engine/blog-service";
+import { generateSmartRecoveryContent } from "@/lib/ai-brain/ai-brain-service";
 import { processLegacyRecoveryThroughPipeline } from "@/lib/content-operations/content-pipeline-service";
 import { generateContentDraftForBlueprint } from "@/lib/page-factory/content-draft/content-draft-service";
 import { normalizeLegacyUrl, extractKeywordFromPath, extractPathSlug } from "./url-normalizer";
@@ -35,6 +36,13 @@ async function getOrCreateRecoveryProject(projectId?: string | null) {
 
 async function recoverAsBlog(item: LegacyUrl): Promise<string> {
   const keyword = extractKeywordFromPath(item.normalizedUrl);
+  await generateSmartRecoveryContent({
+    slug: extractPathSlug(item.normalizedUrl),
+    estimatedTitle: keyword,
+    category: item.notes || undefined,
+    legacyUrl: item.normalizedUrl,
+    contentType: "BLOG",
+  });
   const result = await generateKeywordBlog({
     keyword,
     projectId: item.projectId,

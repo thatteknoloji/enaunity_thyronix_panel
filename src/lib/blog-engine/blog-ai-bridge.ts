@@ -1,4 +1,5 @@
-import { generateBlogArticle } from "@/lib/ai-writer/ai-content-writer";
+import { generateSmartBlogContent } from "@/lib/ai-brain/ai-brain-service";
+import type { BrainMetadata } from "@/lib/ai-brain/ai-brain-types";
 import type { AiWriterMetadata } from "@/lib/ai-writer/types";
 import { BLOG_ENGINE_VERSION, type BlogContentPayload, type BlogFaqItem, type BlogSourceType } from "./blog-types";
 
@@ -10,8 +11,34 @@ export type AiBlogResolved = {
   seoDescription?: string;
   schema?: Record<string, unknown>;
   aiMetadata: AiWriterMetadata;
+  brainMetadata?: BrainMetadata;
   aiSuccess: boolean;
 };
+
+function mapBrainMetadataToWriter(meta: {
+  writerVersion?: string;
+  provider: string | null;
+  model: string | null;
+  wordCount: number;
+  aiGenerated: boolean;
+  fallbackUsed: boolean;
+  generationStatus: "SUCCESS" | "FAILED" | "REVIEW";
+  qualityIssues?: string[];
+}): AiWriterMetadata {
+  return {
+    writerVersion: (meta.writerVersion || "ENA_AKILLI_ICERIK_YAZARI_V1") as AiWriterMetadata["writerVersion"],
+    provider: (meta.provider as AiWriterMetadata["provider"]) || null,
+    model: meta.model,
+    generatedAt: new Date().toISOString(),
+    promptHash: "ai-brain-v2",
+    wordCount: meta.wordCount || 0,
+    aiGenerated: meta.aiGenerated,
+    fallbackUsed: meta.fallbackUsed,
+    generationStatus: meta.generationStatus === "SUCCESS" ? "SUCCESS" : "FAILED",
+    generationError: meta.qualityIssues?.length ? meta.qualityIssues.join("; ") : null,
+    validationIssues: meta.qualityIssues || [],
+  };
+}
 
 export async function resolveAiBlogContent(opts: {
   keyword: string;
@@ -24,7 +51,7 @@ export async function resolveAiBlogContent(opts: {
   competitorUrl?: string | null;
   debugTemplateFallback?: boolean;
 }): Promise<AiBlogResolved> {
-  const aiResult = await generateBlogArticle({
+  const aiResult = await generateSmartBlogContent({
     keyword: opts.keyword,
     sourceType: opts.sourceType,
     category: opts.category,
@@ -44,7 +71,8 @@ export async function resolveAiBlogContent(opts: {
       seoTitle: aiResult.data.seoTitle,
       seoDescription: aiResult.data.seoDescription,
       schema: aiResult.data.schema,
-      aiMetadata: aiResult.metadata,
+      aiMetadata: mapBrainMetadataToWriter(aiResult.metadata),
+      brainMetadata: aiResult.metadata,
       aiSuccess: aiResult.success,
     };
   }
@@ -61,7 +89,8 @@ export async function resolveAiBlogContent(opts: {
     content: placeholder,
     faq: [],
     title: opts.keyword,
-    aiMetadata: aiResult.metadata,
+    aiMetadata: mapBrainMetadataToWriter(aiResult.metadata),
+    brainMetadata: aiResult.metadata,
     aiSuccess: false,
   };
 }

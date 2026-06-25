@@ -1,5 +1,5 @@
 import { AI_PAGE_KINDS } from "@/lib/ai-writer/constants";
-import { generatePageContent } from "@/lib/ai-writer/ai-content-writer";
+import { generateSmartPageContent } from "@/lib/ai-brain/ai-brain-service";
 import type { AiWriterMetadata } from "@/lib/ai-writer/types";
 import { makeId } from "@/lib/aeo/aeo-utils";
 import type { ContentDraftPayload, ContentDraftSection, DraftContext } from "./draft-types";
@@ -40,7 +40,7 @@ export async function enrichDraftWithAiWriter(
     return { payload, aiMetadata: null };
   }
 
-  const aiResult = await generatePageContent({
+  const aiResult = await generateSmartPageContent({
     pageType: ctx.blueprint.pageType,
     blueprintKind: kind,
     title: payload.title,
@@ -59,7 +59,19 @@ export async function enrichDraftWithAiWriter(
         status: "NEEDS_REVIEW",
         sourceJson: {
           ...payload.sourceJson,
-          aiWriter: aiResult.metadata,
+          aiWriter: {
+            writerVersion: "ENA_AKILLI_ICERIK_YAZARI_V1",
+            provider: aiResult.metadata.provider as AiWriterMetadata["provider"],
+            model: aiResult.metadata.model,
+            generatedAt: new Date().toISOString(),
+            promptHash: "ai-brain-v2",
+            wordCount: aiResult.metadata.wordCount,
+            aiGenerated: aiResult.metadata.aiGenerated,
+            fallbackUsed: aiResult.metadata.fallbackUsed,
+            generationStatus: aiResult.metadata.generationStatus === "SUCCESS" ? "SUCCESS" : "FAILED",
+            generationError: aiResult.error || null,
+            validationIssues: aiResult.metadata.qualityIssues,
+          } as AiWriterMetadata,
           generationError: aiResult.error,
         },
         contentPolicyWarnings: [
@@ -67,7 +79,19 @@ export async function enrichDraftWithAiWriter(
           `AI içerik üretimi başarısız: ${aiResult.error || "bilinmeyen hata"}`,
         ],
       },
-      aiMetadata: aiResult.metadata,
+      aiMetadata: {
+        writerVersion: "ENA_AKILLI_ICERIK_YAZARI_V1",
+        provider: aiResult.metadata.provider as AiWriterMetadata["provider"],
+        model: aiResult.metadata.model,
+        generatedAt: new Date().toISOString(),
+        promptHash: "ai-brain-v2",
+        wordCount: aiResult.metadata.wordCount,
+        aiGenerated: aiResult.metadata.aiGenerated,
+        fallbackUsed: aiResult.metadata.fallbackUsed,
+        generationStatus: aiResult.metadata.generationStatus === "SUCCESS" ? "SUCCESS" : "FAILED",
+        generationError: aiResult.error || null,
+        validationIssues: aiResult.metadata.qualityIssues,
+      },
     };
   }
 
@@ -87,15 +111,42 @@ export async function enrichDraftWithAiWriter(
     schemaDraft: data.schema || payload.schemaDraft,
     sourceJson: {
       ...payload.sourceJson,
-      aiWriter: aiResult.metadata,
+      aiWriter: {
+        writerVersion: "ENA_AKILLI_ICERIK_YAZARI_V1",
+        provider: aiResult.metadata.provider as AiWriterMetadata["provider"],
+        model: aiResult.metadata.model,
+        generatedAt: new Date().toISOString(),
+        promptHash: "ai-brain-v2",
+        wordCount: aiResult.metadata.wordCount,
+        aiGenerated: aiResult.metadata.aiGenerated,
+        fallbackUsed: aiResult.metadata.fallbackUsed,
+        generationStatus: aiResult.metadata.generationStatus === "SUCCESS" ? "SUCCESS" : "FAILED",
+        generationError: aiResult.error || null,
+        validationIssues: aiResult.metadata.qualityIssues,
+      } as AiWriterMetadata,
       aiGenerated: true,
     },
-    status: aiResult.metadata.validationIssues?.length ? "NEEDS_REVIEW" : payload.status,
+    status: aiResult.metadata.qualityIssues?.length ? "NEEDS_REVIEW" : payload.status,
     contentPolicyWarnings: [
       ...payload.contentPolicyWarnings,
-      ...(aiResult.metadata.validationIssues || []),
+      ...(aiResult.metadata.qualityIssues || []),
     ],
   };
 
-  return { payload: enriched, aiMetadata: aiResult.metadata };
+  return {
+    payload: enriched,
+    aiMetadata: {
+      writerVersion: "ENA_AKILLI_ICERIK_YAZARI_V1",
+      provider: aiResult.metadata.provider as AiWriterMetadata["provider"],
+      model: aiResult.metadata.model,
+      generatedAt: new Date().toISOString(),
+      promptHash: "ai-brain-v2",
+      wordCount: aiResult.metadata.wordCount,
+      aiGenerated: aiResult.metadata.aiGenerated,
+      fallbackUsed: aiResult.metadata.fallbackUsed,
+      generationStatus: aiResult.metadata.generationStatus === "SUCCESS" ? "SUCCESS" : "FAILED",
+      generationError: aiResult.error || null,
+      validationIssues: aiResult.metadata.qualityIssues,
+    },
+  };
 }

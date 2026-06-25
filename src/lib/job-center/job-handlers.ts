@@ -15,6 +15,7 @@ import { previewGeoGeneration, startGeoJob } from "@/lib/geo-content-factory/geo
 import type { GeoGenerationMode } from "@/lib/geo-content-factory/types";
 import { generateLegacyRecoveries } from "@/lib/legacy-recovery/recovery-executor";
 import { generatePageFactoryPlan } from "@/lib/page-factory/project-service";
+import { generateBulkContentDrafts } from "@/lib/page-factory/content-draft/content-draft-service";
 import { publishBatch } from "@/lib/publishing-center/publishing-service";
 import {
   rewriteThinContent,
@@ -193,6 +194,7 @@ async function handlePageGeneration(job: Job, ctx: JobExecutionContext) {
     currentMessage: "Sayfa içeriği üretiliyor",
   });
   const updated = await generatePageFactoryPlan(meta.projectId);
+  await generateBulkContentDrafts(meta.projectId, { limit: 20, dryRun: false }, true);
   await finishJob(ctx.jobId, { projectId: meta.projectId, plan: updated });
 }
 
@@ -307,6 +309,14 @@ async function handleAiRewrite(job: Job, ctx: JobExecutionContext) {
         ...existingMeta,
         preRewriteBackup: existingMeta.preRewriteBackup || backup,
         aiWriter: rewrite.metadata,
+        aiBrain: {
+          brainVersion: "ENA_AKILLI_ICERIK_BEYNI_V2",
+          qualityIssues: rewrite.metadata.validationIssues || [],
+          provider: rewrite.metadata.provider,
+          model: rewrite.metadata.model,
+          wordCount: rewrite.metadata.wordCount,
+          generationStatus: rewrite.metadata.generationStatus,
+        },
         thinContentRewrite: true,
       }),
     },

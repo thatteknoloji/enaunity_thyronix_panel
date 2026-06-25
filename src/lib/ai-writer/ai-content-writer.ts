@@ -532,56 +532,27 @@ export async function rewriteThinContent(opts: {
   keyword: string;
   contentType: "BLOG" | "PAGE";
 }): Promise<AiGenerateResult<BlogArticleOutput>> {
-  const prompt = JSON.stringify({
-    task: "rewrite_thin_content",
-    title: opts.title,
-    existingContent: opts.content.slice(0, 8000),
+  const { generateSmartBlogContent } = await import("@/lib/ai-brain/ai-brain-service");
+  const v2 = await generateSmartBlogContent({
     keyword: opts.keyword,
-    contentType: opts.contentType,
-    minWords: opts.contentType === "BLOG" ? MIN_WORD_COUNTS.BLOG : MIN_WORD_COUNTS.PAGE,
-    note: "Mevcut içerik zayıf/şablon — tamamen yeniden yaz, özgün ve derinlikli olsun",
+    sourceType: "KEYWORD",
+    competitorStructure: opts.content.slice(0, 6000),
   });
-  const promptHash = hashPrompt(prompt);
-
-  if (!getProviderStatus().ready) {
-    return { success: false, error: "AI_PROVIDER_NOT_CONFIGURED", metadata: emptyMetadata(promptHash) };
-  }
-
-  const result = await callAiProvider(SYSTEM_PROMPT, prompt);
-  if (!result.success) {
-    return { success: false, error: result.error, metadata: emptyMetadata(promptHash, result.error) };
-  }
-
-  const parsed = parseJsonResponse<LlmArticleShape>(result.content);
-  if (!parsed) {
-    return { success: false, error: "AI_RESPONSE_PARSE_FAILED", metadata: emptyMetadata(promptHash, "AI_RESPONSE_PARSE_FAILED") };
-  }
-
-  const output = mapLlmToBlogPayload(parsed, opts.keyword);
-  const validation = validateGeneratedContent({
-    contentType: opts.contentType,
-    h1: output.content.h1,
-    intro: output.content.intro,
-    sections: output.content.sections,
-    conclusion: output.content.conclusion,
-    faq: output.faq,
-    seoTitle: output.seoTitle,
-    seoDescription: output.seoDescription,
-    schema: output.schema,
-    keyword: opts.keyword,
-  });
-
   const metadata: AiWriterMetadata = {
-    ...successMetadata(result.provider, result.model, promptHash, validation.wordCount, validation.issues),
+    writerVersion: WRITER_VERSION,
+    provider: (v2.metadata.provider as AiWriterMetadata["provider"]) || null,
+    model: v2.metadata.model,
+    generatedAt: new Date().toISOString(),
+    promptHash: "ai-brain-v2-rewrite",
+    wordCount: v2.metadata.wordCount,
+    aiGenerated: v2.metadata.aiGenerated,
+    fallbackUsed: v2.metadata.fallbackUsed,
+    generationStatus: v2.success ? "SUCCESS" : "FAILED",
+    generationError: v2.error || null,
+    validationIssues: v2.metadata.qualityIssues,
     thinContent: true,
   };
-
-  return {
-    success: validation.passed,
-    error: validation.passed ? undefined : validation.issues.join("; "),
-    data: output,
-    metadata,
-  };
+  return { success: v2.success, error: v2.error, data: v2.data, metadata };
 }
 
 export function isAiWriterPublishable(metadata: AiWriterMetadata | null | undefined): boolean {

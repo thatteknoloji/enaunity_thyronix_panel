@@ -40,6 +40,7 @@ type BuiltPost = {
   sourceJson: Record<string, unknown>;
   originalityHint: number;
   aiMetadata?: AiWriterMetadata;
+  brainMetadata?: Record<string, unknown>;
   aiSuccess?: boolean;
   seoTitleOverride?: string;
   seoDescriptionOverride?: string;
@@ -168,6 +169,7 @@ async function persistPost(
       qualityChecks: preview.quality.checks,
       warnings: preview.quality.warnings,
       aiWriter: built.aiMetadata || null,
+        aiBrain: built.brainMetadata || null,
       validationIssues: built.aiMetadata?.validationIssues || [],
     }),
     publishedAt: status === "PUBLISHED" ? new Date() : null,
@@ -299,6 +301,7 @@ async function buildKeywordBlogBuilt(opts: BlogGenerateOptions): Promise<BuiltPo
     sourceJson: { keyword, mode: "KEYWORD", aiWriter: true },
     originalityHint: ai.aiSuccess ? 95 : 30,
     aiMetadata: ai.aiMetadata,
+    brainMetadata: ai.brainMetadata as Record<string, unknown> | undefined,
     aiSuccess: ai.aiSuccess,
     seoTitleOverride: ai.seoTitle,
     seoDescriptionOverride: ai.seoDescription,
@@ -330,6 +333,7 @@ async function buildKeywordGroupBuilt(opts: BlogGenerateOptions): Promise<BuiltP
       sourceJson: { keyword: kw, keywordGroup: group, mode: "KEYWORD_GROUP", aiWriter: true },
       originalityHint: ai.aiSuccess ? 93 : 30,
       aiMetadata: ai.aiMetadata,
+      brainMetadata: ai.brainMetadata as Record<string, unknown> | undefined,
       aiSuccess: ai.aiSuccess,
       seoTitleOverride: ai.seoTitle,
       seoDescriptionOverride: ai.seoDescription,
@@ -367,6 +371,7 @@ async function buildProductBlogBuilt(opts: BlogGenerateOptions): Promise<BuiltPo
     sourceJson: { productId: product.id, productName: product.normalizedName, productBlogType: blogType, aiWriter: true },
     originalityHint: ai.aiSuccess ? 95 : 30,
     aiMetadata: ai.aiMetadata,
+    brainMetadata: ai.brainMetadata as Record<string, unknown> | undefined,
     aiSuccess: ai.aiSuccess,
     seoTitleOverride: ai.seoTitle,
     seoDescriptionOverride: ai.seoDescription,
@@ -395,6 +400,7 @@ async function buildCategoryBlogBuilt(opts: BlogGenerateOptions): Promise<BuiltP
     sourceJson: { category, mode: "CATEGORY", aiWriter: true },
     originalityHint: ai.aiSuccess ? 92 : 30,
     aiMetadata: ai.aiMetadata,
+    brainMetadata: ai.brainMetadata as Record<string, unknown> | undefined,
     aiSuccess: ai.aiSuccess,
     seoTitleOverride: ai.seoTitle,
     seoDescriptionOverride: ai.seoDescription,
@@ -463,6 +469,7 @@ async function buildSingleGeoPost(keyword: string, opts: BlogGenerateOptions): P
     },
     originalityHint: ai.aiSuccess ? 90 : 30,
     aiMetadata: ai.aiMetadata,
+    brainMetadata: ai.brainMetadata as Record<string, unknown> | undefined,
     aiSuccess: ai.aiSuccess,
     seoTitleOverride: ai.seoTitle,
     seoDescriptionOverride: ai.seoDescription,
@@ -499,6 +506,7 @@ async function buildCompetitorBlogBuilt(opts: BlogGenerateOptions): Promise<Buil
     },
     originalityHint: ai.aiSuccess ? 96 : 30,
     aiMetadata: ai.aiMetadata,
+    brainMetadata: ai.brainMetadata as Record<string, unknown> | undefined,
     aiSuccess: ai.aiSuccess,
     seoTitleOverride: ai.seoTitle,
     seoDescriptionOverride: ai.seoDescription,

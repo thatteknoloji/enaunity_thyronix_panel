@@ -18,6 +18,7 @@ import {
 import { fetchPageFactoryJson } from "@/lib/page-factory/fetch-json";
 import { labelContentStatus } from "@/lib/admin/ui-labels";
 import { AiWriterStatusCard } from "@/components/ai-writer/AiWriterStatusCard";
+import { AiBrainStatusCard } from "@/components/ai-brain/AiBrainStatusCard";
 
 type Tab =
   | "overview"
@@ -252,6 +253,7 @@ export function ContentOperationsShell() {
       {tab === "overview" && dashboard && (
         <div className="space-y-4">
           <AiWriterStatusCard />
+          <AiBrainStatusCard />
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {[
             { label: "Toplam Plan", value: dashboard.totalPlans },
