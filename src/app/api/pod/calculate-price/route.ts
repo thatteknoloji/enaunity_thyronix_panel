@@ -16,10 +16,13 @@ export async function POST(req: Request) {
       templateId: String(body.templateId || ""),
       variantId: body.variantId ? String(body.variantId) : undefined,
       pricingRuleCode,
+      pricingCatalogId: body.pricingCatalogId ? String(body.pricingCatalogId) : undefined,
+      sizeVariantKey: body.sizeVariantKey ? String(body.sizeVariantKey) : undefined,
       widthCm: Number(body.widthCm ?? 0),
       heightCm: Number(body.heightCm ?? 0),
       quantity: Math.max(1, Number(body.quantity ?? 1)),
       customerType: (body.customerType || "RETAIL") as PricingCustomerType,
+      optionCodes: Array.isArray(body.optionCodes) ? body.optionCodes.map(String) : undefined,
     };
 
     const data = await calculatePricing(toCalculatePricingInput(bridgeReq));

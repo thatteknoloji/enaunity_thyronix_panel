@@ -16,6 +16,7 @@ elif [[ -f .env.local ]]; then
 fi
 
 pm2 stop enaunity 2>/dev/null || true
+npm install
 npx prisma generate
 npx prisma migrate deploy
 rm -rf .next node_modules/.cache

@@ -223,7 +223,7 @@ export function buildAdminNavGroups(t: (key: string) => string, legacyMarketplac
         { href: "/admin/pod/designs", label: "POD Tasarımlar", icon: Image },
         { href: "/admin/pod/orders", label: "POD Siparişler", icon: ShoppingCart },
         { href: "/admin/pod/production", label: "POD Üretim Dosyaları", icon: FileText },
-        { href: "/admin/module-licenses?moduleKey=POD_CREATOR", label: "POD Lisansları", icon: Key },
+        { href: "/admin/pod/licenses", label: "POD Lisansları", icon: Key },
       ],
     },
     {

@@ -1,12 +1,14 @@
 import { prisma } from "@/lib/db";
 import { isSuperAdmin } from "@/lib/auth/admin-access";
+import { moduleKeyLookupVariants, normalizeModuleKey } from "./module-key";
 
 export const MODULE_KEYS = ["ENA_COMMERCE", "THYRONIX", "HIVE", "HIVE_PRO", "LINKSLASH", "POD_CREATOR", "AI_PAGE_FACTORY", "AI_DROPSHIP"] as const;
 export type ModuleKey = typeof MODULE_KEYS[number];
 
 export async function getDealerModuleLicense(dealerId: string, moduleKey: string) {
+  const normalized = normalizeModuleKey(moduleKey);
   const licenses = await prisma.moduleLicense.findMany({
-    where: { dealerId, moduleKey },
+    where: { dealerId, moduleKey: { in: moduleKeyLookupVariants(normalized) } },
     orderBy: { createdAt: "desc" },
   });
   if (!licenses.length) return null;
@@ -47,16 +49,17 @@ export async function getModuleLicenseState(
   moduleKey: string,
   ctx?: ModuleAccessContext
 ): Promise<ModuleLicenseState> {
+  const key = normalizeModuleKey(moduleKey);
   if (isSuperAdmin(ctx?.userRole || undefined)) return "active";
-  if (moduleKey === "ENA_COMMERCE" || moduleKey === "AI_DROPSHIP") {
+  if (key === "ENA_COMMERCE" || key === "AI_DROPSHIP") {
     const approval = await prisma.dealerApproval.findUnique({ where: { dealerId } });
     return approval?.status === "ACTIVE" ? "active" : approval ? "pending" : "none";
   }
 
-  const license = await getDealerModuleLicense(dealerId, moduleKey);
+  const license = await getDealerModuleLicense(dealerId, key);
   if (!license) return "none";
 
-  if (moduleKey === "POD_CREATOR") {
+  if (key === "POD_CREATOR") {
     const { validatePodDealerContext } = await import("@/lib/pod/access");
     const podCtx = await validatePodDealerContext(dealerId);
     if (!podCtx.ok) {
@@ -84,7 +87,10 @@ export async function canDealerPurchaseModule(dealerId: string): Promise<boolean
 }
 
 export async function getAvailablePlans(moduleKey: string) {
-  return prisma.modulePlan.findMany({ where: { moduleKey, isActive: true }, orderBy: { sortOrder: "asc" } });
+  return prisma.modulePlan.findMany({
+    where: { moduleKey: normalizeModuleKey(moduleKey), isActive: true },
+    orderBy: { sortOrder: "asc" },
+  });
 }
 
 export function getModuleLabel(key: string): string {

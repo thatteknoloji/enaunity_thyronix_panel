@@ -1,6 +1,17 @@
 import type { UnifiedStatus } from "@/lib/customer-products/types";
+import { prisma } from "@/lib/db";
 import { getDealerModuleLicense, getModuleLicenseState } from "./access";
+import { normalizeModuleKey } from "./module-key";
 import { MARKETPLACE_MODULES, MARKETPLACE_MODULE_KEYS, type MarketplaceCard, resolveMarketplaceCta } from "./marketplace";
+
+async function resolvePlanName(moduleKey: string, planKey: string | null): Promise<string | null> {
+  if (!planKey) return null;
+  const plan = await prisma.modulePlan.findFirst({
+    where: { moduleKey: normalizeModuleKey(moduleKey), planKey },
+    select: { name: true },
+  });
+  return plan?.name || planKey;
+}
 
 export async function buildMarketplaceCard(
   dealerId: string,
@@ -47,6 +58,10 @@ export async function buildMarketplaceCard(
     rawStatus
   );
 
+  const resolvedPlanKey = product?.planKey || license?.planKey || null;
+  const resolvedPlanName =
+    product?.planName || (await resolvePlanName(key, resolvedPlanKey));
+
   const statusLabels: Record<MarketplaceCard["displayStatus"], string> = {
     ACTIVE: "Aktif",
     TRIAL: "Deneme",
@@ -63,8 +78,8 @@ export async function buildMarketplaceCard(
     description: meta.description,
     displayStatus,
     statusLabel: statusLabels[displayStatus],
-    planKey: product?.planKey || license?.planKey || null,
-    planName: product?.planName || license?.planKey || null,
+    planKey: resolvedPlanKey,
+    planName: resolvedPlanName,
     endsAt: license?.endsAt?.toISOString() || null,
     ctaLabel,
     ctaHref,

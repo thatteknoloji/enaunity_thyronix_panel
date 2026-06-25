@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Loader2 } from "lucide-react";
-import { PartnerAdminShell } from "@/components/partners/PartnerAdminShell";
+import { PodAdminShell } from "@/components/pod/PodAdminShell";
 
 type Design = {
   id: string;
@@ -29,7 +29,7 @@ export default function AdminPodDesignsPage() {
   }, []);
 
   return (
-    <PartnerAdminShell title="POD Tasarımları" description="Tüm bayi tasarımları">
+    <PodAdminShell title="POD Tasarımları" description="Tüm bayi tasarımları">
       {loading ? (
         <div className="flex justify-center py-12"><Loader2 className="animate-spin" size={24} /></div>
       ) : (
@@ -64,6 +64,6 @@ export default function AdminPodDesignsPage() {
           </table>
         </div>
       )}
-    </PartnerAdminShell>
+    </PodAdminShell>
   );
 }

@@ -1,5 +1,11 @@
-import { PartnerAdminShell } from "@/components/partners/PartnerAdminShell";
+import { PodAdminShell } from "@/components/pod/PodAdminShell";
 
 export default function AdminPodOrdersPage() {
-  return <PartnerAdminShell title="POD Siparişler" backHref="/admin/pod" stubLabel="Yakında" description="PODOrder ve PODCommission — liste API sonraki fazda" />;
+  return (
+    <PodAdminShell
+      title="POD Siparişler"
+      stubLabel="Yakında"
+      description="PODOrder ve PODCommission — liste API sonraki fazda"
+    />
+  );
 }

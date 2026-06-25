@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Loader2 } from "lucide-react";
-import { PartnerAdminShell } from "@/components/partners/PartnerAdminShell";
+import { PodAdminShell } from "@/components/pod/PodAdminShell";
 
 type Template = {
   id: string;
@@ -28,7 +28,7 @@ export default function AdminPodTemplatesPage() {
   }, []);
 
   return (
-    <PartnerAdminShell title="POD Ürün Şablonları" description="Cam tablo, poster, kupa, tişört">
+    <PodAdminShell title="POD Ürün Şablonları" description="Cam tablo, poster, kupa, tişört">
       {loading ? (
         <div className="flex justify-center py-12"><Loader2 className="animate-spin" size={24} /></div>
       ) : (
@@ -48,6 +48,6 @@ export default function AdminPodTemplatesPage() {
           ))}
         </div>
       )}
-    </PartnerAdminShell>
+    </PodAdminShell>
   );
 }

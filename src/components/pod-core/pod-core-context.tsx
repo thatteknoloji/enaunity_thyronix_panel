@@ -39,6 +39,10 @@ type PodCoreContextValue = {
   setHeightCm: (v: number) => void;
   setQuantity: (v: number) => void;
   setCustomerType: (v: PricingCustomerType) => void;
+  sizeVariantKey: string | undefined;
+  setSizeVariantKey: (v: string | undefined) => void;
+  optionCodes: string[];
+  setOptionCodes: (codes: string[]) => void;
   pricing: PodPricingSnapshot | null;
   pricingLoading: boolean;
   pricingError: string | null;
@@ -75,6 +79,8 @@ export function PodCoreProvider({ children }: { children: ReactNode }) {
   const [heightCm, setHeightCm] = useState(getDefaultMockupTemplate().defaultSize.heightCm);
   const [quantity, setQuantity] = useState(getDefaultMockupTemplate().defaultQuantity);
   const [customerType, setCustomerType] = useState<PricingCustomerType>("RETAIL");
+  const [sizeVariantKey, setSizeVariantKey] = useState<string | undefined>(undefined);
+  const [optionCodes, setOptionCodes] = useState<string[]>([]);
   const [pricing, setPricing] = useState<PodPricingSnapshot | null>(null);
   const [pricingLoading, setPricingLoading] = useState(false);
   const [pricingError, setPricingError] = useState<string | null>(null);
@@ -118,6 +124,9 @@ export function PodCoreProvider({ children }: { children: ReactNode }) {
         quantity,
         customerType
       );
+      payload.pricingCatalogId = tpl.pricingCatalogId;
+      payload.sizeVariantKey = sizeVariantKey;
+      payload.optionCodes = optionCodes.length ? optionCodes : undefined;
       const result = await fetchPodPricing(payload);
       if (seq !== pricingSeq.current) return;
       setPricing(result.pricing);
@@ -129,7 +138,7 @@ export function PodCoreProvider({ children }: { children: ReactNode }) {
     } finally {
       if (seq === pricingSeq.current) setPricingLoading(false);
     }
-  }, [widthCm, heightCm, quantity, customerType]);
+  }, [widthCm, heightCm, quantity, customerType, sizeVariantKey, optionCodes]);
 
   const setProjectName = useCallback((name: string) => setProjectNameState(name), []);
 
@@ -202,6 +211,8 @@ export function PodCoreProvider({ children }: { children: ReactNode }) {
       setWidthCm(t.defaultSize.widthCm);
       setHeightCm(t.defaultSize.heightCm);
       setQuantity(t.defaultQuantity);
+      setSizeVariantKey(t.pricingCatalogId === "NEVRESIM" ? "single" : undefined);
+      setOptionCodes([]);
       engineRef.current?.setMockupTemplate(t);
       refresh();
     },
@@ -217,7 +228,7 @@ export function PodCoreProvider({ children }: { children: ReactNode }) {
       void recalculatePricing();
     }, PRICING_DEBOUNCE_MS);
     return () => clearTimeout(t);
-  }, [mockupTemplate, widthCm, heightCm, quantity, customerType, tick, recalculatePricing]);
+  }, [mockupTemplate, widthCm, heightCm, quantity, customerType, sizeVariantKey, optionCodes, tick, recalculatePricing]);
 
   const value = useMemo(
     () => ({
@@ -235,6 +246,10 @@ export function PodCoreProvider({ children }: { children: ReactNode }) {
       setHeightCm,
       setQuantity,
       setCustomerType,
+      sizeVariantKey,
+      setSizeVariantKey,
+      optionCodes,
+      setOptionCodes,
       pricing,
       pricingLoading,
       pricingError,
@@ -259,6 +274,8 @@ export function PodCoreProvider({ children }: { children: ReactNode }) {
       heightCm,
       quantity,
       customerType,
+      sizeVariantKey,
+      optionCodes,
       pricing,
       pricingLoading,
       pricingError,

@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/db";
+import { tryCalculateFromCatalog } from "./catalog-pricing-engine";
 import { calculatePricingFromRule } from "./formula-engine";
 import { seedDefaultPricingRules } from "./pricing-seed";
 import type {
@@ -342,6 +343,22 @@ export async function getPricingDashboard(): Promise<PricingDashboard> {
 }
 
 export async function calculatePricing(input: CalculatePricingInput): Promise<CalculatePricingResult> {
+  const catalogResult = tryCalculateFromCatalog(input);
+  if (catalogResult) {
+    if (input.writeLog !== false) {
+      await prisma.pricingCalculationLog.create({
+        data: {
+          ruleId: null,
+          inputJson: JSON.stringify(input),
+          resultJson: JSON.stringify(catalogResult),
+          sourceType: input.sourceType || "CATALOG",
+          sourceReferenceId: input.sourceReferenceId || catalogResult.ruleId,
+        },
+      });
+    }
+    return catalogResult;
+  }
+
   const rule = await getPricingRule(input.ruleCode);
   if (!rule) throw new Error(`Fiyat kuralı bulunamadı: ${input.ruleCode}`);
   if (rule.status !== "ACTIVE") throw new Error(`Fiyat kuralı aktif değil: ${input.ruleCode}`);

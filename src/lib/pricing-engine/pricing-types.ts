@@ -36,6 +36,8 @@ export type PricingBreakdownLine = {
 
 export type CalculatePricingInput = {
   ruleCode: string;
+  catalogId?: string;
+  sizeVariantKey?: string;
   widthCm?: number;
   heightCm?: number;
   lengthMeter?: number;

@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/db";
 import { getAvailablePlans } from "@/lib/modules/access";
+import { normalizeModuleKey } from "@/lib/modules/module-key";
 import { syncLicenseMetadataFromPlan } from "@/lib/modules/license-metadata";
 import { createProductAccountLink } from "@/lib/product-links/service";
 import { ensureHiveWorkspace, recordHiveSession } from "@/lib/hive/integration";
@@ -45,10 +46,11 @@ function computeEndsAt(status: string, months?: number, trialDays?: number): Dat
 }
 
 export async function getModuleAccessOverview(moduleKey: AdminModuleKey) {
+  const normalizedKey = normalizeModuleKey(moduleKey) as AdminModuleKey;
   const [plans, licenses, dealers, links] = await Promise.all([
-    getAvailablePlans(moduleKey),
+    getAvailablePlans(normalizedKey),
     prisma.moduleLicense.findMany({
-      where: { moduleKey },
+      where: { moduleKey: normalizedKey },
       orderBy: { updatedAt: "desc" },
     }),
     prisma.dealer.findMany({
@@ -56,7 +58,7 @@ export async function getModuleAccessOverview(moduleKey: AdminModuleKey) {
       orderBy: { company: "asc" },
     }),
     prisma.productAccountLink.findMany({
-      where: { productType: moduleKey, status: { not: "DELETED" } },
+      where: { productType: normalizedKey, status: { not: "DELETED" } },
       include: {
         externalUser: { select: { id: true, email: true, username: true } },
         enaUser: { select: { id: true, email: true, name: true, dealerId: true } },
@@ -98,7 +100,7 @@ export async function getModuleAccessOverview(moduleKey: AdminModuleKey) {
   }));
 
   return {
-    moduleKey,
+    moduleKey: normalizedKey,
     plans: plans.map((p) => ({
       id: p.id,
       planKey: p.planKey,
@@ -129,11 +131,12 @@ export async function upsertModuleLicense(input: {
   trialDays?: number;
   months?: number;
 }) {
+  const normalizedKey = normalizeModuleKey(input.moduleKey) as AdminModuleKey;
   const endsAt = computeEndsAt(input.status, input.months, input.trialDays);
   const trialEndsAt = input.status === "TRIAL" ? endsAt : null;
 
   const existing = await prisma.moduleLicense.findFirst({
-    where: { dealerId: input.dealerId, moduleKey: input.moduleKey },
+    where: { dealerId: input.dealerId, moduleKey: normalizedKey },
     orderBy: { createdAt: "desc" },
   });
 
@@ -158,7 +161,7 @@ export async function upsertModuleLicense(input: {
   if (existing) {
     const updated = await prisma.moduleLicense.update({ where: { id: existing.id }, data });
     if (input.status === "ACTIVE" || input.status === "TRIAL") {
-      await syncLicenseMetadataFromPlan(updated.id, input.moduleKey, input.planKey);
+      await syncLicenseMetadataFromPlan(updated.id, normalizedKey, input.planKey);
     }
     return updated;
   }
@@ -166,12 +169,12 @@ export async function upsertModuleLicense(input: {
   const created = await prisma.moduleLicense.create({
     data: {
       dealerId: input.dealerId,
-      moduleKey: input.moduleKey,
+      moduleKey: normalizedKey,
       ...data,
     },
   });
   if (input.status === "ACTIVE" || input.status === "TRIAL") {
-    await syncLicenseMetadataFromPlan(created.id, input.moduleKey, input.planKey);
+    await syncLicenseMetadataFromPlan(created.id, normalizedKey, input.planKey);
   }
   return created;
 }
@@ -186,7 +189,8 @@ export async function provisionModuleAccess(input: {
   trialDays?: number;
   months?: number;
 }) {
-  const license = await upsertModuleLicense(input);
+  const normalizedKey = normalizeModuleKey(input.moduleKey) as AdminModuleKey;
+  const license = await upsertModuleLicense({ ...input, moduleKey: normalizedKey });
 
   // Manuel admin atamasında bayi onayını aktifleştir (modül erişimi için gerekli)
   if (input.status === "ACTIVE" || input.status === "TRIAL") {
@@ -200,7 +204,7 @@ export async function provisionModuleAccess(input: {
   let linkResult: Awaited<ReturnType<typeof createProductAccountLink>> | null = null;
   let workspace: { id: string; name: string } | null = null;
 
-  if (input.createProductUser && input.moduleKey !== "LINKSLASH" && input.moduleKey !== "POD_CREATOR" && input.moduleKey !== "AI_PAGE_FACTORY") {
+  if (input.createProductUser && normalizedKey !== "LINKSLASH" && normalizedKey !== "POD_CREATOR" && normalizedKey !== "AI_PAGE_FACTORY") {
     let user = input.userId
       ? await prisma.user.findUnique({ where: { id: input.userId } })
       : await prisma.user.findFirst({ where: { dealerId: input.dealerId }, orderBy: { createdAt: "asc" } });

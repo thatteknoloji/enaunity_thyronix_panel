@@ -96,7 +96,7 @@ export default function AdminPodPage() {
             <p className="text-xs text-ena-text-muted mb-3">
               Bayi lisans tanımı, ödeme ve başvuru yönetimi tasarım stüdyosundan ayrı tutulur.
             </p>
-            <Link href={toAdminUrl("/admin/module-licenses?moduleKey=POD_CREATOR")} className="inline-flex items-center gap-2 rounded-lg border border-ena-border bg-white px-4 py-2 text-sm font-medium hover:bg-gray-50">
+            <Link href={toAdminUrl("/admin/pod/licenses")} className="inline-flex items-center gap-2 rounded-lg border border-ena-border bg-white px-4 py-2 text-sm font-medium hover:bg-gray-50">
               <Key size={16} /> POD Lisansları
             </Link>
           </div>

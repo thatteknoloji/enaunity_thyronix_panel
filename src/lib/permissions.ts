@@ -193,6 +193,7 @@ export function getNavPermissionMap(): Record<string, PermissionKey[]> {
     "/admin/pod/designs": ["pod_view", "partners_manage"],
     "/admin/pod/orders": ["pod_view", "partners_manage"],
     "/admin/pod/production": ["pod_view", "partners_manage"],
+    "/admin/pod/licenses": ["pod_view", "partners_manage"],
     "/admin/page-factory": ["partners_view", "partners_manage"],
     "/admin/page-factory/data": ["partners_view", "partners_manage"],
     "/admin/page-factory/data/import": ["partners_view", "partners_manage"],

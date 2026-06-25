@@ -65,7 +65,7 @@ function createAreaRect(kind: Exclude<OverlayKind, "grid">, area: PodPrintAreaBu
     height: area.height,
     fill: "transparent",
     stroke: OVERLAY_STROKE[kind],
-    strokeWidth: 2,
+    strokeWidth: 1.5,
     strokeDashArray: kind === "printable" ? [8, 4] : kind === "safe" ? [4, 4] : [2, 6],
     angle: area.rotation ?? 0,
     selectable: false,

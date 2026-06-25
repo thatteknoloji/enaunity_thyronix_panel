@@ -97,6 +97,8 @@ export type MockupTemplate = {
   category: string;
   /** Pricing Engine rule code */
   pricingRuleCode: string;
+  /** Hazır fiyat kataloğu id (CAM, MDF_TABLO, PERDE, …) */
+  pricingCatalogId?: string;
   /** Material code (PricingMaterial) */
   materialCode: string;
   /** Variant metadata id for API / order bridge */
@@ -209,10 +211,10 @@ export const POD_CORE_DEFAULTS = {
 } as const;
 
 export const POD_OVERLAY_COLORS = {
-  printable: "rgba(16, 185, 129, 0.85)",
-  safe: "rgba(59, 130, 246, 0.75)",
-  bleed: "rgba(239, 68, 68, 0.65)",
-  grid: "rgba(148, 163, 184, 0.35)",
+  printable: "rgba(52, 211, 153, 0.55)",
+  safe: "rgba(96, 165, 250, 0.45)",
+  bleed: "rgba(248, 113, 113, 0.4)",
+  grid: "rgba(148, 163, 184, 0.25)",
 } as const;
 
 export function createEmptyDocument(

@@ -5,10 +5,13 @@ export type PodPricingBridgeRequest = {
   templateId: string;
   variantId?: string;
   pricingRuleCode: string;
+  pricingCatalogId?: string;
+  sizeVariantKey?: string;
   widthCm: number;
   heightCm: number;
   quantity: number;
   customerType: PricingCustomerType;
+  optionCodes?: string[];
 };
 
 export type PodPricingBridgeResponse = {
@@ -31,6 +34,7 @@ export function buildPricingBridgePayload(
     templateId: template.id,
     variantId: template.variantId,
     pricingRuleCode: template.pricingRuleCode,
+    pricingCatalogId: template.pricingCatalogId,
     widthCm: Math.max(1, widthCm),
     heightCm: Math.max(1, heightCm),
     quantity: Math.max(1, quantity),
@@ -41,15 +45,22 @@ export function buildPricingBridgePayload(
 export function toCalculatePricingInput(req: PodPricingBridgeRequest): CalculatePricingInput {
   const input: CalculatePricingInput = {
     ruleCode: req.pricingRuleCode,
+    catalogId: req.pricingCatalogId,
+    sizeVariantKey: req.sizeVariantKey,
     quantity: req.quantity,
     customerType: req.customerType,
     sourceType: "POD_CORE",
     sourceReferenceId: req.templateId,
     writeLog: false,
+    optionCodes: req.optionCodes,
   };
   if (req.widthCm > 0) input.widthCm = req.widthCm;
   if (req.heightCm > 0) input.heightCm = req.heightCm;
-  if (req.variantId) input.variantCodes = [req.variantId];
+  const variantCodes = [...(req.variantId ? [req.variantId] : [])];
+  if (req.sizeVariantKey && !variantCodes.includes(req.sizeVariantKey)) {
+    variantCodes.push(req.sizeVariantKey);
+  }
+  if (variantCodes.length) input.variantCodes = variantCodes;
   return input;
 }
 
