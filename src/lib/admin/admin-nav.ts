@@ -214,6 +214,19 @@ export function buildAdminNavGroups(t: (key: string) => string, legacyMarketplac
       ],
     },
     {
+      label: "POD Merkezi",
+      icon: Shirt,
+      items: [
+        { href: "/admin/pod", label: "POD Genel Bakış", icon: LayoutDashboard },
+        { href: "/admin/pod-tasarim-studyo", label: "POD Tasarım Stüdyosu", icon: Sparkles },
+        { href: "/admin/pod/templates", label: "POD Şablonları", icon: Layers },
+        { href: "/admin/pod/designs", label: "POD Tasarımlar", icon: Image },
+        { href: "/admin/pod/orders", label: "POD Siparişler", icon: ShoppingCart },
+        { href: "/admin/pod/production", label: "POD Üretim Dosyaları", icon: FileText },
+        { href: "/admin/module-licenses?moduleKey=POD_CREATOR", label: "POD Lisansları", icon: Key },
+      ],
+    },
+    {
       label: "Partner Ecosystem",
       icon: Handshake,
       items: [
@@ -222,10 +235,6 @@ export function buildAdminNavGroups(t: (key: string) => string, legacyMarketplac
         { href: "/admin/partners/network", label: "Referans Ağı", icon: Users },
         { href: "/admin/partners/commissions", label: "Komisyonlar", icon: DollarSign },
         { href: "/admin/partners/payouts", label: "Ödemeler", icon: Banknote },
-        { href: "/admin/pod", label: "POD Merkezi", icon: Shirt },
-        { href: "/admin/pod/templates", label: "POD Şablonlar", icon: Layers },
-        { href: "/admin/pod/designs", label: "POD Tasarımlar", icon: Image },
-        { href: "/admin/pod/orders", label: "POD Siparişler", icon: ShoppingCart },
         { href: "/admin/ai-partner", label: "AI Partner", icon: Brain, badge: "Yakında" },
       ],
     },

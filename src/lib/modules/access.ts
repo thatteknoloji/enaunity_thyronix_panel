@@ -57,18 +57,15 @@ export async function getModuleLicenseState(
   if (!license) return "none";
 
   if (moduleKey === "POD_CREATOR") {
-    const { validatePodDealerContext, isPodPlanEntitled } = await import("@/lib/pod/access");
-    const ctx = await validatePodDealerContext(dealerId);
-    if (!ctx.ok) {
+    const { validatePodDealerContext } = await import("@/lib/pod/access");
+    const podCtx = await validatePodDealerContext(dealerId);
+    if (!podCtx.ok) {
       if (license.status === "PENDING_PAYMENT" || license.status === "PENDING_APPROVAL") return "pending";
-      if (isModuleLicenseEntitled(license) && ctx.code === "BAYI_ONAYI_YOK") return "pending";
+      if (isModuleLicenseEntitled(license) && podCtx.code === "BAYI_ONAYI_YOK") return "pending";
       return "none";
     }
-    if (license.planKey) {
-      const planOk = await isPodPlanEntitled(license.planKey);
-      if (!planOk && !isModuleLicenseEntitled(license)) return "none";
-      if (!planOk && isModuleLicenseEntitled(license)) return "none";
-    }
+    // Admin ACTIVE/TRIAL grant — plan kaydı eksik olsa bile bayi tarafında aktif görünsün
+    if (isModuleLicenseEntitled(license)) return "active";
   }
 
   if (isModuleLicenseEntitled(license)) return "active";

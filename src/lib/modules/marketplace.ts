@@ -259,7 +259,9 @@ export async function getDealerMarketplaceOverview(dealerId: string, products?: 
 /** Header / menü: lisanslı → gateway, lisanssız → tanıtım sayfası */
 export function resolveModuleNavHref(card: Pick<MarketplaceCard, "moduleKey" | "licensed" | "displayStatus">): string {
   const meta = MARKETPLACE_MODULES[card.moduleKey];
-  if (card.licensed) return meta.gatewayPath;
+  if (card.licensed) {
+    return card.moduleKey === "POD_CREATOR" ? meta.appPath : meta.gatewayPath;
+  }
   if (card.displayStatus === "PENDING") {
     if (card.moduleKey === "THYRONIX") return "/thyronix/pending";
     if (card.moduleKey === "HIVE") return "/hive/pending";

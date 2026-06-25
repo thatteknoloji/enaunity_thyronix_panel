@@ -2,8 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Loader2, Shirt, Users, Clock, AlertTriangle, Key, Layers, Image, FolderKanban, Sparkles, Store } from "lucide-react";
-import { AdminModuleAccessPanel } from "@/components/admin/AdminModuleAccessPanel";
+import { Loader2, Shirt, Users, Clock, AlertTriangle, Key, Layers, Image, FolderKanban, Sparkles, Store, PenTool, FileText } from "lucide-react";
 import { toAdminUrl } from "@/lib/auth/admin-access";
 
 type Stats = {
@@ -36,9 +35,9 @@ export default function AdminPodPage() {
   return (
     <div className="space-y-8 p-6">
       <div>
-        <p className="text-[10px] font-semibold uppercase tracking-wider text-emerald-600 mb-1">Tasarımcı Modülü</p>
-        <h1 className="text-2xl font-bold text-ena-text">POD Creator Yönetimi</h1>
-        <p className="text-sm text-ena-text-muted mt-1">Tasarım stüdyosu V1 — lisans ve içerik istatistikleri</p>
+        <p className="text-[10px] font-semibold uppercase tracking-wider text-emerald-600 mb-1">POD Merkezi</p>
+        <h1 className="text-2xl font-bold text-ena-text">POD Genel Bakış</h1>
+        <p className="text-sm text-ena-text-muted mt-1">Tasarım stüdyosu, şablonlar ve operasyon metrikleri</p>
       </div>
 
       {loading ? (
@@ -74,21 +73,35 @@ export default function AdminPodPage() {
             ))}
           </div>
 
-          <div className="flex flex-wrap gap-3">
-            <Link href={toAdminUrl("/admin/pod/designs")} className="inline-flex items-center gap-2 rounded-lg border border-ena-border bg-white px-4 py-2 text-sm font-medium hover:bg-gray-50">
-              <Image size={16} /> Tasarımlar
-            </Link>
-            <Link href={toAdminUrl("/admin/pod/templates")} className="inline-flex items-center gap-2 rounded-lg border border-ena-border bg-white px-4 py-2 text-sm font-medium hover:bg-gray-50">
-              <Layers size={16} /> Şablonlar
-            </Link>
+          <div className="rounded-xl border border-ena-border bg-white p-5 shadow-sm">
+            <h2 className="text-sm font-semibold text-ena-text mb-3">Tasarım & Operasyon</h2>
+            <div className="flex flex-wrap gap-3">
+              <Link href={toAdminUrl("/admin/pod-tasarim-studyo")} className="inline-flex items-center gap-2 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-4 py-2 text-sm font-medium text-emerald-700 hover:bg-emerald-500/15">
+                <PenTool size={16} /> Tasarım Stüdyosu
+              </Link>
+              <Link href={toAdminUrl("/admin/pod/designs")} className="inline-flex items-center gap-2 rounded-lg border border-ena-border bg-white px-4 py-2 text-sm font-medium hover:bg-gray-50">
+                <Image size={16} /> Tasarımlar
+              </Link>
+              <Link href={toAdminUrl("/admin/pod/templates")} className="inline-flex items-center gap-2 rounded-lg border border-ena-border bg-white px-4 py-2 text-sm font-medium hover:bg-gray-50">
+                <Layers size={16} /> Şablonlar
+              </Link>
+              <Link href={toAdminUrl("/admin/pod/production")} className="inline-flex items-center gap-2 rounded-lg border border-ena-border bg-white px-4 py-2 text-sm font-medium hover:bg-gray-50">
+                <FileText size={16} /> Üretim Dosyaları
+              </Link>
+            </div>
+          </div>
+
+          <div className="rounded-xl border border-ena-border bg-amber-50/80 p-5 shadow-sm">
+            <h2 className="text-sm font-semibold text-ena-text mb-1">Lisans & Ödeme</h2>
+            <p className="text-xs text-ena-text-muted mb-3">
+              Bayi lisans tanımı, ödeme ve başvuru yönetimi tasarım stüdyosundan ayrı tutulur.
+            </p>
             <Link href={toAdminUrl("/admin/module-licenses?moduleKey=POD_CREATOR")} className="inline-flex items-center gap-2 rounded-lg border border-ena-border bg-white px-4 py-2 text-sm font-medium hover:bg-gray-50">
-              <Key size={16} /> Modül Lisansları
+              <Key size={16} /> POD Lisansları
             </Link>
           </div>
         </>
       ) : null}
-
-      <AdminModuleAccessPanel moduleKey="POD_CREATOR" />
     </div>
   );
 }

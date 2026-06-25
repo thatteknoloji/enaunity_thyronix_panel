@@ -129,8 +129,8 @@ export async function assertPodCreatorAccess(user: UserLike | null): Promise<Pod
     };
   }
 
-  const entitledPlan = await isPodPlanEntitled(license?.planKey);
-  if (license?.planKey && !entitledPlan) {
+  const entitledPlan = license?.planKey ? await isPodPlanEntitled(license.planKey) : true;
+  if (license?.planKey && !entitledPlan && license && !isModuleLicenseEntitled(license)) {
     return {
       allowed: false,
       reason: "POD Creator planınız artık aktif değil",

@@ -6,7 +6,7 @@ import Link from "next/link";
 import {
   LayoutDashboard, ShoppingCart, User, LogOut, ChevronLeft, ChevronRight, Home, Store, Wallet,
   FileText, Users, RotateCcw, Bell, ReceiptText, Menu, Upload, Heart, Zap, MapPin,
-  FileSignature, Truck, Plug, Package, Handshake, Sparkles, LineChart,
+  FileSignature, Truck, Plug, Package, Handshake, Sparkles, LineChart, Shirt, Image, Layers, FolderKanban,
   type LucideIcon,
 } from "lucide-react";
 import NotificationBell from "@/components/NotificationBell";
@@ -132,20 +132,37 @@ export default function DealerLayout({ children }: { children: React.ReactNode }
       .then((r) => r.json())
       .then((d) => {
         if (d.success) {
-          const items = buildLicensedNavItems(d.data.modules || []);
-          const pageFactoryLicensed = (d.data.modules || []).some(
-            (m: { moduleKey: string; licensed?: boolean }) =>
-              m.moduleKey === "AI_PAGE_FACTORY" && m.licensed
+          const modules = d.data.modules || [];
+          let navItems: NavItem[] = buildLicensedNavItems(modules).map(({ href, label, icon }) => ({
+            href,
+            label,
+            icon,
+          }));
+          const podLicensed = modules.some(
+            (m: { moduleKey: string; licensed?: boolean }) => m.moduleKey === "POD_CREATOR" && m.licensed
           );
-          if (pageFactoryLicensed) {
-            items.push({
+          if (podLicensed) {
+            const podExtras: NavItem[] = [
+              { href: "/dealer/pod", label: "POD Creator", icon: Shirt },
+              { href: "/dealer/pod/designs", label: "POD Tasarımlarım", icon: Image },
+              { href: "/dealer/pod/templates", label: "POD Şablonları", icon: Layers },
+              { href: "/dealer/pod/projects", label: "POD Projelerim", icon: FolderKanban },
+            ];
+            navItems = [...podExtras, ...navItems.filter((item) => item.label !== "POD Creator")];
+          }
+          if (
+            modules.some(
+              (m: { moduleKey: string; licensed?: boolean }) =>
+                m.moduleKey === "AI_PAGE_FACTORY" && m.licensed
+            )
+          ) {
+            navItems.push({
               href: "/dealer/product-universe",
               label: "Ürün Evreni",
               icon: Package,
-              moduleKey: "AI_PAGE_FACTORY",
             });
           }
-          setLicensedItems(items);
+          setLicensedItems(navItems);
         }
       });
   }, [router, t]);
