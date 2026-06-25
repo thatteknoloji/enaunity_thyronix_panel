@@ -7,7 +7,16 @@ import { POD_CORE_VERSION } from "@/lib/pod-core/pod-types";
 import { usePodCore } from "./pod-core-context";
 
 export function PodDebugPanel() {
-  const { engine, tick, selectedObjectIds, mockupTemplate } = usePodCore();
+  const {
+    engine,
+    tick,
+    selectedObjectIds,
+    mockupTemplate,
+    pricing,
+    pricingError,
+    widthCm,
+    heightCm,
+  } = usePodCore();
 
   const debug = useMemo(() => {
     const bundle = engine?.getPrintAreaBundle();
@@ -32,13 +41,29 @@ export function PodDebugPanel() {
       memoryMb: mem ? (mem / 1024 / 1024).toFixed(1) : "n/a",
       selectedObjectIds,
       templateId: mockupTemplate.id,
+      pricingRule: mockupTemplate.pricingRuleCode,
+      areaM2: pricing?.areaM2?.toFixed(4) ?? "—",
+      finalPrice: pricing?.finalPrice?.toString() ?? "—",
+      dealerPrice: pricing?.dealerPrice?.toString() ?? "—",
+      retailPrice: pricing?.retailPrice?.toString() ?? "—",
+      calculationTime: pricing?.calculationTimeMs != null ? `${pricing.calculationTimeMs}ms` : "—",
+      pricingError: pricingError ?? "—",
+      dimensions: `${widthCm}×${heightCm} cm`,
     };
-  }, [engine, tick, selectedObjectIds, mockupTemplate.id]);
+  }, [engine, tick, selectedObjectIds, mockupTemplate.id, mockupTemplate.pricingRuleCode, pricing, pricingError, widthCm, heightCm]);
 
   return (
     <div className="space-y-3 text-xs font-mono" key={tick}>
       <Row k="version" v={debug.version} />
       <Row k="template" v={debug.templateId} />
+      <Row k="pricingRule" v={debug.pricingRule} />
+      <Row k="dimensions" v={debug.dimensions} />
+      <Row k="areaM2" v={debug.areaM2} />
+      <Row k="finalPrice" v={debug.finalPrice} />
+      <Row k="dealerPrice" v={debug.dealerPrice} />
+      <Row k="retailPrice" v={debug.retailPrice} />
+      <Row k="calculationTime" v={debug.calculationTime} />
+      <Row k="pricingError" v={debug.pricingError} />
       <Row k="layers" v={String(debug.layerCount)} />
       <Row k="history" v={String(debug.historyCount)} />
       <Row k="dpi" v={String(debug.dpi)} />

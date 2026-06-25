@@ -1,4 +1,4 @@
-export const POD_CORE_VERSION = "ENA_POD_CORE_V2" as const;
+export const POD_CORE_VERSION = "ENA_POD_CORE_V3" as const;
 
 /** Dev-only flag — mevcut POD V1 ile yan yana çalışır */
 export const POD_CORE_DEV_ENABLED = true;
@@ -74,6 +74,12 @@ export type PodOverlayVisibility = {
 
 export type MockupOrientation = "landscape" | "portrait";
 export type MockupView = "front" | "back" | "left" | "right";
+export type MockupFormulaHint = "AREA" | "PIECE";
+
+export type MockupDefaultSize = {
+  widthCm: number;
+  heightCm: number;
+};
 
 export type MockupTemplate = {
   id: string;
@@ -87,6 +93,33 @@ export type MockupTemplate = {
   width: number;
   height: number;
   category: string;
+  /** Pricing Engine rule code */
+  pricingRuleCode: string;
+  /** Material code (PricingMaterial) */
+  materialCode: string;
+  /** Variant metadata id for API / order bridge */
+  variantId: string;
+  defaultSize: MockupDefaultSize;
+  defaultQuantity: number;
+  formulaHint: MockupFormulaHint;
+};
+
+export type PodPricingSnapshot = {
+  areaM2: number;
+  ruleCode: string;
+  ruleName?: string;
+  retailPrice: number;
+  dealerPrice: number;
+  finalPrice: number;
+  materialCost: number;
+  laborCost: number;
+  printCost: number;
+  wasteCost: number;
+  commissionAmount: number;
+  taxAmount: number;
+  currency: string;
+  breakdown: Array<{ key: string; label: string; amount: number }>;
+  calculationTimeMs: number;
 };
 
 export type MockupFitMode = "contain" | "cover";

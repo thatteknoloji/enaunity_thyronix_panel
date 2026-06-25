@@ -1,11 +1,16 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { Loader2 } from "lucide-react";
 import { usePodCore } from "./pod-core-context";
+
+function formatTry(amount: number): string {
+  return new Intl.NumberFormat("tr-TR", { style: "currency", currency: "TRY", maximumFractionDigits: 0 }).format(amount);
+}
 
 export function PodDesignerCanvas() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const { engine, refresh } = usePodCore();
+  const { engine, refresh, pricing, pricingLoading, mockupTemplate } = usePodCore();
 
   useEffect(() => {
     const el = canvasRef.current;
@@ -48,9 +53,15 @@ export function PodDesignerCanvas() {
   return (
     <div className="flex flex-col gap-2">
       <div className="flex items-center justify-between text-[10px] text-ena-light/60 px-1">
-        <span>ENA POD Core Canvas</span>
-        <span>
-          Zoom {(vp?.zoom ?? 1).toFixed(2)} · Pan {Math.round(vp?.panX ?? 0)},{Math.round(vp?.panY ?? 0)}
+        <span>ENA POD Core Canvas · {mockupTemplate.name}</span>
+        <span className="flex items-center gap-2">
+          {pricingLoading && <Loader2 className="h-3 w-3 animate-spin text-emerald-600" />}
+          {pricing && !pricingLoading && (
+            <span className="font-semibold text-emerald-700">{formatTry(pricing.finalPrice)}</span>
+          )}
+          <span>
+            Zoom {(vp?.zoom ?? 1).toFixed(2)} · Pan {Math.round(vp?.panX ?? 0)},{Math.round(vp?.panY ?? 0)}
+          </span>
         </span>
       </div>
       <div className="rounded-xl border border-ena-border bg-[#f8fafc] overflow-hidden shadow-inner">
