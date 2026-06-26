@@ -189,6 +189,7 @@ export function buildAdminNavGroups(t: (key: string) => string, legacyMarketplac
       label: t("admin.orders_finance"),
       icon: ShoppingCart,
       items: [
+        { href: "/admin/production", label: "Production Center", icon: Factory },
         { href: "/admin/orders", label: t("admin.orders"), icon: ShoppingCart },
         { href: "/admin/backorders", label: t("admin.backorders"), icon: Clock },
         { href: "/admin/quotes", label: t("admin.quotes"), icon: FileText },

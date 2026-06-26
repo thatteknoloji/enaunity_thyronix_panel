@@ -457,6 +457,7 @@ model Dealer {
   telegramChatId   String             @default("")
   marketplaceConnections MarketplaceConnection[]
   dealerOrders           DealerOrder[]
+  productionJobs         ProductionJob[]
   dealerAccount          DealerAccount?
   dealerAccountTransactions DealerAccountTransaction[]
   dealerStatements       DealerStatement[]
@@ -4534,5 +4535,55 @@ model PricingCalculationLog {
   createdAt         DateTime     @default(now())
 
   @@index([ruleId])
+  @@index([createdAt])
+}
+
+// ── Production Center (Commercial Order ≠ Production Job) ──
+
+model ProductionJob {
+  id                  String    @id @default(cuid())
+  jobNumber           String    @unique
+  orderSource         String    @default("MANUAL")
+  orderId             String    @default("")
+  dealerId            String?
+  dealer              Dealer?   @relation(fields: [dealerId], references: [id], onDelete: SetNull)
+  customerName        String    @default("")
+  productType         String    @default("")
+  variant             String    @default("")
+  widthCm             Float     @default(0)
+  heightCm            Float     @default(0)
+  quantity            Int       @default(1)
+  status              String    @default("NEW")
+  priority            String    @default("NORMAL")
+  machineName         String    @default("")
+  operatorName        String    @default("")
+  estimatedMinutes    Int       @default(0)
+  trackingNumber      String    @default("")
+  shipmentCompany     String    @default("")
+  notes               String    @default("")
+  qualityPassed       Boolean   @default(false)
+  qualityNote         String    @default("")
+  qualityPhotoUrl     String    @default("")
+  productionPackPath  String    @default("")
+  previewImage        String    @default("")
+  productionImage     String    @default("")
+  pdfPath             String    @default("")
+  svgPath             String    @default("")
+  pricingSnapshotJson String    @default("{}")
+  metadataJson        String    @default("{}")
+  startedAt           DateTime?
+  finishedAt          DateTime?
+  shippedAt           DateTime?
+  deliveredAt         DateTime?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  @@index([status])
+  @@index([dealerId])
+  @@index([orderSource, orderId])
+  @@index([priority])
+  @@index([machineName])
+  @@index([operatorName])
+  @@index([productType])
   @@index([createdAt])
 }

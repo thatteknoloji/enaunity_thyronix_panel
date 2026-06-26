@@ -10,6 +10,7 @@ import { getOrderPaymentInfo } from "@/lib/orders/payment-metadata";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { SendToProductionButton } from "@/components/production-center/SendToProductionButton";
 import {
   AlertTriangle,
   ArrowLeft,
@@ -287,6 +288,7 @@ export default function DealerOrderDetailPage() {
           <p className="text-sm text-ena-light/50 mt-1">#{order.id.slice(0, 8).toUpperCase()}</p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
+          <SendToProductionButton coreOrderId={order.id} disabled={order.status === "cancelled"} />
           <Button variant="outline" onClick={copyOrderId} className="gap-2 border-ena-border text-ena-light">
             <Copy size={16} /> Kopyala
           </Button>

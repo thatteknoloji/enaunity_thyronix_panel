@@ -16,6 +16,7 @@ import {
 import type { OperasyonOrderView } from "@/lib/fulfillment/operasyon-service";
 import { marketplaceImagePlaceholder } from "@/lib/marketplace-hub/marketplace-image";
 import { toAdminUrl } from "@/lib/auth/admin-access";
+import { SendToProductionButton } from "@/components/production-center/SendToProductionButton";
 
 type Props = {
   scope: "admin" | "dealer";
@@ -315,6 +316,17 @@ export default function OperasyonOrdersPanel({ scope }: Props) {
               <p>{selected.customerAddress || selected.customerCity || "Adres bilgisi yok"}</p>
               {selected.customerCity && selected.customerAddress && (
                 <p className="text-gray-400 mt-0.5">{selected.customerCity}</p>
+              )}
+            </div>
+
+            <div className="mt-4 flex flex-wrap gap-2 items-center">
+              {scope === "dealer" && (
+                <SendToProductionButton dealerOrderId={selected.id} />
+              )}
+              {scope === "admin" && (
+                <span className="text-[10px] text-gray-400 border border-dashed rounded-lg px-3 py-2">
+                  Marketplace → Production Center entegrasyonu <strong>Yakında</strong>
+                </span>
               )}
             </div>
 
