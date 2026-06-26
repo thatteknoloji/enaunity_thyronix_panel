@@ -1,0 +1,1557 @@
+{
+  "source": {
+    "sourceName": "Hepsiburada Komisyon Listesi",
+    "sourceFile": "Hepsibu_Komisyon_Listesi.pdf",
+    "sourceType": "pdf",
+    "effectiveDate": "2026-01-01",
+    "vatIncluded": false,
+    "vatNote": "Tüm komisyonlar listeleme fiyatı üzerinden +KDV olarak hesaplanacaktır",
+    "version": "2026",
+    "confidence": "official"
+  },
+  "entries": [
+    {
+      "marketplace": "hepsiburada",
+      "mainCategory": "Altın",
+      "subCategory": "Altın Yatırım",
+      "productGroup": "Gram Altın, Tam Altın, Yarım Altın, Çeyrek Altın, Hesaba Altın",
+      "ratePercent": 6.0,
+      "vatIncluded": false,
+      "vatNote": "Tüm komisyonlar listeleme fiyatı üzerinden +KDV olarak hesaplanacaktır",
+      "serviceFees": []
+    },
+    {
+      "marketplace": "hepsiburada",
+      "mainCategory": "Aksesuar",
+      "subCategory": "Altın / Takı / Mücevher",
+      "productGroup": "Halhal&Ayak Aksesuarları, Bijuteri Bileklik, Çelik Bileklik, Gümüş Bileklik, Choker, Bijuteri Kolye, Çelik Kolye, Gümüş Küpe, Gümüş Kolye",
+      "ratePercent": 18.64,
+      "vatIncluded": false,
+      "vatNote": "Tüm komisyonlar listeleme fiyatı üzerinden +KDV olarak hesaplanacaktır",
+      "serviceFees": []
+    },
+    {
+      "marketplace": "hepsiburada",
+      "mainCategory": "Aksesuar",
+      "subCategory": "Saat/Gözlük",
+      "productGroup": "Güneş Gözlüğü, Kol Saatleri, Duvar Saatleri, Saat Aksesuarları",
+      "ratePercent": 18.0,
+      "vatIncluded": false,
+      "vatNote": "Tüm komisyonlar listeleme fiyatı üzerinden +KDV olarak hesaplanacaktır",
+      "serviceFees": []
+    },
+    {
+      "marketplace": "hepsiburada",
+      "mainCategory": "Aksesuar",
+      "subCategory": "Aksesuar",
+      "productGroup": "Atkı, Atkı & Bere & Eldiven Set, Bere, Boyunluk, Eldiven, Kemer, Saç Aksesuarı, Kravat & Pantolon Askısı, Kol Düğmesi, Şapka",
+      "ratePercent": 18.0,
+      "vatIncluded": false,
+      "vatNote": "Tüm komisyonlar listeleme fiyatı üzerinden +KDV olarak hesaplanacaktır",
+      "serviceFees": []
+    },
+    {
+      "marketplace": "hepsiburada",
+      "mainCategory": "Çanta",
+      "subCategory": "Valiz Bavul",
+      "productGroup": "Valiz, Bavul, Seyahat Çantası",
+      "ratePercent": 18.0,
+      "vatIncluded": false,
+      "vatNote": "Tüm komisyonlar listeleme fiyatı üzerinden +KDV olarak hesaplanacaktır",
+      "serviceFees": []
+    },
+    {
+      "marketplace": "hepsiburada",
+      "mainCategory": "Çanta",
+      "subCategory": "Çanta",
+      "productGroup": "Spor Çanta, Sırt Çantası, Abiye Çanta, Günlük Çanta, Plaj Çantası, Dağcılık ve Kamp Çantası",
+      "ratePercent": 18.0,
+      "vatIncluded": false,
+      "vatNote": "Tüm komisyonlar listeleme fiyatı üzerinden +KDV olarak hesaplanacaktır",
+      "serviceFees": []
+    },
+    {
+      "marketplace": "hepsiburada",
+      "mainCategory": "Ayakkabı",
+      "subCategory": "Ayakkabı",
+      "productGroup": "Erkek Ayakkabı, Kadın Ayakkabı, Babet, Terlik, Bot, Çizme",
+      "ratePercent": 19.49,
+      "vatIncluded": false,
+      "vatNote": "Tüm komisyonlar listeleme fiyatı üzerinden +KDV olarak hesaplanacaktır",
+      "serviceFees": []
+    },
+    {
+      "marketplace": "hepsiburada",
+      "mainCategory": "Giyim",
+      "subCategory": "Giyim",
+      "productGroup": "Bluz, Etek, Ceket, Pantolon, Gömlek, Tişört, Çocuk Giyim, Mont, Kaban Alt Giyim, Üst Giyim, İç Giyim, Çoraplar",
+      "ratePercent": 18.0,
+      "vatIncluded": false,
+      "vatNote": "Tüm komisyonlar listeleme fiyatı üzerinden +KDV olarak hesaplanacaktır",
+      "serviceFees": []
+    },
+    {
+      "marketplace": "hepsiburada",
+      "mainCategory": "Giyim",
+      "subCategory": "Bebek Giyim",
+      "productGroup": "Patik, Ayakkabı, Bebek Pijama, Bebek Pantolon, Takımlar",
+      "ratePercent": 18.0,
+      "vatIncluded": false,
+      "vatNote": "Tüm komisyonlar listeleme fiyatı üzerinden +KDV olarak hesaplanacaktır",
+      "serviceFees": []
+    },
+    {
+      "marketplace": "hepsiburada",
+      "mainCategory": "Parfüm",
+      "subCategory": "Parfümler",
+      "productGroup": "Kadın Parfüm, Erkek Parfüm, Parfüm Seti",
+      "ratePercent": 17.0,
+      "vatIncluded": false,
+      "vatNote": "Tüm komisyonlar listeleme fiyatı üzerinden +KDV olarak hesaplanacaktır",
+      "serviceFees": []
+    },
+    {
+      "marketplace": "hepsiburada",
+      "mainCategory": "Outdoor- Deniz",
+      "subCategory": "Outdoor-Deniz Ekipmanları",
+      "productGroup": "Kamp Kampçılık, Fener, Askeri Giyim ve Malzemeler, Kış Sporları, Doğa Sporları (Dalış, Tırmanış), Şişme Su Ürünleri, Kara ve Balık Av Malzemeleri, Sea Scooter, Deniz Ekipmanları",
+      "ratePercent": 14.0,
+      "vatIncluded": false,
+      "vatNote": "Tüm komisyonlar listeleme fiyatı üzerinden +KDV olarak hesaplanacaktır",
+      "serviceFees": []
+    },
+    {
+      "marketplace": "hepsiburada",
+      "mainCategory": "Outdoor- Deniz",
+      "subCategory": "Outdoor-Deniz Ekipmanları",
+      "productGroup": "Tekne Ürünleri, GPS, Teleskop ve Dürbün",
+      "ratePercent": 12.0,
+      "vatIncluded": false,
+      "vatNote": "Tüm komisyonlar listeleme fiyatı üzerinden +KDV olarak hesaplanacaktır",
+      "serviceFees": []
+    },
+    {
+      "marketplace": "hepsiburada",
+      "mainCategory": "Spor & Outdoor",
+      "subCategory": "Giyim & Ayakkabı",
+      "productGroup": "Spor Ayakkabı (Günlük, Koşu, Spor Branşlar), Outdoor Ayakkabı, Outdoor Giyim, Spor Giyim (Tişört, Tayt, Sweatshirt, Şort, Eşofman, Üst Giyim, Alt Giyim), Bisiklet Giyim, Spor Branşları Giyim, Taraftar Giyim, Spor Çanta",
+      "ratePercent": 18.0,
+      "vatIncluded": false,
+      "vatNote": "Tüm komisyonlar listeleme fiyatı üzerinden +KDV olarak hesaplanacaktır",
+      "serviceFees": []
+    },
+    {
+      "marketplace": "hepsiburada",
+      "mainCategory": "Spor & Outdoor",
+      "subCategory": "Outdoor-Deniz Ekipmanları",
+      "productGroup": "Tekne, Tekne Motoru, Zodyak Bot, Balık Bulucu",
+      "ratePercent": 8.47,
+      "vatIncluded": false,
+      "vatNote": "Tüm komisyonlar listeleme fiyatı üzerinden +KDV olarak hesaplanacaktır",
+      "serviceFees": []
+    },
+    {
+      "marketplace": "hepsiburada",
+      "mainCategory": "Spor & Outdoor",
+      "subCategory": "Spor Aletleri",
+      "productGroup": "Koşu Bandı, Kondisyon Bisikleti",
+      "ratePercent": 10.0,
+      "vatIncluded": false,
+      "vatNote": "Tüm komisyonlar listeleme fiyatı üzerinden +KDV olarak hesaplanacaktır",
+      "serviceFees": []
+    },
+    {
+      "marketplace": "hepsiburada",
+      "mainCategory": "Spor & Outdoor",
+      "subCategory": "Fitness ve Kondisyon Ekipmanları",
+      "productGroup": "Vücut Geliştirme Aletleri, Vücut Geliştirme Ekipmanları, İnversiyon Aletleri, Masaj Koltuğu, Kürek, Fitness ve Kondisyon Ekipmanları, Pilates Topu, Dambıl",
+      "ratePercent": 13.0,
+      "vatIncluded": false,
+      "vatNote": "Tüm komisyonlar listeleme fiyatı üzerinden +KDV olarak hesaplanacaktır",
+      "serviceFees": []
+    },
+    {
+      "marketplace": "hepsiburada",
+      "mainCategory": "Spor & Outdoor",
+      "subCategory": "Bisikletler ve Paten",
+      "productGroup": "Bisiklet, Elektrikli Bisiklet ,Elektrikli Scooter",
+      "ratePercent": 10.0,
+      "vatIncluded": false,
+      "vatNote": "Tüm komisyonlar listeleme fiyatı üzerinden +KDV olarak hesaplanacaktır",
+      "serviceFees": []
+    },
+    {
+      "marketplace": "hepsiburada",
+      "mainCategory": "Spor Branşları",
+      "subCategory": "Spor Branşları",
+      "productGroup": "Futbol, Basketbol, Tenis, Yüzme, Atletizm, Binicilik, Voleybol, Kaykay/Paten ve Diğer Spor Branşları Malzeme ve Ekipmanları",
+      "ratePercent": 13.0,
+      "vatIncluded": false,
+      "vatNote": "Tüm komisyonlar listeleme fiyatı üzerinden +KDV olarak hesaplanacaktır",
+      "serviceFees": []
+    },
+    {
+      "marketplace": "hepsiburada",
+      "mainCategory": "Taraftar Ürünleri",
+      "subCategory": "Taraftar Ürünleri",
+      "productGroup": "Taraftar Ürünleri, Mug, Takı & Aksesuar, Hediyelik",
+      "ratePercent": 18.0,
+      "vatIncluded": false,
+      "vatNote": "Tüm komisyonlar listeleme fiyatı üzerinden +KDV olarak hesaplanacaktır",
+      "serviceFees": []
+    },
+    {
+      "marketplace": "hepsiburada",
+      "mainCategory": "Cep Telefonu",
+      "subCategory": "Cep Telefonu",
+      "productGroup": "Android Telefonlar, Iphone, Cep Telefonları",
+      "ratePercent": 7.0,
+      "vatIncluded": false,
+      "vatNote": "Tüm komisyonlar listeleme fiyatı üzerinden +KDV olarak hesaplanacaktır",
+      "serviceFees": []
+    },
+    {
+      "marketplace": "hepsiburada",
+      "mainCategory": "Cep Telefonu",
+      "subCategory": "Cep Telefonu",
+      "productGroup": "Yenilenmiş-İkinci El Telefon , Diğer (tuşlu ) Telefonlar",
+      "ratePercent": 8.5,
+      "vatIncluded": false,
+      "vatNote": "Tüm komisyonlar listeleme fiyatı üzerinden +KDV olarak hesaplanacaktır",
+      "serviceFees": []
+    },
+    {
+      "marketplace": "hepsiburada",
+      "mainCategory": "Bilgisayar",
+      "subCategory": "Tablet",
+      "productGroup": "Tabletler, Ipad, Galaxy Tablet",
+      "ratePercent": 7.0,
+      "vatIncluded": false,
+      "vatNote": "Tüm komisyonlar listeleme fiyatı üzerinden +KDV olarak hesaplanacaktır",
+      "serviceFees": []
+    },
+    {
+      "marketplace": "hepsiburada",
+      "mainCategory": "Bilgisayar",
+      "subCategory": "Taşınabilir Bilgisayar",
+      "productGroup": "Taşınabilir Bilgisayar, Monitör PC (All-in-One), Mini PC",
+      "ratePercent": 7.0,
+      "vatIncluded": false,
+      "vatNote": "Tüm komisyonlar listeleme fiyatı üzerinden +KDV olarak hesaplanacaktır",
+      "serviceFees": []
+    },
+    {
+      "marketplace": "hepsiburada",
+      "mainCategory": "Bilgisayar",
+      "subCategory": "Bilgisayar Bileşenleri & Çevre Birimleri",
+      "productGroup": "Taşınabilir SSD, SSD",
+      "ratePercent": 10.0,
+      "vatIncluded": false,
+      "vatNote": "Tüm komisyonlar listeleme fiyatı üzerinden +KDV olarak hesaplanacaktır",
+      "serviceFees": []
+    },
+    {
+      "marketplace": "hepsiburada",
+      "mainCategory": "Bilgisayar",
+      "subCategory": "Bilgisayar Bileşenleri",
+      "productGroup": "Ana Kart , Ekran kartı, Ram , İşlemciler, Bilgisayar Kasaları",
+      "ratePercent": 10.0,
+      "vatIncluded": false,
+      "vatNote": "Tüm komisyonlar listeleme fiyatı üzerinden +KDV olarak hesaplanacaktır",
+      "serviceFees": []
+    },
+    {
+      "marketplace": "hepsiburada",
+      "mainCategory": "Bilgisayar",
+      "subCategory": "Bilgisayar Bileşenleri",
+      "productGroup": "Barkod Etiketi, Ribon, Yazıcı Şeritleri",
+      "ratePercent": 10.0,
+      "vatIncluded": false,
+      "vatNote": "Tüm komisyonlar listeleme fiyatı üzerinden +KDV olarak hesaplanacaktır",
+      "serviceFees": []
+    },
+    {
+      "marketplace": "hepsiburada",
+      "mainCategory": "Bilgisayar",
+      "subCategory": "Bilgisayar Bileşenleri",
+      "productGroup": "Ek Güvence Paketleri TV, Dijital Yayın Paketleri",
+      "ratePercent": 15.0,
+      "vatIncluded": false,
+      "vatNote": "Tüm komisyonlar listeleme fiyatı üzerinden +KDV olarak hesaplanacaktır",
+      "serviceFees": []
+    },
+    {
+      "marketplace": "hepsiburada",
+      "mainCategory": "Bilgisayar",
+      "subCategory": "Bilgisayar Bileşenleri",
+      "productGroup": "Masaüstü Bilgisayar, Serverlar",
+      "ratePercent": 7.0,
+      "vatIncluded": false,
+      "vatNote": "Tüm komisyonlar listeleme fiyatı üzerinden +KDV olarak hesaplanacaktır",
+      "serviceFees": []
+    },
+    {
+      "marketplace": "hepsiburada",
+      "mainCategory": "Bilgisayar",
+      "subCategory": "Bilgisayar Bileşenleri",
+      "productGroup": "Dokunmatik Pos PC",
+      "ratePercent": 17.0,
+      "vatIncluded": false,
+      "vatNote": "Tüm komisyonlar listeleme fiyatı üzerinden +KDV olarak hesaplanacaktır",
+      "serviceFees": []
+    },
+    {
+      "marketplace": "hepsiburada",
+      "mainCategory": "Bilgisayar",
+      "subCategory": "Projeksiyon & Aksesuarları",
+      "productGroup": "Projeksiyon Aksesuarları",
+      "ratePercent": 12.0,
+      "vatIncluded": false,
+      "vatNote": "Tüm komisyonlar listeleme fiyatı üzerinden +KDV olarak hesaplanacaktır",
+      "serviceFees": []
+    },
+    {
+      "marketplace": "hepsiburada",
+      "mainCategory": "Bilgisayar",
+      "subCategory": "Projeksiyon & Aksesuarları",
+      "productGroup": "Projeksiyon Cihazı",
+      "ratePercent": 11.0,
+      "vatIncluded": false,
+      "vatNote": "Tüm komisyonlar listeleme fiyatı üzerinden +KDV olarak hesaplanacaktır",
+      "serviceFees": []
+    },
+    {
+      "marketplace": "hepsiburada",
+      "mainCategory": "Bilgisayar",
+      "subCategory": "Yazıcılar ve Aksesuarları",
+      "productGroup": "Yazıcılar",
+      "ratePercent": 10.0,
+      "vatIncluded": false,
+      "vatNote": "Tüm komisyonlar listeleme fiyatı üzerinden +KDV olarak hesaplanacaktır",
+      "serviceFees": []
+    },
+    {
+      "marketplace": "hepsiburada",
+      "mainCategory": "Bilgisayar",
+      "subCategory": "Yazıcılar ve Aksesuarları",
+      "productGroup": "Drum, Kartuş, Toner, Yazıcı Yedek Parça & Aksesuarları",
+      "ratePercent": 12.0,
+      "vatIncluded": false,
+      "vatNote": "Tüm komisyonlar listeleme fiyatı üzerinden +KDV olarak hesaplanacaktır",
+      "serviceFees": []
+    },
+    {
+      "marketplace": "hepsiburada",
+      "mainCategory": "Bilgisayar",
+      "subCategory": "Ağ/Modem, Akıllı Ev",
+      "productGroup": "Modemler, Network Aksesuarları, Wireless Adaptör",
+      "ratePercent": 10.0,
+      "vatIncluded": false,
+      "vatNote": "Tüm komisyonlar listeleme fiyatı üzerinden +KDV olarak hesaplanacaktır",
+      "serviceFees": []
+    },
+    {
+      "marketplace": "hepsiburada",
+      "mainCategory": "Bilgisayar",
+      "subCategory": "Çevre Birimleri",
+      "productGroup": "Bluetooth Ürünler, Hard Diskler, Klavye & Mouse ve Setler, Taşınabilir Disk, Usb Bellek",
+      "ratePercent": 10.0,
+      "vatIncluded": false,
+      "vatNote": "Tüm komisyonlar listeleme fiyatı üzerinden +KDV olarak hesaplanacaktır",
+      "serviceFees": []
+    },
+    {
+      "marketplace": "hepsiburada",
+      "mainCategory": "Bilgisayar",
+      "subCategory": "Çevre Birimleri",
+      "productGroup": "Adaptörler, Dvd/Hdd Kasaları, Usb / Firewire Ürünleri, Mouse Pad, Taşınabilir Disk Aksesuarları",
+      "ratePercent": 12.0,
+      "vatIncluded": false,
+      "vatNote": "Tüm komisyonlar listeleme fiyatı üzerinden +KDV olarak hesaplanacaktır",
+      "serviceFees": []
+    },
+    {
+      "marketplace": "hepsiburada",
+      "mainCategory": "Bilgisayar",
+      "subCategory": "Yazılım",
+      "productGroup": "Yazılım, Online Lisans, Antivirüs, Microsoft Yazılımlar, Office Yazılımları, Ticari Yazılımlar",
+      "ratePercent": 10.0,
+      "vatIncluded": false,
+      "vatNote": "Tüm komisyonlar listeleme fiyatı üzerinden +KDV olarak hesaplanacaktır",
+      "serviceFees": []
+    },
+    {
+      "marketplace": "hepsiburada",
+      "mainCategory": "Foto-Kamera",
+      "subCategory": "Aynasız SLR Fotoğraf Makineleri",
+      "productGroup": "Aynasız SLR Fotoğraf Makineleri",
+      "ratePercent": 10.0,
+      "vatIncluded": false,
+      "vatNote": "Tüm komisyonlar listeleme fiyatı üzerinden +KDV olarak hesaplanacaktır",
+      "serviceFees": []
+    },
+    {
+      "marketplace": "hepsiburada",
+      "mainCategory": "Foto-Kamera",
+      "subCategory": "Fotoğraf ve Kamera Aksesuarları",
+      "productGroup": "Lensler, Fotoğraf Çerçeveleri, Fotoğraf Filmi & Kağıtları, Fotoğraf ve Kamera Aksesuarları, Objektifler, Filtreler, Pil ve Şarj Cihazları, SLR Lensleri, Tripod, Taşıma Çantaları, Su altı Kılıfları, Foto-Kamera (Diğer)",
+      "ratePercent": 10.0,
+      "vatIncluded": false,
+      "vatNote": "Tüm komisyonlar listeleme fiyatı üzerinden +KDV olarak hesaplanacaktır",
+      "serviceFees": []
+    },
+    {
+      "marketplace": "hepsiburada",
+      "mainCategory": "Foto-Kamera",
+      "subCategory": "Drone & Drone Aksesuarları",
+      "productGroup": "Drone",
+      "ratePercent": 10.0,
+      "vatIncluded": false,
+      "vatNote": "Tüm komisyonlar listeleme fiyatı üzerinden +KDV olarak hesaplanacaktır",
+      "serviceFees": []
+    },
+    {
+      "marketplace": "hepsiburada",
+      "mainCategory": "Foto-Kamera",
+      "subCategory": "Drone Aksesuarları",
+      "productGroup": "Drone Yedek Parçaları, Aksesuarları",
+      "ratePercent": 15.0,
+      "vatIncluded": false,
+      "vatNote": "Tüm komisyonlar listeleme fiyatı üzerinden +KDV olarak hesaplanacaktır",
+      "serviceFees": []
+    },
+    {
+      "marketplace": "hepsiburada",
+      "mainCategory": "Foto-Kamera",
+      "subCategory": "Fotoğraf Makineleri & Video Kameralar",
+      "productGroup": "SLR Dijital Fotoğraf Makinesi, Dijital Fotoğraf Makinesi, Filmli Fotoğraf Makineleri, Video Kameralar, Aksiyon Kameralar",
+      "ratePercent": 10.0,
+      "vatIncluded": false,
+      "vatNote": "Tüm komisyonlar listeleme fiyatı üzerinden +KDV olarak hesaplanacaktır",
+      "serviceFees": []
+    },
+    {
+      "marketplace": "hepsiburada",
+      "mainCategory": "Oto Aksesuar",
+      "subCategory": "Oto Aksesuarları & Ses ve Navigasyon Sistemleri",
+      "productGroup": "Transmitter",
+      "ratePercent": 14.0,
+      "vatIncluded": false,
+      "vatNote": "Tüm komisyonlar listeleme fiyatı üzerinden +KDV olarak hesaplanacaktır",
+      "serviceFees": []
+    },
+    {
+      "marketplace": "hepsiburada",
+      "mainCategory": "Oto Aksesuar",
+      "subCategory": "Oto Aksesuarları & Ses ve Navigasyon Sistemleri",
+      "productGroup": "Cd-Mp3 Çalar, Oto Hoparlör, Oto Ses Görüntü Sistemleri, Usb-Sd Çevirici Modül, Pandizot",
+      "ratePercent": 12.0,
+      "vatIncluded": false,
+      "vatNote": "Tüm komisyonlar listeleme fiyatı üzerinden +KDV olarak hesaplanacaktır",
+      "serviceFees": []
+    },
+    {
+      "marketplace": "hepsiburada",
+      "mainCategory": "Oto Aksesuar",
+      "subCategory": "Oto Aksesuarları & Ses ve Navigasyon Sistemleri",
+      "productGroup": "Teyp Çerçeveleri, Navigasyon Harita",
+      "ratePercent": 18.0,
+      "vatIncluded": false,
+      "vatNote": "Tüm komisyonlar listeleme fiyatı üzerinden +KDV olarak hesaplanacaktır",
+      "serviceFees": []
+    },
+    {
+      "marketplace": "hepsiburada",
+      "mainCategory": "Oto Aksesuar",
+      "subCategory": "Oto Aksesuar",
+      "productGroup": "Karavan & Aksesuarları",
+      "ratePercent": 12.0,
+      "vatIncluded": false,
+      "vatNote": "Tüm komisyonlar listeleme fiyatı üzerinden +KDV olarak hesaplanacaktır",
+      "serviceFees": []
+    },
+    {
+      "marketplace": "hepsiburada",
+      "mainCategory": "Oto Aksesuar",
+      "subCategory": "Oto Aksesuar",
+      "productGroup": "Trafik Setleri ve Ürünleri",
+      "ratePercent": 19.0,
+      "vatIncluded": false,
+      "vatNote": "Tüm komisyonlar listeleme fiyatı üzerinden +KDV olarak hesaplanacaktır",
+      "serviceFees": []
+    },
+    {
+      "marketplace": "hepsiburada",
+      "mainCategory": "Oto Aksesuar",
+      "subCategory": "Araç İçi Ekipman & Aksesuarlar",
+      "productGroup": "Cam ve Güneşlik Ürünleri",
+      "ratePercent": 20.0,
+      "vatIncluded": false,
+      "vatNote": "Tüm komisyonlar listeleme fiyatı üzerinden +KDV olarak hesaplanacaktır",
+      "serviceFees": []
+    },
+    {
+      "marketplace": "hepsiburada",
+      "mainCategory": "Oto Aksesuar",
+      "subCategory": "Araç İçi Ekipman & Aksesuarlar",
+      "productGroup": "Seyahat Ürünleri",
+      "ratePercent": 17.0,
+      "vatIncluded": false,
+      "vatNote": "Tüm komisyonlar listeleme fiyatı üzerinden +KDV olarak hesaplanacaktır",
+      "serviceFees": []
+    },
+    {
+      "marketplace": "hepsiburada",
+      "mainCategory": "Oto Aksesuar",
+      "subCategory": "Araç İçi Ekipman & Aksesuarlar",
+      "productGroup": "Mobil Elektrik",
+      "ratePercent": 16.0,
+      "vatIncluded": false,
+      "vatNote": "Tüm komisyonlar listeleme fiyatı üzerinden +KDV olarak hesaplanacaktır",
+      "serviceFees": []
+    },
+    {
+      "marketplace": "hepsiburada",
+      "mainCategory": "Oto Aksesuar",
+      "subCategory": "Araç İçi Ekipman & Aksesuarlar",
+      "productGroup": "Anahtarlıklar , Araç İçi Aksesuarlar, Direksiyon Ürünleri, Kolçaklar, Korna ve Sirenler, Torpido Aksesuarları",
+      "ratePercent": 18.0,
+      "vatIncluded": false,
+      "vatNote": "Tüm komisyonlar listeleme fiyatı üzerinden +KDV olarak hesaplanacaktır",
+      "serviceFees": []
+    },
+    {
+      "marketplace": "hepsiburada",
+      "mainCategory": "Oto Aksesuar",
+      "subCategory": "Araç Dış Aksesuarlar & Temizlik Ürünleri & Oto Aksesuar",
+      "productGroup": "Araç Dış Aksesuar , Tuning, Alarm , Park Sensörü , Arma, Ayna Aksesuarları, Anatomik Spoiler, Body Kitler, Egzos uçları, Fosfor Şeritler, Krom Aksesuarlar, Oto Rüzgarlıkları, Oto Servis Makineleri",
+      "ratePercent": 18.0,
+      "vatIncluded": false,
+      "vatNote": "Tüm komisyonlar listeleme fiyatı üzerinden +KDV olarak hesaplanacaktır",
+      "serviceFees": []
+    },
+    {
+      "marketplace": "hepsiburada",
+      "mainCategory": "Oto Aksesuar",
+      "subCategory": "Araç Dış Aksesuarlar & Temizlik Ürünleri & Oto Aksesuar",
+      "productGroup": "Brandalar",
+      "ratePercent": 17.0,
+      "vatIncluded": false,
+      "vatNote": "Tüm komisyonlar listeleme fiyatı üzerinden +KDV olarak hesaplanacaktır",
+      "serviceFees": []
+    },
+    {
+      "marketplace": "hepsiburada",
+      "mainCategory": "Oto Aksesuar",
+      "subCategory": "Araç Dış Aksesuarlar & Temizlik Ürünleri & Oto Aksesuar",
+      "productGroup": "Araç Uygulama Paketleri, Oto El Aletleri, Çift Taraflı Bantlar, Lastik Zincirleri, Jantlar & Jant Kapakları",
+      "ratePercent": 16.0,
+      "vatIncluded": false,
+      "vatNote": "Tüm komisyonlar listeleme fiyatı üzerinden +KDV olarak hesaplanacaktır",
+      "serviceFees": []
+    },
+    {
+      "marketplace": "hepsiburada",
+      "mainCategory": "Oto Aksesuar",
+      "subCategory": "Araç Dış Aksesuarlar & Temizlik Ürünleri",
+      "productGroup": "Araca Özel Boyalar, Araç Bakım Temizlik Ürünleri",
+      "ratePercent": 14.0,
+      "vatIncluded": false,
+      "vatNote": "Tüm komisyonlar listeleme fiyatı üzerinden +KDV olarak hesaplanacaktır",
+      "serviceFees": []
+    },
+    {
+      "marketplace": "hepsiburada",
+      "mainCategory": "Oto Aksesuar",
+      "subCategory": "Motosiklet Lastik",
+      "productGroup": "Motosiklet Lastikleri",
+      "ratePercent": 9.0,
+      "vatIncluded": false,
+      "vatNote": "Tüm komisyonlar listeleme fiyatı üzerinden +KDV olarak hesaplanacaktır",
+      "serviceFees": []
+    },
+    {
+      "marketplace": "hepsiburada",
+      "mainCategory": "Oto Aksesuar",
+      "subCategory": "Oto Lastik",
+      "productGroup": "Oto Lastik",
+      "ratePercent": 9.0,
+      "vatIncluded": false,
+      "vatNote": "Tüm komisyonlar listeleme fiyatı üzerinden +KDV olarak hesaplanacaktır",
+      "serviceFees": []
+    },
+    {
+      "marketplace": "hepsiburada",
+      "mainCategory": "Oto Aksesuar",
+      "subCategory": "Oto Yedek parça",
+      "productGroup": "Ateşleme Sistemi,Yürüyen Aksam, Kaporta, Filtre, Elektrik Aksam, Debriyaj, Mekanik Aksam, Motor Aksamı, Ayna, İş Makinesi & Traktör Yedek Parçaları",
+      "ratePercent": 20.0,
+      "vatIncluded": false,
+      "vatNote": "Tüm komisyonlar listeleme fiyatı üzerinden +KDV olarak hesaplanacaktır",
+      "serviceFees": []
+    },
+    {
+      "marketplace": "hepsiburada",
+      "mainCategory": "Oto Aksesuar",
+      "subCategory": "Oto Aksesuar Akü",
+      "productGroup": "Akü ve Aksesuarları",
+      "ratePercent": 12.0,
+      "vatIncluded": false,
+      "vatNote": "Tüm komisyonlar listeleme fiyatı üzerinden +KDV olarak hesaplanacaktır",
+      "serviceFees": []
+    },
+    {
+      "marketplace": "hepsiburada",
+      "mainCategory": "Oto Aksesuar",
+      "subCategory": "Motosiklet Aksesuarları",
+      "productGroup": "Motosiklet Çantaları, Motosiklet Giyim, Motosiklet Aksesuar ve Koruma",
+      "ratePercent": 12.0,
+      "vatIncluded": false,
+      "vatNote": "Tüm komisyonlar listeleme fiyatı üzerinden +KDV olarak hesaplanacaktır",
+      "serviceFees": []
+    },
+    {
+      "marketplace": "hepsiburada",
+      "mainCategory": "Oto Aksesuar",
+      "subCategory": "Motosiklet Aksesuarları",
+      "productGroup": "Motosiklet Modelleri",
+      "ratePercent": 6.0,
+      "vatIncluded": false,
+      "vatNote": "Tüm komisyonlar listeleme fiyatı üzerinden +KDV olarak hesaplanacaktır",
+      "serviceFees": []
+    },
+    {
+      "marketplace": "hepsiburada",
+      "mainCategory": "Oto Aksesuar",
+      "subCategory": "Yakıt ve Yağ Katkıları",
+      "productGroup": "Hidrolik Yağ, Şanzıman Yağı, Yağ Katkıları, Motor Yağı",
+      "ratePercent": 12.0,
+      "vatIncluded": false,
+      "vatNote": "Tüm komisyonlar listeleme fiyatı üzerinden +KDV olarak hesaplanacaktır",
+      "serviceFees": []
+    },
+    {
+      "marketplace": "hepsiburada",
+      "mainCategory": "Oto Aksesuar",
+      "subCategory": "Traktör Lastikleri",
+      "productGroup": "Traktör Lastikleri",
+      "ratePercent": 12.0,
+      "vatIncluded": false,
+      "vatNote": "Tüm komisyonlar listeleme fiyatı üzerinden +KDV olarak hesaplanacaktır",
+      "serviceFees": []
+    },
+    {
+      "marketplace": "hepsiburada",
+      "mainCategory": "SDA",
+      "subCategory": "Süpürge & Ütüler",
+      "productGroup": "Dikey Süpürge, Sulu Süpürge, Buhar Kazanlı Ütü, Buharlı Ütü,",
+      "ratePercent": 12.0,
+      "vatIncluded": false,
+      "vatNote": "Tüm komisyonlar listeleme fiyatı üzerinden +KDV olarak hesaplanacaktır",
+      "serviceFees": []
+    },
+    {
+      "marketplace": "hepsiburada",
+      "mainCategory": "SDA",
+      "subCategory": "Süpürgeler",
+      "productGroup": "Toz Torbalı Süpürge, Toz Torbasız Süpürge, Robot Süpürge",
+      "ratePercent": 11.0,
+      "vatIncluded": false,
+      "vatNote": "Tüm komisyonlar listeleme fiyatı üzerinden +KDV olarak hesaplanacaktır",
+      "serviceFees": []
+    },
+    {
+      "marketplace": "hepsiburada",
+      "mainCategory": "SDA",
+      "subCategory": "Süpürgeler",
+      "productGroup": "Buharlı Temizlik Makineleri, Halı Yıkama Makineleri",
+      "ratePercent": 13.0,
+      "vatIncluded": false,
+      "vatNote": "Tüm komisyonlar listeleme fiyatı üzerinden +KDV olarak hesaplanacaktır",
+      "serviceFees": []
+    },
+    {
+      "marketplace": "hepsiburada",
+      "mainCategory": "SDA",
+      "subCategory": "Aksesuar, Yedek Parça",
+      "productGroup": "Süpürge Aksesuarları, Elektrikli Mutfak Aleti Yedek Parça & Aksesuarları, Dikiş Makinesi Aksesuarları, Kahve Makinesi Aksesuarları , Epilatör Başlıkları ve Yedek Parçalar , Hava Temizleme Cihazı Aksesuarları, Traş Makinesi Aksesuarları",
+      "ratePercent": 18.0,
+      "vatIncluded": false,
+      "vatNote": "Tüm komisyonlar listeleme fiyatı üzerinden +KDV olarak hesaplanacaktır",
+      "serviceFees": []
+    },
+    {
+      "marketplace": "hepsiburada",
+      "mainCategory": "SDA",
+      "subCategory": "Mutfak Gereçleri & Pişirme- Hazırlama",
+      "productGroup": "Blender, Çay Makineleri, Tost Makinesi, Kahve Makineleri , Dikiş Makineleri, Su Isıtıcıları, Fritözler, Meyve Sıkıcılar, Mini-Midi Fırınlar, Mikser, Doğrayıcı / Rondo, Elektikli Izgara-Barbekü, Mutfak Robotları, Ekmek Kızartma, Ekmek Yapma Makinesi, Kahve Öğütücü, Kıyma Makineleri, Elektrikli Tencere/Tavalar, Hava Temizleme & Nemlendirme Cihazları, Elektrikli Çeyiz Seti, Mısır Patlatma Makinesi, Mutfak Şefi, Waffle Makineleri, Yoğurt Makinesi, Yumurta Pişirme, Buharlı Pişirici",
+      "ratePercent": 13.0,
+      "vatIncluded": false,
+      "vatNote": "Tüm komisyonlar listeleme fiyatı üzerinden +KDV olarak hesaplanacaktır",
+      "serviceFees": []
+    },
+    {
+      "marketplace": "hepsiburada",
+      "mainCategory": "SDA",
+      "subCategory": "Mutfak Gereçleri & Pişirme-Hazırlama",
+      "productGroup": "Endüstriyel Mutfak Ürün ve Gereçleri, Mutfak Tartıları",
+      "ratePercent": 15.0,
+      "vatIncluded": false,
+      "vatNote": "Tüm komisyonlar listeleme fiyatı üzerinden +KDV olarak hesaplanacaktır",
+      "serviceFees": []
+    },
+    {
+      "marketplace": "hepsiburada",
+      "mainCategory": "SDA",
+      "subCategory": "Elektrikli Kişisel Bakım Aletleri",
+      "productGroup": "Saç Sakal Düzeltme Makineleri, Tıraş Makineleri, Epilatörler, Saç Kurutma Makineleri, Saç Şekillendiriciler",
+      "ratePercent": 15.0,
+      "vatIncluded": false,
+      "vatNote": "Tüm komisyonlar listeleme fiyatı üzerinden +KDV olarak hesaplanacaktır",
+      "serviceFees": []
+    },
+    {
+      "marketplace": "hepsiburada",
+      "mainCategory": "MDA- Beyaz Eşya",
+      "subCategory": "Bulaşık, Çamaşır, Kurutma Makinesi ve Buzdolabı",
+      "productGroup": "Bulaşık Makinesi, Buzdolabı, Çamaşır Makinesi, Derin Dondurucu, Çamaşır Kurutma Makinesi, Kurutmalı Çamaşır Makinesi, Klima , Kombi",
+      "ratePercent": 10.0,
+      "vatIncluded": false,
+      "vatNote": "Tüm komisyonlar listeleme fiyatı üzerinden +KDV olarak hesaplanacaktır",
+      "serviceFees": []
+    },
+    {
+      "marketplace": "hepsiburada",
+      "mainCategory": "MDA- Beyaz Eşya",
+      "subCategory": "Ev Isıtma & Soğutma Sistemleri",
+      "productGroup": "Hava Perdeleri, Portatif Soğutucular, Sobalar & Isıtıcılar, Şofbenler, Termoboyler, Termosifonlar, Su Sebili, Isıtma Soğutma (Diğer)",
+      "ratePercent": 12.0,
+      "vatIncluded": false,
+      "vatNote": "Tüm komisyonlar listeleme fiyatı üzerinden +KDV olarak hesaplanacaktır",
+      "serviceFees": []
+    },
+    {
+      "marketplace": "hepsiburada",
+      "mainCategory": "MDA- Beyaz Eşya",
+      "subCategory": "Ankastre & Pişirme Grubu",
+      "productGroup": "Ankastre Setler, Aspiratör, Davlumbaz, Fırınlar, Mikrodalga Fırın, Ocaklar, Beyaz Eşya Paketleri",
+      "ratePercent": 12.0,
+      "vatIncluded": false,
+      "vatNote": "Tüm komisyonlar listeleme fiyatı üzerinden +KDV olarak hesaplanacaktır",
+      "serviceFees": []
+    },
+    {
+      "marketplace": "hepsiburada",
+      "mainCategory": "MDA- Beyaz Eşya",
+      "subCategory": "Beyaz Eşya Yedek Parça & Aksesuar",
+      "productGroup": "Beyaz Eşya Yedek Parça & Aksesuar, Ek Güvence Paketleri, Vantilatör, Isıtma - Soğutma yedek parça",
+      "ratePercent": 15.0,
+      "vatIncluded": false,
+      "vatNote": "Tüm komisyonlar listeleme fiyatı üzerinden +KDV olarak hesaplanacaktır",
+      "serviceFees": []
+    },
+    {
+      "marketplace": "hepsiburada",
+      "mainCategory": "MDA- Beyaz Eşya",
+      "subCategory": "Beyaz Eşya Yedek Parça & Aksesuar",
+      "productGroup": "Ek Güvence Paketleri",
+      "ratePercent": 8.5,
+      "vatIncluded": false,
+      "vatNote": "Tüm komisyonlar listeleme fiyatı üzerinden +KDV olarak hesaplanacaktır",
+      "serviceFees": []
+    },
+    {
+      "marketplace": "hepsiburada",
+      "mainCategory": "TV",
+      "subCategory": "LCD Televizyon",
+      "productGroup": "LCD Televizyon, LED Televizyon, Smart TV",
+      "ratePercent": 6.78,
+      "vatIncluded": false,
+      "vatNote": "Tüm komisyonlar listeleme fiyatı üzerinden +KDV olarak hesaplanacaktır",
+      "serviceFees": []
+    },
+    {
+      "marketplace": "hepsiburada",
+      "mainCategory": "Anne Bebek Ürünleri",
+      "subCategory": "Anne / Bebek Bakım",
+      "productGroup": "Bebek Bezi,Mayo Bebek Bezi,Islak Mendil",
+      "ratePercent": 13.0,
+      "vatIncluded": false,
+      "vatNote": "Tüm komisyonlar listeleme fiyatı üzerinden +KDV olarak hesaplanacaktır",
+      "serviceFees": []
+    },
+    {
+      "marketplace": "hepsiburada",
+      "mainCategory": "Anne Bebek Ürünleri",
+      "subCategory": "Anne / Bebek",
+      "productGroup": "Bebek Beslenme Gereçleri, Bebek Arabası, Oto Koltuğu Ana Kucağı, Mama Sandalyesi, Bebek Güvenlik, Bebek Bakım ve Sağlık, Bebek Odası, Beşik, Emzirme ve Anne Sağlık, Bebek Aktivite, Bebek Taşıma, Bebek Hediyelik, Bebek Banyo Tuvalet",
+      "ratePercent": 18.0,
+      "vatIncluded": false,
+      "vatNote": "Tüm komisyonlar listeleme fiyatı üzerinden +KDV olarak hesaplanacaktır",
+      "serviceFees": []
+    },
+    {
+      "marketplace": "hepsiburada",
+      "mainCategory": "Anne Bebek Ürünleri",
+      "subCategory": "Anne / Bebek Bakım",
+      "productGroup": "Bebek Kremi ve Yağı, Bebek Güneş Kremi, Bebek Şampuanı, Bebek Bakım Seti",
+      "ratePercent": 18.0,
+      "vatIncluded": false,
+      "vatNote": "Tüm komisyonlar listeleme fiyatı üzerinden +KDV olarak hesaplanacaktır",
+      "serviceFees": []
+    },
+    {
+      "marketplace": "hepsiburada",
+      "mainCategory": "Anne Bebek Ürünleri",
+      "subCategory": "Anne / Bebek Beslenme",
+      "productGroup": "Bebek Mamaları",
+      "ratePercent": 11.0,
+      "vatIncluded": false,
+      "vatNote": "Tüm komisyonlar listeleme fiyatı üzerinden +KDV olarak hesaplanacaktır",
+      "serviceFees": []
+    },
+    {
+      "marketplace": "hepsiburada",
+      "mainCategory": "Cilt Bakımı",
+      "subCategory": "Cilt Bakım",
+      "productGroup": "Cilt Bakım Seti & Ürünleri ,Güneş Koruma ve Sonrası",
+      "ratePercent": 17.0,
+      "vatIncluded": false,
+      "vatNote": "Tüm komisyonlar listeleme fiyatı üzerinden +KDV olarak hesaplanacaktır",
+      "serviceFees": []
+    },
+    {
+      "marketplace": "hepsiburada",
+      "mainCategory": "Cilt Bakımı",
+      "subCategory": "Cilt Bakım / Saç Bakım",
+      "productGroup": "Hindistan Cevizi Yağı",
+      "ratePercent": 17.0,
+      "vatIncluded": false,
+      "vatNote": "Tüm komisyonlar listeleme fiyatı üzerinden +KDV olarak hesaplanacaktır",
+      "serviceFees": []
+    },
+    {
+      "marketplace": "hepsiburada",
+      "mainCategory": "Saç Bakım",
+      "subCategory": "Saç Bakım",
+      "productGroup": "Saç bakımı, Peruk, Çıtçıt ve Postiş, Saç Boyası, Şampuan",
+      "ratePercent": 17.0,
+      "vatIncluded": false,
+      "vatNote": "Tüm komisyonlar listeleme fiyatı üzerinden +KDV olarak hesaplanacaktır",
+      "serviceFees": []
+    },
+    {
+      "marketplace": "hepsiburada",
+      "mainCategory": "Makyaj",
+      "subCategory": "Makyaj Ürünleri",
+      "productGroup": "Oje, Ruj, Eyeliner, Rimel, Fondöten, Pudra, Allık, Highlighter, Far ve Far Paletleri, Makyaj Temizleme Ürünleri, Maskara",
+      "ratePercent": 17.0,
+      "vatIncluded": false,
+      "vatNote": "Tüm komisyonlar listeleme fiyatı üzerinden +KDV olarak hesaplanacaktır",
+      "serviceFees": []
+    },
+    {
+      "marketplace": "hepsiburada",
+      "mainCategory": "Petshop",
+      "subCategory": "Petshop Beslenme",
+      "productGroup": "Kedi Maması, Köpek Maması, Kedi Kumları",
+      "ratePercent": 14.0,
+      "vatIncluded": false,
+      "vatNote": "Tüm komisyonlar listeleme fiyatı üzerinden +KDV olarak hesaplanacaktır",
+      "serviceFees": []
+    },
+    {
+      "marketplace": "hepsiburada",
+      "mainCategory": "Petshop",
+      "subCategory": "Petshop Beslenme",
+      "productGroup": "Yem, Bisküvi, Kraker, Ödül, Vitamin",
+      "ratePercent": 17.0,
+      "vatIncluded": false,
+      "vatNote": "Tüm komisyonlar listeleme fiyatı üzerinden +KDV olarak hesaplanacaktır",
+      "serviceFees": []
+    },
+    {
+      "marketplace": "hepsiburada",
+      "mainCategory": "Petshop",
+      "subCategory": "Petshop Aksesuar",
+      "productGroup": "Kedi Bakım Ürünleri, Kedi Tuvalet Kabı ve Aksesuarları, Tırmalama Tahtası, Balık Yemleri, Tuzlu Su Akvaryum Malzemeleri, Akvaryum Filtreleri, Hamster Ürünleri, Tavşan Ürünleri, Kaplumbağa Ürünleri, Kuş Yemleri, Diğer Petshop Ürünleri,",
+      "ratePercent": 17.0,
+      "vatIncluded": false,
+      "vatNote": "Tüm komisyonlar listeleme fiyatı üzerinden +KDV olarak hesaplanacaktır",
+      "serviceFees": []
+    },
+    {
+      "marketplace": "hepsiburada",
+      "mainCategory": "Sağlık Kişisel Bakım Ürünleri",
+      "subCategory": "Ağız Bakım Ürünleri",
+      "productGroup": "Diş Fırçaları, Diş İpleri, Gargara, Diş Macunu, Yedek Başlıklar",
+      "ratePercent": 17.0,
+      "vatIncluded": false,
+      "vatNote": "Tüm komisyonlar listeleme fiyatı üzerinden +KDV olarak hesaplanacaktır",
+      "serviceFees": []
+    },
+    {
+      "marketplace": "hepsiburada",
+      "mainCategory": "Sağlık Kişisel Bakım Ürünleri",
+      "subCategory": "Ağız Bakım Ürünleri",
+      "productGroup": "Şarj Edebilir Diş Fırçası/Pilli Diş Fırçası",
+      "ratePercent": 14.5,
+      "vatIncluded": false,
+      "vatNote": "Tüm komisyonlar listeleme fiyatı üzerinden +KDV olarak hesaplanacaktır",
+      "serviceFees": []
+    },
+    {
+      "marketplace": "hepsiburada",
+      "mainCategory": "Sağlık Kişisel Bakım Ürünleri",
+      "subCategory": "Sağlık / Kişisel Bakım Ürünleri",
+      "productGroup": "Sağlık Ürünleri, Besin Takviyeleri, Duş ve Banyo Ürünleri, Deodorant, Medikal Ürünler, Kadın Pedleri & Hijyen Ürünleri, Sporcu Besinleri, El ve Cilt Dezenfektan, Maske, Kolonya",
+      "ratePercent": 17.0,
+      "vatIncluded": false,
+      "vatNote": "Tüm komisyonlar listeleme fiyatı üzerinden +KDV olarak hesaplanacaktır",
+      "serviceFees": []
+    },
+    {
+      "marketplace": "hepsiburada",
+      "mainCategory": "Sağlık Kişisel Bakım Ürünleri",
+      "subCategory": "Sağlık / Kişisel Bakım Ürünleri",
+      "productGroup": "Hasta Bezi",
+      "ratePercent": 13.0,
+      "vatIncluded": false,
+      "vatNote": "Tüm komisyonlar listeleme fiyatı üzerinden +KDV olarak hesaplanacaktır",
+      "serviceFees": []
+    },
+    {
+      "marketplace": "hepsiburada",
+      "mainCategory": "Sağlık Kişisel Bakım Ürünleri",
+      "subCategory": "Sağlık / Kişisel Bakım Ürünleri",
+      "productGroup": "Aile Planlaması Ürünleri, Yetişkin Ürünler +18",
+      "ratePercent": 17.0,
+      "vatIncluded": false,
+      "vatNote": "Tüm komisyonlar listeleme fiyatı üzerinden +KDV olarak hesaplanacaktır",
+      "serviceFees": []
+    },
+    {
+      "marketplace": "hepsiburada",
+      "mainCategory": "Sağlık Kişisel Bakım Ürünleri",
+      "subCategory": "Güzellik Salonu & Kuaför Ürünleri",
+      "productGroup": "Güzellik Salonu & Kuaför Ürünleri, Ayak & Tırnak Bakımı, Tıraş, Ağda ve Epilasyon, Erkek Tıraş Ürünleri",
+      "ratePercent": 17.0,
+      "vatIncluded": false,
+      "vatNote": "Tüm komisyonlar listeleme fiyatı üzerinden +KDV olarak hesaplanacaktır",
+      "serviceFees": []
+    },
+    {
+      "marketplace": "hepsiburada",
+      "mainCategory": "Ev Bakım ve Temizlik",
+      "subCategory": "Deterjanlar, Temizlik Malzemeleri, Kağıt Ürünleri ve Mutfak Sarf Malzemeleri",
+      "productGroup": "Toz/Sıvı Deterjanlar, Yüzey Temizleyiciler, Çamaşır ve Bulaşık Deterjanları & Kapsülleri, Yumuşatıcılar, Leke Çıkarıcılar, Mop ve Temizlik Setleri, Tuvalet Kağıdı, Kağıt Havlu, Peçete, Kullan At Ürünler, Yüzey ve Ortam Dezenfektanları",
+      "ratePercent": 15.0,
+      "vatIncluded": false,
+      "vatNote": "Tüm komisyonlar listeleme fiyatı üzerinden +KDV olarak hesaplanacaktır",
+      "serviceFees": []
+    },
+    {
+      "marketplace": "hepsiburada",
+      "mainCategory": "Temel Tüketim ve Gıda",
+      "subCategory": "İçecek ve Gıda Ürünleri",
+      "productGroup": "Çay, Kahve, Gazlı ve Gazsız İçecekler, İçecek Şuruplar, Sıvı Yağlar, Kuruyemiş, Baharat, Aktar Ürünleri, Kahvaltılık, Atıştırmalıklar, Şarküteri, Yemek Sosları, Hazır Yemek ve Konserve , Gıda Ürünleri",
+      "ratePercent": 17.0,
+      "vatIncluded": false,
+      "vatNote": "Tüm komisyonlar listeleme fiyatı üzerinden +KDV olarak hesaplanacaktır",
+      "serviceFees": []
+    },
+    {
+      "marketplace": "hepsiburada",
+      "mainCategory": "Bahçe",
+      "subCategory": "Bungalov Ev",
+      "productGroup": "Bungalov Ev, Ahşap Çocuk Oyun Evi",
+      "ratePercent": 9.0,
+      "vatIncluded": false,
+      "vatNote": "Tüm komisyonlar listeleme fiyatı üzerinden +KDV olarak hesaplanacaktır",
+      "serviceFees": []
+    },
+    {
+      "marketplace": "hepsiburada",
+      "mainCategory": "Bahçe",
+      "subCategory": "Bahçe Dekorasyon ve Bakım",
+      "productGroup": "Bahçe Dekorasyonu, Bahçe Kovucular, Havuz Ürünleri",
+      "ratePercent": 17.0,
+      "vatIncluded": false,
+      "vatNote": "Tüm komisyonlar listeleme fiyatı üzerinden +KDV olarak hesaplanacaktır",
+      "serviceFees": []
+    },
+    {
+      "marketplace": "hepsiburada",
+      "mainCategory": "Bahçe",
+      "subCategory": "Bahçe Dekorasyon ve Bakım",
+      "productGroup": "Çiçek Bakım & Bitki Yetiştirme",
+      "ratePercent": 20.0,
+      "vatIncluded": false,
+      "vatNote": "Tüm komisyonlar listeleme fiyatı üzerinden +KDV olarak hesaplanacaktır",
+      "serviceFees": []
+    },
+    {
+      "marketplace": "hepsiburada",
+      "mainCategory": "Bahçe",
+      "subCategory": "Bahçe Mobilyası",
+      "productGroup": "Bahçe Masası, Bahçe Sandalyesi, Bahçe Salıncağı, Bahçe Oturma Grubu, Puf, Minder, Şezlong, Hamak",
+      "ratePercent": 18.0,
+      "vatIncluded": false,
+      "vatNote": "Tüm komisyonlar listeleme fiyatı üzerinden +KDV olarak hesaplanacaktır",
+      "serviceFees": []
+    },
+    {
+      "marketplace": "hepsiburada",
+      "mainCategory": "Bahçe",
+      "subCategory": "Mangal / Barbekü",
+      "productGroup": "Mangal / Barbekü, Mangal Aksesuarları, Piknik Seti",
+      "ratePercent": 15.0,
+      "vatIncluded": false,
+      "vatNote": "Tüm komisyonlar listeleme fiyatı üzerinden +KDV olarak hesaplanacaktır",
+      "serviceFees": []
+    },
+    {
+      "marketplace": "hepsiburada",
+      "mainCategory": "Bahçe",
+      "subCategory": "Bahçe Makineleri",
+      "productGroup": "Elektrikli El Aletleri , Bahçe Makineleri",
+      "ratePercent": 14.0,
+      "vatIncluded": false,
+      "vatNote": "Tüm komisyonlar listeleme fiyatı üzerinden +KDV olarak hesaplanacaktır",
+      "serviceFees": []
+    },
+    {
+      "marketplace": "hepsiburada",
+      "mainCategory": "Yapı Market",
+      "subCategory": "Banyo & Ev Gereçleri",
+      "productGroup": "Batarya, Musluk, Duş Sistemleri, Vitrifiyeler, Duşa Kabin",
+      "ratePercent": 15.0,
+      "vatIncluded": false,
+      "vatNote": "Tüm komisyonlar listeleme fiyatı üzerinden +KDV olarak hesaplanacaktır",
+      "serviceFees": []
+    },
+    {
+      "marketplace": "hepsiburada",
+      "mainCategory": "Yapı Market",
+      "subCategory": "Banyo & Ev Gereçleri",
+      "productGroup": "Boya ve Aksesuarları",
+      "ratePercent": 16.0,
+      "vatIncluded": false,
+      "vatNote": "Tüm komisyonlar listeleme fiyatı üzerinden +KDV olarak hesaplanacaktır",
+      "serviceFees": []
+    },
+    {
+      "marketplace": "hepsiburada",
+      "mainCategory": "Yapı Market",
+      "subCategory": "Banyo & Ev Gereçleri",
+      "productGroup": "Banyo Dolap , Banyo Aksesuar",
+      "ratePercent": 16.0,
+      "vatIncluded": false,
+      "vatNote": "Tüm komisyonlar listeleme fiyatı üzerinden +KDV olarak hesaplanacaktır",
+      "serviceFees": []
+    },
+    {
+      "marketplace": "hepsiburada",
+      "mainCategory": "Yapı Market",
+      "subCategory": "Hırdavat",
+      "productGroup": "Endüstriyel Temizlik Ürünleri, Mekanik El Aletleri, Seramik, Fayans & Karo, Laminant Parke, Ham Madde, Menteşe, Yıldırımdan Korunma Sistemleri, Parke, Seramik Malzemeleri, Mobilya Hırdavatı",
+      "ratePercent": 20.0,
+      "vatIncluded": false,
+      "vatNote": "Tüm komisyonlar listeleme fiyatı üzerinden +KDV olarak hesaplanacaktır",
+      "serviceFees": []
+    },
+    {
+      "marketplace": "hepsiburada",
+      "mainCategory": "Yapı Market",
+      "subCategory": "Hırdavat",
+      "productGroup": "Merdivenler , İş güvenliği Ürünleri , Genel Hırdavat & Nalburiye Ürünleri , İnşaat Malzemeleri",
+      "ratePercent": 18.0,
+      "vatIncluded": false,
+      "vatNote": "Tüm komisyonlar listeleme fiyatı üzerinden +KDV olarak hesaplanacaktır",
+      "serviceFees": []
+    },
+    {
+      "marketplace": "hepsiburada",
+      "mainCategory": "Yapı Market",
+      "subCategory": "Aydınlatma Ürünleri",
+      "productGroup": "Aydınlatma Ürünleri, Plafoyerler, Abarjurlar, Avizeler, Sarkıt Avizeler, Aplikler, Lambaderler, Masa Lambaları, Gece Lambaları, Dekoratif Aydınlatmalar, Yılbaşı Aydınlatmaları, Çocuk Odası Aydınlatmaları",
+      "ratePercent": 18.0,
+      "vatIncluded": false,
+      "vatNote": "Tüm komisyonlar listeleme fiyatı üzerinden +KDV olarak hesaplanacaktır",
+      "serviceFees": []
+    },
+    {
+      "marketplace": "hepsiburada",
+      "mainCategory": "Yapı Market",
+      "subCategory": "Elektrik ve Aydınlatma ürünleri",
+      "productGroup": "Ampül, Anahtar, Priz, Grup Priz, Elektrik Ürünleri",
+      "ratePercent": 18.0,
+      "vatIncluded": false,
+      "vatNote": "Tüm komisyonlar listeleme fiyatı üzerinden +KDV olarak hesaplanacaktır",
+      "serviceFees": []
+    },
+    {
+      "marketplace": "hepsiburada",
+      "mainCategory": "Yapı Market",
+      "subCategory": "Jeneratör",
+      "productGroup": "Benzinli ve Dizel Jeneratörler",
+      "ratePercent": 14.0,
+      "vatIncluded": false,
+      "vatNote": "Tüm komisyonlar listeleme fiyatı üzerinden +KDV olarak hesaplanacaktır",
+      "serviceFees": []
+    },
+    {
+      "marketplace": "hepsiburada",
+      "mainCategory": "Ev Tekstili",
+      "subCategory": "Yatak Odası Tekstili",
+      "productGroup": "Yataklar, Perdeler, Nevresim Takımları, Yastıklar, Yorganlar, Yatak Örtüleri, Pike Takımları, Alez, Battaniyeler, Koltuk Örtüleri, Uyku Setleri, Çarşaf ve Yastık Kılıfı, Dekoratif Kırlentler",
+      "ratePercent": 18.0,
+      "vatIncluded": false,
+      "vatNote": "Tüm komisyonlar listeleme fiyatı üzerinden +KDV olarak hesaplanacaktır",
+      "serviceFees": []
+    },
+    {
+      "marketplace": "hepsiburada",
+      "mainCategory": "Ev Tekstili",
+      "subCategory": "Halı & Kilim",
+      "productGroup": "Halı, Kilim, Yer Paspasları, Yolluklar",
+      "ratePercent": 18.0,
+      "vatIncluded": false,
+      "vatNote": "Tüm komisyonlar listeleme fiyatı üzerinden +KDV olarak hesaplanacaktır",
+      "serviceFees": []
+    },
+    {
+      "marketplace": "hepsiburada",
+      "mainCategory": "Ev Tekstili",
+      "subCategory": "Banyo Tekstili",
+      "productGroup": "Bornoz Setleri, Banyo Klozet Takımları, Havlular",
+      "ratePercent": 18.0,
+      "vatIncluded": false,
+      "vatNote": "Tüm komisyonlar listeleme fiyatı üzerinden +KDV olarak hesaplanacaktır",
+      "serviceFees": []
+    },
+    {
+      "marketplace": "hepsiburada",
+      "mainCategory": "Ev Tekstili",
+      "subCategory": "Mutfak Tekstil",
+      "productGroup": "Mutfak Tekstili, Masa Örtüleri, Fırın Eldivenleri, Runner",
+      "ratePercent": 18.0,
+      "vatIncluded": false,
+      "vatNote": "Tüm komisyonlar listeleme fiyatı üzerinden +KDV olarak hesaplanacaktır",
+      "serviceFees": []
+    },
+    {
+      "marketplace": "hepsiburada",
+      "mainCategory": "Mobilya",
+      "subCategory": "Dekorasyon",
+      "productGroup": "Dekorasyon, Tekstil Saklama Ürünleri",
+      "ratePercent": 22.0,
+      "vatIncluded": false,
+      "vatNote": "Tüm komisyonlar listeleme fiyatı üzerinden +KDV olarak hesaplanacaktır",
+      "serviceFees": []
+    },
+    {
+      "marketplace": "hepsiburada",
+      "mainCategory": "Mobilya",
+      "subCategory": "Ofis Dekorasyon",
+      "productGroup": "Ofis Masası, Ofis Sandalyesi, Bekleme Koltukları, Ofis Çöp Kovası, Dosya Dolapları",
+      "ratePercent": 18.0,
+      "vatIncluded": false,
+      "vatNote": "Tüm komisyonlar listeleme fiyatı üzerinden +KDV olarak hesaplanacaktır",
+      "serviceFees": []
+    },
+    {
+      "marketplace": "hepsiburada",
+      "mainCategory": "Mobilya",
+      "subCategory": "Ev Mobilya",
+      "productGroup": "Mobilya, Sandalyeler, Koltuklar, Tabureler",
+      "ratePercent": 18.0,
+      "vatIncluded": false,
+      "vatNote": "Tüm komisyonlar listeleme fiyatı üzerinden +KDV olarak hesaplanacaktır",
+      "serviceFees": []
+    },
+    {
+      "marketplace": "hepsiburada",
+      "mainCategory": "Mobilya",
+      "subCategory": "Yatak Odası Takımları",
+      "productGroup": "Yatak Odası Takımları, Genç Odası Takımları",
+      "ratePercent": 18.0,
+      "vatIncluded": false,
+      "vatNote": "Tüm komisyonlar listeleme fiyatı üzerinden +KDV olarak hesaplanacaktır",
+      "serviceFees": []
+    },
+    {
+      "marketplace": "hepsiburada",
+      "mainCategory": "Züccaciye",
+      "subCategory": "Sofra & Mutfak Gereçleri",
+      "productGroup": "Sofra Mutfak Gereçleri, Tencereler, Tavalar, Düdüklü Tencelere, Ev Gereçleri, Yemek Takımı, Cam Ürünleri, Porselenler, Çatal / Katış / Bıçak Takımları, Çaydanlık & Cezveler, Servis Tabakları, Pratik Ev Gereçleri",
+      "ratePercent": 18.0,
+      "vatIncluded": false,
+      "vatNote": "Tüm komisyonlar listeleme fiyatı üzerinden +KDV olarak hesaplanacaktır",
+      "serviceFees": []
+    },
+    {
+      "marketplace": "hepsiburada",
+      "mainCategory": "Oyuncak",
+      "subCategory": "Oyuncak",
+      "productGroup": "Ahşap Oyuncaklar, Aktivite Setleri, Akülü Araçlar, Bahçe Oyuncakları, Bebek Oyuncakları, Bebekler, Bilim Oyuncakları, Bisiklet ve Scooterlar, Çocuk Kutu Oyunları, Evcilik Oyuncağı, Figür Oyuncaklar, Hayal Kahramanları, Helikopter ve Uçaklar, Kostümler, Kumandasız Arabalar, Laptoplar, Müzik Aletleri, Oyun Çadırı, Oyun Hamurları, Oyun Setleri, Oyuncak, Parçalı Setler, Pedallı Araçlar, Puzzle, Spor Oyuncakları, Su ve Balon Tabancaları, Uzaktan Kumandalı Araba, Yapbozlar (Puzzle), Scooter",
+      "ratePercent": 18.0,
+      "vatIncluded": false,
+      "vatNote": "Tüm komisyonlar listeleme fiyatı üzerinden +KDV olarak hesaplanacaktır",
+      "serviceFees": []
+    },
+    {
+      "marketplace": "hepsiburada",
+      "mainCategory": "Kırtasiye ve Ofis",
+      "subCategory": "Ofis Makineleri",
+      "productGroup": "Ofis Makineleri",
+      "ratePercent": 12.71,
+      "vatIncluded": false,
+      "vatNote": "Tüm komisyonlar listeleme fiyatı üzerinden +KDV olarak hesaplanacaktır",
+      "serviceFees": []
+    },
+    {
+      "marketplace": "hepsiburada",
+      "mainCategory": "Kırtasiye ve Ofis",
+      "subCategory": "Fotokopi Kağıtları",
+      "productGroup": "Fotokopi Kağıtları, A3 Kağıtlar, A4 Kağıtlar, A5 Kağıtlar",
+      "ratePercent": 7.0,
+      "vatIncluded": false,
+      "vatNote": "Tüm komisyonlar listeleme fiyatı üzerinden +KDV olarak hesaplanacaktır",
+      "serviceFees": []
+    },
+    {
+      "marketplace": "hepsiburada",
+      "mainCategory": "Kırtasiye ve Ofis",
+      "subCategory": "Ofis Makineleri",
+      "productGroup": "Para Kasası",
+      "ratePercent": 17.0,
+      "vatIncluded": false,
+      "vatNote": "Tüm komisyonlar listeleme fiyatı üzerinden +KDV olarak hesaplanacaktır",
+      "serviceFees": []
+    },
+    {
+      "marketplace": "hepsiburada",
+      "mainCategory": "Kırtasiye ve Ofis",
+      "subCategory": "Piller ve Şarj Cihazları",
+      "productGroup": "Piller ve Şarj Cihazları",
+      "ratePercent": 13.56,
+      "vatIncluded": false,
+      "vatNote": "Tüm komisyonlar listeleme fiyatı üzerinden +KDV olarak hesaplanacaktır",
+      "serviceFees": []
+    },
+    {
+      "marketplace": "hepsiburada",
+      "mainCategory": "Kırtasiye ve Ofis",
+      "subCategory": "Kırtasiye ve Ofis Ürünleri ve Sanatsal Malzeme",
+      "productGroup": "Kırtasiye Ürünleri ve Sanatsal Malzemeler",
+      "ratePercent": 17.0,
+      "vatIncluded": false,
+      "vatNote": "Tüm komisyonlar listeleme fiyatı üzerinden +KDV olarak hesaplanacaktır",
+      "serviceFees": []
+    },
+    {
+      "marketplace": "hepsiburada",
+      "mainCategory": "Kırtasiye ve Ofis",
+      "subCategory": "Kırtasiye ve Ofis Ürünleri ve Sanatsal Malzeme",
+      "productGroup": "Ajandalar",
+      "ratePercent": 17.0,
+      "vatIncluded": false,
+      "vatNote": "Tüm komisyonlar listeleme fiyatı üzerinden +KDV olarak hesaplanacaktır",
+      "serviceFees": []
+    },
+    {
+      "marketplace": "hepsiburada",
+      "mainCategory": "Film",
+      "subCategory": "Film",
+      "productGroup": "Film, Poster",
+      "ratePercent": 8.5,
+      "vatIncluded": false,
+      "vatNote": "Tüm komisyonlar listeleme fiyatı üzerinden +KDV olarak hesaplanacaktır",
+      "serviceFees": []
+    },
+    {
+      "marketplace": "hepsiburada",
+      "mainCategory": "Kitap",
+      "subCategory": "Kitap",
+      "productGroup": "Edebiyat, Akademik Kitaplar, Hobi Kitapları, Çocuk Kitapları, E-Kitap Okuyucu, Dergi , İthal kitaplar, Eğitim, Film Figür / Aksesuarları , Kitap Okuma Aksesuarları",
+      "ratePercent": 15.0,
+      "vatIncluded": false,
+      "vatNote": "Tüm komisyonlar listeleme fiyatı üzerinden +KDV olarak hesaplanacaktır",
+      "serviceFees": []
+    },
+    {
+      "marketplace": "hepsiburada",
+      "mainCategory": "Müzik",
+      "subCategory": "Müzik Alet ve Ekipmanları",
+      "productGroup": "Amfi, Bateri, Davul, Kayıt Teknolojileri, Pikap, Telli Çalgılar, Yaylı Çalgılar , Plak, Kabin-Hoparlör-Monitör, Tuşlu Çalgılar",
+      "ratePercent": 12.0,
+      "vatIncluded": false,
+      "vatNote": "Tüm komisyonlar listeleme fiyatı üzerinden +KDV olarak hesaplanacaktır",
+      "serviceFees": []
+    },
+    {
+      "marketplace": "hepsiburada",
+      "mainCategory": "Müzik",
+      "subCategory": "Müzik Alet ve Ekipmanları",
+      "productGroup": "Nefesli Çalgılar, Mikrofon,Kulaklık, Vurmalı Çalgılar - Perküsyon, Müzik Ekipmanları - Aksesuarları",
+      "ratePercent": 14.0,
+      "vatIncluded": false,
+      "vatNote": "Tüm komisyonlar listeleme fiyatı üzerinden +KDV olarak hesaplanacaktır",
+      "serviceFees": []
+    },
+    {
+      "marketplace": "hepsiburada",
+      "mainCategory": "Müzik",
+      "subCategory": "Müzik Alet ve Ekipmanları",
+      "productGroup": "Albüm, Işık Sistemleri, Poster",
+      "ratePercent": 15.0,
+      "vatIncluded": false,
+      "vatNote": "Tüm komisyonlar listeleme fiyatı üzerinden +KDV olarak hesaplanacaktır",
+      "serviceFees": []
+    },
+    {
+      "marketplace": "hepsiburada",
+      "mainCategory": "Dijital Ürünler",
+      "subCategory": "Dijital Ürünler 1",
+      "productGroup": "Dijital Dergi , E-Kitap, Etkinlik, Aktivite, Fırsat Menüleri, Online Lisans, Sinema Bileti, Spor Hizmet, Online Eğitimler, Oyun Pinleri, Dijital Oyunlar, Digital Yayınlar",
+      "ratePercent": 8.05,
+      "vatIncluded": false,
+      "vatNote": "Tüm komisyonlar listeleme fiyatı üzerinden +KDV olarak hesaplanacaktır",
+      "serviceFees": []
+    },
+    {
+      "marketplace": "hepsiburada",
+      "mainCategory": "Dijital Ürünler",
+      "subCategory": "Dijital Ürünler 2",
+      "productGroup": "Film, Dizi, Yayın Paketleri, Gezi & Tatil Turları, Kuru Temizleme, Sesli Kitap, Ön Ödemeli Kartlar",
+      "ratePercent": 8.47,
+      "vatIncluded": false,
+      "vatNote": "Tüm komisyonlar listeleme fiyatı üzerinden +KDV olarak hesaplanacaktır",
+      "serviceFees": []
+    },
+    {
+      "marketplace": "hepsiburada",
+      "mainCategory": "Cep Telefonu aksesuarları",
+      "subCategory": "Cep Telefonu Aksesuarları 1",
+      "productGroup": "Grafik Tabletler, Kulak İçi Kulaklık, Kulak Üstü Kulaklık, Taşınabilir Hoparlörler",
+      "ratePercent": 15.0,
+      "vatIncluded": false,
+      "vatNote": "Tüm komisyonlar listeleme fiyatı üzerinden +KDV olarak hesaplanacaktır",
+      "serviceFees": []
+    },
+    {
+      "marketplace": "hepsiburada",
+      "mainCategory": "Cep Telefonu aksesuarları",
+      "subCategory": "Cep Telefonu Aksesuarları 2",
+      "productGroup": "Araç İçi Telefon Tutacakları, Bluetooth Araç Kitleri, Bluetooth Kulaklık Aksesuarları, Telefon Kulaklıkları, Akıllı Saat ve Bileklik Aksesuarları, Kulaklık Aksesuarları, Taşınabilir Şarj Cihazları, Akıllı Gözlükler Sanal Gerçeklik Gözlüğü, Araç Şarj Cihazları",
+      "ratePercent": 15.0,
+      "vatIncluded": false,
+      "vatNote": "Tüm komisyonlar listeleme fiyatı üzerinden +KDV olarak hesaplanacaktır",
+      "serviceFees": []
+    },
+    {
+      "marketplace": "hepsiburada",
+      "mainCategory": "Cep Telefonu aksesuarları",
+      "subCategory": "Cep Telefonu Aksesuarları 3",
+      "productGroup": "Data&Şarj Kabloları, Notebook Aksesuarları",
+      "ratePercent": 20.0,
+      "vatIncluded": false,
+      "vatNote": "Tüm komisyonlar listeleme fiyatı üzerinden +KDV olarak hesaplanacaktır",
+      "serviceFees": []
+    },
+    {
+      "marketplace": "hepsiburada",
+      "mainCategory": "Cep Telefonu aksesuarları",
+      "subCategory": "Cep Telefonu Aksesuarları 4",
+      "productGroup": "Notebook Çantası, Tablet Aksesuarları",
+      "ratePercent": 20.0,
+      "vatIncluded": false,
+      "vatNote": "Tüm komisyonlar listeleme fiyatı üzerinden +KDV olarak hesaplanacaktır",
+      "serviceFees": []
+    },
+    {
+      "marketplace": "hepsiburada",
+      "mainCategory": "Cep Telefonu aksesuarları",
+      "subCategory": "Cep Telefonu Aksesuarları 5",
+      "productGroup": "Batarya, Cep Telefonu Yedek Parçaları, Selfie Çubuğu, Telefon Kılıflar, Telefon Oyun Aksesuarları",
+      "ratePercent": 25.0,
+      "vatIncluded": false,
+      "vatNote": "Tüm komisyonlar listeleme fiyatı üzerinden +KDV olarak hesaplanacaktır",
+      "serviceFees": []
+    },
+    {
+      "marketplace": "hepsiburada",
+      "mainCategory": "Cep Telefonu aksesuarları",
+      "subCategory": "Telsiz Masaüstü Telefonlar",
+      "productGroup": "Dect Telsiz Telefon ve Aksesuarları, GPS Takip Cihazları, Lisanssız Telsizler, Operatör Başlıkları, Sabit Telefon ve Aksesuarları, Telefon Santrali ve Aksesuarları",
+      "ratePercent": 15.0,
+      "vatIncluded": false,
+      "vatNote": "Tüm komisyonlar listeleme fiyatı üzerinden +KDV olarak hesaplanacaktır",
+      "serviceFees": []
+    },
+    {
+      "marketplace": "hepsiburada",
+      "mainCategory": "Cep Telefonu aksesuarları",
+      "subCategory": "Akıllı Saat-Bileklik & Bluetooth Kulaklıklar",
+      "productGroup": "Akıllı Bileklik, Akıllı Saatler, Bluetooth Kulaklıklar",
+      "ratePercent": 15.0,
+      "vatIncluded": false,
+      "vatNote": "Tüm komisyonlar listeleme fiyatı üzerinden +KDV olarak hesaplanacaktır",
+      "serviceFees": []
+    },
+    {
+      "marketplace": "hepsiburada",
+      "mainCategory": "Oyun Konsol",
+      "subCategory": "Oyun Konsolu",
+      "productGroup": "Xbox Konsol, Psp / Vita Konsol , Playstation 4 Konsol , Playstation 5 Konsol, Nintendo Konsol",
+      "ratePercent": 6.0,
+      "vatIncluded": false,
+      "vatNote": "Tüm komisyonlar listeleme fiyatı üzerinden +KDV olarak hesaplanacaktır",
+      "serviceFees": []
+    },
+    {
+      "marketplace": "hepsiburada",
+      "mainCategory": "Oyun Konsol",
+      "subCategory": "Oyun Konsolu",
+      "productGroup": "Playstation 2 Konsol , Playstation 3 Konsol , İkinci El Konsol",
+      "ratePercent": 15.0,
+      "vatIncluded": false,
+      "vatNote": "Tüm komisyonlar listeleme fiyatı üzerinden +KDV olarak hesaplanacaktır",
+      "serviceFees": []
+    },
+    {
+      "marketplace": "hepsiburada",
+      "mainCategory": "Oyun Konsol",
+      "subCategory": "Oyun Konsolu",
+      "productGroup": "Diğer Oyun Konsolları",
+      "ratePercent": 8.5,
+      "vatIncluded": false,
+      "vatNote": "Tüm komisyonlar listeleme fiyatı üzerinden +KDV olarak hesaplanacaktır",
+      "serviceFees": []
+    },
+    {
+      "marketplace": "hepsiburada",
+      "mainCategory": "Oyun Konsol",
+      "subCategory": "Konsol Oyunları",
+      "productGroup": "PS5 Oyunları, PS4 Oyunları, Xbox One Oyunları, Nintendo Oyunları, Bilgisayar Oyunları, PSP Oyunları",
+      "ratePercent": 10.0,
+      "vatIncluded": false,
+      "vatNote": "Tüm komisyonlar listeleme fiyatı üzerinden +KDV olarak hesaplanacaktır",
+      "serviceFees": []
+    },
+    {
+      "marketplace": "hepsiburada",
+      "mainCategory": "Oyun Konsol",
+      "subCategory": "Konsol Oyunları",
+      "productGroup": "PS2 Oyunları, PS3 Oyunları, Psp Vita Oyunları, Xbox 360 Oyunları",
+      "ratePercent": 15.0,
+      "vatIncluded": false,
+      "vatNote": "Tüm komisyonlar listeleme fiyatı üzerinden +KDV olarak hesaplanacaktır",
+      "serviceFees": []
+    },
+    {
+      "marketplace": "hepsiburada",
+      "mainCategory": "Oyun Konsol",
+      "subCategory": "Konsol Aksesuarları",
+      "productGroup": "PS4 Aksesuarlar, PS5 Aksesuarlar, Playstation 4 VR, Xbox Aksesuarları, Nintendo Aksesuarları, PC Oyun Aksesuar, Simülasyon Aksesuarları",
+      "ratePercent": 10.0,
+      "vatIncluded": false,
+      "vatNote": "Tüm komisyonlar listeleme fiyatı üzerinden +KDV olarak hesaplanacaktır",
+      "serviceFees": []
+    },
+    {
+      "marketplace": "hepsiburada",
+      "mainCategory": "Oyun Konsol",
+      "subCategory": "Konsol Aksesuarları",
+      "productGroup": "PS3 Aksesuarlar, PSP / Vita Aksesuarları, PS2 Aksesuarlar",
+      "ratePercent": 15.0,
+      "vatIncluded": false,
+      "vatNote": "Tüm komisyonlar listeleme fiyatı üzerinden +KDV olarak hesaplanacaktır",
+      "serviceFees": []
+    },
+    {
+      "marketplace": "hepsiburada",
+      "mainCategory": "Oyun Konsol",
+      "subCategory": "Oyun Ödeme Kartları",
+      "productGroup": "Dijital Oyun Kartları, Oyun Ödeme Kartları, Dijital Bilgisayar Oyunları, Dijital Konsol Oyunları",
+      "ratePercent": 8.5,
+      "vatIncluded": false,
+      "vatNote": "Tüm komisyonlar listeleme fiyatı üzerinden +KDV olarak hesaplanacaktır",
+      "serviceFees": []
+    },
+    {
+      "marketplace": "hepsiburada",
+      "mainCategory": "NonTV",
+      "subCategory": "Televizyon ve Elektronik Aksesuarları",
+      "productGroup": "Alarm Sistemleri Aksesuarları, Ses ve Görüntü Kabloları, Güç Kabloları, Uydu Alıcıları, Güvenlik Cihazları, TV Ekran Koruyucular, Hoparlör Ayakları & Askıları, Mikrofon, Network Kabloları",
+      "ratePercent": 15.0,
+      "vatIncluded": false,
+      "vatNote": "Tüm komisyonlar listeleme fiyatı üzerinden +KDV olarak hesaplanacaktır",
+      "serviceFees": []
+    },
+    {
+      "marketplace": "hepsiburada",
+      "mainCategory": "NonTV",
+      "subCategory": "Televizyon ve Elektronik Aksesuarları",
+      "productGroup": "Uydu Alıcısı Aksesuarları, Uzaktan Kumandalar, Akım Korumalı Priz, HDMI Kablo ,Kablo & Soketler, Ekran Temizleme Ürünleri, Bluray Yazıcılar, CD& DVD Yazıcılar, Switch Box Ve Çoklayıcılar, Mp3 Player Aksesuar, Monitör Aksesuarları, CD&DVD Çantası",
+      "ratePercent": 17.0,
+      "vatIncluded": false,
+      "vatNote": "Tüm komisyonlar listeleme fiyatı üzerinden +KDV olarak hesaplanacaktır",
+      "serviceFees": []
+    },
+    {
+      "marketplace": "hepsiburada",
+      "mainCategory": "NonTV",
+      "subCategory": "Dijital ve Güvence Paketleri",
+      "productGroup": "Ek Güvence Paketleri TV, Dijital Video İşleme Yayın Paketleri",
+      "ratePercent": 20.0,
+      "vatIncluded": false,
+      "vatNote": "Tüm komisyonlar listeleme fiyatı üzerinden +KDV olarak hesaplanacaktır",
+      "serviceFees": []
+    },
+    {
+      "marketplace": "hepsiburada",
+      "mainCategory": "NonTV",
+      "subCategory": "Ev Güvenlik Ürünleri",
+      "productGroup": "Güvenlik Kamerası, Dedektör, Webcam, Akıllı Priz , Akıllı Kumanda, Akıllı Ev Sistemleri, Kamera Sistemi, IP Network Kameralar, Dome Kameralar, IP kameraları, Gece Görüşlü Kamerlar, Sahte Caydırıcı Kamera",
+      "ratePercent": 14.0,
+      "vatIncluded": false,
+      "vatNote": "Tüm komisyonlar listeleme fiyatı üzerinden +KDV olarak hesaplanacaktır",
+      "serviceFees": []
+    },
+    {
+      "marketplace": "hepsiburada",
+      "mainCategory": "NonTV",
+      "subCategory": "Ev Sinema ve Ses Sistemleri",
+      "productGroup": "Blu-Ray ve DVD Oynatıcılar, DVD Oynatıcılar, Portatif DVD Oynatıcılar, Kablosuz Ses ve Görüntü Aktarıcı",
+      "ratePercent": 15.0,
+      "vatIncluded": false,
+      "vatNote": "Tüm komisyonlar listeleme fiyatı üzerinden +KDV olarak hesaplanacaktır",
+      "serviceFees": []
+    },
+    {
+      "marketplace": "hepsiburada",
+      "mainCategory": "NonTV",
+      "subCategory": "Ev Sinema ve Ses Sistemleri",
+      "productGroup": "Sinema Sistemi, Soundbar, Subwoofer (Ev Tipi), Stereo Amfiler, Media Player, Ses Kayıt Cihazları, Bluetooth Hoparlör, Ses Bombası Hoparlörler, Müzik Seti, Pikap, Portatif Sistemler, Taşınabilir Amfili Hoparlörler, Speaker",
+      "ratePercent": 12.0,
+      "vatIncluded": false,
+      "vatNote": "Tüm komisyonlar listeleme fiyatı üzerinden +KDV olarak hesaplanacaktır",
+      "serviceFees": []
+    },
+    {
+      "marketplace": "hepsiburada",
+      "mainCategory": "Hobi-Oyun",
+      "subCategory": "Hobi, Oyun Eğlence Ürünleri",
+      "productGroup": "Akıl Oyunları, Diecast Modeller, Figür Modelleri, Hobby, İlginç Ürünler, Kostüm ve Aksesuarları, Kutu Oyunları, Maket, Maket Aksesuarları, Metal Model Arabalar, Mıknatıslar, Oyun Takımı Aksesuarları, Oyun Takımları, Puzzlelar ve Aksesuarları, Rc Araç Yedek Parçaları, Rc Araç Ekipmanları, Uzaktan Kumandalı Arabalar, Uzaktan Kumandalı Elektrikli Uçaklar, Uzaktan Kumandalı Helikopterler, Uzaktan Kumandalı Tekneler",
+      "ratePercent": 18.0,
+      "vatIncluded": false,
+      "vatNote": "Tüm komisyonlar listeleme fiyatı üzerinden +KDV olarak hesaplanacaktır",
+      "serviceFees": []
+    }
+  ],
+  "skipped": [
+    "['Tüm komisyonlar listeleme fiyatı üzerinden +KDV olarak hesaplanacaktır.', None, None, None]"
+  ]
+}

@@ -1,0 +1,6082 @@
+{
+  "source": {
+    "sourceName": "Hepsiburada Kargo Ücretleri",
+    "sourceFile": "hepsiburada.pdf",
+    "sourceType": "pdf",
+    "effectiveDate": "2026-01-02",
+    "vatIncluded": false,
+    "vatNote": "KDV hariç",
+    "version": "2026-01-02",
+    "confidence": "official"
+  },
+  "carriers": {
+    "aras": "Aras Kargo",
+    "dhl": "DHL eCommerce",
+    "kolay_gelsin": "Kolay Gelsin",
+    "ptt": "PTT Kargo",
+    "surat": "Sürat Kargo",
+    "yurtici": "Yurtiçi Kargo"
+  },
+  "brackets": [
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "aras",
+      "desiMin": 0,
+      "desiMax": 0,
+      "price": 84.83,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "dhl",
+      "desiMin": 0,
+      "desiMax": 0,
+      "price": 95.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "kolay_gelsin",
+      "desiMin": 0,
+      "desiMax": 0,
+      "price": 96.2,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "ptt",
+      "desiMin": 0,
+      "desiMax": 0,
+      "price": 86.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "surat",
+      "desiMin": 0,
+      "desiMax": 0,
+      "price": 91.6,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "yurtici",
+      "desiMin": 0,
+      "desiMax": 0,
+      "price": 120.61,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "aras",
+      "desiMin": 1,
+      "desiMax": 1,
+      "price": 84.83,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "dhl",
+      "desiMin": 1,
+      "desiMax": 1,
+      "price": 95.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "kolay_gelsin",
+      "desiMin": 1,
+      "desiMax": 1,
+      "price": 96.2,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "ptt",
+      "desiMin": 1,
+      "desiMax": 1,
+      "price": 86.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "surat",
+      "desiMin": 1,
+      "desiMax": 1,
+      "price": 91.6,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "yurtici",
+      "desiMin": 1,
+      "desiMax": 1,
+      "price": 120.61,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "aras",
+      "desiMin": 2,
+      "desiMax": 2,
+      "price": 87.11,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "dhl",
+      "desiMin": 2,
+      "desiMax": 2,
+      "price": 95.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "kolay_gelsin",
+      "desiMin": 2,
+      "desiMax": 2,
+      "price": 96.2,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "ptt",
+      "desiMin": 2,
+      "desiMax": 2,
+      "price": 86.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "surat",
+      "desiMin": 2,
+      "desiMax": 2,
+      "price": 91.6,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "yurtici",
+      "desiMin": 2,
+      "desiMax": 2,
+      "price": 123.67,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "aras",
+      "desiMin": 3,
+      "desiMax": 3,
+      "price": 94.86,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "dhl",
+      "desiMin": 3,
+      "desiMax": 3,
+      "price": 103.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "kolay_gelsin",
+      "desiMin": 3,
+      "desiMax": 3,
+      "price": 106.43,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "ptt",
+      "desiMin": 3,
+      "desiMax": 3,
+      "price": 106.56,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "surat",
+      "desiMin": 3,
+      "desiMax": 3,
+      "price": 103.33,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "yurtici",
+      "desiMin": 3,
+      "desiMax": 3,
+      "price": 131.48,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "aras",
+      "desiMin": 4,
+      "desiMax": 4,
+      "price": 102.74,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "dhl",
+      "desiMin": 4,
+      "desiMax": 4,
+      "price": 118.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "kolay_gelsin",
+      "desiMin": 4,
+      "desiMax": 4,
+      "price": 117.69,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "ptt",
+      "desiMin": 4,
+      "desiMax": 4,
+      "price": 106.56,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "surat",
+      "desiMin": 4,
+      "desiMax": 4,
+      "price": 112.68,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "yurtici",
+      "desiMin": 4,
+      "desiMax": 4,
+      "price": 134.12,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "aras",
+      "desiMin": 5,
+      "desiMax": 5,
+      "price": 109.66,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "dhl",
+      "desiMin": 5,
+      "desiMax": 5,
+      "price": 129.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "kolay_gelsin",
+      "desiMin": 5,
+      "desiMax": 5,
+      "price": 126.9,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "ptt",
+      "desiMin": 5,
+      "desiMax": 5,
+      "price": 110.92,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "surat",
+      "desiMin": 5,
+      "desiMax": 5,
+      "price": 118.3,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "yurtici",
+      "desiMin": 5,
+      "desiMax": 5,
+      "price": 149.76,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "aras",
+      "desiMin": 6,
+      "desiMax": 6,
+      "price": 119.22,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "dhl",
+      "desiMin": 6,
+      "desiMax": 6,
+      "price": 144.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "kolay_gelsin",
+      "desiMin": 6,
+      "desiMax": 6,
+      "price": 137.14,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "ptt",
+      "desiMin": 6,
+      "desiMax": 6,
+      "price": 117.44,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "surat",
+      "desiMin": 6,
+      "desiMax": 6,
+      "price": 130.11,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "yurtici",
+      "desiMin": 6,
+      "desiMax": 6,
+      "price": 154.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "aras",
+      "desiMin": 7,
+      "desiMax": 7,
+      "price": 126.2,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "dhl",
+      "desiMin": 7,
+      "desiMax": 7,
+      "price": 152.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "kolay_gelsin",
+      "desiMin": 7,
+      "desiMax": 7,
+      "price": 146.35,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "ptt",
+      "desiMin": 7,
+      "desiMax": 7,
+      "price": 123.96,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "surat",
+      "desiMin": 7,
+      "desiMax": 7,
+      "price": 138.81,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "yurtici",
+      "desiMin": 7,
+      "desiMax": 7,
+      "price": 175.04,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "aras",
+      "desiMin": 8,
+      "desiMax": 8,
+      "price": 134.41,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "dhl",
+      "desiMin": 8,
+      "desiMax": 8,
+      "price": 162.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "kolay_gelsin",
+      "desiMin": 8,
+      "desiMax": 8,
+      "price": 156.59,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "ptt",
+      "desiMin": 8,
+      "desiMax": 8,
+      "price": 137.01,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "surat",
+      "desiMin": 8,
+      "desiMax": 8,
+      "price": 147.64,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "yurtici",
+      "desiMin": 8,
+      "desiMax": 8,
+      "price": 182.5,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "aras",
+      "desiMin": 9,
+      "desiMax": 9,
+      "price": 141.89,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "dhl",
+      "desiMin": 9,
+      "desiMax": 9,
+      "price": 172.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "kolay_gelsin",
+      "desiMin": 9,
+      "desiMax": 9,
+      "price": 165.8,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "ptt",
+      "desiMin": 9,
+      "desiMax": 9,
+      "price": 150.06,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "surat",
+      "desiMin": 9,
+      "desiMax": 9,
+      "price": 156.47,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "yurtici",
+      "desiMin": 9,
+      "desiMax": 9,
+      "price": 193.35,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "aras",
+      "desiMin": 10,
+      "desiMax": 10,
+      "price": 150.12,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "dhl",
+      "desiMin": 10,
+      "desiMax": 10,
+      "price": 179.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "kolay_gelsin",
+      "desiMin": 10,
+      "desiMax": 10,
+      "price": 177.06,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "ptt",
+      "desiMin": 10,
+      "desiMax": 10,
+      "price": 169.64,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "surat",
+      "desiMin": 10,
+      "desiMax": 10,
+      "price": 165.17,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "yurtici",
+      "desiMin": 10,
+      "desiMax": 10,
+      "price": 202.01,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "aras",
+      "desiMin": 11,
+      "desiMax": 11,
+      "price": 157.75,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "dhl",
+      "desiMin": 11,
+      "desiMax": 11,
+      "price": 188.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "kolay_gelsin",
+      "desiMin": 11,
+      "desiMax": 11,
+      "price": 187.29,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "ptt",
+      "desiMin": 11,
+      "desiMax": 11,
+      "price": 178.33,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "surat",
+      "desiMin": 11,
+      "desiMax": 11,
+      "price": 176.3,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "yurtici",
+      "desiMin": 11,
+      "desiMax": 11,
+      "price": 221.62,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "aras",
+      "desiMin": 12,
+      "desiMax": 12,
+      "price": 163.08,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "dhl",
+      "desiMin": 12,
+      "desiMax": 12,
+      "price": 199.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "kolay_gelsin",
+      "desiMin": 12,
+      "desiMax": 12,
+      "price": 198.55,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "ptt",
+      "desiMin": 12,
+      "desiMax": 12,
+      "price": 187.03,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "surat",
+      "desiMin": 12,
+      "desiMax": 12,
+      "price": 183.72,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "yurtici",
+      "desiMin": 12,
+      "desiMax": 12,
+      "price": 236.42,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "aras",
+      "desiMin": 13,
+      "desiMax": 13,
+      "price": 170.01,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "dhl",
+      "desiMin": 13,
+      "desiMax": 13,
+      "price": 209.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "kolay_gelsin",
+      "desiMin": 13,
+      "desiMax": 13,
+      "price": 208.78,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "ptt",
+      "desiMin": 13,
+      "desiMax": 13,
+      "price": 195.73,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "surat",
+      "desiMin": 13,
+      "desiMax": 13,
+      "price": 191.14,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "yurtici",
+      "desiMin": 13,
+      "desiMax": 13,
+      "price": 245.6,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "aras",
+      "desiMin": 14,
+      "desiMax": 14,
+      "price": 176.13,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "dhl",
+      "desiMin": 14,
+      "desiMax": 14,
+      "price": 221.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "kolay_gelsin",
+      "desiMin": 14,
+      "desiMax": 14,
+      "price": 220.04,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "ptt",
+      "desiMin": 14,
+      "desiMax": 14,
+      "price": 204.43,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "surat",
+      "desiMin": 14,
+      "desiMax": 14,
+      "price": 198.56,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "yurtici",
+      "desiMin": 14,
+      "desiMax": 14,
+      "price": 264.75,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "aras",
+      "desiMin": 15,
+      "desiMax": 15,
+      "price": 182.26,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "dhl",
+      "desiMin": 15,
+      "desiMax": 15,
+      "price": 231.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "kolay_gelsin",
+      "desiMin": 15,
+      "desiMax": 15,
+      "price": 231.3,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "ptt",
+      "desiMin": 15,
+      "desiMax": 15,
+      "price": 213.13,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "surat",
+      "desiMin": 15,
+      "desiMax": 15,
+      "price": 205.85,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "yurtici",
+      "desiMin": 15,
+      "desiMax": 15,
+      "price": 281.28,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "aras",
+      "desiMin": 16,
+      "desiMax": 16,
+      "price": 191.78,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "dhl",
+      "desiMin": 16,
+      "desiMax": 16,
+      "price": 264.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "kolay_gelsin",
+      "desiMin": 16,
+      "desiMax": 16,
+      "price": 242.56,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "ptt",
+      "desiMin": 16,
+      "desiMax": 16,
+      "price": 221.83,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "surat",
+      "desiMin": 16,
+      "desiMax": 16,
+      "price": 213.53,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "yurtici",
+      "desiMin": 16,
+      "desiMax": 16,
+      "price": 289.09,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "aras",
+      "desiMin": 17,
+      "desiMax": 17,
+      "price": 201.27,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "dhl",
+      "desiMin": 17,
+      "desiMax": 17,
+      "price": 278.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "kolay_gelsin",
+      "desiMin": 17,
+      "desiMax": 17,
+      "price": 253.82,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "ptt",
+      "desiMin": 17,
+      "desiMax": 17,
+      "price": 230.53,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "surat",
+      "desiMin": 17,
+      "desiMax": 17,
+      "price": 224.79,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "yurtici",
+      "desiMin": 17,
+      "desiMax": 17,
+      "price": 305.64,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "aras",
+      "desiMin": 18,
+      "desiMax": 18,
+      "price": 210.8,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "dhl",
+      "desiMin": 18,
+      "desiMax": 18,
+      "price": 296.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "kolay_gelsin",
+      "desiMin": 18,
+      "desiMax": 18,
+      "price": 265.08,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "ptt",
+      "desiMin": 18,
+      "desiMax": 18,
+      "price": 239.23,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "surat",
+      "desiMin": 18,
+      "desiMax": 18,
+      "price": 236.04,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "yurtici",
+      "desiMin": 18,
+      "desiMax": 18,
+      "price": 317.0,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "aras",
+      "desiMin": 19,
+      "desiMax": 19,
+      "price": 220.32,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "dhl",
+      "desiMin": 19,
+      "desiMax": 19,
+      "price": 320.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "kolay_gelsin",
+      "desiMin": 19,
+      "desiMax": 19,
+      "price": 276.33,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "ptt",
+      "desiMin": 19,
+      "desiMax": 19,
+      "price": 247.93,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "surat",
+      "desiMin": 19,
+      "desiMax": 19,
+      "price": 247.43,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "yurtici",
+      "desiMin": 19,
+      "desiMax": 19,
+      "price": 326.12,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "aras",
+      "desiMin": 20,
+      "desiMax": 20,
+      "price": 224.09,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "dhl",
+      "desiMin": 20,
+      "desiMax": 20,
+      "price": 337.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "kolay_gelsin",
+      "desiMin": 20,
+      "desiMax": 20,
+      "price": 287.59,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "ptt",
+      "desiMin": 20,
+      "desiMax": 20,
+      "price": 256.63,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "surat",
+      "desiMin": 20,
+      "desiMax": 20,
+      "price": 258.69,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "yurtici",
+      "desiMin": 20,
+      "desiMax": 20,
+      "price": 336.18,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "aras",
+      "desiMin": 21,
+      "desiMax": 21,
+      "price": 235.06,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "dhl",
+      "desiMin": 21,
+      "desiMax": 21,
+      "price": 350.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "kolay_gelsin",
+      "desiMin": 21,
+      "desiMax": 21,
+      "price": 298.85,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "ptt",
+      "desiMin": 21,
+      "desiMax": 21,
+      "price": 265.32,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "surat",
+      "desiMin": 21,
+      "desiMax": 21,
+      "price": 270.33,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "yurtici",
+      "desiMin": 21,
+      "desiMax": 21,
+      "price": 352.73,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "aras",
+      "desiMin": 22,
+      "desiMax": 22,
+      "price": 245.06,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "dhl",
+      "desiMin": 22,
+      "desiMax": 22,
+      "price": 357.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "kolay_gelsin",
+      "desiMin": 22,
+      "desiMax": 22,
+      "price": 310.11,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "ptt",
+      "desiMin": 22,
+      "desiMax": 22,
+      "price": 271.85,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "surat",
+      "desiMin": 22,
+      "desiMax": 22,
+      "price": 280.69,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "yurtici",
+      "desiMin": 22,
+      "desiMax": 22,
+      "price": 369.28,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "aras",
+      "desiMin": 23,
+      "desiMax": 23,
+      "price": 255.09,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "dhl",
+      "desiMin": 23,
+      "desiMax": 23,
+      "price": 382.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "kolay_gelsin",
+      "desiMin": 23,
+      "desiMax": 23,
+      "price": 321.37,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "ptt",
+      "desiMin": 23,
+      "desiMax": 23,
+      "price": 280.55,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "surat",
+      "desiMin": 23,
+      "desiMax": 23,
+      "price": 291.06,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "yurtici",
+      "desiMin": 23,
+      "desiMax": 23,
+      "price": 376.19,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "aras",
+      "desiMin": 24,
+      "desiMax": 24,
+      "price": 263.91,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "dhl",
+      "desiMin": 24,
+      "desiMax": 24,
+      "price": 407.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "kolay_gelsin",
+      "desiMin": 24,
+      "desiMax": 24,
+      "price": 332.63,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "ptt",
+      "desiMin": 24,
+      "desiMax": 24,
+      "price": 289.25,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "surat",
+      "desiMin": 24,
+      "desiMax": 24,
+      "price": 301.42,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "yurtici",
+      "desiMin": 24,
+      "desiMax": 24,
+      "price": 384.97,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "aras",
+      "desiMin": 25,
+      "desiMax": 25,
+      "price": 272.7,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "dhl",
+      "desiMin": 25,
+      "desiMax": 25,
+      "price": 432.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "kolay_gelsin",
+      "desiMin": 25,
+      "desiMax": 25,
+      "price": 343.89,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "ptt",
+      "desiMin": 25,
+      "desiMax": 25,
+      "price": 297.95,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "surat",
+      "desiMin": 25,
+      "desiMax": 25,
+      "price": 311.78,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "yurtici",
+      "desiMin": 25,
+      "desiMax": 25,
+      "price": 414.51,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "aras",
+      "desiMin": 26,
+      "desiMax": 26,
+      "price": 281.29,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "dhl",
+      "desiMin": 26,
+      "desiMax": 26,
+      "price": 457.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "kolay_gelsin",
+      "desiMin": 26,
+      "desiMax": 26,
+      "price": 355.14,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "ptt",
+      "desiMin": 26,
+      "desiMax": 26,
+      "price": 306.65,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "surat",
+      "desiMin": 26,
+      "desiMax": 26,
+      "price": 321.76,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "yurtici",
+      "desiMin": 26,
+      "desiMax": 26,
+      "price": 458.52,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "aras",
+      "desiMin": 27,
+      "desiMax": 27,
+      "price": 289.87,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "dhl",
+      "desiMin": 27,
+      "desiMax": 27,
+      "price": 482.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "kolay_gelsin",
+      "desiMin": 27,
+      "desiMax": 27,
+      "price": 366.4,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "ptt",
+      "desiMin": 27,
+      "desiMax": 27,
+      "price": 315.34,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "surat",
+      "desiMin": 27,
+      "desiMax": 27,
+      "price": 331.87,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "yurtici",
+      "desiMin": 27,
+      "desiMax": 27,
+      "price": 475.05,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "aras",
+      "desiMin": 28,
+      "desiMax": 28,
+      "price": 298.51,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "dhl",
+      "desiMin": 28,
+      "desiMax": 28,
+      "price": 507.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "kolay_gelsin",
+      "desiMin": 28,
+      "desiMax": 28,
+      "price": 377.66,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "ptt",
+      "desiMin": 28,
+      "desiMax": 28,
+      "price": 324.04,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "surat",
+      "desiMin": 28,
+      "desiMax": 28,
+      "price": 341.85,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "yurtici",
+      "desiMin": 28,
+      "desiMax": 28,
+      "price": 488.15,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "aras",
+      "desiMin": 29,
+      "desiMax": 29,
+      "price": 307.09,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "dhl",
+      "desiMin": 29,
+      "desiMax": 29,
+      "price": 532.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "kolay_gelsin",
+      "desiMin": 29,
+      "desiMax": 29,
+      "price": 388.92,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "ptt",
+      "desiMin": 29,
+      "desiMax": 29,
+      "price": 332.74,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "surat",
+      "desiMin": 29,
+      "desiMax": 29,
+      "price": 351.83,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "yurtici",
+      "desiMin": 29,
+      "desiMax": 29,
+      "price": 493.35,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "aras",
+      "desiMin": 30,
+      "desiMax": 30,
+      "price": 315.68,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "dhl",
+      "desiMin": 30,
+      "desiMax": 30,
+      "price": 557.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "kolay_gelsin",
+      "desiMin": 30,
+      "desiMax": 30,
+      "price": 400.18,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "ptt",
+      "desiMin": 30,
+      "desiMax": 30,
+      "price": 341.44,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "surat",
+      "desiMin": 30,
+      "desiMax": 30,
+      "price": 361.81,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "yurtici",
+      "desiMin": 30,
+      "desiMax": 30,
+      "price": 511.65,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "aras",
+      "desiMin": 31,
+      "desiMax": 31,
+      "price": 325.73,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "dhl",
+      "desiMin": 31,
+      "desiMax": 31,
+      "price": 590.98,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "kolay_gelsin",
+      "desiMin": 31,
+      "desiMax": 31,
+      "price": 411.44,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "ptt",
+      "desiMin": 31,
+      "desiMax": 31,
+      "price": 666.93,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "surat",
+      "desiMin": 31,
+      "desiMax": 31,
+      "price": 432.81,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "yurtici",
+      "desiMin": 31,
+      "desiMax": 31,
+      "price": 526.05,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "aras",
+      "desiMin": 32,
+      "desiMax": 32,
+      "price": 335.78,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "dhl",
+      "desiMin": 32,
+      "desiMax": 32,
+      "price": 623.97,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "kolay_gelsin",
+      "desiMin": 32,
+      "desiMax": 32,
+      "price": 422.7,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "ptt",
+      "desiMin": 32,
+      "desiMax": 32,
+      "price": 683.01,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "surat",
+      "desiMin": 32,
+      "desiMax": 32,
+      "price": 445.35,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "yurtici",
+      "desiMin": 32,
+      "desiMax": 32,
+      "price": 540.83,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "aras",
+      "desiMin": 33,
+      "desiMax": 33,
+      "price": 345.83,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "dhl",
+      "desiMin": 33,
+      "desiMax": 33,
+      "price": 656.96,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "kolay_gelsin",
+      "desiMin": 33,
+      "desiMax": 33,
+      "price": 433.95,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "ptt",
+      "desiMin": 33,
+      "desiMax": 33,
+      "price": 699.09,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "surat",
+      "desiMin": 33,
+      "desiMax": 33,
+      "price": 458.02,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "yurtici",
+      "desiMin": 33,
+      "desiMax": 33,
+      "price": 555.2,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "aras",
+      "desiMin": 34,
+      "desiMax": 34,
+      "price": 355.89,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "dhl",
+      "desiMin": 34,
+      "desiMax": 34,
+      "price": 689.95,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "kolay_gelsin",
+      "desiMin": 34,
+      "desiMax": 34,
+      "price": 445.21,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "ptt",
+      "desiMin": 34,
+      "desiMax": 34,
+      "price": 715.17,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "surat",
+      "desiMin": 34,
+      "desiMax": 34,
+      "price": 470.55,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "yurtici",
+      "desiMin": 34,
+      "desiMax": 34,
+      "price": 569.53,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "aras",
+      "desiMin": 35,
+      "desiMax": 35,
+      "price": 365.94,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "dhl",
+      "desiMin": 35,
+      "desiMax": 35,
+      "price": 722.94,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "kolay_gelsin",
+      "desiMin": 35,
+      "desiMax": 35,
+      "price": 456.47,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "ptt",
+      "desiMin": 35,
+      "desiMax": 35,
+      "price": 731.25,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "surat",
+      "desiMin": 35,
+      "desiMax": 35,
+      "price": 483.22,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "yurtici",
+      "desiMin": 35,
+      "desiMax": 35,
+      "price": 584.35,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "aras",
+      "desiMin": 36,
+      "desiMax": 36,
+      "price": 375.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "dhl",
+      "desiMin": 36,
+      "desiMax": 36,
+      "price": 755.93,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "kolay_gelsin",
+      "desiMin": 36,
+      "desiMax": 36,
+      "price": 467.73,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "ptt",
+      "desiMin": 36,
+      "desiMax": 36,
+      "price": 747.33,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "surat",
+      "desiMin": 36,
+      "desiMax": 36,
+      "price": 495.76,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "yurtici",
+      "desiMin": 36,
+      "desiMax": 36,
+      "price": 599.19,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "aras",
+      "desiMin": 37,
+      "desiMax": 37,
+      "price": 386.05,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "dhl",
+      "desiMin": 37,
+      "desiMax": 37,
+      "price": 788.92,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "kolay_gelsin",
+      "desiMin": 37,
+      "desiMax": 37,
+      "price": 478.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "ptt",
+      "desiMin": 37,
+      "desiMax": 37,
+      "price": 763.42,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "surat",
+      "desiMin": 37,
+      "desiMax": 37,
+      "price": 508.42,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "yurtici",
+      "desiMin": 37,
+      "desiMax": 37,
+      "price": 613.54,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "aras",
+      "desiMin": 38,
+      "desiMax": 38,
+      "price": 396.1,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "dhl",
+      "desiMin": 38,
+      "desiMax": 38,
+      "price": 821.91,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "kolay_gelsin",
+      "desiMin": 38,
+      "desiMax": 38,
+      "price": 490.25,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "ptt",
+      "desiMin": 38,
+      "desiMax": 38,
+      "price": 779.49,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "surat",
+      "desiMin": 38,
+      "desiMax": 38,
+      "price": 520.96,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "yurtici",
+      "desiMin": 38,
+      "desiMax": 38,
+      "price": 627.9,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "aras",
+      "desiMin": 39,
+      "desiMax": 39,
+      "price": 406.15,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "dhl",
+      "desiMin": 39,
+      "desiMax": 39,
+      "price": 854.9,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "kolay_gelsin",
+      "desiMin": 39,
+      "desiMax": 39,
+      "price": 501.5,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "ptt",
+      "desiMin": 39,
+      "desiMax": 39,
+      "price": 795.57,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "surat",
+      "desiMin": 39,
+      "desiMax": 39,
+      "price": 533.63,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "yurtici",
+      "desiMin": 39,
+      "desiMax": 39,
+      "price": 642.7,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "aras",
+      "desiMin": 40,
+      "desiMax": 40,
+      "price": 416.21,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "dhl",
+      "desiMin": 40,
+      "desiMax": 40,
+      "price": 887.89,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "kolay_gelsin",
+      "desiMin": 40,
+      "desiMax": 40,
+      "price": 512.76,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "ptt",
+      "desiMin": 40,
+      "desiMax": 40,
+      "price": 811.66,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "surat",
+      "desiMin": 40,
+      "desiMax": 40,
+      "price": 552.05,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "yurtici",
+      "desiMin": 40,
+      "desiMax": 40,
+      "price": 657.52,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "aras",
+      "desiMin": 41,
+      "desiMax": 41,
+      "price": 426.26,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "dhl",
+      "desiMin": 41,
+      "desiMax": 41,
+      "price": 920.88,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "kolay_gelsin",
+      "desiMin": 41,
+      "desiMax": 41,
+      "price": 524.02,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "ptt",
+      "desiMin": 41,
+      "desiMax": 41,
+      "price": 827.74,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "surat",
+      "desiMin": 41,
+      "desiMax": 41,
+      "price": 564.84,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "yurtici",
+      "desiMin": 41,
+      "desiMax": 41,
+      "price": 671.87,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "aras",
+      "desiMin": 42,
+      "desiMax": 42,
+      "price": 436.31,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "dhl",
+      "desiMin": 42,
+      "desiMax": 42,
+      "price": 953.87,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "kolay_gelsin",
+      "desiMin": 42,
+      "desiMax": 42,
+      "price": 535.28,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "ptt",
+      "desiMin": 42,
+      "desiMax": 42,
+      "price": 843.81,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "surat",
+      "desiMin": 42,
+      "desiMax": 42,
+      "price": 577.51,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "yurtici",
+      "desiMin": 42,
+      "desiMax": 42,
+      "price": 686.29,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "aras",
+      "desiMin": 43,
+      "desiMax": 43,
+      "price": 446.37,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "dhl",
+      "desiMin": 43,
+      "desiMax": 43,
+      "price": 986.86,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "kolay_gelsin",
+      "desiMin": 43,
+      "desiMax": 43,
+      "price": 546.54,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "ptt",
+      "desiMin": 43,
+      "desiMax": 43,
+      "price": 859.9,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "surat",
+      "desiMin": 43,
+      "desiMax": 43,
+      "price": 590.3,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "yurtici",
+      "desiMin": 43,
+      "desiMax": 43,
+      "price": 701.09,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "aras",
+      "desiMin": 44,
+      "desiMax": 44,
+      "price": 456.42,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "dhl",
+      "desiMin": 44,
+      "desiMax": 44,
+      "price": 1019.85,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "kolay_gelsin",
+      "desiMin": 44,
+      "desiMax": 44,
+      "price": 557.8,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "ptt",
+      "desiMin": 44,
+      "desiMax": 44,
+      "price": 875.98,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "surat",
+      "desiMin": 44,
+      "desiMax": 44,
+      "price": 602.97,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "yurtici",
+      "desiMin": 44,
+      "desiMax": 44,
+      "price": 715.44,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "aras",
+      "desiMin": 45,
+      "desiMax": 45,
+      "price": 466.47,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "dhl",
+      "desiMin": 45,
+      "desiMax": 45,
+      "price": 1052.84,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "kolay_gelsin",
+      "desiMin": 45,
+      "desiMax": 45,
+      "price": 569.06,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "ptt",
+      "desiMin": 45,
+      "desiMax": 45,
+      "price": 892.06,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "surat",
+      "desiMin": 45,
+      "desiMax": 45,
+      "price": 615.76,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "yurtici",
+      "desiMin": 45,
+      "desiMax": 45,
+      "price": 730.24,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "aras",
+      "desiMin": 46,
+      "desiMax": 46,
+      "price": 476.53,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "dhl",
+      "desiMin": 46,
+      "desiMax": 46,
+      "price": 1085.83,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "kolay_gelsin",
+      "desiMin": 46,
+      "desiMax": 46,
+      "price": 580.31,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "ptt",
+      "desiMin": 46,
+      "desiMax": 46,
+      "price": 908.14,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "surat",
+      "desiMin": 46,
+      "desiMax": 46,
+      "price": 628.43,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "yurtici",
+      "desiMin": 46,
+      "desiMax": 46,
+      "price": 744.6,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "aras",
+      "desiMin": 47,
+      "desiMax": 47,
+      "price": 486.58,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "dhl",
+      "desiMin": 47,
+      "desiMax": 47,
+      "price": 1118.82,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "kolay_gelsin",
+      "desiMin": 47,
+      "desiMax": 47,
+      "price": 591.57,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "ptt",
+      "desiMin": 47,
+      "desiMax": 47,
+      "price": 924.22,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "surat",
+      "desiMin": 47,
+      "desiMax": 47,
+      "price": 641.22,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "yurtici",
+      "desiMin": 47,
+      "desiMax": 47,
+      "price": 759.39,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "aras",
+      "desiMin": 48,
+      "desiMax": 48,
+      "price": 496.63,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "dhl",
+      "desiMin": 48,
+      "desiMax": 48,
+      "price": 1151.81,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "kolay_gelsin",
+      "desiMin": 48,
+      "desiMax": 48,
+      "price": 602.83,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "ptt",
+      "desiMin": 48,
+      "desiMax": 48,
+      "price": 940.3,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "surat",
+      "desiMin": 48,
+      "desiMax": 48,
+      "price": 653.89,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "yurtici",
+      "desiMin": 48,
+      "desiMax": 48,
+      "price": 773.83,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "aras",
+      "desiMin": 49,
+      "desiMax": 49,
+      "price": 506.69,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "dhl",
+      "desiMin": 49,
+      "desiMax": 49,
+      "price": 1184.8,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "kolay_gelsin",
+      "desiMin": 49,
+      "desiMax": 49,
+      "price": 614.09,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "ptt",
+      "desiMin": 49,
+      "desiMax": 49,
+      "price": 956.39,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "surat",
+      "desiMin": 49,
+      "desiMax": 49,
+      "price": 666.68,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "yurtici",
+      "desiMin": 49,
+      "desiMax": 49,
+      "price": 788.58,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "aras",
+      "desiMin": 50,
+      "desiMax": 50,
+      "price": 516.74,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "dhl",
+      "desiMin": 50,
+      "desiMax": 50,
+      "price": 1217.79,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "kolay_gelsin",
+      "desiMin": 50,
+      "desiMax": 50,
+      "price": 625.35,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "ptt",
+      "desiMin": 50,
+      "desiMax": 50,
+      "price": 972.46,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "surat",
+      "desiMin": 50,
+      "desiMax": 50,
+      "price": 679.35,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "yurtici",
+      "desiMin": 50,
+      "desiMax": 50,
+      "price": 802.94,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "aras",
+      "desiMin": 51,
+      "desiMax": 51,
+      "price": 526.79,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "dhl",
+      "desiMin": 51,
+      "desiMax": 51,
+      "price": 1250.78,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "kolay_gelsin",
+      "desiMin": 51,
+      "desiMax": 51,
+      "price": 636.61,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "ptt",
+      "desiMin": 51,
+      "desiMax": 51,
+      "price": 988.54,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "surat",
+      "desiMin": 51,
+      "desiMax": 51,
+      "price": 692.14,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "yurtici",
+      "desiMin": 51,
+      "desiMax": 51,
+      "price": 817.74,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "aras",
+      "desiMin": 52,
+      "desiMax": 52,
+      "price": 536.85,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "dhl",
+      "desiMin": 52,
+      "desiMax": 52,
+      "price": 1283.77,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "kolay_gelsin",
+      "desiMin": 52,
+      "desiMax": 52,
+      "price": 647.87,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "ptt",
+      "desiMin": 52,
+      "desiMax": 52,
+      "price": 1004.63,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "surat",
+      "desiMin": 52,
+      "desiMax": 52,
+      "price": 704.81,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "yurtici",
+      "desiMin": 52,
+      "desiMax": 52,
+      "price": 832.15,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "aras",
+      "desiMin": 53,
+      "desiMax": 53,
+      "price": 546.9,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "dhl",
+      "desiMin": 53,
+      "desiMax": 53,
+      "price": 1316.76,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "kolay_gelsin",
+      "desiMin": 53,
+      "desiMax": 53,
+      "price": 659.12,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "ptt",
+      "desiMin": 53,
+      "desiMax": 53,
+      "price": 1020.71,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "surat",
+      "desiMin": 53,
+      "desiMax": 53,
+      "price": 717.6,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "yurtici",
+      "desiMin": 53,
+      "desiMax": 53,
+      "price": 846.93,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "aras",
+      "desiMin": 54,
+      "desiMax": 54,
+      "price": 556.95,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "dhl",
+      "desiMin": 54,
+      "desiMax": 54,
+      "price": 1349.75,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "kolay_gelsin",
+      "desiMin": 54,
+      "desiMax": 54,
+      "price": 670.38,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "ptt",
+      "desiMin": 54,
+      "desiMax": 54,
+      "price": 1036.78,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "surat",
+      "desiMin": 54,
+      "desiMax": 54,
+      "price": 730.27,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "yurtici",
+      "desiMin": 54,
+      "desiMax": 54,
+      "price": 861.33,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "aras",
+      "desiMin": 55,
+      "desiMax": 55,
+      "price": 567.0,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "dhl",
+      "desiMin": 55,
+      "desiMax": 55,
+      "price": 1382.74,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "kolay_gelsin",
+      "desiMin": 55,
+      "desiMax": 55,
+      "price": 681.64,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "ptt",
+      "desiMin": 55,
+      "desiMax": 55,
+      "price": 1052.86,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "surat",
+      "desiMin": 55,
+      "desiMax": 55,
+      "price": 743.06,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "yurtici",
+      "desiMin": 55,
+      "desiMax": 55,
+      "price": 876.13,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "aras",
+      "desiMin": 56,
+      "desiMax": 56,
+      "price": 577.06,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "dhl",
+      "desiMin": 56,
+      "desiMax": 56,
+      "price": 1415.73,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "kolay_gelsin",
+      "desiMin": 56,
+      "desiMax": 56,
+      "price": 692.9,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "ptt",
+      "desiMin": 56,
+      "desiMax": 56,
+      "price": 1068.95,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "surat",
+      "desiMin": 56,
+      "desiMax": 56,
+      "price": 755.73,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "yurtici",
+      "desiMin": 56,
+      "desiMax": 56,
+      "price": 890.48,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "aras",
+      "desiMin": 57,
+      "desiMax": 57,
+      "price": 587.11,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "dhl",
+      "desiMin": 57,
+      "desiMax": 57,
+      "price": 1448.72,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "kolay_gelsin",
+      "desiMin": 57,
+      "desiMax": 57,
+      "price": 704.16,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "ptt",
+      "desiMin": 57,
+      "desiMax": 57,
+      "price": 1085.03,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "surat",
+      "desiMin": 57,
+      "desiMax": 57,
+      "price": 768.52,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "yurtici",
+      "desiMin": 57,
+      "desiMax": 57,
+      "price": 904.85,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "aras",
+      "desiMin": 58,
+      "desiMax": 58,
+      "price": 597.16,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "dhl",
+      "desiMin": 58,
+      "desiMax": 58,
+      "price": 1481.71,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "kolay_gelsin",
+      "desiMin": 58,
+      "desiMax": 58,
+      "price": 715.42,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "ptt",
+      "desiMin": 58,
+      "desiMax": 58,
+      "price": 1101.1,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "surat",
+      "desiMin": 58,
+      "desiMax": 58,
+      "price": 781.19,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "yurtici",
+      "desiMin": 58,
+      "desiMax": 58,
+      "price": 919.64,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "aras",
+      "desiMin": 59,
+      "desiMax": 59,
+      "price": 607.22,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "dhl",
+      "desiMin": 59,
+      "desiMax": 59,
+      "price": 1514.7,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "kolay_gelsin",
+      "desiMin": 59,
+      "desiMax": 59,
+      "price": 726.67,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "ptt",
+      "desiMin": 59,
+      "desiMax": 59,
+      "price": 1117.19,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "surat",
+      "desiMin": 59,
+      "desiMax": 59,
+      "price": 793.98,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "yurtici",
+      "desiMin": 59,
+      "desiMax": 59,
+      "price": 934.41,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "aras",
+      "desiMin": 60,
+      "desiMax": 60,
+      "price": 617.27,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "dhl",
+      "desiMin": 60,
+      "desiMax": 60,
+      "price": 1547.69,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "kolay_gelsin",
+      "desiMin": 60,
+      "desiMax": 60,
+      "price": 737.93,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "ptt",
+      "desiMin": 60,
+      "desiMax": 60,
+      "price": 1133.27,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "surat",
+      "desiMin": 60,
+      "desiMax": 60,
+      "price": 806.65,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "yurtici",
+      "desiMin": 60,
+      "desiMax": 60,
+      "price": 948.87,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "aras",
+      "desiMin": 61,
+      "desiMax": 61,
+      "price": 627.32,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "dhl",
+      "desiMin": 61,
+      "desiMax": 61,
+      "price": 1580.68,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "kolay_gelsin",
+      "desiMin": 61,
+      "desiMax": 61,
+      "price": 749.19,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "ptt",
+      "desiMin": 61,
+      "desiMax": 61,
+      "price": 1149.35,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "surat",
+      "desiMin": 61,
+      "desiMax": 61,
+      "price": 819.44,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "yurtici",
+      "desiMin": 61,
+      "desiMax": 61,
+      "price": 963.23,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "aras",
+      "desiMin": 62,
+      "desiMax": 62,
+      "price": 637.38,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "dhl",
+      "desiMin": 62,
+      "desiMax": 62,
+      "price": 1613.67,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "kolay_gelsin",
+      "desiMin": 62,
+      "desiMax": 62,
+      "price": 760.45,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "ptt",
+      "desiMin": 62,
+      "desiMax": 62,
+      "price": 1165.43,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "surat",
+      "desiMin": 62,
+      "desiMax": 62,
+      "price": 832.11,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "yurtici",
+      "desiMin": 62,
+      "desiMax": 62,
+      "price": 977.98,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "aras",
+      "desiMin": 63,
+      "desiMax": 63,
+      "price": 647.43,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "dhl",
+      "desiMin": 63,
+      "desiMax": 63,
+      "price": 1646.66,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "kolay_gelsin",
+      "desiMin": 63,
+      "desiMax": 63,
+      "price": 771.71,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "ptt",
+      "desiMin": 63,
+      "desiMax": 63,
+      "price": 1181.51,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "surat",
+      "desiMin": 63,
+      "desiMax": 63,
+      "price": 844.9,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "yurtici",
+      "desiMin": 63,
+      "desiMax": 63,
+      "price": 992.83,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "aras",
+      "desiMin": 64,
+      "desiMax": 64,
+      "price": 657.48,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "dhl",
+      "desiMin": 64,
+      "desiMax": 64,
+      "price": 1679.65,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "kolay_gelsin",
+      "desiMin": 64,
+      "desiMax": 64,
+      "price": 782.97,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "ptt",
+      "desiMin": 64,
+      "desiMax": 64,
+      "price": 1197.59,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "surat",
+      "desiMin": 64,
+      "desiMax": 64,
+      "price": 857.57,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "yurtici",
+      "desiMin": 64,
+      "desiMax": 64,
+      "price": 1007.19,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "aras",
+      "desiMin": 65,
+      "desiMax": 65,
+      "price": 667.54,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "dhl",
+      "desiMin": 65,
+      "desiMax": 65,
+      "price": 1712.64,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "kolay_gelsin",
+      "desiMin": 65,
+      "desiMax": 65,
+      "price": 794.23,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "ptt",
+      "desiMin": 65,
+      "desiMax": 65,
+      "price": 1213.68,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "surat",
+      "desiMin": 65,
+      "desiMax": 65,
+      "price": 870.36,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "yurtici",
+      "desiMin": 65,
+      "desiMax": 65,
+      "price": 1021.5,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "aras",
+      "desiMin": 66,
+      "desiMax": 66,
+      "price": 677.59,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "dhl",
+      "desiMin": 66,
+      "desiMax": 66,
+      "price": 1745.63,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "kolay_gelsin",
+      "desiMin": 66,
+      "desiMax": 66,
+      "price": 805.48,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "ptt",
+      "desiMin": 66,
+      "desiMax": 66,
+      "price": 1229.75,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "surat",
+      "desiMin": 66,
+      "desiMax": 66,
+      "price": 883.02,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "yurtici",
+      "desiMin": 66,
+      "desiMax": 66,
+      "price": 1036.37,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "aras",
+      "desiMin": 67,
+      "desiMax": 67,
+      "price": 687.64,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "dhl",
+      "desiMin": 67,
+      "desiMax": 67,
+      "price": 1778.62,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "kolay_gelsin",
+      "desiMin": 67,
+      "desiMax": 67,
+      "price": 816.74,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "ptt",
+      "desiMin": 67,
+      "desiMax": 67,
+      "price": 1245.83,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "surat",
+      "desiMin": 67,
+      "desiMax": 67,
+      "price": 895.82,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "yurtici",
+      "desiMin": 67,
+      "desiMax": 67,
+      "price": 1050.71,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "aras",
+      "desiMin": 68,
+      "desiMax": 68,
+      "price": 697.7,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "dhl",
+      "desiMin": 68,
+      "desiMax": 68,
+      "price": 1811.61,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "kolay_gelsin",
+      "desiMin": 68,
+      "desiMax": 68,
+      "price": 828.0,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "ptt",
+      "desiMin": 68,
+      "desiMax": 68,
+      "price": 1261.92,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "surat",
+      "desiMin": 68,
+      "desiMax": 68,
+      "price": 908.48,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "yurtici",
+      "desiMin": 68,
+      "desiMax": 68,
+      "price": 1065.55,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "aras",
+      "desiMin": 69,
+      "desiMax": 69,
+      "price": 707.75,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "dhl",
+      "desiMin": 69,
+      "desiMax": 69,
+      "price": 1844.6,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "kolay_gelsin",
+      "desiMin": 69,
+      "desiMax": 69,
+      "price": 839.26,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "ptt",
+      "desiMin": 69,
+      "desiMax": 69,
+      "price": 1278.0,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "surat",
+      "desiMin": 69,
+      "desiMax": 69,
+      "price": 921.28,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "yurtici",
+      "desiMin": 69,
+      "desiMax": 69,
+      "price": 1079.92,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "aras",
+      "desiMin": 70,
+      "desiMax": 70,
+      "price": 717.8,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "dhl",
+      "desiMin": 70,
+      "desiMax": 70,
+      "price": 1877.59,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "kolay_gelsin",
+      "desiMin": 70,
+      "desiMax": 70,
+      "price": 850.52,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "ptt",
+      "desiMin": 70,
+      "desiMax": 70,
+      "price": 1294.07,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "surat",
+      "desiMin": 70,
+      "desiMax": 70,
+      "price": 933.94,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "yurtici",
+      "desiMin": 70,
+      "desiMax": 70,
+      "price": 1094.67,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "aras",
+      "desiMin": 71,
+      "desiMax": 71,
+      "price": 727.86,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "dhl",
+      "desiMin": 71,
+      "desiMax": 71,
+      "price": 1910.58,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "kolay_gelsin",
+      "desiMin": 71,
+      "desiMax": 71,
+      "price": 861.78,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "ptt",
+      "desiMin": 71,
+      "desiMax": 71,
+      "price": 1310.16,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "surat",
+      "desiMin": 71,
+      "desiMax": 71,
+      "price": 946.74,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "yurtici",
+      "desiMin": 71,
+      "desiMax": 71,
+      "price": 1109.02,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "aras",
+      "desiMin": 72,
+      "desiMax": 72,
+      "price": 737.91,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "dhl",
+      "desiMin": 72,
+      "desiMax": 72,
+      "price": 1943.57,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "kolay_gelsin",
+      "desiMin": 72,
+      "desiMax": 72,
+      "price": 873.04,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "ptt",
+      "desiMin": 72,
+      "desiMax": 72,
+      "price": 1326.24,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "surat",
+      "desiMin": 72,
+      "desiMax": 72,
+      "price": 959.4,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "yurtici",
+      "desiMin": 72,
+      "desiMax": 72,
+      "price": 1123.86,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "aras",
+      "desiMin": 73,
+      "desiMax": 73,
+      "price": 747.96,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "dhl",
+      "desiMin": 73,
+      "desiMax": 73,
+      "price": 1976.56,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "kolay_gelsin",
+      "desiMin": 73,
+      "desiMax": 73,
+      "price": 884.29,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "ptt",
+      "desiMin": 73,
+      "desiMax": 73,
+      "price": 1342.32,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "surat",
+      "desiMin": 73,
+      "desiMax": 73,
+      "price": 972.2,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "yurtici",
+      "desiMin": 73,
+      "desiMax": 73,
+      "price": 1138.24,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "aras",
+      "desiMin": 74,
+      "desiMax": 74,
+      "price": 758.01,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "dhl",
+      "desiMin": 74,
+      "desiMax": 74,
+      "price": 2009.55,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "kolay_gelsin",
+      "desiMin": 74,
+      "desiMax": 74,
+      "price": 895.55,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "ptt",
+      "desiMin": 74,
+      "desiMax": 74,
+      "price": 1358.4,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "surat",
+      "desiMin": 74,
+      "desiMax": 74,
+      "price": 984.86,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "yurtici",
+      "desiMin": 74,
+      "desiMax": 74,
+      "price": 1153.06,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "aras",
+      "desiMin": 75,
+      "desiMax": 75,
+      "price": 768.07,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "dhl",
+      "desiMin": 75,
+      "desiMax": 75,
+      "price": 2042.54,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "kolay_gelsin",
+      "desiMin": 75,
+      "desiMax": 75,
+      "price": 906.81,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "ptt",
+      "desiMin": 75,
+      "desiMax": 75,
+      "price": 1374.48,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "surat",
+      "desiMin": 75,
+      "desiMax": 75,
+      "price": 997.66,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "yurtici",
+      "desiMin": 75,
+      "desiMax": 75,
+      "price": 1167.4,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "aras",
+      "desiMin": 76,
+      "desiMax": 76,
+      "price": 778.12,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "dhl",
+      "desiMin": 76,
+      "desiMax": 76,
+      "price": 2075.53,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "kolay_gelsin",
+      "desiMin": 76,
+      "desiMax": 76,
+      "price": 918.07,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "ptt",
+      "desiMin": 76,
+      "desiMax": 76,
+      "price": 1390.56,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "surat",
+      "desiMin": 76,
+      "desiMax": 76,
+      "price": 1010.32,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "yurtici",
+      "desiMin": 76,
+      "desiMax": 76,
+      "price": 1182.22,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "aras",
+      "desiMin": 77,
+      "desiMax": 77,
+      "price": 788.17,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "dhl",
+      "desiMin": 77,
+      "desiMax": 77,
+      "price": 2108.52,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "kolay_gelsin",
+      "desiMin": 77,
+      "desiMax": 77,
+      "price": 929.33,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "ptt",
+      "desiMin": 77,
+      "desiMax": 77,
+      "price": 1406.65,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "surat",
+      "desiMin": 77,
+      "desiMax": 77,
+      "price": 1023.12,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "yurtici",
+      "desiMin": 77,
+      "desiMax": 77,
+      "price": 1196.57,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "aras",
+      "desiMin": 78,
+      "desiMax": 78,
+      "price": 798.23,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "dhl",
+      "desiMin": 78,
+      "desiMax": 78,
+      "price": 2141.51,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "kolay_gelsin",
+      "desiMin": 78,
+      "desiMax": 78,
+      "price": 940.59,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "ptt",
+      "desiMin": 78,
+      "desiMax": 78,
+      "price": 1422.72,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "surat",
+      "desiMin": 78,
+      "desiMax": 78,
+      "price": 1035.78,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "yurtici",
+      "desiMin": 78,
+      "desiMax": 78,
+      "price": 1211.35,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "aras",
+      "desiMin": 79,
+      "desiMax": 79,
+      "price": 808.28,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "dhl",
+      "desiMin": 79,
+      "desiMax": 79,
+      "price": 2174.5,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "kolay_gelsin",
+      "desiMin": 79,
+      "desiMax": 79,
+      "price": 951.84,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "ptt",
+      "desiMin": 79,
+      "desiMax": 79,
+      "price": 1438.8,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "surat",
+      "desiMin": 79,
+      "desiMax": 79,
+      "price": 1048.58,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "yurtici",
+      "desiMin": 79,
+      "desiMax": 79,
+      "price": 1225.79,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "aras",
+      "desiMin": 80,
+      "desiMax": 80,
+      "price": 818.33,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "dhl",
+      "desiMin": 80,
+      "desiMax": 80,
+      "price": 2207.49,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "kolay_gelsin",
+      "desiMin": 80,
+      "desiMax": 80,
+      "price": 963.1,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "ptt",
+      "desiMin": 80,
+      "desiMax": 80,
+      "price": 1454.89,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "surat",
+      "desiMin": 80,
+      "desiMax": 80,
+      "price": 1061.24,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "yurtici",
+      "desiMin": 80,
+      "desiMax": 80,
+      "price": 1240.58,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "aras",
+      "desiMin": 81,
+      "desiMax": 81,
+      "price": 828.39,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "dhl",
+      "desiMin": 81,
+      "desiMax": 81,
+      "price": 2240.48,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "kolay_gelsin",
+      "desiMin": 81,
+      "desiMax": 81,
+      "price": 974.36,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "ptt",
+      "desiMin": 81,
+      "desiMax": 81,
+      "price": 1470.97,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "surat",
+      "desiMin": 81,
+      "desiMax": 81,
+      "price": 1074.04,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "yurtici",
+      "desiMin": 81,
+      "desiMax": 81,
+      "price": 1254.94,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "aras",
+      "desiMin": 82,
+      "desiMax": 82,
+      "price": 838.44,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "dhl",
+      "desiMin": 82,
+      "desiMax": 82,
+      "price": 2273.47,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "kolay_gelsin",
+      "desiMin": 82,
+      "desiMax": 82,
+      "price": 985.62,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "ptt",
+      "desiMin": 82,
+      "desiMax": 82,
+      "price": 1487.04,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "surat",
+      "desiMin": 82,
+      "desiMax": 82,
+      "price": 1086.7,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "yurtici",
+      "desiMin": 82,
+      "desiMax": 82,
+      "price": 1269.73,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "aras",
+      "desiMin": 83,
+      "desiMax": 83,
+      "price": 848.49,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "dhl",
+      "desiMin": 83,
+      "desiMax": 83,
+      "price": 2306.46,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "kolay_gelsin",
+      "desiMin": 83,
+      "desiMax": 83,
+      "price": 996.88,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "ptt",
+      "desiMin": 83,
+      "desiMax": 83,
+      "price": 1503.13,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "surat",
+      "desiMin": 83,
+      "desiMax": 83,
+      "price": 1099.49,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "yurtici",
+      "desiMin": 83,
+      "desiMax": 83,
+      "price": 1284.11,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "aras",
+      "desiMin": 84,
+      "desiMax": 84,
+      "price": 858.55,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "dhl",
+      "desiMin": 84,
+      "desiMax": 84,
+      "price": 2339.45,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "kolay_gelsin",
+      "desiMin": 84,
+      "desiMax": 84,
+      "price": 1008.14,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "ptt",
+      "desiMin": 84,
+      "desiMax": 84,
+      "price": 1519.21,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "surat",
+      "desiMin": 84,
+      "desiMax": 84,
+      "price": 1112.16,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "yurtici",
+      "desiMin": 84,
+      "desiMax": 84,
+      "price": 1298.44,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "aras",
+      "desiMin": 85,
+      "desiMax": 85,
+      "price": 868.6,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "dhl",
+      "desiMin": 85,
+      "desiMax": 85,
+      "price": 2372.44,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "kolay_gelsin",
+      "desiMin": 85,
+      "desiMax": 85,
+      "price": 1019.4,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "ptt",
+      "desiMin": 85,
+      "desiMax": 85,
+      "price": 1535.29,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "surat",
+      "desiMin": 85,
+      "desiMax": 85,
+      "price": 1124.95,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "yurtici",
+      "desiMin": 85,
+      "desiMax": 85,
+      "price": 1313.34,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "aras",
+      "desiMin": 86,
+      "desiMax": 86,
+      "price": 878.65,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "dhl",
+      "desiMin": 86,
+      "desiMax": 86,
+      "price": 2405.43,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "kolay_gelsin",
+      "desiMin": 86,
+      "desiMax": 86,
+      "price": 1030.65,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "ptt",
+      "desiMin": 86,
+      "desiMax": 86,
+      "price": 1551.36,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "surat",
+      "desiMin": 86,
+      "desiMax": 86,
+      "price": 1137.62,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "yurtici",
+      "desiMin": 86,
+      "desiMax": 86,
+      "price": 1328.1,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "aras",
+      "desiMin": 87,
+      "desiMax": 87,
+      "price": 888.71,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "dhl",
+      "desiMin": 87,
+      "desiMax": 87,
+      "price": 2438.42,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "kolay_gelsin",
+      "desiMin": 87,
+      "desiMax": 87,
+      "price": 1041.91,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "ptt",
+      "desiMin": 87,
+      "desiMax": 87,
+      "price": 1567.45,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "surat",
+      "desiMin": 87,
+      "desiMax": 87,
+      "price": 1150.41,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "yurtici",
+      "desiMin": 87,
+      "desiMax": 87,
+      "price": 1342.44,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "aras",
+      "desiMin": 88,
+      "desiMax": 88,
+      "price": 898.76,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "dhl",
+      "desiMin": 88,
+      "desiMax": 88,
+      "price": 2471.41,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "kolay_gelsin",
+      "desiMin": 88,
+      "desiMax": 88,
+      "price": 1053.17,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "ptt",
+      "desiMin": 88,
+      "desiMax": 88,
+      "price": 1583.53,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "surat",
+      "desiMin": 88,
+      "desiMax": 88,
+      "price": 1163.08,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "yurtici",
+      "desiMin": 88,
+      "desiMax": 88,
+      "price": 1356.85,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "aras",
+      "desiMin": 89,
+      "desiMax": 89,
+      "price": 908.81,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "dhl",
+      "desiMin": 89,
+      "desiMax": 89,
+      "price": 2504.4,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "kolay_gelsin",
+      "desiMin": 89,
+      "desiMax": 89,
+      "price": 1064.43,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "ptt",
+      "desiMin": 89,
+      "desiMax": 89,
+      "price": 1599.61,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "surat",
+      "desiMin": 89,
+      "desiMax": 89,
+      "price": 1175.87,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "yurtici",
+      "desiMin": 89,
+      "desiMax": 89,
+      "price": 1371.65,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "aras",
+      "desiMin": 90,
+      "desiMax": 90,
+      "price": 918.87,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "dhl",
+      "desiMin": 90,
+      "desiMax": 90,
+      "price": 2537.39,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "kolay_gelsin",
+      "desiMin": 90,
+      "desiMax": 90,
+      "price": 1075.69,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "ptt",
+      "desiMin": 90,
+      "desiMax": 90,
+      "price": 1615.69,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "surat",
+      "desiMin": 90,
+      "desiMax": 90,
+      "price": 1188.54,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "yurtici",
+      "desiMin": 90,
+      "desiMax": 90,
+      "price": 1386.39,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "aras",
+      "desiMin": 91,
+      "desiMax": 91,
+      "price": 928.92,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "dhl",
+      "desiMin": 91,
+      "desiMax": 91,
+      "price": 2570.38,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "kolay_gelsin",
+      "desiMin": 91,
+      "desiMax": 91,
+      "price": 1086.95,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "ptt",
+      "desiMin": 91,
+      "desiMax": 91,
+      "price": 1631.77,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "surat",
+      "desiMin": 91,
+      "desiMax": 91,
+      "price": 1201.33,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "yurtici",
+      "desiMin": 91,
+      "desiMax": 91,
+      "price": 1400.83,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "aras",
+      "desiMin": 92,
+      "desiMax": 92,
+      "price": 938.97,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "dhl",
+      "desiMin": 92,
+      "desiMax": 92,
+      "price": 2603.37,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "kolay_gelsin",
+      "desiMin": 92,
+      "desiMax": 92,
+      "price": 1098.21,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "ptt",
+      "desiMin": 92,
+      "desiMax": 92,
+      "price": 1647.85,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "surat",
+      "desiMin": 92,
+      "desiMax": 92,
+      "price": 1214.0,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "yurtici",
+      "desiMin": 92,
+      "desiMax": 92,
+      "price": 1415.19,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "aras",
+      "desiMin": 93,
+      "desiMax": 93,
+      "price": 949.03,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "dhl",
+      "desiMin": 93,
+      "desiMax": 93,
+      "price": 2636.36,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "kolay_gelsin",
+      "desiMin": 93,
+      "desiMax": 93,
+      "price": 1109.46,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "ptt",
+      "desiMin": 93,
+      "desiMax": 93,
+      "price": 1663.94,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "surat",
+      "desiMin": 93,
+      "desiMax": 93,
+      "price": 1226.79,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "yurtici",
+      "desiMin": 93,
+      "desiMax": 93,
+      "price": 1429.98,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "aras",
+      "desiMin": 94,
+      "desiMax": 94,
+      "price": 959.08,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "dhl",
+      "desiMin": 94,
+      "desiMax": 94,
+      "price": 2669.35,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "kolay_gelsin",
+      "desiMin": 94,
+      "desiMax": 94,
+      "price": 1120.72,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "ptt",
+      "desiMin": 94,
+      "desiMax": 94,
+      "price": 1680.01,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "surat",
+      "desiMin": 94,
+      "desiMax": 94,
+      "price": 1239.46,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "yurtici",
+      "desiMin": 94,
+      "desiMax": 94,
+      "price": 1444.36,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "aras",
+      "desiMin": 95,
+      "desiMax": 95,
+      "price": 969.13,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "dhl",
+      "desiMin": 95,
+      "desiMax": 95,
+      "price": 2702.34,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "kolay_gelsin",
+      "desiMin": 95,
+      "desiMax": 95,
+      "price": 1131.98,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "ptt",
+      "desiMin": 95,
+      "desiMax": 95,
+      "price": 1696.09,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "surat",
+      "desiMin": 95,
+      "desiMax": 95,
+      "price": 1252.25,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "yurtici",
+      "desiMin": 95,
+      "desiMax": 95,
+      "price": 1459.15,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "aras",
+      "desiMin": 96,
+      "desiMax": 96,
+      "price": 979.18,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "dhl",
+      "desiMin": 96,
+      "desiMax": 96,
+      "price": 2735.33,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "kolay_gelsin",
+      "desiMin": 96,
+      "desiMax": 96,
+      "price": 1143.24,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "ptt",
+      "desiMin": 96,
+      "desiMax": 96,
+      "price": 1712.18,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "surat",
+      "desiMin": 96,
+      "desiMax": 96,
+      "price": 1264.92,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "yurtici",
+      "desiMin": 96,
+      "desiMax": 96,
+      "price": 1473.47,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "aras",
+      "desiMin": 97,
+      "desiMax": 97,
+      "price": 989.24,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "dhl",
+      "desiMin": 97,
+      "desiMax": 97,
+      "price": 2768.32,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "kolay_gelsin",
+      "desiMin": 97,
+      "desiMax": 97,
+      "price": 1154.5,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "ptt",
+      "desiMin": 97,
+      "desiMax": 97,
+      "price": 1728.26,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "surat",
+      "desiMin": 97,
+      "desiMax": 97,
+      "price": 1277.58,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "yurtici",
+      "desiMin": 97,
+      "desiMax": 97,
+      "price": 1488.37,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "aras",
+      "desiMin": 98,
+      "desiMax": 98,
+      "price": 999.29,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "dhl",
+      "desiMin": 98,
+      "desiMax": 98,
+      "price": 2801.31,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "kolay_gelsin",
+      "desiMin": 98,
+      "desiMax": 98,
+      "price": 1165.76,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "ptt",
+      "desiMin": 98,
+      "desiMax": 98,
+      "price": 1744.33,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "surat",
+      "desiMin": 98,
+      "desiMax": 98,
+      "price": 1290.38,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "yurtici",
+      "desiMin": 98,
+      "desiMax": 98,
+      "price": 1502.71,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "aras",
+      "desiMin": 99,
+      "desiMax": 99,
+      "price": 1009.34,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "dhl",
+      "desiMin": 99,
+      "desiMax": 99,
+      "price": 2834.3,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "kolay_gelsin",
+      "desiMin": 99,
+      "desiMax": 99,
+      "price": 1177.01,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "ptt",
+      "desiMin": 99,
+      "desiMax": 99,
+      "price": 1760.42,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "surat",
+      "desiMin": 99,
+      "desiMax": 99,
+      "price": 1303.17,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "yurtici",
+      "desiMin": 99,
+      "desiMax": 99,
+      "price": 1517.49,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "aras",
+      "desiMin": 100,
+      "desiMax": 100,
+      "price": 1019.4,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "dhl",
+      "desiMin": 100,
+      "desiMax": 100,
+      "price": 2867.29,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "kolay_gelsin",
+      "desiMin": 100,
+      "desiMax": 100,
+      "price": 1188.27,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "ptt",
+      "desiMin": 100,
+      "desiMax": 100,
+      "price": 1776.5,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "surat",
+      "desiMin": 100,
+      "desiMax": 100,
+      "price": 1315.84,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "hepsiburada",
+      "carrier": "yurtici",
+      "desiMin": 100,
+      "desiMax": 100,
+      "price": 1531.89,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    }
+  ]
+}

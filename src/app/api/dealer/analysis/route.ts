@@ -2,10 +2,10 @@ import { NextResponse } from "next/server";
 import { requireAuth } from "@/lib/auth";
 import { isAdminRole } from "@/lib/auth/admin-access";
 import { loadDealerAnalysisProducts } from "@/lib/dealer/analysis-product-feed";
-import {
-  THYRONIX_CARGO_PRESETS,
-  THYRONIX_MARKETPLACE_PRESETS,
-} from "@/lib/thyronix/analysis-presets";
+import { buildMarketplaceIntelligenceMeta } from "@/lib/marketplace-intelligence/marketplace-profit-engine";
+import { listMarketplaceLabels } from "@/lib/marketplace-intelligence/marketplace-category-cache";
+import { listCarriersForMarketplace } from "@/lib/marketplace-intelligence/marketplace-shipping-cache";
+import type { MarketplaceId } from "@/lib/marketplace-intelligence/marketplace-types";
 
 export async function GET() {
   try {
@@ -20,13 +20,21 @@ export async function GET() {
       ? await loadDealerAnalysisProducts(user.dealerId)
       : { products: [], sourceCounts: { dealerProduct: 0, storeCatalog: 0, packageCatalog: 0, total: 0 } };
 
+    const intelligence = buildMarketplaceIntelligenceMeta();
+    const marketplaces = listMarketplaceLabels().map((item) => ({
+      ...item,
+      carriers: listCarriersForMarketplace(item.id as MarketplaceId),
+    }));
+
     return NextResponse.json({
       success: true,
       data: {
-        marketplaces: THYRONIX_MARKETPLACE_PRESETS,
-        cargoes: THYRONIX_CARGO_PRESETS,
         products,
         sourceCounts,
+        marketplaceIntelligence: {
+          ...intelligence,
+          marketplaces,
+        },
       },
     });
   } catch {

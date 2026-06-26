@@ -1,0 +1,6082 @@
+{
+  "source": {
+    "sourceName": "Trendyol Kargo Ücretleri",
+    "sourceFile": "trendyol.pdf",
+    "sourceType": "pdf",
+    "effectiveDate": "2026-05-22",
+    "vatIncluded": false,
+    "vatNote": "KDV hariç",
+    "version": "2026-05-22",
+    "confidence": "official"
+  },
+  "carriers": {
+    "aras": "Aras",
+    "dhl": "DHL eCommerce",
+    "kolay_gelsin": "Kolay Gelsin",
+    "ptt": "PTT",
+    "surat": "Sürat",
+    "yurtici": "Yurtiçi"
+  },
+  "brackets": [
+    {
+      "marketplace": "trendyol",
+      "carrier": "aras",
+      "desiMin": 0,
+      "desiMax": 0,
+      "price": 83.93,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "dhl",
+      "desiMin": 0,
+      "desiMax": 0,
+      "price": 92.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "kolay_gelsin",
+      "desiMin": 0,
+      "desiMax": 0,
+      "price": 91.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "ptt",
+      "desiMin": 0,
+      "desiMax": 0,
+      "price": 77.54,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "surat",
+      "desiMin": 0,
+      "desiMax": 0,
+      "price": 89.71,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "yurtici",
+      "desiMin": 0,
+      "desiMax": 0,
+      "price": 112.77,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "aras",
+      "desiMin": 1,
+      "desiMax": 1,
+      "price": 83.93,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "dhl",
+      "desiMin": 1,
+      "desiMax": 1,
+      "price": 92.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "kolay_gelsin",
+      "desiMin": 1,
+      "desiMax": 1,
+      "price": 91.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "ptt",
+      "desiMin": 1,
+      "desiMax": 1,
+      "price": 77.54,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "surat",
+      "desiMin": 1,
+      "desiMax": 1,
+      "price": 89.71,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "yurtici",
+      "desiMin": 1,
+      "desiMax": 1,
+      "price": 112.77,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "aras",
+      "desiMin": 2,
+      "desiMax": 2,
+      "price": 83.93,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "dhl",
+      "desiMin": 2,
+      "desiMax": 2,
+      "price": 92.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "kolay_gelsin",
+      "desiMin": 2,
+      "desiMax": 2,
+      "price": 91.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "ptt",
+      "desiMin": 2,
+      "desiMax": 2,
+      "price": 77.54,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "surat",
+      "desiMin": 2,
+      "desiMax": 2,
+      "price": 89.71,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "yurtici",
+      "desiMin": 2,
+      "desiMax": 2,
+      "price": 112.77,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "aras",
+      "desiMin": 3,
+      "desiMax": 3,
+      "price": 95.12,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "dhl",
+      "desiMin": 3,
+      "desiMax": 3,
+      "price": 103.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "kolay_gelsin",
+      "desiMin": 3,
+      "desiMax": 3,
+      "price": 101.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "ptt",
+      "desiMin": 3,
+      "desiMax": 3,
+      "price": 96.0,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "surat",
+      "desiMin": 3,
+      "desiMax": 3,
+      "price": 99.96,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "yurtici",
+      "desiMin": 3,
+      "desiMax": 3,
+      "price": 120.56,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "aras",
+      "desiMin": 4,
+      "desiMax": 4,
+      "price": 103.68,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "dhl",
+      "desiMin": 4,
+      "desiMax": 4,
+      "price": 116.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "kolay_gelsin",
+      "desiMin": 4,
+      "desiMax": 4,
+      "price": 112.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "ptt",
+      "desiMin": 4,
+      "desiMax": 4,
+      "price": 96.0,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "surat",
+      "desiMin": 4,
+      "desiMax": 4,
+      "price": 109.3,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "yurtici",
+      "desiMin": 4,
+      "desiMax": 4,
+      "price": 123.15,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "aras",
+      "desiMin": 5,
+      "desiMax": 5,
+      "price": 111.17,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "dhl",
+      "desiMin": 5,
+      "desiMax": 5,
+      "price": 129.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "kolay_gelsin",
+      "desiMin": 5,
+      "desiMax": 5,
+      "price": 121.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "ptt",
+      "desiMin": 5,
+      "desiMax": 5,
+      "price": 100.55,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "surat",
+      "desiMin": 5,
+      "desiMax": 5,
+      "price": 114.94,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "yurtici",
+      "desiMin": 5,
+      "desiMax": 5,
+      "price": 142.91,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "aras",
+      "desiMin": 6,
+      "desiMax": 6,
+      "price": 121.12,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "dhl",
+      "desiMin": 6,
+      "desiMax": 6,
+      "price": 141.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "kolay_gelsin",
+      "desiMin": 6,
+      "desiMax": 6,
+      "price": 131.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "ptt",
+      "desiMin": 6,
+      "desiMax": 6,
+      "price": 106.83,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "surat",
+      "desiMin": 6,
+      "desiMax": 6,
+      "price": 126.28,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "yurtici",
+      "desiMin": 6,
+      "desiMax": 6,
+      "price": 149.82,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "aras",
+      "desiMin": 7,
+      "desiMax": 7,
+      "price": 128.46,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "dhl",
+      "desiMin": 7,
+      "desiMax": 7,
+      "price": 149.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "kolay_gelsin",
+      "desiMin": 7,
+      "desiMax": 7,
+      "price": 140.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "ptt",
+      "desiMin": 7,
+      "desiMax": 7,
+      "price": 113.15,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "surat",
+      "desiMin": 7,
+      "desiMax": 7,
+      "price": 134.85,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "yurtici",
+      "desiMin": 7,
+      "desiMax": 7,
+      "price": 169.44,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "aras",
+      "desiMin": 8,
+      "desiMax": 8,
+      "price": 137.05,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "dhl",
+      "desiMin": 8,
+      "desiMax": 8,
+      "price": 159.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "kolay_gelsin",
+      "desiMin": 8,
+      "desiMax": 8,
+      "price": 150.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "ptt",
+      "desiMin": 8,
+      "desiMax": 8,
+      "price": 125.73,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "surat",
+      "desiMin": 8,
+      "desiMax": 8,
+      "price": 143.29,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "yurtici",
+      "desiMin": 8,
+      "desiMax": 8,
+      "price": 175.96,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "aras",
+      "desiMin": 9,
+      "desiMax": 9,
+      "price": 144.91,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "dhl",
+      "desiMin": 9,
+      "desiMax": 9,
+      "price": 169.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "kolay_gelsin",
+      "desiMin": 9,
+      "desiMax": 9,
+      "price": 159.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "ptt",
+      "desiMin": 9,
+      "desiMax": 9,
+      "price": 138.34,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "surat",
+      "desiMin": 9,
+      "desiMax": 9,
+      "price": 151.87,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "yurtici",
+      "desiMin": 9,
+      "desiMax": 9,
+      "price": 186.86,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "aras",
+      "desiMin": 10,
+      "desiMax": 10,
+      "price": 153.48,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "dhl",
+      "desiMin": 10,
+      "desiMax": 10,
+      "price": 176.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "kolay_gelsin",
+      "desiMin": 10,
+      "desiMax": 10,
+      "price": 170.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "ptt",
+      "desiMin": 10,
+      "desiMax": 10,
+      "price": 157.26,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "surat",
+      "desiMin": 10,
+      "desiMax": 10,
+      "price": 160.43,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "yurtici",
+      "desiMin": 10,
+      "desiMax": 10,
+      "price": 195.12,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "aras",
+      "desiMin": 11,
+      "desiMax": 11,
+      "price": 161.77,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "dhl",
+      "desiMin": 11,
+      "desiMax": 11,
+      "price": 184.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "kolay_gelsin",
+      "desiMin": 11,
+      "desiMax": 11,
+      "price": 180.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "ptt",
+      "desiMin": 11,
+      "desiMax": 11,
+      "price": 165.01,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "surat",
+      "desiMin": 11,
+      "desiMax": 11,
+      "price": 171.83,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "yurtici",
+      "desiMin": 11,
+      "desiMax": 11,
+      "price": 207.75,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "aras",
+      "desiMin": 12,
+      "desiMax": 12,
+      "price": 167.73,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "dhl",
+      "desiMin": 12,
+      "desiMax": 12,
+      "price": 194.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "kolay_gelsin",
+      "desiMin": 12,
+      "desiMax": 12,
+      "price": 191.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "ptt",
+      "desiMin": 12,
+      "desiMax": 12,
+      "price": 173.31,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "surat",
+      "desiMin": 12,
+      "desiMax": 12,
+      "price": 181.55,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "yurtici",
+      "desiMin": 12,
+      "desiMax": 12,
+      "price": 220.8,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "aras",
+      "desiMin": 13,
+      "desiMax": 13,
+      "price": 175.34,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "dhl",
+      "desiMin": 13,
+      "desiMax": 13,
+      "price": 204.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "kolay_gelsin",
+      "desiMin": 13,
+      "desiMax": 13,
+      "price": 201.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "ptt",
+      "desiMin": 13,
+      "desiMax": 13,
+      "price": 181.63,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "surat",
+      "desiMin": 13,
+      "desiMax": 13,
+      "price": 188.84,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "yurtici",
+      "desiMin": 13,
+      "desiMax": 13,
+      "price": 227.79,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "aras",
+      "desiMin": 14,
+      "desiMax": 14,
+      "price": 182.1,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "dhl",
+      "desiMin": 14,
+      "desiMax": 14,
+      "price": 216.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "kolay_gelsin",
+      "desiMin": 14,
+      "desiMax": 14,
+      "price": 212.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "ptt",
+      "desiMin": 14,
+      "desiMax": 14,
+      "price": 189.94,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "surat",
+      "desiMin": 14,
+      "desiMax": 14,
+      "price": 193.44,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "yurtici",
+      "desiMin": 14,
+      "desiMax": 14,
+      "price": 245.62,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "aras",
+      "desiMin": 15,
+      "desiMax": 15,
+      "price": 188.82,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "dhl",
+      "desiMin": 15,
+      "desiMax": 15,
+      "price": 226.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "kolay_gelsin",
+      "desiMin": 15,
+      "desiMax": 15,
+      "price": 223.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "ptt",
+      "desiMin": 15,
+      "desiMax": 15,
+      "price": 198.22,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "surat",
+      "desiMin": 15,
+      "desiMax": 15,
+      "price": 200.48,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "yurtici",
+      "desiMin": 15,
+      "desiMax": 15,
+      "price": 258.72,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "aras",
+      "desiMin": 16,
+      "desiMax": 16,
+      "price": 199.4,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "dhl",
+      "desiMin": 16,
+      "desiMax": 16,
+      "price": 244.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "kolay_gelsin",
+      "desiMin": 16,
+      "desiMax": 16,
+      "price": 234.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "ptt",
+      "desiMin": 16,
+      "desiMax": 16,
+      "price": 206.52,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "surat",
+      "desiMin": 16,
+      "desiMax": 16,
+      "price": 207.26,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "yurtici",
+      "desiMin": 16,
+      "desiMax": 16,
+      "price": 266.13,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "aras",
+      "desiMin": 17,
+      "desiMax": 17,
+      "price": 209.92,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "dhl",
+      "desiMin": 17,
+      "desiMax": 17,
+      "price": 259.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "kolay_gelsin",
+      "desiMin": 17,
+      "desiMax": 17,
+      "price": 245.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "ptt",
+      "desiMin": 17,
+      "desiMax": 17,
+      "price": 214.83,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "surat",
+      "desiMin": 17,
+      "desiMax": 17,
+      "price": 218.26,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "yurtici",
+      "desiMin": 17,
+      "desiMax": 17,
+      "price": 280.92,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "aras",
+      "desiMin": 18,
+      "desiMax": 18,
+      "price": 220.51,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "dhl",
+      "desiMin": 18,
+      "desiMax": 18,
+      "price": 276.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "kolay_gelsin",
+      "desiMin": 18,
+      "desiMax": 18,
+      "price": 256.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "ptt",
+      "desiMin": 18,
+      "desiMax": 18,
+      "price": 223.13,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "surat",
+      "desiMin": 18,
+      "desiMax": 18,
+      "price": 229.26,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "yurtici",
+      "desiMin": 18,
+      "desiMax": 18,
+      "price": 294.85,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "aras",
+      "desiMin": 19,
+      "desiMax": 19,
+      "price": 231.07,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "dhl",
+      "desiMin": 19,
+      "desiMax": 19,
+      "price": 291.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "kolay_gelsin",
+      "desiMin": 19,
+      "desiMax": 19,
+      "price": 267.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "ptt",
+      "desiMin": 19,
+      "desiMax": 19,
+      "price": 231.45,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "surat",
+      "desiMin": 19,
+      "desiMax": 19,
+      "price": 240.14,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "yurtici",
+      "desiMin": 19,
+      "desiMax": 19,
+      "price": 300.97,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "aras",
+      "desiMin": 20,
+      "desiMax": 20,
+      "price": 235.6,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "dhl",
+      "desiMin": 20,
+      "desiMax": 20,
+      "price": 309.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "kolay_gelsin",
+      "desiMin": 20,
+      "desiMax": 20,
+      "price": 278.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "ptt",
+      "desiMin": 20,
+      "desiMax": 20,
+      "price": 239.76,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "surat",
+      "desiMin": 20,
+      "desiMax": 20,
+      "price": 251.15,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "yurtici",
+      "desiMin": 20,
+      "desiMax": 20,
+      "price": 307.46,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "aras",
+      "desiMin": 21,
+      "desiMax": 21,
+      "price": 247.47,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "dhl",
+      "desiMin": 21,
+      "desiMax": 21,
+      "price": 334.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "kolay_gelsin",
+      "desiMin": 21,
+      "desiMax": 21,
+      "price": 289.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "ptt",
+      "desiMin": 21,
+      "desiMax": 21,
+      "price": 248.06,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "surat",
+      "desiMin": 21,
+      "desiMax": 21,
+      "price": 262.4,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "yurtici",
+      "desiMin": 21,
+      "desiMax": 21,
+      "price": 324.89,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "aras",
+      "desiMin": 22,
+      "desiMax": 22,
+      "price": 258.31,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "dhl",
+      "desiMin": 22,
+      "desiMax": 22,
+      "price": 354.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "kolay_gelsin",
+      "desiMin": 22,
+      "desiMax": 22,
+      "price": 300.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "ptt",
+      "desiMin": 22,
+      "desiMax": 22,
+      "price": 256.36,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "surat",
+      "desiMin": 22,
+      "desiMax": 22,
+      "price": 272.64,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "yurtici",
+      "desiMin": 22,
+      "desiMax": 22,
+      "price": 334.91,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "aras",
+      "desiMin": 23,
+      "desiMax": 23,
+      "price": 269.13,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "dhl",
+      "desiMin": 23,
+      "desiMax": 23,
+      "price": 379.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "kolay_gelsin",
+      "desiMin": 23,
+      "desiMax": 23,
+      "price": 311.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "ptt",
+      "desiMin": 23,
+      "desiMax": 23,
+      "price": 264.66,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "surat",
+      "desiMin": 23,
+      "desiMax": 23,
+      "price": 282.62,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "yurtici",
+      "desiMin": 23,
+      "desiMax": 23,
+      "price": 347.55,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "aras",
+      "desiMin": 24,
+      "desiMax": 24,
+      "price": 278.75,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "dhl",
+      "desiMin": 24,
+      "desiMax": 24,
+      "price": 404.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "kolay_gelsin",
+      "desiMin": 24,
+      "desiMax": 24,
+      "price": 322.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "ptt",
+      "desiMin": 24,
+      "desiMax": 24,
+      "price": 272.95,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "surat",
+      "desiMin": 24,
+      "desiMax": 24,
+      "price": 292.72,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "yurtici",
+      "desiMin": 24,
+      "desiMax": 24,
+      "price": 354.51,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "aras",
+      "desiMin": 25,
+      "desiMax": 25,
+      "price": 288.32,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "dhl",
+      "desiMin": 25,
+      "desiMax": 25,
+      "price": 429.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "kolay_gelsin",
+      "desiMin": 25,
+      "desiMax": 25,
+      "price": 333.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "ptt",
+      "desiMin": 25,
+      "desiMax": 25,
+      "price": 281.27,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "surat",
+      "desiMin": 25,
+      "desiMax": 25,
+      "price": 302.7,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "yurtici",
+      "desiMin": 25,
+      "desiMax": 25,
+      "price": 378.43,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "aras",
+      "desiMin": 26,
+      "desiMax": 26,
+      "price": 297.56,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "dhl",
+      "desiMin": 26,
+      "desiMax": 26,
+      "price": 454.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "kolay_gelsin",
+      "desiMin": 26,
+      "desiMax": 26,
+      "price": 344.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "ptt",
+      "desiMin": 26,
+      "desiMax": 26,
+      "price": 289.58,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "surat",
+      "desiMin": 26,
+      "desiMax": 26,
+      "price": 312.42,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "yurtici",
+      "desiMin": 26,
+      "desiMax": 26,
+      "price": 413.73,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "aras",
+      "desiMin": 27,
+      "desiMax": 27,
+      "price": 306.79,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "dhl",
+      "desiMin": 27,
+      "desiMax": 27,
+      "price": 479.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "kolay_gelsin",
+      "desiMin": 27,
+      "desiMax": 27,
+      "price": 355.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "ptt",
+      "desiMin": 27,
+      "desiMax": 27,
+      "price": 297.88,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "surat",
+      "desiMin": 27,
+      "desiMax": 27,
+      "price": 322.15,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "yurtici",
+      "desiMin": 27,
+      "desiMax": 27,
+      "price": 433.31,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "aras",
+      "desiMin": 28,
+      "desiMax": 28,
+      "price": 316.06,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "dhl",
+      "desiMin": 28,
+      "desiMax": 28,
+      "price": 504.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "kolay_gelsin",
+      "desiMin": 28,
+      "desiMax": 28,
+      "price": 366.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "ptt",
+      "desiMin": 28,
+      "desiMax": 28,
+      "price": 306.18,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "surat",
+      "desiMin": 28,
+      "desiMax": 28,
+      "price": 331.87,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "yurtici",
+      "desiMin": 28,
+      "desiMax": 28,
+      "price": 452.92,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "aras",
+      "desiMin": 29,
+      "desiMax": 29,
+      "price": 325.31,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "dhl",
+      "desiMin": 29,
+      "desiMax": 29,
+      "price": 529.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "kolay_gelsin",
+      "desiMin": 29,
+      "desiMax": 29,
+      "price": 377.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "ptt",
+      "desiMin": 29,
+      "desiMax": 29,
+      "price": 314.48,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "surat",
+      "desiMin": 29,
+      "desiMax": 29,
+      "price": 341.59,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "yurtici",
+      "desiMin": 29,
+      "desiMax": 29,
+      "price": 468.61,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "aras",
+      "desiMin": 30,
+      "desiMax": 30,
+      "price": 334.54,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "dhl",
+      "desiMin": 30,
+      "desiMax": 30,
+      "price": 554.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "kolay_gelsin",
+      "desiMin": 30,
+      "desiMax": 30,
+      "price": 388.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "ptt",
+      "desiMin": 30,
+      "desiMax": 30,
+      "price": 322.78,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "surat",
+      "desiMin": 30,
+      "desiMax": 30,
+      "price": 351.32,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "yurtici",
+      "desiMin": 30,
+      "desiMax": 30,
+      "price": 473.4,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "aras",
+      "desiMin": 31,
+      "desiMax": 31,
+      "price": 345.25,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "dhl",
+      "desiMin": 31,
+      "desiMax": 31,
+      "price": 587.98,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "kolay_gelsin",
+      "desiMin": 31,
+      "desiMax": 31,
+      "price": 398.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "ptt",
+      "desiMin": 31,
+      "desiMax": 31,
+      "price": 666.93,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "surat",
+      "desiMin": 31,
+      "desiMax": 31,
+      "price": 420.28,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "yurtici",
+      "desiMin": 31,
+      "desiMax": 31,
+      "price": 486.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "aras",
+      "desiMin": 32,
+      "desiMax": 32,
+      "price": 355.95,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "dhl",
+      "desiMin": 32,
+      "desiMax": 32,
+      "price": 620.97,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "kolay_gelsin",
+      "desiMin": 32,
+      "desiMax": 32,
+      "price": 408.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "ptt",
+      "desiMin": 32,
+      "desiMax": 32,
+      "price": 683.01,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "surat",
+      "desiMin": 32,
+      "desiMax": 32,
+      "price": 432.43,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "yurtici",
+      "desiMin": 32,
+      "desiMax": 32,
+      "price": 500.58,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "aras",
+      "desiMin": 33,
+      "desiMax": 33,
+      "price": 366.66,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "dhl",
+      "desiMin": 33,
+      "desiMax": 33,
+      "price": 653.96,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "kolay_gelsin",
+      "desiMin": 33,
+      "desiMax": 33,
+      "price": 418.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "ptt",
+      "desiMin": 33,
+      "desiMax": 33,
+      "price": 699.09,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "surat",
+      "desiMin": 33,
+      "desiMax": 33,
+      "price": 444.71,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "yurtici",
+      "desiMin": 33,
+      "desiMax": 33,
+      "price": 514.17,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "aras",
+      "desiMin": 34,
+      "desiMax": 34,
+      "price": 377.36,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "dhl",
+      "desiMin": 34,
+      "desiMax": 34,
+      "price": 686.95,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "kolay_gelsin",
+      "desiMin": 34,
+      "desiMax": 34,
+      "price": 428.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "ptt",
+      "desiMin": 34,
+      "desiMax": 34,
+      "price": 715.18,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "surat",
+      "desiMin": 34,
+      "desiMax": 34,
+      "price": 456.87,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "yurtici",
+      "desiMin": 34,
+      "desiMax": 34,
+      "price": 527.76,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "aras",
+      "desiMin": 35,
+      "desiMax": 35,
+      "price": 388.07,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "dhl",
+      "desiMin": 35,
+      "desiMax": 35,
+      "price": 719.94,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "kolay_gelsin",
+      "desiMin": 35,
+      "desiMax": 35,
+      "price": 438.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "ptt",
+      "desiMin": 35,
+      "desiMax": 35,
+      "price": 731.25,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "surat",
+      "desiMin": 35,
+      "desiMax": 35,
+      "price": 469.15,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "yurtici",
+      "desiMin": 35,
+      "desiMax": 35,
+      "price": 541.35,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "aras",
+      "desiMin": 36,
+      "desiMax": 36,
+      "price": 398.78,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "dhl",
+      "desiMin": 36,
+      "desiMax": 36,
+      "price": 752.93,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "kolay_gelsin",
+      "desiMin": 36,
+      "desiMax": 36,
+      "price": 448.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "ptt",
+      "desiMin": 36,
+      "desiMax": 36,
+      "price": 747.34,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "surat",
+      "desiMin": 36,
+      "desiMax": 36,
+      "price": 481.3,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "yurtici",
+      "desiMin": 36,
+      "desiMax": 36,
+      "price": 554.95,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "aras",
+      "desiMin": 37,
+      "desiMax": 37,
+      "price": 409.48,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "dhl",
+      "desiMin": 37,
+      "desiMax": 37,
+      "price": 785.92,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "kolay_gelsin",
+      "desiMin": 37,
+      "desiMax": 37,
+      "price": 458.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "ptt",
+      "desiMin": 37,
+      "desiMax": 37,
+      "price": 763.41,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "surat",
+      "desiMin": 37,
+      "desiMax": 37,
+      "price": 493.58,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "yurtici",
+      "desiMin": 37,
+      "desiMax": 37,
+      "price": 568.54,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "aras",
+      "desiMin": 38,
+      "desiMax": 38,
+      "price": 420.19,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "dhl",
+      "desiMin": 38,
+      "desiMax": 38,
+      "price": 818.91,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "kolay_gelsin",
+      "desiMin": 38,
+      "desiMax": 38,
+      "price": 468.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "ptt",
+      "desiMin": 38,
+      "desiMax": 38,
+      "price": 779.5,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "surat",
+      "desiMin": 38,
+      "desiMax": 38,
+      "price": 505.86,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "yurtici",
+      "desiMin": 38,
+      "desiMax": 38,
+      "price": 582.13,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "aras",
+      "desiMin": 39,
+      "desiMax": 39,
+      "price": 430.89,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "dhl",
+      "desiMin": 39,
+      "desiMax": 39,
+      "price": 851.9,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "kolay_gelsin",
+      "desiMin": 39,
+      "desiMax": 39,
+      "price": 478.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "ptt",
+      "desiMin": 39,
+      "desiMax": 39,
+      "price": 795.57,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "surat",
+      "desiMin": 39,
+      "desiMax": 39,
+      "price": 518.02,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "yurtici",
+      "desiMin": 39,
+      "desiMax": 39,
+      "price": 595.72,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "aras",
+      "desiMin": 40,
+      "desiMax": 40,
+      "price": 441.6,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "dhl",
+      "desiMin": 40,
+      "desiMax": 40,
+      "price": 884.89,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "kolay_gelsin",
+      "desiMin": 40,
+      "desiMax": 40,
+      "price": 488.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "ptt",
+      "desiMin": 40,
+      "desiMax": 40,
+      "price": 811.66,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "surat",
+      "desiMin": 40,
+      "desiMax": 40,
+      "price": 536.06,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "yurtici",
+      "desiMin": 40,
+      "desiMax": 40,
+      "price": 609.31,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "aras",
+      "desiMin": 41,
+      "desiMax": 41,
+      "price": 452.31,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "dhl",
+      "desiMin": 41,
+      "desiMax": 41,
+      "price": 917.88,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "kolay_gelsin",
+      "desiMin": 41,
+      "desiMax": 41,
+      "price": 498.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "ptt",
+      "desiMin": 41,
+      "desiMax": 41,
+      "price": 827.73,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "surat",
+      "desiMin": 41,
+      "desiMax": 41,
+      "price": 548.34,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "yurtici",
+      "desiMin": 41,
+      "desiMax": 41,
+      "price": 622.9,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "aras",
+      "desiMin": 42,
+      "desiMax": 42,
+      "price": 463.01,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "dhl",
+      "desiMin": 42,
+      "desiMax": 42,
+      "price": 950.87,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "kolay_gelsin",
+      "desiMin": 42,
+      "desiMax": 42,
+      "price": 508.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "ptt",
+      "desiMin": 42,
+      "desiMax": 42,
+      "price": 843.82,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "surat",
+      "desiMin": 42,
+      "desiMax": 42,
+      "price": 560.76,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "yurtici",
+      "desiMin": 42,
+      "desiMax": 42,
+      "price": 636.49,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "aras",
+      "desiMin": 43,
+      "desiMax": 43,
+      "price": 473.72,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "dhl",
+      "desiMin": 43,
+      "desiMax": 43,
+      "price": 983.86,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "kolay_gelsin",
+      "desiMin": 43,
+      "desiMax": 43,
+      "price": 518.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "ptt",
+      "desiMin": 43,
+      "desiMax": 43,
+      "price": 859.9,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "surat",
+      "desiMin": 43,
+      "desiMax": 43,
+      "price": 573.04,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "yurtici",
+      "desiMin": 43,
+      "desiMax": 43,
+      "price": 650.08,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "aras",
+      "desiMin": 44,
+      "desiMax": 44,
+      "price": 484.42,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "dhl",
+      "desiMin": 44,
+      "desiMax": 44,
+      "price": 1016.85,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "kolay_gelsin",
+      "desiMin": 44,
+      "desiMax": 44,
+      "price": 528.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "ptt",
+      "desiMin": 44,
+      "desiMax": 44,
+      "price": 875.98,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "surat",
+      "desiMin": 44,
+      "desiMax": 44,
+      "price": 585.44,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "yurtici",
+      "desiMin": 44,
+      "desiMax": 44,
+      "price": 663.67,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "aras",
+      "desiMin": 45,
+      "desiMax": 45,
+      "price": 495.13,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "dhl",
+      "desiMin": 45,
+      "desiMax": 45,
+      "price": 1049.84,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "kolay_gelsin",
+      "desiMin": 45,
+      "desiMax": 45,
+      "price": 538.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "ptt",
+      "desiMin": 45,
+      "desiMax": 45,
+      "price": 892.06,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "surat",
+      "desiMin": 45,
+      "desiMax": 45,
+      "price": 597.86,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "yurtici",
+      "desiMin": 45,
+      "desiMax": 45,
+      "price": 677.27,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "aras",
+      "desiMin": 46,
+      "desiMax": 46,
+      "price": 505.83,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "dhl",
+      "desiMin": 46,
+      "desiMax": 46,
+      "price": 1082.83,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "kolay_gelsin",
+      "desiMin": 46,
+      "desiMax": 46,
+      "price": 548.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "ptt",
+      "desiMin": 46,
+      "desiMax": 46,
+      "price": 908.14,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "surat",
+      "desiMin": 46,
+      "desiMax": 46,
+      "price": 610.14,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "yurtici",
+      "desiMin": 46,
+      "desiMax": 46,
+      "price": 690.86,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "aras",
+      "desiMin": 47,
+      "desiMax": 47,
+      "price": 516.54,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "dhl",
+      "desiMin": 47,
+      "desiMax": 47,
+      "price": 1115.82,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "kolay_gelsin",
+      "desiMin": 47,
+      "desiMax": 47,
+      "price": 558.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "ptt",
+      "desiMin": 47,
+      "desiMax": 47,
+      "price": 924.22,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "surat",
+      "desiMin": 47,
+      "desiMax": 47,
+      "price": 622.54,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "yurtici",
+      "desiMin": 47,
+      "desiMax": 47,
+      "price": 704.45,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "aras",
+      "desiMin": 48,
+      "desiMax": 48,
+      "price": 527.25,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "dhl",
+      "desiMin": 48,
+      "desiMax": 48,
+      "price": 1148.81,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "kolay_gelsin",
+      "desiMin": 48,
+      "desiMax": 48,
+      "price": 568.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "ptt",
+      "desiMin": 48,
+      "desiMax": 48,
+      "price": 940.31,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "surat",
+      "desiMin": 48,
+      "desiMax": 48,
+      "price": 634.83,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "yurtici",
+      "desiMin": 48,
+      "desiMax": 48,
+      "price": 718.04,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "aras",
+      "desiMin": 49,
+      "desiMax": 49,
+      "price": 537.95,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "dhl",
+      "desiMin": 49,
+      "desiMax": 49,
+      "price": 1181.8,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "kolay_gelsin",
+      "desiMin": 49,
+      "desiMax": 49,
+      "price": 578.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "ptt",
+      "desiMin": 49,
+      "desiMax": 49,
+      "price": 956.38,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "surat",
+      "desiMin": 49,
+      "desiMax": 49,
+      "price": 647.24,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "yurtici",
+      "desiMin": 49,
+      "desiMax": 49,
+      "price": 731.63,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "aras",
+      "desiMin": 50,
+      "desiMax": 50,
+      "price": 548.66,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "dhl",
+      "desiMin": 50,
+      "desiMax": 50,
+      "price": 1214.79,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "kolay_gelsin",
+      "desiMin": 50,
+      "desiMax": 50,
+      "price": 588.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "ptt",
+      "desiMin": 50,
+      "desiMax": 50,
+      "price": 972.47,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "surat",
+      "desiMin": 50,
+      "desiMax": 50,
+      "price": 659.65,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "yurtici",
+      "desiMin": 50,
+      "desiMax": 50,
+      "price": 745.22,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "aras",
+      "desiMin": 51,
+      "desiMax": 51,
+      "price": 559.36,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "dhl",
+      "desiMin": 51,
+      "desiMax": 51,
+      "price": 1247.78,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "kolay_gelsin",
+      "desiMin": 51,
+      "desiMax": 51,
+      "price": 598.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "ptt",
+      "desiMin": 51,
+      "desiMax": 51,
+      "price": 988.54,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "surat",
+      "desiMin": 51,
+      "desiMax": 51,
+      "price": 671.93,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "yurtici",
+      "desiMin": 51,
+      "desiMax": 51,
+      "price": 758.81,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "aras",
+      "desiMin": 52,
+      "desiMax": 52,
+      "price": 570.07,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "dhl",
+      "desiMin": 52,
+      "desiMax": 52,
+      "price": 1280.77,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "kolay_gelsin",
+      "desiMin": 52,
+      "desiMax": 52,
+      "price": 608.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "ptt",
+      "desiMin": 52,
+      "desiMax": 52,
+      "price": 1004.63,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "surat",
+      "desiMin": 52,
+      "desiMax": 52,
+      "price": 684.34,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "yurtici",
+      "desiMin": 52,
+      "desiMax": 52,
+      "price": 772.4,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "aras",
+      "desiMin": 53,
+      "desiMax": 53,
+      "price": 580.77,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "dhl",
+      "desiMin": 53,
+      "desiMax": 53,
+      "price": 1313.76,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "kolay_gelsin",
+      "desiMin": 53,
+      "desiMax": 53,
+      "price": 618.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "ptt",
+      "desiMin": 53,
+      "desiMax": 53,
+      "price": 1020.7,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "surat",
+      "desiMin": 53,
+      "desiMax": 53,
+      "price": 696.62,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "yurtici",
+      "desiMin": 53,
+      "desiMax": 53,
+      "price": 785.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "aras",
+      "desiMin": 54,
+      "desiMax": 54,
+      "price": 591.48,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "dhl",
+      "desiMin": 54,
+      "desiMax": 54,
+      "price": 1346.75,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "kolay_gelsin",
+      "desiMin": 54,
+      "desiMax": 54,
+      "price": 628.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "ptt",
+      "desiMin": 54,
+      "desiMax": 54,
+      "price": 1036.79,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "surat",
+      "desiMin": 54,
+      "desiMax": 54,
+      "price": 709.03,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "yurtici",
+      "desiMin": 54,
+      "desiMax": 54,
+      "price": 799.58,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "aras",
+      "desiMin": 55,
+      "desiMax": 55,
+      "price": 602.19,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "dhl",
+      "desiMin": 55,
+      "desiMax": 55,
+      "price": 1379.74,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "kolay_gelsin",
+      "desiMin": 55,
+      "desiMax": 55,
+      "price": 638.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "ptt",
+      "desiMin": 55,
+      "desiMax": 55,
+      "price": 1052.86,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "surat",
+      "desiMin": 55,
+      "desiMax": 55,
+      "price": 721.44,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "yurtici",
+      "desiMin": 55,
+      "desiMax": 55,
+      "price": 813.18,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "aras",
+      "desiMin": 56,
+      "desiMax": 56,
+      "price": 612.89,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "dhl",
+      "desiMin": 56,
+      "desiMax": 56,
+      "price": 1412.73,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "kolay_gelsin",
+      "desiMin": 56,
+      "desiMax": 56,
+      "price": 648.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "ptt",
+      "desiMin": 56,
+      "desiMax": 56,
+      "price": 1068.95,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "surat",
+      "desiMin": 56,
+      "desiMax": 56,
+      "price": 733.73,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "yurtici",
+      "desiMin": 56,
+      "desiMax": 56,
+      "price": 826.77,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "aras",
+      "desiMin": 57,
+      "desiMax": 57,
+      "price": 623.6,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "dhl",
+      "desiMin": 57,
+      "desiMax": 57,
+      "price": 1445.72,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "kolay_gelsin",
+      "desiMin": 57,
+      "desiMax": 57,
+      "price": 658.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "ptt",
+      "desiMin": 57,
+      "desiMax": 57,
+      "price": 1085.03,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "surat",
+      "desiMin": 57,
+      "desiMax": 57,
+      "price": 746.13,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "yurtici",
+      "desiMin": 57,
+      "desiMax": 57,
+      "price": 840.36,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "aras",
+      "desiMin": 58,
+      "desiMax": 58,
+      "price": 634.3,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "dhl",
+      "desiMin": 58,
+      "desiMax": 58,
+      "price": 1478.71,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "kolay_gelsin",
+      "desiMin": 58,
+      "desiMax": 58,
+      "price": 668.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "ptt",
+      "desiMin": 58,
+      "desiMax": 58,
+      "price": 1101.11,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "surat",
+      "desiMin": 58,
+      "desiMax": 58,
+      "price": 758.41,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "yurtici",
+      "desiMin": 58,
+      "desiMax": 58,
+      "price": 853.95,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "aras",
+      "desiMin": 59,
+      "desiMax": 59,
+      "price": 645.01,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "dhl",
+      "desiMin": 59,
+      "desiMax": 59,
+      "price": 1511.7,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "kolay_gelsin",
+      "desiMin": 59,
+      "desiMax": 59,
+      "price": 678.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "ptt",
+      "desiMin": 59,
+      "desiMax": 59,
+      "price": 1117.19,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "surat",
+      "desiMin": 59,
+      "desiMax": 59,
+      "price": 770.83,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "yurtici",
+      "desiMin": 59,
+      "desiMax": 59,
+      "price": 867.54,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "aras",
+      "desiMin": 60,
+      "desiMax": 60,
+      "price": 655.72,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "dhl",
+      "desiMin": 60,
+      "desiMax": 60,
+      "price": 1544.69,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "kolay_gelsin",
+      "desiMin": 60,
+      "desiMax": 60,
+      "price": 688.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "ptt",
+      "desiMin": 60,
+      "desiMax": 60,
+      "price": 1133.28,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "surat",
+      "desiMin": 60,
+      "desiMax": 60,
+      "price": 783.23,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "yurtici",
+      "desiMin": 60,
+      "desiMax": 60,
+      "price": 881.13,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "aras",
+      "desiMin": 61,
+      "desiMax": 61,
+      "price": 666.42,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "dhl",
+      "desiMin": 61,
+      "desiMax": 61,
+      "price": 1577.68,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "kolay_gelsin",
+      "desiMin": 61,
+      "desiMax": 61,
+      "price": 698.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "ptt",
+      "desiMin": 61,
+      "desiMax": 61,
+      "price": 1149.35,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "surat",
+      "desiMin": 61,
+      "desiMax": 61,
+      "price": 795.52,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "yurtici",
+      "desiMin": 61,
+      "desiMax": 61,
+      "price": 894.72,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "aras",
+      "desiMin": 62,
+      "desiMax": 62,
+      "price": 677.13,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "dhl",
+      "desiMin": 62,
+      "desiMax": 62,
+      "price": 1610.67,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "kolay_gelsin",
+      "desiMin": 62,
+      "desiMax": 62,
+      "price": 708.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "ptt",
+      "desiMin": 62,
+      "desiMax": 62,
+      "price": 1165.44,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "surat",
+      "desiMin": 62,
+      "desiMax": 62,
+      "price": 807.93,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "yurtici",
+      "desiMin": 62,
+      "desiMax": 62,
+      "price": 908.31,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "aras",
+      "desiMin": 63,
+      "desiMax": 63,
+      "price": 687.83,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "dhl",
+      "desiMin": 63,
+      "desiMax": 63,
+      "price": 1643.66,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "kolay_gelsin",
+      "desiMin": 63,
+      "desiMax": 63,
+      "price": 718.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "ptt",
+      "desiMin": 63,
+      "desiMax": 63,
+      "price": 1181.51,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "surat",
+      "desiMin": 63,
+      "desiMax": 63,
+      "price": 820.21,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "yurtici",
+      "desiMin": 63,
+      "desiMax": 63,
+      "price": 921.9,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "aras",
+      "desiMin": 64,
+      "desiMax": 64,
+      "price": 698.54,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "dhl",
+      "desiMin": 64,
+      "desiMax": 64,
+      "price": 1676.65,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "kolay_gelsin",
+      "desiMin": 64,
+      "desiMax": 64,
+      "price": 728.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "ptt",
+      "desiMin": 64,
+      "desiMax": 64,
+      "price": 1197.6,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "surat",
+      "desiMin": 64,
+      "desiMax": 64,
+      "price": 832.62,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "yurtici",
+      "desiMin": 64,
+      "desiMax": 64,
+      "price": 935.5,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "aras",
+      "desiMin": 65,
+      "desiMax": 65,
+      "price": 709.24,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "dhl",
+      "desiMin": 65,
+      "desiMax": 65,
+      "price": 1709.64,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "kolay_gelsin",
+      "desiMin": 65,
+      "desiMax": 65,
+      "price": 738.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "ptt",
+      "desiMin": 65,
+      "desiMax": 65,
+      "price": 1213.67,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "surat",
+      "desiMin": 65,
+      "desiMax": 65,
+      "price": 845.03,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "yurtici",
+      "desiMin": 65,
+      "desiMax": 65,
+      "price": 949.09,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "aras",
+      "desiMin": 66,
+      "desiMax": 66,
+      "price": 719.95,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "dhl",
+      "desiMin": 66,
+      "desiMax": 66,
+      "price": 1742.63,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "kolay_gelsin",
+      "desiMin": 66,
+      "desiMax": 66,
+      "price": 748.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "ptt",
+      "desiMin": 66,
+      "desiMax": 66,
+      "price": 1229.76,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "surat",
+      "desiMin": 66,
+      "desiMax": 66,
+      "price": 857.31,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "yurtici",
+      "desiMin": 66,
+      "desiMax": 66,
+      "price": 962.68,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "aras",
+      "desiMin": 67,
+      "desiMax": 67,
+      "price": 730.66,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "dhl",
+      "desiMin": 67,
+      "desiMax": 67,
+      "price": 1775.62,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "kolay_gelsin",
+      "desiMin": 67,
+      "desiMax": 67,
+      "price": 758.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "ptt",
+      "desiMin": 67,
+      "desiMax": 67,
+      "price": 1245.83,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "surat",
+      "desiMin": 67,
+      "desiMax": 67,
+      "price": 869.72,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "yurtici",
+      "desiMin": 67,
+      "desiMax": 67,
+      "price": 976.27,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "aras",
+      "desiMin": 68,
+      "desiMax": 68,
+      "price": 741.36,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "dhl",
+      "desiMin": 68,
+      "desiMax": 68,
+      "price": 1808.61,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "kolay_gelsin",
+      "desiMin": 68,
+      "desiMax": 68,
+      "price": 768.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "ptt",
+      "desiMin": 68,
+      "desiMax": 68,
+      "price": 1261.92,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "surat",
+      "desiMin": 68,
+      "desiMax": 68,
+      "price": 882.0,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "yurtici",
+      "desiMin": 68,
+      "desiMax": 68,
+      "price": 989.86,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "aras",
+      "desiMin": 69,
+      "desiMax": 69,
+      "price": 752.07,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "dhl",
+      "desiMin": 69,
+      "desiMax": 69,
+      "price": 1841.6,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "kolay_gelsin",
+      "desiMin": 69,
+      "desiMax": 69,
+      "price": 778.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "ptt",
+      "desiMin": 69,
+      "desiMax": 69,
+      "price": 1277.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "surat",
+      "desiMin": 69,
+      "desiMax": 69,
+      "price": 894.42,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "yurtici",
+      "desiMin": 69,
+      "desiMax": 69,
+      "price": 1003.45,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "aras",
+      "desiMin": 70,
+      "desiMax": 70,
+      "price": 762.77,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "dhl",
+      "desiMin": 70,
+      "desiMax": 70,
+      "price": 1874.59,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "kolay_gelsin",
+      "desiMin": 70,
+      "desiMax": 70,
+      "price": 788.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "ptt",
+      "desiMin": 70,
+      "desiMax": 70,
+      "price": 1294.08,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "surat",
+      "desiMin": 70,
+      "desiMax": 70,
+      "price": 906.82,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "yurtici",
+      "desiMin": 70,
+      "desiMax": 70,
+      "price": 1017.04,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "aras",
+      "desiMin": 71,
+      "desiMax": 71,
+      "price": 773.48,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "dhl",
+      "desiMin": 71,
+      "desiMax": 71,
+      "price": 1907.58,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "kolay_gelsin",
+      "desiMin": 71,
+      "desiMax": 71,
+      "price": 798.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "ptt",
+      "desiMin": 71,
+      "desiMax": 71,
+      "price": 1310.16,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "surat",
+      "desiMin": 71,
+      "desiMax": 71,
+      "price": 919.1,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "yurtici",
+      "desiMin": 71,
+      "desiMax": 71,
+      "price": 1030.63,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "aras",
+      "desiMin": 72,
+      "desiMax": 72,
+      "price": 784.19,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "dhl",
+      "desiMin": 72,
+      "desiMax": 72,
+      "price": 1940.57,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "kolay_gelsin",
+      "desiMin": 72,
+      "desiMax": 72,
+      "price": 808.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "ptt",
+      "desiMin": 72,
+      "desiMax": 72,
+      "price": 1326.24,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "surat",
+      "desiMin": 72,
+      "desiMax": 72,
+      "price": 931.52,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "yurtici",
+      "desiMin": 72,
+      "desiMax": 72,
+      "price": 1044.22,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "aras",
+      "desiMin": 73,
+      "desiMax": 73,
+      "price": 794.89,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "dhl",
+      "desiMin": 73,
+      "desiMax": 73,
+      "price": 1973.56,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "kolay_gelsin",
+      "desiMin": 73,
+      "desiMax": 73,
+      "price": 818.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "ptt",
+      "desiMin": 73,
+      "desiMax": 73,
+      "price": 1342.32,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "surat",
+      "desiMin": 73,
+      "desiMax": 73,
+      "price": 943.8,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "yurtici",
+      "desiMin": 73,
+      "desiMax": 73,
+      "price": 1057.81,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "aras",
+      "desiMin": 74,
+      "desiMax": 74,
+      "price": 805.6,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "dhl",
+      "desiMin": 74,
+      "desiMax": 74,
+      "price": 2006.55,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "kolay_gelsin",
+      "desiMin": 74,
+      "desiMax": 74,
+      "price": 828.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "ptt",
+      "desiMin": 74,
+      "desiMax": 74,
+      "price": 1358.41,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "surat",
+      "desiMin": 74,
+      "desiMax": 74,
+      "price": 956.2,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "yurtici",
+      "desiMin": 74,
+      "desiMax": 74,
+      "price": 1071.41,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "aras",
+      "desiMin": 75,
+      "desiMax": 75,
+      "price": 816.3,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "dhl",
+      "desiMin": 75,
+      "desiMax": 75,
+      "price": 2039.54,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "kolay_gelsin",
+      "desiMin": 75,
+      "desiMax": 75,
+      "price": 838.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "ptt",
+      "desiMin": 75,
+      "desiMax": 75,
+      "price": 1374.48,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "surat",
+      "desiMin": 75,
+      "desiMax": 75,
+      "price": 968.62,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "yurtici",
+      "desiMin": 75,
+      "desiMax": 75,
+      "price": 1085.0,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "aras",
+      "desiMin": 76,
+      "desiMax": 76,
+      "price": 827.01,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "dhl",
+      "desiMin": 76,
+      "desiMax": 76,
+      "price": 2072.53,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "kolay_gelsin",
+      "desiMin": 76,
+      "desiMax": 76,
+      "price": 848.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "ptt",
+      "desiMin": 76,
+      "desiMax": 76,
+      "price": 1390.57,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "surat",
+      "desiMin": 76,
+      "desiMax": 76,
+      "price": 980.9,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "yurtici",
+      "desiMin": 76,
+      "desiMax": 76,
+      "price": 1098.59,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "aras",
+      "desiMin": 77,
+      "desiMax": 77,
+      "price": 837.71,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "dhl",
+      "desiMin": 77,
+      "desiMax": 77,
+      "price": 2105.52,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "kolay_gelsin",
+      "desiMin": 77,
+      "desiMax": 77,
+      "price": 858.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "ptt",
+      "desiMin": 77,
+      "desiMax": 77,
+      "price": 1406.64,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "surat",
+      "desiMin": 77,
+      "desiMax": 77,
+      "price": 993.31,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "yurtici",
+      "desiMin": 77,
+      "desiMax": 77,
+      "price": 1112.18,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "aras",
+      "desiMin": 78,
+      "desiMax": 78,
+      "price": 848.42,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "dhl",
+      "desiMin": 78,
+      "desiMax": 78,
+      "price": 2138.51,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "kolay_gelsin",
+      "desiMin": 78,
+      "desiMax": 78,
+      "price": 868.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "ptt",
+      "desiMin": 78,
+      "desiMax": 78,
+      "price": 1422.73,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "surat",
+      "desiMin": 78,
+      "desiMax": 78,
+      "price": 1005.59,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "yurtici",
+      "desiMin": 78,
+      "desiMax": 78,
+      "price": 1125.77,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "aras",
+      "desiMin": 79,
+      "desiMax": 79,
+      "price": 859.13,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "dhl",
+      "desiMin": 79,
+      "desiMax": 79,
+      "price": 2171.5,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "kolay_gelsin",
+      "desiMin": 79,
+      "desiMax": 79,
+      "price": 878.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "ptt",
+      "desiMin": 79,
+      "desiMax": 79,
+      "price": 1438.8,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "surat",
+      "desiMin": 79,
+      "desiMax": 79,
+      "price": 1018.0,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "yurtici",
+      "desiMin": 79,
+      "desiMax": 79,
+      "price": 1139.36,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "aras",
+      "desiMin": 80,
+      "desiMax": 80,
+      "price": 869.83,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "dhl",
+      "desiMin": 80,
+      "desiMax": 80,
+      "price": 2204.49,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "kolay_gelsin",
+      "desiMin": 80,
+      "desiMax": 80,
+      "price": 888.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "ptt",
+      "desiMin": 80,
+      "desiMax": 80,
+      "price": 1454.89,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "surat",
+      "desiMin": 80,
+      "desiMax": 80,
+      "price": 1030.41,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "yurtici",
+      "desiMin": 80,
+      "desiMax": 80,
+      "price": 1152.95,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "aras",
+      "desiMin": 81,
+      "desiMax": 81,
+      "price": 880.54,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "dhl",
+      "desiMin": 81,
+      "desiMax": 81,
+      "price": 2237.48,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "kolay_gelsin",
+      "desiMin": 81,
+      "desiMax": 81,
+      "price": 898.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "ptt",
+      "desiMin": 81,
+      "desiMax": 81,
+      "price": 1470.96,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "surat",
+      "desiMin": 81,
+      "desiMax": 81,
+      "price": 1042.69,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "yurtici",
+      "desiMin": 81,
+      "desiMax": 81,
+      "price": 1166.54,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "aras",
+      "desiMin": 82,
+      "desiMax": 82,
+      "price": 891.24,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "dhl",
+      "desiMin": 82,
+      "desiMax": 82,
+      "price": 2270.47,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "kolay_gelsin",
+      "desiMin": 82,
+      "desiMax": 82,
+      "price": 908.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "ptt",
+      "desiMin": 82,
+      "desiMax": 82,
+      "price": 1487.05,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "surat",
+      "desiMin": 82,
+      "desiMax": 82,
+      "price": 1055.11,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "yurtici",
+      "desiMin": 82,
+      "desiMax": 82,
+      "price": 1180.13,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "aras",
+      "desiMin": 83,
+      "desiMax": 83,
+      "price": 901.95,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "dhl",
+      "desiMin": 83,
+      "desiMax": 83,
+      "price": 2303.46,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "kolay_gelsin",
+      "desiMin": 83,
+      "desiMax": 83,
+      "price": 918.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "ptt",
+      "desiMin": 83,
+      "desiMax": 83,
+      "price": 1503.13,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "surat",
+      "desiMin": 83,
+      "desiMax": 83,
+      "price": 1067.39,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "yurtici",
+      "desiMin": 83,
+      "desiMax": 83,
+      "price": 1193.73,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "aras",
+      "desiMin": 84,
+      "desiMax": 84,
+      "price": 912.65,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "dhl",
+      "desiMin": 84,
+      "desiMax": 84,
+      "price": 2336.45,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "kolay_gelsin",
+      "desiMin": 84,
+      "desiMax": 84,
+      "price": 928.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "ptt",
+      "desiMin": 84,
+      "desiMax": 84,
+      "price": 1519.21,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "surat",
+      "desiMin": 84,
+      "desiMax": 84,
+      "price": 1079.79,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "yurtici",
+      "desiMin": 84,
+      "desiMax": 84,
+      "price": 1207.32,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "aras",
+      "desiMin": 85,
+      "desiMax": 85,
+      "price": 923.36,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "dhl",
+      "desiMin": 85,
+      "desiMax": 85,
+      "price": 2369.44,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "kolay_gelsin",
+      "desiMin": 85,
+      "desiMax": 85,
+      "price": 938.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "ptt",
+      "desiMin": 85,
+      "desiMax": 85,
+      "price": 1535.29,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "surat",
+      "desiMin": 85,
+      "desiMax": 85,
+      "price": 1092.21,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "yurtici",
+      "desiMin": 85,
+      "desiMax": 85,
+      "price": 1220.91,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "aras",
+      "desiMin": 86,
+      "desiMax": 86,
+      "price": 934.07,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "dhl",
+      "desiMin": 86,
+      "desiMax": 86,
+      "price": 2402.43,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "kolay_gelsin",
+      "desiMin": 86,
+      "desiMax": 86,
+      "price": 948.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "ptt",
+      "desiMin": 86,
+      "desiMax": 86,
+      "price": 1551.37,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "surat",
+      "desiMin": 86,
+      "desiMax": 86,
+      "price": 1104.49,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "yurtici",
+      "desiMin": 86,
+      "desiMax": 86,
+      "price": 1234.5,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "aras",
+      "desiMin": 87,
+      "desiMax": 87,
+      "price": 944.77,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "dhl",
+      "desiMin": 87,
+      "desiMax": 87,
+      "price": 2435.42,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "kolay_gelsin",
+      "desiMin": 87,
+      "desiMax": 87,
+      "price": 958.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "ptt",
+      "desiMin": 87,
+      "desiMax": 87,
+      "price": 1567.45,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "surat",
+      "desiMin": 87,
+      "desiMax": 87,
+      "price": 1116.89,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "yurtici",
+      "desiMin": 87,
+      "desiMax": 87,
+      "price": 1248.09,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "aras",
+      "desiMin": 88,
+      "desiMax": 88,
+      "price": 955.48,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "dhl",
+      "desiMin": 88,
+      "desiMax": 88,
+      "price": 2468.41,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "kolay_gelsin",
+      "desiMin": 88,
+      "desiMax": 88,
+      "price": 968.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "ptt",
+      "desiMin": 88,
+      "desiMax": 88,
+      "price": 1583.54,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "surat",
+      "desiMin": 88,
+      "desiMax": 88,
+      "price": 1129.18,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "yurtici",
+      "desiMin": 88,
+      "desiMax": 88,
+      "price": 1261.68,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "aras",
+      "desiMin": 89,
+      "desiMax": 89,
+      "price": 966.18,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "dhl",
+      "desiMin": 89,
+      "desiMax": 89,
+      "price": 2501.4,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "kolay_gelsin",
+      "desiMin": 89,
+      "desiMax": 89,
+      "price": 978.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "ptt",
+      "desiMin": 89,
+      "desiMax": 89,
+      "price": 1599.61,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "surat",
+      "desiMin": 89,
+      "desiMax": 89,
+      "price": 1141.59,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "yurtici",
+      "desiMin": 89,
+      "desiMax": 89,
+      "price": 1275.27,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "aras",
+      "desiMin": 90,
+      "desiMax": 90,
+      "price": 976.89,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "dhl",
+      "desiMin": 90,
+      "desiMax": 90,
+      "price": 2534.39,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "kolay_gelsin",
+      "desiMin": 90,
+      "desiMax": 90,
+      "price": 988.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "ptt",
+      "desiMin": 90,
+      "desiMax": 90,
+      "price": 1615.7,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "surat",
+      "desiMin": 90,
+      "desiMax": 90,
+      "price": 1154.0,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "yurtici",
+      "desiMin": 90,
+      "desiMax": 90,
+      "price": 1288.86,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "aras",
+      "desiMin": 91,
+      "desiMax": 91,
+      "price": 987.6,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "dhl",
+      "desiMin": 91,
+      "desiMax": 91,
+      "price": 2567.38,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "kolay_gelsin",
+      "desiMin": 91,
+      "desiMax": 91,
+      "price": 998.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "ptt",
+      "desiMin": 91,
+      "desiMax": 91,
+      "price": 1631.77,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "surat",
+      "desiMin": 91,
+      "desiMax": 91,
+      "price": 1166.28,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "yurtici",
+      "desiMin": 91,
+      "desiMax": 91,
+      "price": 1302.45,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "aras",
+      "desiMin": 92,
+      "desiMax": 92,
+      "price": 998.3,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "dhl",
+      "desiMin": 92,
+      "desiMax": 92,
+      "price": 2600.37,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "kolay_gelsin",
+      "desiMin": 92,
+      "desiMax": 92,
+      "price": 1008.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "ptt",
+      "desiMin": 92,
+      "desiMax": 92,
+      "price": 1647.86,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "surat",
+      "desiMin": 92,
+      "desiMax": 92,
+      "price": 1178.69,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "yurtici",
+      "desiMin": 92,
+      "desiMax": 92,
+      "price": 1316.04,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "aras",
+      "desiMin": 93,
+      "desiMax": 93,
+      "price": 1009.01,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "dhl",
+      "desiMin": 93,
+      "desiMax": 93,
+      "price": 2633.36,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "kolay_gelsin",
+      "desiMin": 93,
+      "desiMax": 93,
+      "price": 1018.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "ptt",
+      "desiMin": 93,
+      "desiMax": 93,
+      "price": 1663.93,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "surat",
+      "desiMin": 93,
+      "desiMax": 93,
+      "price": 1190.98,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "yurtici",
+      "desiMin": 93,
+      "desiMax": 93,
+      "price": 1329.64,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "aras",
+      "desiMin": 94,
+      "desiMax": 94,
+      "price": 1019.71,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "dhl",
+      "desiMin": 94,
+      "desiMax": 94,
+      "price": 2666.35,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "kolay_gelsin",
+      "desiMin": 94,
+      "desiMax": 94,
+      "price": 1028.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "ptt",
+      "desiMin": 94,
+      "desiMax": 94,
+      "price": 1680.02,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "surat",
+      "desiMin": 94,
+      "desiMax": 94,
+      "price": 1203.38,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "yurtici",
+      "desiMin": 94,
+      "desiMax": 94,
+      "price": 1343.23,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "aras",
+      "desiMin": 95,
+      "desiMax": 95,
+      "price": 1030.42,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "dhl",
+      "desiMin": 95,
+      "desiMax": 95,
+      "price": 2699.34,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "kolay_gelsin",
+      "desiMin": 95,
+      "desiMax": 95,
+      "price": 1038.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "ptt",
+      "desiMin": 95,
+      "desiMax": 95,
+      "price": 1696.09,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "surat",
+      "desiMin": 95,
+      "desiMax": 95,
+      "price": 1215.8,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "yurtici",
+      "desiMin": 95,
+      "desiMax": 95,
+      "price": 1356.82,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "aras",
+      "desiMin": 96,
+      "desiMax": 96,
+      "price": 1041.12,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "dhl",
+      "desiMin": 96,
+      "desiMax": 96,
+      "price": 2732.33,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "kolay_gelsin",
+      "desiMin": 96,
+      "desiMax": 96,
+      "price": 1048.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "ptt",
+      "desiMin": 96,
+      "desiMax": 96,
+      "price": 1712.18,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "surat",
+      "desiMin": 96,
+      "desiMax": 96,
+      "price": 1228.08,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "yurtici",
+      "desiMin": 96,
+      "desiMax": 96,
+      "price": 1370.41,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "aras",
+      "desiMin": 97,
+      "desiMax": 97,
+      "price": 1051.83,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "dhl",
+      "desiMin": 97,
+      "desiMax": 97,
+      "price": 2765.32,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "kolay_gelsin",
+      "desiMin": 97,
+      "desiMax": 97,
+      "price": 1058.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "ptt",
+      "desiMin": 97,
+      "desiMax": 97,
+      "price": 1728.26,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "surat",
+      "desiMin": 97,
+      "desiMax": 97,
+      "price": 1240.48,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "yurtici",
+      "desiMin": 97,
+      "desiMax": 97,
+      "price": 1384.0,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "aras",
+      "desiMin": 98,
+      "desiMax": 98,
+      "price": 1062.54,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "dhl",
+      "desiMin": 98,
+      "desiMax": 98,
+      "price": 2798.31,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "kolay_gelsin",
+      "desiMin": 98,
+      "desiMax": 98,
+      "price": 1068.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "ptt",
+      "desiMin": 98,
+      "desiMax": 98,
+      "price": 1744.34,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "surat",
+      "desiMin": 98,
+      "desiMax": 98,
+      "price": 1252.76,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "yurtici",
+      "desiMin": 98,
+      "desiMax": 98,
+      "price": 1397.59,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "aras",
+      "desiMin": 99,
+      "desiMax": 99,
+      "price": 1073.24,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "dhl",
+      "desiMin": 99,
+      "desiMax": 99,
+      "price": 2831.3,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "kolay_gelsin",
+      "desiMin": 99,
+      "desiMax": 99,
+      "price": 1078.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "ptt",
+      "desiMin": 99,
+      "desiMax": 99,
+      "price": 1760.42,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "surat",
+      "desiMin": 99,
+      "desiMax": 99,
+      "price": 1265.18,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "yurtici",
+      "desiMin": 99,
+      "desiMax": 99,
+      "price": 1411.18,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "aras",
+      "desiMin": 100,
+      "desiMax": 100,
+      "price": 1083.95,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "dhl",
+      "desiMin": 100,
+      "desiMax": 100,
+      "price": 2864.29,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "kolay_gelsin",
+      "desiMin": 100,
+      "desiMax": 100,
+      "price": 1088.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "ptt",
+      "desiMin": 100,
+      "desiMax": 100,
+      "price": 1776.5,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "surat",
+      "desiMin": 100,
+      "desiMax": 100,
+      "price": 1277.58,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    },
+    {
+      "marketplace": "trendyol",
+      "carrier": "yurtici",
+      "desiMin": 100,
+      "desiMax": 100,
+      "price": 1424.77,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV hariç"
+    }
+  ]
+}

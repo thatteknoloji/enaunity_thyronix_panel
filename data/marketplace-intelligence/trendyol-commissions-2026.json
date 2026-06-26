@@ -1,0 +1,2994 @@
+{
+  "source": {
+    "sourceName": "Trendyol Komisyon Oranları",
+    "sourceFile": "Trendyol_Komisyon_Oranlar_.pdf",
+    "sourceType": "pdf",
+    "effectiveDate": "2026-01-01",
+    "vatIncluded": true,
+    "vatNote": "Komisyon oranları KDV dahil",
+    "version": "2026",
+    "confidence": "official"
+  },
+  "entries": [
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Aksesuar",
+      "subCategory": "Altın (İşlenmemiş)",
+      "productGroup": "Altın (İşlenmemiş)",
+      "ratePercent": 9.0,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Aksesuar",
+      "subCategory": "Atkı & Bere & Eldiven",
+      "productGroup": "Atkı, Atkı & Bere & Eldiven Set, Bere, Boyunluk, Eldiven, Şal & Fular & Eşarp",
+      "ratePercent": 21.36,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Aksesuar",
+      "subCategory": "Diğer Aksesuar",
+      "productGroup": "Kemer, Saç Aksesuarı, Kravat & Pantolon Askısı, Kol Düğmesi, Şapka",
+      "ratePercent": 22.37,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Aksesuar",
+      "subCategory": "Gözlük",
+      "productGroup": "Gözlük",
+      "ratePercent": 21.36,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Aksesuar",
+      "subCategory": "Mücevher",
+      "productGroup": "Mücevher",
+      "ratePercent": 21.36,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Aksesuar",
+      "subCategory": "Saat",
+      "productGroup": "Saat",
+      "ratePercent": 21.36,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Aksesuar",
+      "subCategory": "Takı",
+      "productGroup": "Halhal&Ayak Aksesuarları, Bijuteri Bileklik, Çelik Bileklik, Gümüş Bileklik, Choker, Bijuteri Kolye, Çelik Kolye, Gümüş Küpe, Gümüş Kolye",
+      "ratePercent": 22.37,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Ayakkabı & Çanta",
+      "subCategory": "Ayakkabı",
+      "productGroup": "Ayakkabı",
+      "ratePercent": 23.39,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Ayakkabı & Çanta",
+      "subCategory": "Çanta",
+      "productGroup": "Çanta",
+      "ratePercent": 21.36,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Bahçe & Elektrikli El Aletleri",
+      "subCategory": "Bahçe",
+      "productGroup": "Bahçe & Balkon Isıtma",
+      "ratePercent": 21.5,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Bahçe & Elektrikli El Aletleri",
+      "subCategory": "Bahçe",
+      "productGroup": "Bahçe Aydınlatması",
+      "ratePercent": 21.5,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Bahçe & Elektrikli El Aletleri",
+      "subCategory": "Bahçe",
+      "productGroup": "Bahçe Dekorasyonu, Çitler, Gübre, Kuzine ve Sobalar, Saksı, Şömine, Tohumlar, Torf ve Topraklar",
+      "ratePercent": 17.5,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Bahçe & Elektrikli El Aletleri",
+      "subCategory": "Bahçe",
+      "productGroup": "Bahçe Makine Yağları",
+      "ratePercent": 17.0,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Bahçe & Elektrikli El Aletleri",
+      "subCategory": "Bahçe",
+      "productGroup": "Bahçe Makineleri, Çapa Makineleri, Tırpanlar, Zincirli Ağaç Kesme Makinesi",
+      "ratePercent": 14.5,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Bahçe & Elektrikli El Aletleri",
+      "subCategory": "Bahçe",
+      "productGroup": "Bungalov ve Prefabrik Evler",
+      "ratePercent": 11.0,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Bahçe & Elektrikli El Aletleri",
+      "subCategory": "Bahçe",
+      "productGroup": "Çim Biçme Makineleri",
+      "ratePercent": 13.0,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Bahçe & Elektrikli El Aletleri",
+      "subCategory": "Bahçe",
+      "productGroup": "Dekoratif Ürünler",
+      "ratePercent": 20.5,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Bahçe & Elektrikli El Aletleri",
+      "subCategory": "Bahçe",
+      "productGroup": "El Aletleri, Elektrikli El Aletleri ve Aksesuarları, Manuel El Aletleri, Akülü Vidalama, Matkaplar",
+      "ratePercent": 15.5,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Bahçe & Elektrikli El Aletleri",
+      "subCategory": "Bahçe",
+      "productGroup": "Havuz Ürünleri",
+      "ratePercent": 17.5,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Bahçe & Elektrikli El Aletleri",
+      "subCategory": "Bahçe",
+      "productGroup": "Hayvancılık Makineleri",
+      "ratePercent": 14.5,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Bahçe & Elektrikli El Aletleri",
+      "subCategory": "Bahçe",
+      "productGroup": "Küçük El Aletleri",
+      "ratePercent": 17.0,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Bahçe & Elektrikli El Aletleri",
+      "subCategory": "Bahçe",
+      "productGroup": "Mangallar ve Aksesuarları",
+      "ratePercent": 17.5,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Bahçe & Elektrikli El Aletleri",
+      "subCategory": "Elektrikli El Aletleri",
+      "productGroup": "El Aletleri, Elektrikli El Aletleri ve Aksesuarları, Manuel El Aletleri, Akülü Vidalama, Matkaplar",
+      "ratePercent": 15.5,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Bahçe & Elektrikli El Aletleri",
+      "subCategory": "Elektrikli El Aletleri",
+      "productGroup": "Ölçüm Cihazları, Taşlamalar, Tilki Kuyruğu",
+      "ratePercent": 15.5,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Bahçe & Elektrikli El Aletleri",
+      "subCategory": "Enerji Sistemleri",
+      "productGroup": "Güneş Paneli ve Sistemleri, Jenaratör, Rüzgar Türbini",
+      "ratePercent": 15.5,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Banyo Yapı & Hırdavat",
+      "subCategory": "Banyo Yapı Malzemeleri",
+      "productGroup": "Banyo Bataryası, Banyo Yapı Malzemeleri, Duş Sistemleri, Eviye, Lavabo, Lavabo Bataryası",
+      "ratePercent": 17.5,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Banyo Yapı & Hırdavat",
+      "subCategory": "Banyo Yapı Malzemeleri",
+      "productGroup": "Klozet",
+      "ratePercent": 17.5,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Banyo Yapı & Hırdavat",
+      "subCategory": "Banyo Yapı Malzemeleri",
+      "productGroup": "Su Arıtma",
+      "ratePercent": 13.5,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Banyo Yapı & Hırdavat",
+      "subCategory": "Boya",
+      "productGroup": "Boya & Boya Malzemeleri",
+      "ratePercent": 17.5,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Banyo Yapı & Hırdavat",
+      "subCategory": "Elektrik & Tesisat Malzemeleri",
+      "productGroup": "Ampul",
+      "ratePercent": 16.0,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Banyo Yapı & Hırdavat",
+      "subCategory": "Elektrik & Tesisat Malzemeleri",
+      "productGroup": "Elektrik ve Aydınlatma",
+      "ratePercent": 16.5,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Banyo Yapı & Hırdavat",
+      "subCategory": "Elektrik & Tesisat Malzemeleri",
+      "productGroup": "Güvenlik Ürünleri",
+      "ratePercent": 18.0,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Banyo Yapı & Hırdavat",
+      "subCategory": "Hırdavat",
+      "productGroup": "El Aletleri, Elektrikli El Aletleri ve Aksesuarları, Manuel El Aletleri, Akülü Vidalama, Matkaplar",
+      "ratePercent": 15.5,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Banyo Yapı & Hırdavat",
+      "subCategory": "Hırdavat",
+      "productGroup": "Hırdavat ve İnşaat Malzemeleri, İş Ayakkabısı&Çizmesi, İş Güvenliği Elbisesi, Kutu Ambalaj Malzemeleri, Sinek Perdeleri, Yapıştırıcı ve Bantlar",
+      "ratePercent": 17.5,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Banyo Yapı & Hırdavat",
+      "subCategory": "Hırdavat",
+      "productGroup": "Isınma & Soğutma Sistemi, Oda Termostatı, Tavan Vantilatörü",
+      "ratePercent": 13.5,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Çocuk",
+      "subCategory": "Bebek Banyo & Tuvalet",
+      "productGroup": "Bebek Banyo Aksesuarları",
+      "ratePercent": 16.5,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Çocuk",
+      "subCategory": "Bebek Banyo & Tuvalet",
+      "productGroup": "Bebek Küveti",
+      "ratePercent": 16.5,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Çocuk",
+      "subCategory": "Bebek Banyo & Tuvalet",
+      "productGroup": "Klozet Adaptörü & Lazımlık",
+      "ratePercent": 16.5,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Çocuk",
+      "subCategory": "Bebek Beslenme/Emzirme",
+      "productGroup": "Alıştırma Bardakları",
+      "ratePercent": 16.5,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Çocuk",
+      "subCategory": "Bebek Beslenme/Emzirme",
+      "productGroup": "Bebek Hediyelik, Beslenme Aksesuarları, Biberon Isıtıcı & Sterilizatör, Emzirme & Saklama Aksesuarları, Mama Isıtıcı ve Hazırlayıcılar, Emzirme Örtüsü, Emzirme Yastığı, Mama Önlüğü",
+      "ratePercent": 16.5,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Çocuk",
+      "subCategory": "Bebek Beslenme/Emzirme",
+      "productGroup": "Biberon/Emzik",
+      "ratePercent": 16.5,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Çocuk",
+      "subCategory": "Bebek Beslenme/Emzirme",
+      "productGroup": "Göğüs Pompaları",
+      "ratePercent": 16.5,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Çocuk",
+      "subCategory": "Bebek Odası ve Tekstili",
+      "productGroup": "Diğer Oda Aksesuarları",
+      "ratePercent": 16.5,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Çocuk",
+      "subCategory": "Çocuk Gereçleri",
+      "productGroup": "Ana Kucağı",
+      "ratePercent": 17.0,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Çocuk",
+      "subCategory": "Çocuk Gereçleri",
+      "productGroup": "Arabada Güvenlik, Telsiz&Kamera&Dedektör",
+      "ratePercent": 16.5,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Çocuk",
+      "subCategory": "Çocuk Gereçleri",
+      "productGroup": "Baston Puset, Bebek Araba, Mama Sandalyesi, Park Yatak / Oyun Parkı",
+      "ratePercent": 16.5,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Çocuk",
+      "subCategory": "Çocuk Gereçleri",
+      "productGroup": "Bebek Bakım Çantası, Mama Sandalyesi Minderi, Yürüteç",
+      "ratePercent": 16.5,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Çocuk",
+      "subCategory": "Çocuk Gereçleri",
+      "productGroup": "Bebek Salıncağı & Hoppala",
+      "ratePercent": 17.0,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Çocuk",
+      "subCategory": "Çocuk Gereçleri",
+      "productGroup": "Çocuk Salıncak, Portbebe/Kanguru/Sling",
+      "ratePercent": 17.0,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Çocuk",
+      "subCategory": "Çocuk Gereçleri",
+      "productGroup": "Güvenlik Kapısı",
+      "ratePercent": 16.5,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Çocuk",
+      "subCategory": "Çocuk Gereçleri",
+      "productGroup": "Koruyucu Tekstil, Koruyucu ve Kilit",
+      "ratePercent": 16.5,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Çocuk",
+      "subCategory": "Çocuk Gereçleri",
+      "productGroup": "Onarılmış Bebek Arabası & Puset,Onarılmış Oto Koltuğu ve Aksesuarları",
+      "ratePercent": 3.5,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Çocuk",
+      "subCategory": "Çocuk Gereçleri",
+      "productGroup": "Oto Koltuğu",
+      "ratePercent": 16.5,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Çocuk",
+      "subCategory": "Çocuk Gereçleri",
+      "productGroup": "Oto Koltuğu Aksesuarları",
+      "ratePercent": 16.5,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Çocuk",
+      "subCategory": "Oyuncak",
+      "productGroup": "Ahşap Oyuncaklar",
+      "ratePercent": 16.5,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Çocuk",
+      "subCategory": "Oyuncak",
+      "productGroup": "Akülü Araçlar",
+      "ratePercent": 16.5,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Çocuk",
+      "subCategory": "Oyuncak",
+      "productGroup": "Bebek & Aktivite Oyuncakları, Eğitici Oyuncaklar, Model Bebek",
+      "ratePercent": 16.5,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Çocuk",
+      "subCategory": "Oyuncak",
+      "productGroup": "Çocuk Bisikleti",
+      "ratePercent": 13.0,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Çocuk",
+      "subCategory": "Oyuncak",
+      "productGroup": "Çocuk Kask ve Güvenlik Aksesuarları",
+      "ratePercent": 13.0,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Çocuk",
+      "subCategory": "Oyuncak",
+      "productGroup": "Çocuk Kaykay, Çocuk Pateni, Çocuk Scooterı",
+      "ratePercent": 13.0,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Çocuk",
+      "subCategory": "Oyuncak",
+      "productGroup": "Çocuk Puzzle / Yapboz, Diğer Oyuncaklar",
+      "ratePercent": 16.5,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Çocuk",
+      "subCategory": "Oyuncak",
+      "productGroup": "Deniz Malzemeleri, Plaj Oyuncakları, Spor Oyuncakları",
+      "ratePercent": 16.5,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Çocuk",
+      "subCategory": "Oyuncak",
+      "productGroup": "Figür Oyuncaklar",
+      "ratePercent": 16.5,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Çocuk",
+      "subCategory": "Oyuncak",
+      "productGroup": "Kutu Oyunları",
+      "ratePercent": 16.5,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Çocuk",
+      "subCategory": "Oyuncak",
+      "productGroup": "Lego & Yapı Oyuncakları",
+      "ratePercent": 16.5,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Çocuk",
+      "subCategory": "Oyuncak",
+      "productGroup": "Onarılmış Çocuk Bisikleti",
+      "ratePercent": 3.5,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Çocuk",
+      "subCategory": "Oyuncak",
+      "productGroup": "Oyuncak Bebek ve Aksesuarları",
+      "ratePercent": 16.5,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Çocuk",
+      "subCategory": "Oyuncak",
+      "productGroup": "Oyuncak Silah & Su Tabancası, Bahçe Oyuncakları, Bebek Oyuncakları (0-2 yaş), Bez Bebek, Et Bebek, Öğretici Oyuncak Setleri, Oyun Hamurları, Peluş Oyuncaklar, Taşıtlar & Kumandalı Oyuncaklar",
+      "ratePercent": 16.5,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Çocuk",
+      "subCategory": "Oyuncak",
+      "productGroup": "Pedallı Araçlar",
+      "ratePercent": 16.5,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Çocuk",
+      "subCategory": "Oyuncak",
+      "productGroup": "Şişme Havuz & Aksesuarları",
+      "ratePercent": 16.5,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Dijital Kod & Ürünler",
+      "subCategory": "Dijital Kod & Ürünler",
+      "productGroup": "Abonelikler",
+      "ratePercent": 10.17,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Dijital Kod & Ürünler",
+      "subCategory": "Dijital Kod & Ürünler",
+      "productGroup": "Dijital Hediye Kartları (Apple, Google, Netflix ...)",
+      "ratePercent": 5.0,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Dijital Kod & Ürünler",
+      "subCategory": "Dijital Kod & Ürünler",
+      "productGroup": "Dijital Yayın Paketleri (Exxen, S Sport Plus, Bein Connect, D-Smart ...)",
+      "ratePercent": 10.17,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Dijital Kod & Ürünler",
+      "subCategory": "Dijital Kod & Ürünler",
+      "productGroup": "Hizmet Paketleri",
+      "ratePercent": 10.17,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Dijital Kod & Ürünler",
+      "subCategory": "Dijital Kod & Ürünler",
+      "productGroup": "Ön Ödemeli Kartlar (İninal, Papara, Paycell ...)",
+      "ratePercent": 10.17,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Dijital Kod & Ürünler",
+      "subCategory": "Dijital Kod & Ürünler",
+      "productGroup": "Online Eğitim Uygulamaları",
+      "ratePercent": 10.17,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Dijital Kod & Ürünler",
+      "subCategory": "Dijital Kod & Ürünler",
+      "productGroup": "Oyun İçi Bakiyeler, Cüzdan Kodları",
+      "ratePercent": 7.5,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "E-Kitap Okuyucu",
+      "subCategory": "E-Kitap Okuyucu",
+      "productGroup": "E-Kitap Okuyucu",
+      "ratePercent": 9.5,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Elektronik",
+      "subCategory": "Beyaz Eşya & TV",
+      "productGroup": "Ankastre, Fırın, Ocak, Davlumbaz, Aspiratör, Mikrodalga Fırın, Mini & Midi Fırın, Su Sebili",
+      "ratePercent": 14.0,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Elektronik",
+      "subCategory": "Beyaz Eşya & TV",
+      "productGroup": "Beyaz Eşya Yedek Parça",
+      "ratePercent": 18.0,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Elektronik",
+      "subCategory": "Beyaz Eşya & TV",
+      "productGroup": "Buzdolabı, Bulaşık Makinesi, Çamaşır Makinesi, Kurutma Makinesi, Derin Dondurucu",
+      "ratePercent": 11.0,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Elektronik",
+      "subCategory": "Beyaz Eşya & TV",
+      "productGroup": "Televizyon",
+      "ratePercent": 8.0,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Elektronik",
+      "subCategory": "Bilgisayar Grubu",
+      "productGroup": "Anakart,Harddisk,İşlemci, Bellek (RAM),Ekran Kartı, SSD (Solid State Drive), Bilgisayar Kasası, Power Supply (PSU)",
+      "ratePercent": 10.0,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Elektronik",
+      "subCategory": "Bilgisayar Grubu",
+      "productGroup": "Bilgisayar Yedek Parça",
+      "ratePercent": 15.5,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Elektronik",
+      "subCategory": "Bilgisayar Grubu",
+      "productGroup": "Dizüstü Bilgisayar,Oyuncu Dizüstü Bilgisayarı",
+      "ratePercent": 7.5,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Elektronik",
+      "subCategory": "Bilgisayar Grubu",
+      "productGroup": "Lazer Yazıcı,Mürekkep Püskürtmeli Yazıcı,Tanklı Yazıcı,Tarayıcı,Barkod Okuyucu,3D Yazıcı",
+      "ratePercent": 12.0,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Elektronik",
+      "subCategory": "Bilgisayar Grubu",
+      "productGroup": "Masaüstü Bilgisayar, Oyuncu Masaüstü Bilgisayarı, Mini Masaüstü Bilgisayar, All-in-One Monitor PC",
+      "ratePercent": 8.5,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Elektronik",
+      "subCategory": "Bilgisayar Grubu",
+      "productGroup": "Monitör, Oyuncu Monitörü",
+      "ratePercent": 8.5,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Elektronik",
+      "subCategory": "Bilgisayar Grubu",
+      "productGroup": "Optik Sürücü,Ses Kartı, Soğutucu ve Overclock, TV Kartları, Bileşenler Paketi, Server Donanımı, Garanti ve Ek Hizmetler",
+      "ratePercent": 11.0,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Elektronik",
+      "subCategory": "Dijital Kod & Ürünler",
+      "productGroup": "Dijital Destek Kartları",
+      "ratePercent": 0.0,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Elektronik",
+      "subCategory": "Dijital Kod & Ürünler",
+      "productGroup": "Dijital Kart & Kupon",
+      "ratePercent": 10.17,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Elektronik",
+      "subCategory": "Dijital Kod & Ürünler",
+      "productGroup": "Dijital Üyelik",
+      "ratePercent": 10.17,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Elektronik",
+      "subCategory": "Dijital Kod & Ürünler",
+      "productGroup": "Hizmetler",
+      "ratePercent": 10.17,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Elektronik",
+      "subCategory": "Elektrikli Ev Aletleri",
+      "productGroup": "Akıllı Aydınlatma Ürünleri",
+      "ratePercent": 17.0,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Elektronik",
+      "subCategory": "Elektrikli Ev Aletleri",
+      "productGroup": "Dik Süpürge, Torbasız Süpürge, Robot Süpürge",
+      "ratePercent": 12.0,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Elektronik",
+      "subCategory": "Elektrikli Ev Aletleri",
+      "productGroup": "Elektrikli Ev Aletleri Yedek Parça ve Aksesuarları",
+      "ratePercent": 21.0,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Elektronik",
+      "subCategory": "Elektrikli Ev Aletleri",
+      "productGroup": "Espresso & Cappuccino Makinesi, Fritöz",
+      "ratePercent": 15.0,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Elektronik",
+      "subCategory": "Elektrikli Ev Aletleri",
+      "productGroup": "Hava Temizleme ve Nemlendirme Cihazları",
+      "ratePercent": 16.0,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Elektronik",
+      "subCategory": "Elektrikli Ev Aletleri",
+      "productGroup": "Ütü, Diğer Süpürgeler",
+      "ratePercent": 14.5,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Elektronik",
+      "subCategory": "Elektrikli Ev Aletleri",
+      "productGroup": "Halı Yıkama Makineleri",
+      "ratePercent": 14.5,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Elektronik",
+      "subCategory": "Elektrikli Ev Aletleri",
+      "productGroup": "Yiyecek ve İçecek Hazırlama, Dikiş Makinesi ve Diğer Elektrikli Ev Aletleri",
+      "ratePercent": 15.0,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Elektronik",
+      "subCategory": "Elektronik Aksesuarlar",
+      "productGroup": "Akıllı Bileklik Ekran Koruyucu,Akıllı Bileklik Kordon,Akıllı Saat Ekran Koruyucu,Akıllı Saat Kordon,Kablo Aksesuarları",
+      "ratePercent": 22.0,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Elektronik",
+      "subCategory": "Elektronik Aksesuarlar",
+      "productGroup": "Akıllı Priz,Akıllı Kamera, Akıllı Güvenlik Ürünleri",
+      "ratePercent": 11.0,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Elektronik",
+      "subCategory": "Elektronik Aksesuarlar",
+      "productGroup": "Akıllı Takip Cihazları",
+      "ratePercent": 18.0,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Elektronik",
+      "subCategory": "Elektronik Aksesuarlar",
+      "productGroup": "Araç İçi Telefon Tutucu, Powerbank",
+      "ratePercent": 18.5,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Elektronik",
+      "subCategory": "Elektronik Aksesuarlar",
+      "productGroup": "Kablo & Adaptör",
+      "ratePercent": 17.0,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Elektronik",
+      "subCategory": "Elektronik Aksesuarlar",
+      "productGroup": "Kamera Lens Koruyucu, Kulaklık Aksesuarları, Kulaklık Kılıfı",
+      "ratePercent": 28.0,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Elektronik",
+      "subCategory": "Elektronik Aksesuarlar",
+      "productGroup": "Kapak & Kılıf",
+      "ratePercent": 27.0,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Elektronik",
+      "subCategory": "Elektronik Aksesuarlar",
+      "productGroup": "Kartuş,Tonerler,Yazıcı Mürekkepleri,Filamentler, Kartuş Dolum Seti,Diğer Yazıcı Sarf Malzemeleri",
+      "ratePercent": 14.5,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Elektronik",
+      "subCategory": "Elektronik Aksesuarlar",
+      "productGroup": "Klavye Mouse Set,Oyuncu Klavye Mouse Set,Çoklu Depolama Ünitesi, Webcam,Güç Kaynağı & UPS,Yayıncı Aksesuarları, Bilgisayar Hoparlörü, Bilgisayar Mikrofonları, Notebook Soğutucu",
+      "ratePercent": 12.0,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Elektronik",
+      "subCategory": "Elektronik Aksesuarlar",
+      "productGroup": "Klavye,Mouse,Oyuncu Mouse,Oyuncu Klavyesi, Oyuncu Kulaklık",
+      "ratePercent": 12.0,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Elektronik",
+      "subCategory": "Elektronik Aksesuarlar",
+      "productGroup": "Konsol Gamepad & Joystick,PlayStation Aksesuarları,Nintendo Aksesuarları,Xbox Aksesuarları,Mobil Oyun Aksesuarları",
+      "ratePercent": 12.0,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Elektronik",
+      "subCategory": "Elektronik Aksesuarlar",
+      "productGroup": "Monitör Aparatı,Monitör Kabloları,Monitör Aksesuarları",
+      "ratePercent": 21.0,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Elektronik",
+      "subCategory": "Elektronik Aksesuarlar",
+      "productGroup": "Mousepad",
+      "ratePercent": 14.5,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Elektronik",
+      "subCategory": "Elektronik Aksesuarlar",
+      "productGroup": "MP Player & Ses Kayıt Cihazı,Bluetooth Hoparlör, Alarm Saatli Radyolar, Kablolu Hoparlör,Nostaljik Radyolar,Mikrofon",
+      "ratePercent": 12.5,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Elektronik",
+      "subCategory": "Elektronik Aksesuarlar",
+      "productGroup": "Notebook Standı, Notebook Adaptörleri, Data Kablosu,Notebook Çantası,Notebook Koruyucu",
+      "ratePercent": 22.0,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Elektronik",
+      "subCategory": "Elektronik Aksesuarlar",
+      "productGroup": "Projeksiyon Perdesi, Projeksiyon Sunum Kumandaları,Projeksiyon Askı Aparatları,Kablosuz Ses&Görüntü Aktarıcı",
+      "ratePercent": 16.0,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Elektronik",
+      "subCategory": "Elektronik Aksesuarlar",
+      "productGroup": "Şarj Adaptörü,Araç Şarj Cihazları,Kablosuz Şarj Cihazları,Şarj Kablosu,Şarj Aletleri",
+      "ratePercent": 22.0,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Elektronik",
+      "subCategory": "Elektronik Aksesuarlar",
+      "productGroup": "Selfie Çubuğu,Ekran Koruyucu Film,TV Ekran Temizleme Ürünleri, Telefon Bataryası,Telefon Ekranı,Telefon Kamerası, Telefon Kasası,Telefon Tuş Takımı",
+      "ratePercent": 27.0,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Elektronik",
+      "subCategory": "Elektronik Aksesuarlar",
+      "productGroup": "Ses Kabloları,Scart Kablolar,Güç Kablosu, Network Kablosu,Hoparlör Ayakları & Askıları",
+      "ratePercent": 18.0,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Elektronik",
+      "subCategory": "Elektronik Aksesuarlar",
+      "productGroup": "Stereo Amfiler,Receiver Amfiler,Sinema Sistemi,Ev Tipi Subwoofer,Portatif Sistemler",
+      "ratePercent": 14.0,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Elektronik",
+      "subCategory": "Elektronik Aksesuarlar",
+      "productGroup": "Tablet Kılıfı,Tablet Standı, Tablet Kalemi, Tablet Ekran Koruyucuları",
+      "ratePercent": 22.0,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Elektronik",
+      "subCategory": "Elektronik Aksesuarlar",
+      "productGroup": "Taşınabilir Hard Disk, Taşınabilir SSD",
+      "ratePercent": 11.5,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Elektronik",
+      "subCategory": "Elektronik Aksesuarlar",
+      "productGroup": "TV Ekran Koruyucular,TV Askı Aparatları",
+      "ratePercent": 18.0,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Elektronik",
+      "subCategory": "Elektronik Aksesuarlar",
+      "productGroup": "USB,Hafıza Kartı",
+      "ratePercent": 12.0,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Elektronik",
+      "subCategory": "Elektronik Aksesuarlar",
+      "productGroup": "Uydu Yön Bulucular,Uydu Santrali,Çanak Antenler, Uydu Konnektörleri, Lnbler,Switchler,Uydu Bölücüler,Uzaktan Kumandalar,HDMI Kablo, Dönüştürücüler,Uzatıcı & Çoklayıcılar,Çevirici Dönüştürücü,USB Hub Çoklayıcılar,Ses Kablosu Dönüştürücüleri",
+      "ratePercent": 19.0,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Elektronik",
+      "subCategory": "Elektronik Aksesuarlar",
+      "productGroup": "Veri Depolama Aksesuarları,Hard Disk Kutuları,Yazılabilir CD, Yazılabilir DVD",
+      "ratePercent": 22.0,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Elektronik",
+      "subCategory": "Elektronik Aksesuarlar",
+      "productGroup": "Wireless Adaptör, Routerlar,Menzil Genişletici,Network Aksesuarları,Access Point, VDSL Modemler,ADSL Modemler,Elektronik Devre Elemanları,Ağ Modem Switchleri,4G Taşınabilir Modem, Powerline Ürünleri,4G Modem & Router",
+      "ratePercent": 11.0,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Elektronik",
+      "subCategory": "Elektronik Aksesuarlar",
+      "productGroup": "Yazılım Ürünleri",
+      "ratePercent": 12.0,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Elektronik",
+      "subCategory": "Foto & Kamera",
+      "productGroup": "Aynasız Kompakt SLR Makinesi",
+      "ratePercent": 9.0,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Elektronik",
+      "subCategory": "Foto & Kamera",
+      "productGroup": "Dijital Fotoğraf Makinesi, SLR Fotoğraf Makinesi, Video Kamera",
+      "ratePercent": 12.5,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Elektronik",
+      "subCategory": "Foto & Kamera",
+      "productGroup": "Foto & Kamera Aksesuarları",
+      "ratePercent": 13.0,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Elektronik",
+      "subCategory": "Giyilebilir Teknoloji & Kulaklıklar",
+      "productGroup": "Akıllı Bileklikler, Akıllı Çocuk Saatleri, Sanal Gerçeklik Gözlükleri",
+      "ratePercent": 16.5,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Elektronik",
+      "subCategory": "Giyilebilir Teknoloji & Kulaklıklar",
+      "productGroup": "Akıllı Saatler",
+      "ratePercent": 16.5,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Elektronik",
+      "subCategory": "Giyilebilir Teknoloji & Kulaklıklar",
+      "productGroup": "Kulak İçi Kablolu Kulaklık, Kulak Üstü Kablolu Kulaklık,Boyun Bantlı Bluetooth kulaklık",
+      "ratePercent": 16.0,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Elektronik",
+      "subCategory": "Giyilebilir Teknoloji & Kulaklıklar",
+      "productGroup": "Kulak içi TWS Bluetooth Kulaklık,Kulak üstü Bluetooth kulaklık",
+      "ratePercent": 16.0,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Elektronik",
+      "subCategory": "Giyilebilir Teknoloji & Kulaklıklar",
+      "productGroup": "Yenilenmiş Akıllı Saat, Yenilenmiş Akıllı Çocuk Saati",
+      "ratePercent": 15.5,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Elektronik",
+      "subCategory": "Görüntü & Ses Sistemleri",
+      "productGroup": "DVR Kayıt Cihazı, DVD & Blu - Ray Oynatıcı",
+      "ratePercent": 17.0,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Elektronik",
+      "subCategory": "Görüntü & Ses Sistemleri",
+      "productGroup": "Ev Sinema Hoparlörü",
+      "ratePercent": 14.0,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Elektronik",
+      "subCategory": "Görüntü & Ses Sistemleri",
+      "productGroup": "Media Player",
+      "ratePercent": 12.5,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Elektronik",
+      "subCategory": "Görüntü & Ses Sistemleri",
+      "productGroup": "Projeksiyon Cihazı, Soundbar, Projeksiyon Sistemleri",
+      "ratePercent": 13.0,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Elektronik",
+      "subCategory": "Görüntü & Ses Sistemleri",
+      "productGroup": "TV Yedek Parça",
+      "ratePercent": 21.0,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Elektronik",
+      "subCategory": "Görüntü & Ses Sistemleri",
+      "productGroup": "Uydu Alıcı",
+      "ratePercent": 17.0,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Elektronik",
+      "subCategory": "Kişisel Bakım Aletleri",
+      "productGroup": "Epilatör, Tıraş Makinesi",
+      "ratePercent": 18.0,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Elektronik",
+      "subCategory": "Kişisel Bakım Aletleri",
+      "productGroup": "IPL Lazer Epilasyon Aletleri",
+      "ratePercent": 17.5,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Elektronik",
+      "subCategory": "Kişisel Bakım Aletleri",
+      "productGroup": "Kişisel Bakım Yedek Parça",
+      "ratePercent": 20.0,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Elektronik",
+      "subCategory": "Kişisel Bakım Aletleri",
+      "productGroup": "Saç Düzleştirici, Saç Kurutma Makinesi, Saç Maşası, Tartı",
+      "ratePercent": 17.5,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Elektronik",
+      "subCategory": "Klima & Isıtıcı",
+      "productGroup": "Klima",
+      "ratePercent": 11.0,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Elektronik",
+      "subCategory": "Klima & Isıtıcı",
+      "productGroup": "Kombi",
+      "ratePercent": 11.0,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Elektronik",
+      "subCategory": "Klima & Isıtıcı",
+      "productGroup": "Portatif Soğutucu, Vantilatörler, Isıtıcılar, Hava Perdeleri, Şofbenler, Termosifonlar",
+      "ratePercent": 13.0,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Elektronik",
+      "subCategory": "Oyun & Oyun Konsolları",
+      "productGroup": "Diğer Oyun Konsolları, Nintendo Oyunları, PS2 Oyunları, PS3 Oyunları, PS4 Oyunları, PS5 Oyunları, Xbox Oyunları, Bilgisayar Oyunları, PSP & Vita Oyunları, İkinci El, Yenilenmiş, Teşhir - Konsol Oyunları",
+      "ratePercent": 12.0,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Elektronik",
+      "subCategory": "Oyun & Oyun Konsolları",
+      "productGroup": "Dijital Oyun",
+      "ratePercent": 11.7,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Elektronik",
+      "subCategory": "Oyun & Oyun Konsolları",
+      "productGroup": "Playstation 3, İkinci El, Yenilenmiş, Teşhir - Oyun Konsolları",
+      "ratePercent": 17.25,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Elektronik",
+      "subCategory": "Oyun & Oyun Konsolları",
+      "productGroup": "Playstation 5, Playstation 4, Xbox Konsolları, Nintendo Konsolları",
+      "ratePercent": 8.0,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Elektronik",
+      "subCategory": "Oyun & Oyun Konsolları",
+      "productGroup": "PSP & Vita Konsolları",
+      "ratePercent": 11.0,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Elektronik",
+      "subCategory": "Tablet Grubu",
+      "productGroup": "Çocuk Çizim Tableti",
+      "ratePercent": 16.0,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Elektronik",
+      "subCategory": "Tablet Grubu",
+      "productGroup": "Tablet, Grafik Tablet",
+      "ratePercent": 8.0,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Elektronik",
+      "subCategory": "Telefon",
+      "productGroup": "Android Cep Telefonları",
+      "ratePercent": 7.0,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Elektronik",
+      "subCategory": "Telefon",
+      "productGroup": "İkinci El Cep Telefonları",
+      "ratePercent": 10.0,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Elektronik",
+      "subCategory": "Telefon",
+      "productGroup": "IOS Cep Telefonları",
+      "ratePercent": 7.0,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Elektronik",
+      "subCategory": "Telefon",
+      "productGroup": "İthalatçı Garantili Telefonlar",
+      "ratePercent": 7.5,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Elektronik",
+      "subCategory": "Telefon",
+      "productGroup": "Telsiz/Masaüstü Telefonları",
+      "ratePercent": 18.0,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Elektronik",
+      "subCategory": "Telefon",
+      "productGroup": "Tuşlu Cep Telefonu",
+      "ratePercent": 10.0,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Elektronik",
+      "subCategory": "Telefon",
+      "productGroup": "Yenilenmiş Cep Telefonu",
+      "ratePercent": 8.0,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Elektronik",
+      "subCategory": "Yenilenmiş Bilgisayar Grubu",
+      "productGroup": "Yenilenmiş Dizüstü Bilgisayar, Yenilenmiş Oyuncu Dizüstü Bilgisayarı",
+      "ratePercent": 7.2,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Elektronik",
+      "subCategory": "Yenilenmiş Bilgisayar Grubu",
+      "productGroup": "Yenilenmiş Masaüstü Bilgisayar, Yenilenmiş Oyuncu Masaüstü Bilgisayarı, Yenilenmiş Mini Masaüstü Bilgisayar, Yenilenmiş All-in-One Monitor PC",
+      "ratePercent": 9.2,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Elektronik",
+      "subCategory": "Yenilenmiş Tablet Grubu",
+      "productGroup": "Yenilenmiş Tablet",
+      "ratePercent": 7.1,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Ev",
+      "subCategory": "Aydınlatma",
+      "productGroup": "Avize, Abajur, Aplik, Lambader, Masa ve Gece Lambası",
+      "ratePercent": 21.36,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Ev",
+      "subCategory": "Banyo",
+      "productGroup": "Banyo Aksesuarları",
+      "ratePercent": 20.34,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Ev",
+      "subCategory": "Banyo",
+      "productGroup": "Banyo Tekstili",
+      "ratePercent": 20.34,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Ev",
+      "subCategory": "Ev Dekorasyon",
+      "productGroup": "Sanat Eseri",
+      "ratePercent": 11.19,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Ev",
+      "subCategory": "Ev Dekorasyon",
+      "productGroup": "Tablo, Kırlent & Kırlent Kılıfı, Duvar & Masa Saati, Duvar Kağıdı, Duvar Sticker, Biblo, Ayna",
+      "ratePercent": 21.36,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Ev",
+      "subCategory": "Ev Gereçleri",
+      "productGroup": "Çamaşır Gereçleri",
+      "ratePercent": 21.36,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Ev",
+      "subCategory": "Ev Gereçleri",
+      "productGroup": "Ev Gereçleri",
+      "ratePercent": 21.36,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Ev",
+      "subCategory": "Ev Tekstili",
+      "productGroup": "Yatak Odası Tekstili, Bebek & Çocuk Ev Tekstili, Salon Tekstili, Mutfak Tekstili",
+      "ratePercent": 20.34,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Ev",
+      "subCategory": "Halı/Kilim",
+      "productGroup": "Halı, Kilim, Paspas, Seccade",
+      "ratePercent": 20.34,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Ev",
+      "subCategory": "Perde",
+      "productGroup": "Perde, Cibinlik, Perde Aksesuarları",
+      "ratePercent": 20.34,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Ev",
+      "subCategory": "Sofra & Mutfak",
+      "productGroup": "Endüstriyel Mutfak Ekipmanları",
+      "ratePercent": 19.32,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Ev",
+      "subCategory": "Sofra & Mutfak",
+      "productGroup": "Mutfak Gereçleri",
+      "ratePercent": 20.34,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Ev",
+      "subCategory": "Sofra & Mutfak",
+      "productGroup": "Pişirme-Hazırlama",
+      "ratePercent": 19.32,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Ev",
+      "subCategory": "Sofra & Mutfak",
+      "productGroup": "Sofra Grubu",
+      "ratePercent": 19.32,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Giyim",
+      "subCategory": "Giyim",
+      "productGroup": "Spor Giyim",
+      "ratePercent": 21.36,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Giyim",
+      "subCategory": "Giyim",
+      "productGroup": "Üst Giyim, Alt Giyim, Çocuk, İç Giyim, Dış Giyim, Mayo",
+      "ratePercent": 21.36,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Hobi & Eğlence",
+      "subCategory": "Çakmaklar",
+      "productGroup": "Çakmaklar",
+      "ratePercent": 20.34,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Hobi & Eğlence",
+      "subCategory": "Drone",
+      "productGroup": "Drone",
+      "ratePercent": 12.0,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Hobi & Eğlence",
+      "subCategory": "Drone Aksesuarı",
+      "productGroup": "Drone Aksesuarı",
+      "ratePercent": 18.31,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Hobi & Eğlence",
+      "subCategory": "Film",
+      "productGroup": "Film",
+      "ratePercent": 10.17,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Hobi & Eğlence",
+      "subCategory": "Hobi Malzemeleri",
+      "productGroup": "Hobi Malzemeleri",
+      "ratePercent": 20.34,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Hobi & Eğlence",
+      "subCategory": "Müzik Alet ve Ekipmanları, Müzik Albümü",
+      "productGroup": "Diğer Müzik Alet ve Ekipmanları, Müzik Albümü",
+      "ratePercent": 14.24,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Hobi & Eğlence",
+      "subCategory": "Müzik Alet ve Ekipmanları, Müzik Albümü",
+      "productGroup": "Gitar, Piyano, Plak, Org, Keman, DJ Urunleri, Mikrofon ve Aksesuarlar, Bağlama, Kayıt Teknolojileri, Amfi, Bateri, Stüdyo Kulaklık, Klarnet, Plak",
+      "ratePercent": 14.24,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Hobi & Eğlence",
+      "subCategory": "Parti ve Yılbaşı Ürünleri",
+      "productGroup": "Led Işık, Düğün & Kına & Nikah, Diğer Parti Ürünleri",
+      "ratePercent": 20.34,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Hobi & Eğlence",
+      "subCategory": "Parti ve Yılbaşı Ürünleri",
+      "productGroup": "Yılbaşı Ağacı, Yılbaşı Süsleri, Diğer Yılbaşı Ürünleri",
+      "ratePercent": 20.34,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Hobi & Eğlence",
+      "subCategory": "Pikap & Gramofon",
+      "productGroup": "Pikap & Gramofon",
+      "ratePercent": 14.24,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Hobi & Eğlence",
+      "subCategory": "RC Araç ve Aksesuarlar",
+      "productGroup": "RC Araç ve Aksesuarlar",
+      "ratePercent": 16.27,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Hobi & Eğlence",
+      "subCategory": "Yetişkin Hobi ve Oyun",
+      "productGroup": "Diğer Yetişkin Hobi ve Oyun",
+      "ratePercent": 18.31,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Hobi & Eğlence",
+      "subCategory": "Yetişkin Hobi ve Oyun",
+      "productGroup": "Hediyelik Ürün, Oyun Grupları",
+      "ratePercent": 18.31,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Kitap",
+      "subCategory": "E-Kitap",
+      "productGroup": "E-Kitap Akseuarları",
+      "ratePercent": 22.0,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Kitap",
+      "subCategory": "Kitap",
+      "productGroup": "Aktivite Eğitici Kitaplar",
+      "ratePercent": 12.2,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Kitap",
+      "subCategory": "Kitap",
+      "productGroup": "Çizgi Roman, Dergi ve Gazete",
+      "ratePercent": 12.2,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Kitap",
+      "subCategory": "Kitap",
+      "productGroup": "Çocuk ve Ebeveyn Kitapları",
+      "ratePercent": 12.2,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Kitap",
+      "subCategory": "Kitap",
+      "productGroup": "Diğer Kitaplar",
+      "ratePercent": 12.2,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Kitap",
+      "subCategory": "Kitap",
+      "productGroup": "Din Kitabı",
+      "ratePercent": 13.22,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Kitap",
+      "subCategory": "Kitap",
+      "productGroup": "Eğitim Kitapları",
+      "ratePercent": 13.22,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Kitap",
+      "subCategory": "Kitap",
+      "productGroup": "Roman, Kişisel Gelişim Kitapları",
+      "ratePercent": 12.2,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Kırtasiye & Ofis Malzemeleri",
+      "subCategory": "Boya Malzemeleri, Sanatsal Malzemeler, Sanatsal Kağıtlar & Kalemler",
+      "productGroup": "Akrilik Boya, Sanatsal Kağıtlar & Kalemler, Tuval, Boya Malzemeleri",
+      "ratePercent": 16.78,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Kırtasiye & Ofis Malzemeleri",
+      "subCategory": "Dosyalama / Arşivleme, Ofis Sarf Tüketim Malzemeleri, Diğer Kırtasiye Malzemeleri",
+      "productGroup": "Suluk & Matara, Yazı Tahtası, Etiketler, Bant & Bant Makinesi, Hesap Makinesi, Dosyalar, Klasörler, Kırtasiye Seti, Diğer Kırtasiye Malzemeleri, Keçeli Kalemler, Fosforlu Kalemler, Uçlu Kalem, Kurşun Kalemler, Tükenmez Kalemler, Teknik Çizim Kalemi, Diğer Kalemler",
+      "ratePercent": 18.31,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Kırtasiye & Ofis Malzemeleri",
+      "subCategory": "Fotokopi ve Baskı Kağıtları",
+      "productGroup": "Fotokopi ve Baskı Kağıtları",
+      "ratePercent": 8.5,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Kırtasiye & Ofis Malzemeleri",
+      "subCategory": "Kırtasiye Kağıt Ürünleri",
+      "productGroup": "Defterler, Ajanda",
+      "ratePercent": 13.22,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Kırtasiye & Ofis Malzemeleri",
+      "subCategory": "Kırtasiye Kağıt Ürünleri",
+      "productGroup": "Diğer Kırtasiye Kağıt Ürünleri",
+      "ratePercent": 15.25,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Kırtasiye & Ofis Malzemeleri",
+      "subCategory": "Ofis Teknolojileri",
+      "productGroup": "Ofis Makinesi ve Yazarkasa, Piller & Şarj Cihazları",
+      "ratePercent": 13.73,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Kozmetik & Kişisel Bakım",
+      "subCategory": "Kişisel Bakım",
+      "productGroup": "Ağda ve Epilasyon",
+      "ratePercent": 16.78,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Kozmetik & Kişisel Bakım",
+      "subCategory": "Kişisel Bakım",
+      "productGroup": "Ağız Bakım",
+      "ratePercent": 16.27,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Kozmetik & Kişisel Bakım",
+      "subCategory": "Kişisel Bakım",
+      "productGroup": "Banyo & Duş Ürünleri, Kolonya, Ayak Bakımı, El & Tırnak Bakımı, Vücut Spreyi",
+      "ratePercent": 16.78,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Kozmetik & Kişisel Bakım",
+      "subCategory": "Kişisel Bakım",
+      "productGroup": "Diş Macunu",
+      "ratePercent": 16.27,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Kozmetik & Kişisel Bakım",
+      "subCategory": "Kişisel Bakım",
+      "productGroup": "Günlük Ped, Hijyenik Ped",
+      "ratePercent": 16.27,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Kozmetik & Kişisel Bakım",
+      "subCategory": "Kişisel Bakım",
+      "productGroup": "Islak Tıraş",
+      "ratePercent": 16.78,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Kozmetik & Kişisel Bakım",
+      "subCategory": "Kişisel Bakım",
+      "productGroup": "Kadın Hijyen",
+      "ratePercent": 16.27,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Kozmetik & Kişisel Bakım",
+      "subCategory": "Kişisel Bakım",
+      "productGroup": "Saç Bakım",
+      "ratePercent": 16.78,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Kozmetik & Kişisel Bakım",
+      "subCategory": "Kişisel Bakım",
+      "productGroup": "Şarj Edebilir Diş Fırçası/Pilli Diş Fırçası ve Başlıkları",
+      "ratePercent": 12.2,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Kozmetik & Kişisel Bakım",
+      "subCategory": "Kişisel Bakım",
+      "productGroup": "Tıraş Bıçağı",
+      "ratePercent": 16.78,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Kozmetik & Kişisel Bakım",
+      "subCategory": "Kozmetik",
+      "productGroup": "Cilt Bakım",
+      "ratePercent": 16.27,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Kozmetik & Kişisel Bakım",
+      "subCategory": "Kozmetik",
+      "productGroup": "Makyaj",
+      "ratePercent": 16.78,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Kozmetik & Kişisel Bakım",
+      "subCategory": "Kozmetik",
+      "productGroup": "Parfüm ve Deodorant",
+      "ratePercent": 16.27,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Mobilya",
+      "subCategory": "Bahçe & Balkon Mobilyası",
+      "productGroup": "Salıncak & Hamak,Saksılık, Bahçe Sandalyesi,Bahçe Masası,Şezlong,Armut Koltuk,Şemsiye & Tente, Bahçe Dolabı,Bahçe Minderi, Bahçe Koruma Örtüsü",
+      "ratePercent": 20.5,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Mobilya",
+      "subCategory": "Bebek & Çocuk Odası Mobilyası",
+      "productGroup": "Çocuk & Montessori Kitaplık,Bebek Odası Sandalye & Koltuk, Ranza, Arabalı Yatak",
+      "ratePercent": 18.5,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Mobilya",
+      "subCategory": "Bebek & Çocuk Odası Mobilyası",
+      "productGroup": "Oyuncak Dolabı, Oyun & Aktivite Masası,Bebek & Çocuk Yatak,Çocuk Dolap & Gardırop ,Çocuk Çalışma Sandalyesi,Çocuk Çalışma Masası,Çocuk Komodin & Şifonyer, Çocuk Hamakları, Montessori Çocuk Odası, Öğrenme Kulesi, Beşik, Çocuk & Montessori Karyola",
+      "ratePercent": 20.5,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Mobilya",
+      "subCategory": "Mutfak & Banyo Mobilyası",
+      "productGroup": "Çok Amaçlı Dolaplar, Banyo Dolabı,Mutfak Sandalyeleri,Mutfak Rafları,Mutfak Masaları, Tabureler,Hazır Mutfak Dolapları",
+      "ratePercent": 20.5,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Mobilya",
+      "subCategory": "Ofis Mobilyaları",
+      "productGroup": "Kitaplık,Duvar Rafı,Laptop Sehpası,Çalışma Masası, Çalışma Sandalyesi, Ofis Koltukları ve Kanepeleri, Ofis Masaları,Ofis Dolapları,Keson,Ofis Sehpası",
+      "ratePercent": 20.5,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Mobilya",
+      "subCategory": "Ofis Mobilyaları",
+      "productGroup": "Oyuncu Koltuğu , Oyuncu Masası",
+      "ratePercent": 18.5,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Mobilya",
+      "subCategory": "Salon Mobilyası",
+      "productGroup": "Ayakkabılık,Yemek Masası,Portmanto,Berjer, Dresuar,TV Koltuğu, Yemek Odası Sandalyesi, Vitrin & Gümüşlük, Portmanto Askılık,Dergilik & Gazetelikler, Yan Sehpa, Zigon,TV Sehpaları & Üniteleri,Orta Sehpa, Konsol, Puf & Bench, Şaraplık",
+      "ratePercent": 20.5,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Mobilya",
+      "subCategory": "Takım Mobilyalar",
+      "productGroup": "Köşe Takımı,Koltuk Takımları,Yemek Odası Takımı,Bahçe Takımları, Bebek Odası Takımı,Çocuk Odası Takımı,Genç Odası Takımı,Çocuk & Genç Odası Takımı,Mutfak Masası Takımları,Ofis Takımları,Kanepe,Şark Köşesi,Yatak Odası Takımı, Mutfak Adası, Çay Seti Koltuk Takımı",
+      "ratePercent": 18.5,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Mobilya",
+      "subCategory": "Yatak Odası Mobilyası",
+      "productGroup": "Baza",
+      "ratePercent": 18.5,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Mobilya",
+      "subCategory": "Yatak Odası Mobilyası",
+      "productGroup": "Dolap ve Gardırop,Askılık, Şifonyer,Makyaj Masası & Tuvalet Masası,Bez Dolaplar,Komodin, Sandıklar,Takı ve Aksesuar Dolapları, Yatak,Karyola, Yatak Pedi & Şiltesi,Yatak / Baza Başlığı",
+      "ratePercent": 20.5,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Otomobil & Motosiklet",
+      "subCategory": "Akü ve Akü Takviye Kabloları",
+      "productGroup": "Akü ve Akü Takviye Kabloları",
+      "ratePercent": 13.5,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Otomobil & Motosiklet",
+      "subCategory": "Elektrikli Motosiklet",
+      "productGroup": "Elektrikli Motosiklet",
+      "ratePercent": 8.5,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Otomobil & Motosiklet",
+      "subCategory": "Jantlar& Jant Kapakları",
+      "productGroup": "Jant, Jant Kapakları",
+      "ratePercent": 13.5,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Otomobil & Motosiklet",
+      "subCategory": "Motor Bakım Ürünleri",
+      "productGroup": "Motor Bakım Ürünleri",
+      "ratePercent": 13.5,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Otomobil & Motosiklet",
+      "subCategory": "Motosiklet Aksesuarları, Motosiklet Koruma Ekipmanları, Motosiklet Bakım, Motosiklet Ekipmanları, Motosiklet Giyim",
+      "productGroup": "Motosiklet Aksesuarları, Motosiklet Koruma Ekipmanları, Motosiklet Bakım, Motosiklet Ekipmanları, Motosiklet Giyim",
+      "ratePercent": 15.0,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Otomobil & Motosiklet",
+      "subCategory": "Motosiklet Çanta ve Kasklar",
+      "productGroup": "Motorcu Sırt Çantaları",
+      "ratePercent": 13.5,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Otomobil & Motosiklet",
+      "subCategory": "Motosiklet Çanta ve Kasklar",
+      "productGroup": "Motosiklet Çantaları, Motosiklet Kaskları",
+      "ratePercent": 14.0,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Otomobil & Motosiklet",
+      "subCategory": "Motosiklet Yedek Parça",
+      "productGroup": "Motosiklet Yedek Parça",
+      "ratePercent": 16.5,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Otomobil & Motosiklet",
+      "subCategory": "Oto Aksesuar",
+      "productGroup": "Oto Aksesuar",
+      "ratePercent": 16.5,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Otomobil & Motosiklet",
+      "subCategory": "Oto Aksesuar",
+      "productGroup": "Oto Branda",
+      "ratePercent": 16.5,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Otomobil & Motosiklet",
+      "subCategory": "Oto Bakım / Temizlik Ürünleri, Lastik Bakım Ürünleri",
+      "productGroup": "Oto Bakım / Temizlik Ürünleri, Lastik Bakım Ürünleri",
+      "ratePercent": 16.5,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Otomobil & Motosiklet",
+      "subCategory": "Oto Ses Görüntü Sistemleri",
+      "productGroup": "Oto Ses Görüntü Sistemleri",
+      "ratePercent": 14.0,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Otomobil & Motosiklet",
+      "subCategory": "Oto ve Motosiklet Lastikleri",
+      "productGroup": "Motosiklet Lastikleri",
+      "ratePercent": 11.0,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Otomobil & Motosiklet",
+      "subCategory": "Oto ve Motosiklet Lastikleri",
+      "productGroup": "Oto Lastikleri",
+      "ratePercent": 9.5,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Otomobil & Motosiklet",
+      "subCategory": "Otomobil Yedek Parça & Oto Krom Aksesuar",
+      "productGroup": "Otomobil Yedek Parça & Oto Krom Aksesuar",
+      "ratePercent": 14.0,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Otomobil & Motosiklet",
+      "subCategory": "Yağ ve Motor Katkıları",
+      "productGroup": "Yağ ve Motor Katkıları, Yakıt Tasarruf Ürünleri",
+      "ratePercent": 14.0,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Spor",
+      "subCategory": "Outdoor Ekipmanları",
+      "productGroup": "Aksiyon Kamera Aksesuarları",
+      "ratePercent": 15.5,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Spor",
+      "subCategory": "Outdoor Ekipmanları",
+      "productGroup": "Aksiyon Kameraları",
+      "ratePercent": 12.0,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Spor",
+      "subCategory": "Outdoor Ekipmanları",
+      "productGroup": "Avcılık & Balıkçılık",
+      "ratePercent": 15.5,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Spor",
+      "subCategory": "Outdoor Ekipmanları",
+      "productGroup": "Çadır, Şişme Yataklar - Koltuklar,Kamp Mutfağı, Soğutucu - Buzluk, Diğer Kamp Ürünleri",
+      "ratePercent": 15.5,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Spor",
+      "subCategory": "Outdoor Ekipmanları",
+      "productGroup": "Diğer Outdoor Ekipman ve Aksesuarları",
+      "ratePercent": 15.5,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Spor",
+      "subCategory": "Outdoor Ekipmanları",
+      "productGroup": "Dürbün, Teleskop, GPS Cihazları, Lazerler",
+      "ratePercent": 15.5,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Spor",
+      "subCategory": "Outdoor Ekipmanları",
+      "productGroup": "Kamp Masa&Sandalye Seti, Kamp Sandalyesi, Kamp Masası",
+      "ratePercent": 15.5,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Spor",
+      "subCategory": "Outdoor Ekipmanları",
+      "productGroup": "Kamp Matarası, Mug",
+      "ratePercent": 15.5,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Spor",
+      "subCategory": "Outdoor Ekipmanları",
+      "productGroup": "Tekne & Yat Ekipmanları",
+      "ratePercent": 15.5,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Spor",
+      "subCategory": "Outdoor Ekipmanları",
+      "productGroup": "Tekne Motorları",
+      "ratePercent": 10.0,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Spor",
+      "subCategory": "Outdoor Ekipmanları",
+      "productGroup": "Termos",
+      "ratePercent": 16.0,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Spor",
+      "subCategory": "Spor Ekipmanları",
+      "productGroup": "Bisiklet",
+      "ratePercent": 13.0,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Spor",
+      "subCategory": "Spor Ekipmanları",
+      "productGroup": "Bisiklet Aksesuarları, Elektrikli Scooter Aksesuarları, Elektrikli Bisiklet Aksesuarları, Kaykay Aksesuarları, Scooter Akseuarları",
+      "ratePercent": 12.0,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Spor",
+      "subCategory": "Spor Ekipmanları",
+      "productGroup": "Branş Sporları",
+      "ratePercent": 15.5,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Spor",
+      "subCategory": "Spor Ekipmanları",
+      "productGroup": "Dambıl ve Ağırlıklar",
+      "ratePercent": 13.5,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Spor",
+      "subCategory": "Spor Ekipmanları",
+      "productGroup": "Diğer Spor Aksesuarları",
+      "ratePercent": 15.5,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Spor",
+      "subCategory": "Spor Ekipmanları",
+      "productGroup": "Elektrikli Scooter, Elektrikli Bisiklet,Hoverboard",
+      "ratePercent": 12.0,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Spor",
+      "subCategory": "Spor Ekipmanları",
+      "productGroup": "Koşu Bandı, Kondisyon Bisikleti, Kondisyon Küreği, Çalışma İstasyonları, Mekik Aleti, Mekik Sehpası",
+      "ratePercent": 13.0,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Spor",
+      "subCategory": "Spor Ekipmanları",
+      "productGroup": "Paten, Buz Pateni, Kaykay, Scooter",
+      "ratePercent": 13.0,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Spor",
+      "subCategory": "Spor Ekipmanları",
+      "productGroup": "Pilates & Yoga",
+      "ratePercent": 15.5,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Spor",
+      "subCategory": "Spor Ekipmanları",
+      "productGroup": "Şişme Bot, Havuz, Kano",
+      "ratePercent": 12.0,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Spor",
+      "subCategory": "Spor Ekipmanları",
+      "productGroup": "Snowboard, Kızak, Kayak Takımı, Kış Sporları",
+      "ratePercent": 15.5,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Spor",
+      "subCategory": "Spor Ekipmanları",
+      "productGroup": "Yüzme Malzemeleri, Yüzücü Aksesuarları, Dalış Aksesuarları",
+      "ratePercent": 16.0,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Süpermarket",
+      "subCategory": "Anne Bakım",
+      "productGroup": "Göğüs Ucu Kremi, Vücut Kremleri, Göğüs Pedleri / Koruyucular",
+      "ratePercent": 17.29,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Süpermarket",
+      "subCategory": "Bebek Bakım",
+      "productGroup": "Bebek Bakım Örtüsü",
+      "ratePercent": 17.29,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Süpermarket",
+      "subCategory": "Bebek Bakım",
+      "productGroup": "Bebek Bakım Seti",
+      "ratePercent": 17.29,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Süpermarket",
+      "subCategory": "Bebek Bakım",
+      "productGroup": "Bebek Bakım ve Kozmetik, Bebek Sağlık Ürünleri, Diğer Bebek Bakım Ürünleri",
+      "ratePercent": 17.29,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Süpermarket",
+      "subCategory": "Bebek Bakım",
+      "productGroup": "Bebek Bezi",
+      "ratePercent": 11.19,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Süpermarket",
+      "subCategory": "Bebek Bakım",
+      "productGroup": "Bebek Güneş Kremi",
+      "ratePercent": 17.29,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Süpermarket",
+      "subCategory": "Bebek Bakım",
+      "productGroup": "Bebek Islak Mendil / Havlu",
+      "ratePercent": 11.19,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Süpermarket",
+      "subCategory": "Bebek Bakım",
+      "productGroup": "Bebek Kremi ve Yağı",
+      "ratePercent": 17.29,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Süpermarket",
+      "subCategory": "Bebek Bakım",
+      "productGroup": "Bebek Şampuanı",
+      "ratePercent": 17.29,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Süpermarket",
+      "subCategory": "Bebek Beslenme",
+      "productGroup": "Bebek Ek Besin, Bebek Maması, Süt Arttırıcı İçecekler",
+      "ratePercent": 14.24,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Süpermarket",
+      "subCategory": "Bebek Beslenme",
+      "productGroup": "Bebek Sütü, Devam Sütü",
+      "ratePercent": 14.24,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Süpermarket",
+      "subCategory": "Ev Bakım ve Temizlik",
+      "productGroup": "Bebek Deterjanı",
+      "ratePercent": 12.2,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Süpermarket",
+      "subCategory": "Ev Bakım ve Temizlik",
+      "productGroup": "Bulaşık Makinesi Deterjanı",
+      "ratePercent": 12.2,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Süpermarket",
+      "subCategory": "Ev Bakım ve Temizlik",
+      "productGroup": "Bulaşık Yıkama",
+      "ratePercent": 12.2,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Süpermarket",
+      "subCategory": "Ev Bakım ve Temizlik",
+      "productGroup": "Çamaşır Deterjanı",
+      "ratePercent": 12.2,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Süpermarket",
+      "subCategory": "Ev Bakım ve Temizlik",
+      "productGroup": "Çamaşır Yıkama Yan Ürünleri",
+      "ratePercent": 12.2,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Süpermarket",
+      "subCategory": "Ev Bakım ve Temizlik",
+      "productGroup": "Elde Bulaşık Deterjanı",
+      "ratePercent": 12.2,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Süpermarket",
+      "subCategory": "Ev Bakım ve Temizlik",
+      "productGroup": "Ev ve Temizlik Gereçleri",
+      "ratePercent": 12.2,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Süpermarket",
+      "subCategory": "Ev Bakım ve Temizlik",
+      "productGroup": "Islak Mendil",
+      "ratePercent": 11.19,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Süpermarket",
+      "subCategory": "Ev Bakım ve Temizlik",
+      "productGroup": "Kağıt Havlu",
+      "ratePercent": 12.2,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Süpermarket",
+      "subCategory": "Ev Bakım ve Temizlik",
+      "productGroup": "Kağıt Peçete, Mendil",
+      "ratePercent": 12.2,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Süpermarket",
+      "subCategory": "Ev Bakım ve Temizlik",
+      "productGroup": "Paspas ve Mop",
+      "ratePercent": 13.22,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Süpermarket",
+      "subCategory": "Ev Bakım ve Temizlik",
+      "productGroup": "Temizlik Ürünleri",
+      "ratePercent": 12.2,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Süpermarket",
+      "subCategory": "Ev Bakım ve Temizlik",
+      "productGroup": "Tuvalet Kağıdı",
+      "ratePercent": 12.2,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Süpermarket",
+      "subCategory": "Gıda & İçecek",
+      "productGroup": "Atıştırmalık, Kuru Gıda, Süt ve Kahvaltılık",
+      "ratePercent": 15.25,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Süpermarket",
+      "subCategory": "Gıda & İçecek",
+      "productGroup": "Bardak Poşet Çay",
+      "ratePercent": 15.25,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Süpermarket",
+      "subCategory": "Gıda & İçecek",
+      "productGroup": "Çikolata, Sıcak Çikolata",
+      "ratePercent": 12.2,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Süpermarket",
+      "subCategory": "Gıda & İçecek",
+      "productGroup": "Demlik Poşet Çay",
+      "ratePercent": 12.2,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Süpermarket",
+      "subCategory": "Gıda & İçecek",
+      "productGroup": "Diğer Gıda Ürünleri",
+      "ratePercent": 15.25,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Süpermarket",
+      "subCategory": "Gıda & İçecek",
+      "productGroup": "Dökme Çay",
+      "ratePercent": 8.14,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Süpermarket",
+      "subCategory": "Gıda & İçecek",
+      "productGroup": "Enerji İçeceği",
+      "ratePercent": 15.25,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Süpermarket",
+      "subCategory": "Gıda & İçecek",
+      "productGroup": "Filtre ve Çekirdek Kahve",
+      "ratePercent": 12.2,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Süpermarket",
+      "subCategory": "Gıda & İçecek",
+      "productGroup": "Granül Kahve",
+      "ratePercent": 12.2,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Süpermarket",
+      "subCategory": "Gıda & İçecek",
+      "productGroup": "Gurme & Organik Ürünler",
+      "ratePercent": 15.25,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Süpermarket",
+      "subCategory": "Gıda & İçecek",
+      "productGroup": "Hazır Noodle",
+      "ratePercent": 15.25,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Süpermarket",
+      "subCategory": "Gıda & İçecek",
+      "productGroup": "Helva",
+      "ratePercent": 15.25,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Süpermarket",
+      "subCategory": "Gıda & İçecek",
+      "productGroup": "Kapsül Kahve",
+      "ratePercent": 12.2,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Süpermarket",
+      "subCategory": "Gıda & İçecek",
+      "productGroup": "Krem Çikolata ve Ezme",
+      "ratePercent": 12.2,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Süpermarket",
+      "subCategory": "Gıda & İçecek",
+      "productGroup": "Küvertür, Pul Çikolata",
+      "ratePercent": 12.2,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Süpermarket",
+      "subCategory": "Gıda & İçecek",
+      "productGroup": "Özel Ezme",
+      "ratePercent": 15.25,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Süpermarket",
+      "subCategory": "Gıda & İçecek",
+      "productGroup": "Peynir",
+      "ratePercent": 8.14,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Süpermarket",
+      "subCategory": "Gıda & İçecek",
+      "productGroup": "Polen ve Propolis",
+      "ratePercent": 15.25,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Süpermarket",
+      "subCategory": "Gıda & İçecek",
+      "productGroup": "Sıvı Yağ",
+      "ratePercent": 8.14,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Süpermarket",
+      "subCategory": "Gıda & İçecek",
+      "productGroup": "Sürülebilir Çikolata",
+      "ratePercent": 12.2,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Süpermarket",
+      "subCategory": "Gıda & İçecek",
+      "productGroup": "Tahin",
+      "ratePercent": 15.25,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Süpermarket",
+      "subCategory": "Gıda & İçecek",
+      "productGroup": "Ton Balığı",
+      "ratePercent": 15.25,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Süpermarket",
+      "subCategory": "Gıda & İçecek",
+      "productGroup": "Türk Kahvesi",
+      "ratePercent": 10.17,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Süpermarket",
+      "subCategory": "Gıda & İçecek",
+      "productGroup": "Zeytinyağı",
+      "ratePercent": 10.17,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Süpermarket",
+      "subCategory": "Pet Shop",
+      "productGroup": "Diğer Petshop ürünleri",
+      "ratePercent": 18.31,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Süpermarket",
+      "subCategory": "Pet Shop",
+      "productGroup": "Kedi Konserve Maması",
+      "ratePercent": 15.25,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Süpermarket",
+      "subCategory": "Pet Shop",
+      "productGroup": "Kedi Kumu",
+      "ratePercent": 15.25,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Süpermarket",
+      "subCategory": "Pet Shop",
+      "productGroup": "Kedi Kuru Mama ve Köpek Kuru/Koserve Mamaları",
+      "ratePercent": 15.25,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Süpermarket",
+      "subCategory": "Pet Shop",
+      "productGroup": "Kedi Vitamini",
+      "ratePercent": 18.31,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Süpermarket",
+      "subCategory": "Sağlık",
+      "productGroup": "Cinsel Sağlık",
+      "ratePercent": 17.29,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Süpermarket",
+      "subCategory": "Sağlık",
+      "productGroup": "Genel Sağlık",
+      "ratePercent": 17.29,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Süpermarket",
+      "subCategory": "Sağlık",
+      "productGroup": "Gıda Takviyesi ve Vitamin",
+      "ratePercent": 17.29,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Süpermarket",
+      "subCategory": "Sağlık",
+      "productGroup": "Hasta Bezi ve Temizlik",
+      "ratePercent": 17.29,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Süpermarket",
+      "subCategory": "Sağlık",
+      "productGroup": "Medikal Maske",
+      "ratePercent": 15.25,
+      "vatIncluded": true,
+      "serviceFees": []
+    },
+    {
+      "marketplace": "trendyol",
+      "mainCategory": "Süpermarket",
+      "subCategory": "Sağlık",
+      "productGroup": "Sporcu Besini & Supplementler",
+      "ratePercent": 17.29,
+      "vatIncluded": true,
+      "serviceFees": []
+    }
+  ],
+  "skipped": []
+}

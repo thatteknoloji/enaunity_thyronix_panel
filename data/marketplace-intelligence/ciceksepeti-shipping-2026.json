@@ -1,0 +1,5071 @@
+{
+  "source": {
+    "sourceName": "ÇiçekSepeti Kargo Ücretleri",
+    "sourceFile": "c_ic_ek.pdf",
+    "sourceType": "pdf",
+    "effectiveDate": "2026-01-01",
+    "vatIncluded": false,
+    "vatNote": "KDV ve posta hizmet bedeli hariç",
+    "version": "2026",
+    "confidence": "official"
+  },
+  "carriers": {
+    "surat": "Sürat",
+    "yurtici": "Yurtiçi",
+    "mng": "MNG",
+    "aras": "Aras",
+    "ups": "UPS"
+  },
+  "brackets": [
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "surat",
+      "desiMin": 0,
+      "desiMax": 0,
+      "price": 70.25,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "yurtici",
+      "desiMin": 0,
+      "desiMax": 0,
+      "price": 89.27,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "mng",
+      "desiMin": 0,
+      "desiMax": 0,
+      "price": 73.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "aras",
+      "desiMin": 0,
+      "desiMax": 0,
+      "price": 50.89,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "ups",
+      "desiMin": 0,
+      "desiMax": 0,
+      "price": 119.46,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "surat",
+      "desiMin": 1,
+      "desiMax": 1,
+      "price": 70.25,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "yurtici",
+      "desiMin": 1,
+      "desiMax": 1,
+      "price": 89.27,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "mng",
+      "desiMin": 1,
+      "desiMax": 1,
+      "price": 73.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "aras",
+      "desiMin": 1,
+      "desiMax": 1,
+      "price": 50.89,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "ups",
+      "desiMin": 1,
+      "desiMax": 1,
+      "price": 119.46,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "surat",
+      "desiMin": 2,
+      "desiMax": 2,
+      "price": 72.36,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "yurtici",
+      "desiMin": 2,
+      "desiMax": 2,
+      "price": 91.54,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "mng",
+      "desiMin": 2,
+      "desiMax": 2,
+      "price": 77.49,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "aras",
+      "desiMin": 2,
+      "desiMax": 2,
+      "price": 56.4,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "ups",
+      "desiMin": 2,
+      "desiMax": 2,
+      "price": 119.46,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "surat",
+      "desiMin": 3,
+      "desiMax": 3,
+      "price": 81.35,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "yurtici",
+      "desiMin": 3,
+      "desiMax": 3,
+      "price": 96.37,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "mng",
+      "desiMin": 3,
+      "desiMax": 3,
+      "price": 86.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "aras",
+      "desiMin": 3,
+      "desiMax": 3,
+      "price": 63.07,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "ups",
+      "desiMin": 3,
+      "desiMax": 3,
+      "price": 119.46,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "surat",
+      "desiMin": 4,
+      "desiMax": 4,
+      "price": 87.07,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "yurtici",
+      "desiMin": 4,
+      "desiMax": 4,
+      "price": 98.63,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "mng",
+      "desiMin": 4,
+      "desiMax": 4,
+      "price": 96.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "aras",
+      "desiMin": 4,
+      "desiMax": 4,
+      "price": 70.02,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "ups",
+      "desiMin": 4,
+      "desiMax": 4,
+      "price": 119.46,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "surat",
+      "desiMin": 5,
+      "desiMax": 5,
+      "price": 91.27,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "yurtici",
+      "desiMin": 5,
+      "desiMax": 5,
+      "price": 112.6,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "mng",
+      "desiMin": 5,
+      "desiMax": 5,
+      "price": 107.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "aras",
+      "desiMin": 5,
+      "desiMax": 5,
+      "price": 76.76,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "ups",
+      "desiMin": 5,
+      "desiMax": 5,
+      "price": 119.46,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "surat",
+      "desiMin": 6,
+      "desiMax": 6,
+      "price": 104.84,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "yurtici",
+      "desiMin": 6,
+      "desiMax": 6,
+      "price": 119.6,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "mng",
+      "desiMin": 6,
+      "desiMax": 6,
+      "price": 114.49,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "aras",
+      "desiMin": 6,
+      "desiMax": 6,
+      "price": 82.09,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "ups",
+      "desiMin": 6,
+      "desiMax": 6,
+      "price": 144.66,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "surat",
+      "desiMin": 7,
+      "desiMax": 7,
+      "price": 111.92,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "yurtici",
+      "desiMin": 7,
+      "desiMax": 7,
+      "price": 134.11,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "mng",
+      "desiMin": 7,
+      "desiMax": 7,
+      "price": 120.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "aras",
+      "desiMin": 7,
+      "desiMax": 7,
+      "price": 87.43,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "ups",
+      "desiMin": 7,
+      "desiMax": 7,
+      "price": 144.66,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "surat",
+      "desiMin": 8,
+      "desiMax": 8,
+      "price": 119.0,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "yurtici",
+      "desiMin": 8,
+      "desiMax": 8,
+      "price": 137.21,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "mng",
+      "desiMin": 8,
+      "desiMax": 8,
+      "price": 130.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "aras",
+      "desiMin": 8,
+      "desiMax": 8,
+      "price": 92.76,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "ups",
+      "desiMin": 8,
+      "desiMax": 8,
+      "price": 144.66,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "surat",
+      "desiMin": 9,
+      "desiMax": 9,
+      "price": 126.09,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "yurtici",
+      "desiMin": 9,
+      "desiMax": 9,
+      "price": 139.23,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "mng",
+      "desiMin": 9,
+      "desiMax": 9,
+      "price": 139.49,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "aras",
+      "desiMin": 9,
+      "desiMax": 9,
+      "price": 98.09,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "ups",
+      "desiMin": 9,
+      "desiMax": 9,
+      "price": 144.66,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "surat",
+      "desiMin": 10,
+      "desiMax": 10,
+      "price": 133.17,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "yurtici",
+      "desiMin": 10,
+      "desiMax": 10,
+      "price": 141.32,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "mng",
+      "desiMin": 10,
+      "desiMax": 10,
+      "price": 146.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "aras",
+      "desiMin": 10,
+      "desiMax": 10,
+      "price": 103.42,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "ups",
+      "desiMin": 10,
+      "desiMax": 10,
+      "price": 144.66,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "surat",
+      "desiMin": 11,
+      "desiMax": 11,
+      "price": 140.11,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "yurtici",
+      "desiMin": 11,
+      "desiMax": 11,
+      "price": 164.4,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "mng",
+      "desiMin": 11,
+      "desiMax": 11,
+      "price": 150.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "aras",
+      "desiMin": 11,
+      "desiMax": 11,
+      "price": 107.92,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "ups",
+      "desiMin": 11,
+      "desiMax": 11,
+      "price": 167.96,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "surat",
+      "desiMin": 12,
+      "desiMax": 12,
+      "price": 145.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "yurtici",
+      "desiMin": 12,
+      "desiMax": 12,
+      "price": 175.65,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "mng",
+      "desiMin": 12,
+      "desiMax": 12,
+      "price": 155.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "aras",
+      "desiMin": 12,
+      "desiMax": 12,
+      "price": 112.44,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "ups",
+      "desiMin": 12,
+      "desiMax": 12,
+      "price": 167.96,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "surat",
+      "desiMin": 13,
+      "desiMax": 13,
+      "price": 151.85,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "yurtici",
+      "desiMin": 13,
+      "desiMax": 13,
+      "price": 182.1,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "mng",
+      "desiMin": 13,
+      "desiMax": 13,
+      "price": 161.49,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "aras",
+      "desiMin": 13,
+      "desiMax": 13,
+      "price": 116.95,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "ups",
+      "desiMin": 13,
+      "desiMax": 13,
+      "price": 167.96,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "surat",
+      "desiMin": 14,
+      "desiMax": 14,
+      "price": 157.71,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "yurtici",
+      "desiMin": 14,
+      "desiMax": 14,
+      "price": 196.62,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "mng",
+      "desiMin": 14,
+      "desiMax": 14,
+      "price": 168.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "aras",
+      "desiMin": 14,
+      "desiMax": 14,
+      "price": 121.47,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "ups",
+      "desiMin": 14,
+      "desiMax": 14,
+      "price": 167.96,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "surat",
+      "desiMin": 15,
+      "desiMax": 15,
+      "price": 163.51,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "yurtici",
+      "desiMin": 15,
+      "desiMax": 15,
+      "price": 207.87,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "mng",
+      "desiMin": 15,
+      "desiMax": 15,
+      "price": 174.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "aras",
+      "desiMin": 15,
+      "desiMax": 15,
+      "price": 125.95,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "ups",
+      "desiMin": 15,
+      "desiMax": 15,
+      "price": 167.96,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "surat",
+      "desiMin": 16,
+      "desiMax": 16,
+      "price": 172.67,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "yurtici",
+      "desiMin": 16,
+      "desiMax": 16,
+      "price": 213.98,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "mng",
+      "desiMin": 16,
+      "desiMax": 16,
+      "price": 202.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "aras",
+      "desiMin": 16,
+      "desiMax": 16,
+      "price": 133.0,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "ups",
+      "desiMin": 16,
+      "desiMax": 16,
+      "price": 193.19,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "surat",
+      "desiMin": 17,
+      "desiMax": 17,
+      "price": 181.79,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "yurtici",
+      "desiMin": 17,
+      "desiMax": 17,
+      "price": 226.3,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "mng",
+      "desiMin": 17,
+      "desiMax": 17,
+      "price": 216.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "aras",
+      "desiMin": 17,
+      "desiMax": 17,
+      "price": 140.03,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "ups",
+      "desiMin": 17,
+      "desiMax": 17,
+      "price": 193.19,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "surat",
+      "desiMin": 18,
+      "desiMax": 18,
+      "price": 190.97,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "yurtici",
+      "desiMin": 18,
+      "desiMax": 18,
+      "price": 234.64,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "mng",
+      "desiMin": 18,
+      "desiMax": 18,
+      "price": 235.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "aras",
+      "desiMin": 18,
+      "desiMax": 18,
+      "price": 147.08,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "ups",
+      "desiMin": 18,
+      "desiMax": 18,
+      "price": 193.19,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "surat",
+      "desiMin": 19,
+      "desiMax": 19,
+      "price": 200.11,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "yurtici",
+      "desiMin": 19,
+      "desiMax": 19,
+      "price": 241.39,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "mng",
+      "desiMin": 19,
+      "desiMax": 19,
+      "price": 251.49,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "aras",
+      "desiMin": 19,
+      "desiMax": 19,
+      "price": 154.12,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "ups",
+      "desiMin": 19,
+      "desiMax": 19,
+      "price": 193.19,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "surat",
+      "desiMin": 20,
+      "desiMax": 20,
+      "price": 209.23,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "yurtici",
+      "desiMin": 20,
+      "desiMax": 20,
+      "price": 248.83,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "mng",
+      "desiMin": 20,
+      "desiMax": 20,
+      "price": 271.49,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "aras",
+      "desiMin": 20,
+      "desiMax": 20,
+      "price": 161.16,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "ups",
+      "desiMin": 20,
+      "desiMax": 20,
+      "price": 193.19,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "surat",
+      "desiMin": 21,
+      "desiMax": 21,
+      "price": 218.66,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "yurtici",
+      "desiMin": 21,
+      "desiMax": 21,
+      "price": 261.08,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "mng",
+      "desiMin": 21,
+      "desiMax": 21,
+      "price": 277.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "aras",
+      "desiMin": 21,
+      "desiMax": 21,
+      "price": 167.61,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "ups",
+      "desiMin": 21,
+      "desiMax": 21,
+      "price": 219.93,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "surat",
+      "desiMin": 22,
+      "desiMax": 22,
+      "price": 227.09,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "yurtici",
+      "desiMin": 22,
+      "desiMax": 22,
+      "price": 273.33,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "mng",
+      "desiMin": 22,
+      "desiMax": 22,
+      "price": 282.49,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "aras",
+      "desiMin": 22,
+      "desiMax": 22,
+      "price": 174.04,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "ups",
+      "desiMin": 22,
+      "desiMax": 22,
+      "price": 219.93,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "surat",
+      "desiMin": 23,
+      "desiMax": 23,
+      "price": 235.42,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "yurtici",
+      "desiMin": 23,
+      "desiMax": 23,
+      "price": 278.45,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "mng",
+      "desiMin": 23,
+      "desiMax": 23,
+      "price": 287.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "aras",
+      "desiMin": 23,
+      "desiMax": 23,
+      "price": 180.44,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "ups",
+      "desiMin": 23,
+      "desiMax": 23,
+      "price": 219.93,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "surat",
+      "desiMin": 24,
+      "desiMax": 24,
+      "price": 243.84,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "yurtici",
+      "desiMin": 24,
+      "desiMax": 24,
+      "price": 284.95,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "mng",
+      "desiMin": 24,
+      "desiMax": 24,
+      "price": 302.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "aras",
+      "desiMin": 24,
+      "desiMax": 24,
+      "price": 186.88,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "ups",
+      "desiMin": 24,
+      "desiMax": 24,
+      "price": 219.93,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "surat",
+      "desiMin": 25,
+      "desiMax": 25,
+      "price": 252.21,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "yurtici",
+      "desiMin": 25,
+      "desiMax": 25,
+      "price": 306.81,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "mng",
+      "desiMin": 25,
+      "desiMax": 25,
+      "price": 320.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "aras",
+      "desiMin": 25,
+      "desiMax": 25,
+      "price": 193.31,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "ups",
+      "desiMin": 25,
+      "desiMax": 25,
+      "price": 219.93,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "surat",
+      "desiMin": 26,
+      "desiMax": 26,
+      "price": 260.29,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "yurtici",
+      "desiMin": 26,
+      "desiMax": 26,
+      "price": 339.35,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "mng",
+      "desiMin": 26,
+      "desiMax": 26,
+      "price": 337.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "aras",
+      "desiMin": 26,
+      "desiMax": 26,
+      "price": 199.5,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "ups",
+      "desiMin": 26,
+      "desiMax": 26,
+      "price": 243.89,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "surat",
+      "desiMin": 27,
+      "desiMax": 27,
+      "price": 268.38,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "yurtici",
+      "desiMin": 27,
+      "desiMax": 27,
+      "price": 351.62,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "mng",
+      "desiMin": 27,
+      "desiMax": 27,
+      "price": 352.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "aras",
+      "desiMin": 27,
+      "desiMax": 27,
+      "price": 205.7,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "ups",
+      "desiMin": 27,
+      "desiMax": 27,
+      "price": 243.89,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "surat",
+      "desiMin": 28,
+      "desiMax": 28,
+      "price": 276.46,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "yurtici",
+      "desiMin": 28,
+      "desiMax": 28,
+      "price": 361.32,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "mng",
+      "desiMin": 28,
+      "desiMax": 28,
+      "price": 369.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "aras",
+      "desiMin": 28,
+      "desiMax": 28,
+      "price": 211.88,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "ups",
+      "desiMin": 28,
+      "desiMax": 28,
+      "price": 243.89,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "surat",
+      "desiMin": 29,
+      "desiMax": 29,
+      "price": 284.55,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "yurtici",
+      "desiMin": 29,
+      "desiMax": 29,
+      "price": 365.13,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "mng",
+      "desiMin": 29,
+      "desiMax": 29,
+      "price": 385.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "aras",
+      "desiMin": 29,
+      "desiMax": 29,
+      "price": 218.09,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "ups",
+      "desiMin": 29,
+      "desiMax": 29,
+      "price": 243.89,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "surat",
+      "desiMin": 30,
+      "desiMax": 30,
+      "price": 292.65,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "yurtici",
+      "desiMin": 30,
+      "desiMax": 30,
+      "price": 378.71,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "mng",
+      "desiMin": 30,
+      "desiMax": 30,
+      "price": 402.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "aras",
+      "desiMin": 30,
+      "desiMax": 30,
+      "price": 224.28,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "ups",
+      "desiMin": 30,
+      "desiMax": 30,
+      "price": 243.89,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "surat",
+      "desiMin": 31,
+      "desiMax": 31,
+      "price": 303.58,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "yurtici",
+      "desiMin": 31,
+      "desiMax": 31,
+      "price": 389.37,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "mng",
+      "desiMin": 31,
+      "desiMax": 31,
+      "price": 429.48,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "aras",
+      "desiMin": 31,
+      "desiMax": 31,
+      "price": 230.4,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "ups",
+      "desiMin": 31,
+      "desiMax": 31,
+      "price": 298.33,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "surat",
+      "desiMin": 32,
+      "desiMax": 32,
+      "price": 314.51,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "yurtici",
+      "desiMin": 32,
+      "desiMax": 32,
+      "price": 400.34,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "mng",
+      "desiMin": 32,
+      "desiMax": 32,
+      "price": 455.97,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "aras",
+      "desiMin": 32,
+      "desiMax": 32,
+      "price": 236.52,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "ups",
+      "desiMin": 32,
+      "desiMax": 32,
+      "price": 298.33,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "surat",
+      "desiMin": 33,
+      "desiMax": 33,
+      "price": 325.44,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "yurtici",
+      "desiMin": 33,
+      "desiMax": 33,
+      "price": 410.95,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "mng",
+      "desiMin": 33,
+      "desiMax": 33,
+      "price": 482.46,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "aras",
+      "desiMin": 33,
+      "desiMax": 33,
+      "price": 242.64,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "ups",
+      "desiMin": 33,
+      "desiMax": 33,
+      "price": 298.33,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "surat",
+      "desiMin": 34,
+      "desiMax": 34,
+      "price": 336.37,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "yurtici",
+      "desiMin": 34,
+      "desiMax": 34,
+      "price": 421.55,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "mng",
+      "desiMin": 34,
+      "desiMax": 34,
+      "price": 508.95,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "aras",
+      "desiMin": 34,
+      "desiMax": 34,
+      "price": 248.76,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "ups",
+      "desiMin": 34,
+      "desiMax": 34,
+      "price": 298.33,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "surat",
+      "desiMin": 35,
+      "desiMax": 35,
+      "price": 347.3,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "yurtici",
+      "desiMin": 35,
+      "desiMax": 35,
+      "price": 432.56,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "mng",
+      "desiMin": 35,
+      "desiMax": 35,
+      "price": 535.44,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "aras",
+      "desiMin": 35,
+      "desiMax": 35,
+      "price": 254.88,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "ups",
+      "desiMin": 35,
+      "desiMax": 35,
+      "price": 298.33,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "surat",
+      "desiMin": 36,
+      "desiMax": 36,
+      "price": 358.23,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "yurtici",
+      "desiMin": 36,
+      "desiMax": 36,
+      "price": 443.33,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "mng",
+      "desiMin": 36,
+      "desiMax": 36,
+      "price": 561.93,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "aras",
+      "desiMin": 36,
+      "desiMax": 36,
+      "price": 261.0,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "ups",
+      "desiMin": 36,
+      "desiMax": 36,
+      "price": 298.33,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "surat",
+      "desiMin": 37,
+      "desiMax": 37,
+      "price": 369.16,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "yurtici",
+      "desiMin": 37,
+      "desiMax": 37,
+      "price": 454.13,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "mng",
+      "desiMin": 37,
+      "desiMax": 37,
+      "price": 588.42,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "aras",
+      "desiMin": 37,
+      "desiMax": 37,
+      "price": 267.12,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "ups",
+      "desiMin": 37,
+      "desiMax": 37,
+      "price": 298.33,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "surat",
+      "desiMin": 38,
+      "desiMax": 38,
+      "price": 380.09,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "yurtici",
+      "desiMin": 38,
+      "desiMax": 38,
+      "price": 464.9,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "mng",
+      "desiMin": 38,
+      "desiMax": 38,
+      "price": 614.91,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "aras",
+      "desiMin": 38,
+      "desiMax": 38,
+      "price": 273.24,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "ups",
+      "desiMin": 38,
+      "desiMax": 38,
+      "price": 298.33,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "surat",
+      "desiMin": 39,
+      "desiMax": 39,
+      "price": 391.02,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "yurtici",
+      "desiMin": 39,
+      "desiMax": 39,
+      "price": 475.71,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "mng",
+      "desiMin": 39,
+      "desiMax": 39,
+      "price": 641.4,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "aras",
+      "desiMin": 39,
+      "desiMax": 39,
+      "price": 279.36,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "ups",
+      "desiMin": 39,
+      "desiMax": 39,
+      "price": 298.33,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "surat",
+      "desiMin": 40,
+      "desiMax": 40,
+      "price": 401.95,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "yurtici",
+      "desiMin": 40,
+      "desiMax": 40,
+      "price": 486.47,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "mng",
+      "desiMin": 40,
+      "desiMax": 40,
+      "price": 667.89,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "aras",
+      "desiMin": 40,
+      "desiMax": 40,
+      "price": 285.48,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "ups",
+      "desiMin": 40,
+      "desiMax": 40,
+      "price": 298.33,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "surat",
+      "desiMin": 41,
+      "desiMax": 41,
+      "price": 412.88,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "yurtici",
+      "desiMin": 41,
+      "desiMax": 41,
+      "price": 497.26,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "mng",
+      "desiMin": 41,
+      "desiMax": 41,
+      "price": 694.38,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "aras",
+      "desiMin": 41,
+      "desiMax": 41,
+      "price": 291.6,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "ups",
+      "desiMin": 41,
+      "desiMax": 41,
+      "price": 388.14,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "surat",
+      "desiMin": 42,
+      "desiMax": 42,
+      "price": 423.81,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "yurtici",
+      "desiMin": 42,
+      "desiMax": 42,
+      "price": 508.09,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "mng",
+      "desiMin": 42,
+      "desiMax": 42,
+      "price": 720.87,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "aras",
+      "desiMin": 42,
+      "desiMax": 42,
+      "price": 297.72,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "ups",
+      "desiMin": 42,
+      "desiMax": 42,
+      "price": 388.14,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "surat",
+      "desiMin": 43,
+      "desiMax": 43,
+      "price": 434.74,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "yurtici",
+      "desiMin": 43,
+      "desiMax": 43,
+      "price": 518.83,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "mng",
+      "desiMin": 43,
+      "desiMax": 43,
+      "price": 747.36,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "aras",
+      "desiMin": 43,
+      "desiMax": 43,
+      "price": 303.84,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "ups",
+      "desiMin": 43,
+      "desiMax": 43,
+      "price": 388.14,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "surat",
+      "desiMin": 44,
+      "desiMax": 44,
+      "price": 445.67,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "yurtici",
+      "desiMin": 44,
+      "desiMax": 44,
+      "price": 529.72,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "mng",
+      "desiMin": 44,
+      "desiMax": 44,
+      "price": 773.85,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "aras",
+      "desiMin": 44,
+      "desiMax": 44,
+      "price": 309.96,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "ups",
+      "desiMin": 44,
+      "desiMax": 44,
+      "price": 388.14,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "surat",
+      "desiMin": 45,
+      "desiMax": 45,
+      "price": 456.6,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "yurtici",
+      "desiMin": 45,
+      "desiMax": 45,
+      "price": 540.45,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "mng",
+      "desiMin": 45,
+      "desiMax": 45,
+      "price": 800.34,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "aras",
+      "desiMin": 45,
+      "desiMax": 45,
+      "price": 316.08,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "ups",
+      "desiMin": 45,
+      "desiMax": 45,
+      "price": 388.14,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "surat",
+      "desiMin": 46,
+      "desiMax": 46,
+      "price": 467.53,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "yurtici",
+      "desiMin": 46,
+      "desiMax": 46,
+      "price": 551.22,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "mng",
+      "desiMin": 46,
+      "desiMax": 46,
+      "price": 826.83,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "aras",
+      "desiMin": 46,
+      "desiMax": 46,
+      "price": 322.2,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "ups",
+      "desiMin": 46,
+      "desiMax": 46,
+      "price": 388.14,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "surat",
+      "desiMin": 47,
+      "desiMax": 47,
+      "price": 478.46,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "yurtici",
+      "desiMin": 47,
+      "desiMax": 47,
+      "price": 562.06,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "mng",
+      "desiMin": 47,
+      "desiMax": 47,
+      "price": 853.32,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "aras",
+      "desiMin": 47,
+      "desiMax": 47,
+      "price": 328.32,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "ups",
+      "desiMin": 47,
+      "desiMax": 47,
+      "price": 388.14,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "surat",
+      "desiMin": 48,
+      "desiMax": 48,
+      "price": 489.39,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "yurtici",
+      "desiMin": 48,
+      "desiMax": 48,
+      "price": 572.81,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "mng",
+      "desiMin": 48,
+      "desiMax": 48,
+      "price": 879.81,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "aras",
+      "desiMin": 48,
+      "desiMax": 48,
+      "price": 334.44,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "ups",
+      "desiMin": 48,
+      "desiMax": 48,
+      "price": 388.14,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "surat",
+      "desiMin": 49,
+      "desiMax": 49,
+      "price": 500.32,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "yurtici",
+      "desiMin": 49,
+      "desiMax": 49,
+      "price": 583.62,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "mng",
+      "desiMin": 49,
+      "desiMax": 49,
+      "price": 906.3,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "aras",
+      "desiMin": 49,
+      "desiMax": 49,
+      "price": 340.56,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "ups",
+      "desiMin": 49,
+      "desiMax": 49,
+      "price": 388.14,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "surat",
+      "desiMin": 50,
+      "desiMax": 50,
+      "price": 511.25,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "yurtici",
+      "desiMin": 50,
+      "desiMax": 50,
+      "price": 594.37,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "mng",
+      "desiMin": 50,
+      "desiMax": 50,
+      "price": 932.79,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "aras",
+      "desiMin": 50,
+      "desiMax": 50,
+      "price": 346.68,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "ups",
+      "desiMin": 50,
+      "desiMax": 50,
+      "price": 388.14,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "surat",
+      "desiMin": 51,
+      "desiMax": 51,
+      "price": 522.18,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "yurtici",
+      "desiMin": 51,
+      "desiMax": 51,
+      "price": 605.14,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "mng",
+      "desiMin": 51,
+      "desiMax": 51,
+      "price": 959.28,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "aras",
+      "desiMin": 51,
+      "desiMax": 51,
+      "price": 352.8,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "ups",
+      "desiMin": 51,
+      "desiMax": 51,
+      "price": 399.23,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "surat",
+      "desiMin": 52,
+      "desiMax": 52,
+      "price": 533.11,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "yurtici",
+      "desiMin": 52,
+      "desiMax": 52,
+      "price": 616.02,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "mng",
+      "desiMin": 52,
+      "desiMax": 52,
+      "price": 985.77,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "aras",
+      "desiMin": 52,
+      "desiMax": 52,
+      "price": 358.92,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "ups",
+      "desiMin": 52,
+      "desiMax": 52,
+      "price": 410.33,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "surat",
+      "desiMin": 53,
+      "desiMax": 53,
+      "price": 544.04,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "yurtici",
+      "desiMin": 53,
+      "desiMax": 53,
+      "price": 626.75,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "mng",
+      "desiMin": 53,
+      "desiMax": 53,
+      "price": 1012.26,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "aras",
+      "desiMin": 53,
+      "desiMax": 53,
+      "price": 365.04,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "ups",
+      "desiMin": 53,
+      "desiMax": 53,
+      "price": 421.43,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "surat",
+      "desiMin": 54,
+      "desiMax": 54,
+      "price": 554.97,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "yurtici",
+      "desiMin": 54,
+      "desiMax": 54,
+      "price": 637.58,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "mng",
+      "desiMin": 54,
+      "desiMax": 54,
+      "price": 1038.75,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "aras",
+      "desiMin": 54,
+      "desiMax": 54,
+      "price": 371.16,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "ups",
+      "desiMin": 54,
+      "desiMax": 54,
+      "price": 432.53,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "surat",
+      "desiMin": 55,
+      "desiMax": 55,
+      "price": 565.9,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "yurtici",
+      "desiMin": 55,
+      "desiMax": 55,
+      "price": 648.34,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "mng",
+      "desiMin": 55,
+      "desiMax": 55,
+      "price": 1065.24,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "aras",
+      "desiMin": 55,
+      "desiMax": 55,
+      "price": 377.28,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "ups",
+      "desiMin": 55,
+      "desiMax": 55,
+      "price": 443.63,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "surat",
+      "desiMin": 56,
+      "desiMax": 56,
+      "price": 576.83,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "yurtici",
+      "desiMin": 56,
+      "desiMax": 56,
+      "price": 659.11,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "mng",
+      "desiMin": 56,
+      "desiMax": 56,
+      "price": 1091.73,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "aras",
+      "desiMin": 56,
+      "desiMax": 56,
+      "price": 383.4,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "ups",
+      "desiMin": 56,
+      "desiMax": 56,
+      "price": 454.72,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "surat",
+      "desiMin": 57,
+      "desiMax": 57,
+      "price": 587.76,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "yurtici",
+      "desiMin": 57,
+      "desiMax": 57,
+      "price": 669.94,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "mng",
+      "desiMin": 57,
+      "desiMax": 57,
+      "price": 1118.22,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "aras",
+      "desiMin": 57,
+      "desiMax": 57,
+      "price": 389.52,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "ups",
+      "desiMin": 57,
+      "desiMax": 57,
+      "price": 465.82,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "surat",
+      "desiMin": 58,
+      "desiMax": 58,
+      "price": 598.69,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "yurtici",
+      "desiMin": 58,
+      "desiMax": 58,
+      "price": 680.7,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "mng",
+      "desiMin": 58,
+      "desiMax": 58,
+      "price": 1144.71,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "aras",
+      "desiMin": 58,
+      "desiMax": 58,
+      "price": 395.64,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "ups",
+      "desiMin": 58,
+      "desiMax": 58,
+      "price": 476.92,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "surat",
+      "desiMin": 59,
+      "desiMax": 59,
+      "price": 609.62,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "yurtici",
+      "desiMin": 59,
+      "desiMax": 59,
+      "price": 691.56,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "mng",
+      "desiMin": 59,
+      "desiMax": 59,
+      "price": 1171.2,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "aras",
+      "desiMin": 59,
+      "desiMax": 59,
+      "price": 401.76,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "ups",
+      "desiMin": 59,
+      "desiMax": 59,
+      "price": 488.02,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "surat",
+      "desiMin": 60,
+      "desiMax": 60,
+      "price": 620.55,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "yurtici",
+      "desiMin": 60,
+      "desiMax": 60,
+      "price": 702.33,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "mng",
+      "desiMin": 60,
+      "desiMax": 60,
+      "price": 1197.69,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "aras",
+      "desiMin": 60,
+      "desiMax": 60,
+      "price": 407.88,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "ups",
+      "desiMin": 60,
+      "desiMax": 60,
+      "price": 499.12,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "surat",
+      "desiMin": 61,
+      "desiMax": 61,
+      "price": 631.48,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "yurtici",
+      "desiMin": 61,
+      "desiMax": 61,
+      "price": 713.06,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "mng",
+      "desiMin": 61,
+      "desiMax": 61,
+      "price": 1224.18,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "aras",
+      "desiMin": 61,
+      "desiMax": 61,
+      "price": 414.0,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "ups",
+      "desiMin": 61,
+      "desiMax": 61,
+      "price": 510.21,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "surat",
+      "desiMin": 62,
+      "desiMax": 62,
+      "price": 642.41,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "yurtici",
+      "desiMin": 62,
+      "desiMax": 62,
+      "price": 723.89,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "mng",
+      "desiMin": 62,
+      "desiMax": 62,
+      "price": 1250.67,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "aras",
+      "desiMin": 62,
+      "desiMax": 62,
+      "price": 420.12,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "ups",
+      "desiMin": 62,
+      "desiMax": 62,
+      "price": 521.31,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "surat",
+      "desiMin": 63,
+      "desiMax": 63,
+      "price": 653.34,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "yurtici",
+      "desiMin": 63,
+      "desiMax": 63,
+      "price": 734.69,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "mng",
+      "desiMin": 63,
+      "desiMax": 63,
+      "price": 1277.16,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "aras",
+      "desiMin": 63,
+      "desiMax": 63,
+      "price": 426.24,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "ups",
+      "desiMin": 63,
+      "desiMax": 63,
+      "price": 532.41,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "surat",
+      "desiMin": 64,
+      "desiMax": 64,
+      "price": 664.27,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "yurtici",
+      "desiMin": 64,
+      "desiMax": 64,
+      "price": 745.5,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "mng",
+      "desiMin": 64,
+      "desiMax": 64,
+      "price": 1303.65,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "aras",
+      "desiMin": 64,
+      "desiMax": 64,
+      "price": 432.36,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "ups",
+      "desiMin": 64,
+      "desiMax": 64,
+      "price": 543.51,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "surat",
+      "desiMin": 65,
+      "desiMax": 65,
+      "price": 675.2,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "yurtici",
+      "desiMin": 65,
+      "desiMax": 65,
+      "price": 756.23,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "mng",
+      "desiMin": 65,
+      "desiMax": 65,
+      "price": 1330.14,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "aras",
+      "desiMin": 65,
+      "desiMax": 65,
+      "price": 438.48,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "ups",
+      "desiMin": 65,
+      "desiMax": 65,
+      "price": 554.61,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "surat",
+      "desiMin": 66,
+      "desiMax": 66,
+      "price": 686.13,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "yurtici",
+      "desiMin": 66,
+      "desiMax": 66,
+      "price": 767.01,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "mng",
+      "desiMin": 66,
+      "desiMax": 66,
+      "price": 1356.63,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "aras",
+      "desiMin": 66,
+      "desiMax": 66,
+      "price": 444.6,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "ups",
+      "desiMin": 66,
+      "desiMax": 66,
+      "price": 565.7,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "surat",
+      "desiMin": 67,
+      "desiMax": 67,
+      "price": 697.06,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "yurtici",
+      "desiMin": 67,
+      "desiMax": 67,
+      "price": 777.86,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "mng",
+      "desiMin": 67,
+      "desiMax": 67,
+      "price": 1383.12,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "aras",
+      "desiMin": 67,
+      "desiMax": 67,
+      "price": 450.72,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "ups",
+      "desiMin": 67,
+      "desiMax": 67,
+      "price": 576.8,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "surat",
+      "desiMin": 68,
+      "desiMax": 68,
+      "price": 707.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "yurtici",
+      "desiMin": 68,
+      "desiMax": 68,
+      "price": 788.63,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "mng",
+      "desiMin": 68,
+      "desiMax": 68,
+      "price": 1409.61,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "aras",
+      "desiMin": 68,
+      "desiMax": 68,
+      "price": 456.84,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "ups",
+      "desiMin": 68,
+      "desiMax": 68,
+      "price": 587.9,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "surat",
+      "desiMin": 69,
+      "desiMax": 69,
+      "price": 718.92,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "yurtici",
+      "desiMin": 69,
+      "desiMax": 69,
+      "price": 799.45,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "mng",
+      "desiMin": 69,
+      "desiMax": 69,
+      "price": 1436.1,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "aras",
+      "desiMin": 69,
+      "desiMax": 69,
+      "price": 462.96,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "ups",
+      "desiMin": 69,
+      "desiMax": 69,
+      "price": 599.0,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "surat",
+      "desiMin": 70,
+      "desiMax": 70,
+      "price": 729.85,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "yurtici",
+      "desiMin": 70,
+      "desiMax": 70,
+      "price": 810.23,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "mng",
+      "desiMin": 70,
+      "desiMax": 70,
+      "price": 1462.59,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "aras",
+      "desiMin": 70,
+      "desiMax": 70,
+      "price": 469.08,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "ups",
+      "desiMin": 70,
+      "desiMax": 70,
+      "price": 610.1,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "surat",
+      "desiMin": 71,
+      "desiMax": 71,
+      "price": 740.78,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "yurtici",
+      "desiMin": 71,
+      "desiMax": 71,
+      "price": 820.99,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "mng",
+      "desiMin": 71,
+      "desiMax": 71,
+      "price": 1489.08,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "aras",
+      "desiMin": 71,
+      "desiMax": 71,
+      "price": 475.2,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "ups",
+      "desiMin": 71,
+      "desiMax": 71,
+      "price": 621.19,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "surat",
+      "desiMin": 72,
+      "desiMax": 72,
+      "price": 751.71,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "yurtici",
+      "desiMin": 72,
+      "desiMax": 72,
+      "price": 831.81,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "mng",
+      "desiMin": 72,
+      "desiMax": 72,
+      "price": 1515.57,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "aras",
+      "desiMin": 72,
+      "desiMax": 72,
+      "price": 481.32,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "ups",
+      "desiMin": 72,
+      "desiMax": 72,
+      "price": 632.29,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "surat",
+      "desiMin": 73,
+      "desiMax": 73,
+      "price": 762.64,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "yurtici",
+      "desiMin": 73,
+      "desiMax": 73,
+      "price": 842.58,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "mng",
+      "desiMin": 73,
+      "desiMax": 73,
+      "price": 1542.06,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "aras",
+      "desiMin": 73,
+      "desiMax": 73,
+      "price": 487.44,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "ups",
+      "desiMin": 73,
+      "desiMax": 73,
+      "price": 643.39,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "surat",
+      "desiMin": 74,
+      "desiMax": 74,
+      "price": 773.57,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "yurtici",
+      "desiMin": 74,
+      "desiMax": 74,
+      "price": 853.44,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "mng",
+      "desiMin": 74,
+      "desiMax": 74,
+      "price": 1568.55,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "aras",
+      "desiMin": 74,
+      "desiMax": 74,
+      "price": 493.56,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "ups",
+      "desiMin": 74,
+      "desiMax": 74,
+      "price": 654.49,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "surat",
+      "desiMin": 75,
+      "desiMax": 75,
+      "price": 784.5,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "yurtici",
+      "desiMin": 75,
+      "desiMax": 75,
+      "price": 864.18,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "mng",
+      "desiMin": 75,
+      "desiMax": 75,
+      "price": 1595.04,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "aras",
+      "desiMin": 75,
+      "desiMax": 75,
+      "price": 499.68,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "ups",
+      "desiMin": 75,
+      "desiMax": 75,
+      "price": 665.59,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "surat",
+      "desiMin": 76,
+      "desiMax": 76,
+      "price": 795.43,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "yurtici",
+      "desiMin": 76,
+      "desiMax": 76,
+      "price": 874.94,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "mng",
+      "desiMin": 76,
+      "desiMax": 76,
+      "price": 1621.53,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "aras",
+      "desiMin": 76,
+      "desiMax": 76,
+      "price": 505.8,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "ups",
+      "desiMin": 76,
+      "desiMax": 76,
+      "price": 676.68,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "surat",
+      "desiMin": 77,
+      "desiMax": 77,
+      "price": 806.36,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "yurtici",
+      "desiMin": 77,
+      "desiMax": 77,
+      "price": 885.72,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "mng",
+      "desiMin": 77,
+      "desiMax": 77,
+      "price": 1648.02,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "aras",
+      "desiMin": 77,
+      "desiMax": 77,
+      "price": 511.92,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "ups",
+      "desiMin": 77,
+      "desiMax": 77,
+      "price": 687.78,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "surat",
+      "desiMin": 78,
+      "desiMax": 78,
+      "price": 817.29,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "yurtici",
+      "desiMin": 78,
+      "desiMax": 78,
+      "price": 896.54,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "mng",
+      "desiMin": 78,
+      "desiMax": 78,
+      "price": 1674.51,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "aras",
+      "desiMin": 78,
+      "desiMax": 78,
+      "price": 518.04,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "ups",
+      "desiMin": 78,
+      "desiMax": 78,
+      "price": 698.88,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "surat",
+      "desiMin": 79,
+      "desiMax": 79,
+      "price": 828.22,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "yurtici",
+      "desiMin": 79,
+      "desiMax": 79,
+      "price": 907.34,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "mng",
+      "desiMin": 79,
+      "desiMax": 79,
+      "price": 1701.0,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "aras",
+      "desiMin": 79,
+      "desiMax": 79,
+      "price": 524.16,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "ups",
+      "desiMin": 79,
+      "desiMax": 79,
+      "price": 709.98,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "surat",
+      "desiMin": 80,
+      "desiMax": 80,
+      "price": 839.15,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "yurtici",
+      "desiMin": 80,
+      "desiMax": 80,
+      "price": 918.11,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "mng",
+      "desiMin": 80,
+      "desiMax": 80,
+      "price": 1727.49,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "aras",
+      "desiMin": 80,
+      "desiMax": 80,
+      "price": 530.28,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "ups",
+      "desiMin": 80,
+      "desiMax": 80,
+      "price": 721.08,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "surat",
+      "desiMin": 81,
+      "desiMax": 81,
+      "price": 850.08,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "yurtici",
+      "desiMin": 81,
+      "desiMax": 81,
+      "price": 928.9,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "mng",
+      "desiMin": 81,
+      "desiMax": 81,
+      "price": 1753.98,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "aras",
+      "desiMin": 81,
+      "desiMax": 81,
+      "price": 536.4,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "ups",
+      "desiMin": 81,
+      "desiMax": 81,
+      "price": 732.17,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "surat",
+      "desiMin": 82,
+      "desiMax": 82,
+      "price": 861.01,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "yurtici",
+      "desiMin": 82,
+      "desiMax": 82,
+      "price": 939.7,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "mng",
+      "desiMin": 82,
+      "desiMax": 82,
+      "price": 1780.47,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "aras",
+      "desiMin": 82,
+      "desiMax": 82,
+      "price": 542.52,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "ups",
+      "desiMin": 82,
+      "desiMax": 82,
+      "price": 743.27,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "surat",
+      "desiMin": 83,
+      "desiMax": 83,
+      "price": 871.94,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "yurtici",
+      "desiMin": 83,
+      "desiMax": 83,
+      "price": 950.48,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "mng",
+      "desiMin": 83,
+      "desiMax": 83,
+      "price": 1806.96,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "aras",
+      "desiMin": 83,
+      "desiMax": 83,
+      "price": 548.64,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "ups",
+      "desiMin": 83,
+      "desiMax": 83,
+      "price": 754.37,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "surat",
+      "desiMin": 84,
+      "desiMax": 84,
+      "price": 882.87,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "yurtici",
+      "desiMin": 84,
+      "desiMax": 84,
+      "price": 961.29,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "mng",
+      "desiMin": 84,
+      "desiMax": 84,
+      "price": 1833.45,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "aras",
+      "desiMin": 84,
+      "desiMax": 84,
+      "price": 554.76,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "ups",
+      "desiMin": 84,
+      "desiMax": 84,
+      "price": 765.47,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "surat",
+      "desiMin": 85,
+      "desiMax": 85,
+      "price": 893.8,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "yurtici",
+      "desiMin": 85,
+      "desiMax": 85,
+      "price": 972.11,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "mng",
+      "desiMin": 85,
+      "desiMax": 85,
+      "price": 1859.94,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "aras",
+      "desiMin": 85,
+      "desiMax": 85,
+      "price": 560.88,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "ups",
+      "desiMin": 85,
+      "desiMax": 85,
+      "price": 776.57,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "surat",
+      "desiMin": 86,
+      "desiMax": 86,
+      "price": 904.73,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "yurtici",
+      "desiMin": 86,
+      "desiMax": 86,
+      "price": 982.84,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "mng",
+      "desiMin": 86,
+      "desiMax": 86,
+      "price": 1886.43,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "aras",
+      "desiMin": 86,
+      "desiMax": 86,
+      "price": 567.0,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "ups",
+      "desiMin": 86,
+      "desiMax": 86,
+      "price": 787.66,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "surat",
+      "desiMin": 87,
+      "desiMax": 87,
+      "price": 915.66,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "yurtici",
+      "desiMin": 87,
+      "desiMax": 87,
+      "price": 993.65,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "mng",
+      "desiMin": 87,
+      "desiMax": 87,
+      "price": 1912.92,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "aras",
+      "desiMin": 87,
+      "desiMax": 87,
+      "price": 573.12,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "ups",
+      "desiMin": 87,
+      "desiMax": 87,
+      "price": 798.76,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "surat",
+      "desiMin": 88,
+      "desiMax": 88,
+      "price": 926.59,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "yurtici",
+      "desiMin": 88,
+      "desiMax": 88,
+      "price": 1004.43,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "mng",
+      "desiMin": 88,
+      "desiMax": 88,
+      "price": 1939.41,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "aras",
+      "desiMin": 88,
+      "desiMax": 88,
+      "price": 579.24,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "ups",
+      "desiMin": 88,
+      "desiMax": 88,
+      "price": 809.86,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "surat",
+      "desiMin": 89,
+      "desiMax": 89,
+      "price": 937.52,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "yurtici",
+      "desiMin": 89,
+      "desiMax": 89,
+      "price": 1015.28,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "mng",
+      "desiMin": 89,
+      "desiMax": 89,
+      "price": 1965.9,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "aras",
+      "desiMin": 89,
+      "desiMax": 89,
+      "price": 585.36,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "ups",
+      "desiMin": 89,
+      "desiMax": 89,
+      "price": 820.96,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "surat",
+      "desiMin": 90,
+      "desiMax": 90,
+      "price": 948.45,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "yurtici",
+      "desiMin": 90,
+      "desiMax": 90,
+      "price": 1026.06,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "mng",
+      "desiMin": 90,
+      "desiMax": 90,
+      "price": 1992.39,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "aras",
+      "desiMin": 90,
+      "desiMax": 90,
+      "price": 591.48,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "ups",
+      "desiMin": 90,
+      "desiMax": 90,
+      "price": 832.06,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "surat",
+      "desiMin": 91,
+      "desiMax": 91,
+      "price": 959.38,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "yurtici",
+      "desiMin": 91,
+      "desiMax": 91,
+      "price": 1036.79,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "mng",
+      "desiMin": 91,
+      "desiMax": 91,
+      "price": 2018.88,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "aras",
+      "desiMin": 91,
+      "desiMax": 91,
+      "price": 597.6,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "ups",
+      "desiMin": 91,
+      "desiMax": 91,
+      "price": 843.15,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "surat",
+      "desiMin": 92,
+      "desiMax": 92,
+      "price": 970.31,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "yurtici",
+      "desiMin": 92,
+      "desiMax": 92,
+      "price": 1047.63,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "mng",
+      "desiMin": 92,
+      "desiMax": 92,
+      "price": 2045.37,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "aras",
+      "desiMin": 92,
+      "desiMax": 92,
+      "price": 603.72,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "ups",
+      "desiMin": 92,
+      "desiMax": 92,
+      "price": 854.25,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "surat",
+      "desiMin": 93,
+      "desiMax": 93,
+      "price": 981.24,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "yurtici",
+      "desiMin": 93,
+      "desiMax": 93,
+      "price": 1058.42,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "mng",
+      "desiMin": 93,
+      "desiMax": 93,
+      "price": 2071.86,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "aras",
+      "desiMin": 93,
+      "desiMax": 93,
+      "price": 609.84,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "ups",
+      "desiMin": 93,
+      "desiMax": 93,
+      "price": 865.35,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "surat",
+      "desiMin": 94,
+      "desiMax": 94,
+      "price": 992.17,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "yurtici",
+      "desiMin": 94,
+      "desiMax": 94,
+      "price": 1069.22,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "mng",
+      "desiMin": 94,
+      "desiMax": 94,
+      "price": 2098.35,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "aras",
+      "desiMin": 94,
+      "desiMax": 94,
+      "price": 615.96,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "ups",
+      "desiMin": 94,
+      "desiMax": 94,
+      "price": 876.45,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "surat",
+      "desiMin": 95,
+      "desiMax": 95,
+      "price": 1003.1,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "yurtici",
+      "desiMin": 95,
+      "desiMax": 95,
+      "price": 1079.94,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "mng",
+      "desiMin": 95,
+      "desiMax": 95,
+      "price": 2124.84,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "aras",
+      "desiMin": 95,
+      "desiMax": 95,
+      "price": 622.08,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "ups",
+      "desiMin": 95,
+      "desiMax": 95,
+      "price": 887.55,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "surat",
+      "desiMin": 96,
+      "desiMax": 96,
+      "price": 1014.03,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "yurtici",
+      "desiMin": 96,
+      "desiMax": 96,
+      "price": 1090.75,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "mng",
+      "desiMin": 96,
+      "desiMax": 96,
+      "price": 2151.33,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "aras",
+      "desiMin": 96,
+      "desiMax": 96,
+      "price": 628.2,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "ups",
+      "desiMin": 96,
+      "desiMax": 96,
+      "price": 898.64,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "surat",
+      "desiMin": 97,
+      "desiMax": 97,
+      "price": 1024.96,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "yurtici",
+      "desiMin": 97,
+      "desiMax": 97,
+      "price": 1101.58,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "mng",
+      "desiMin": 97,
+      "desiMax": 97,
+      "price": 2177.82,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "aras",
+      "desiMin": 97,
+      "desiMax": 97,
+      "price": 634.32,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "ups",
+      "desiMin": 97,
+      "desiMax": 97,
+      "price": 909.74,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "surat",
+      "desiMin": 98,
+      "desiMax": 98,
+      "price": 1035.89,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "yurtici",
+      "desiMin": 98,
+      "desiMax": 98,
+      "price": 1112.32,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "mng",
+      "desiMin": 98,
+      "desiMax": 98,
+      "price": 2204.31,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "aras",
+      "desiMin": 98,
+      "desiMax": 98,
+      "price": 640.44,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "ups",
+      "desiMin": 98,
+      "desiMax": 98,
+      "price": 920.84,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "surat",
+      "desiMin": 99,
+      "desiMax": 99,
+      "price": 1046.82,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "yurtici",
+      "desiMin": 99,
+      "desiMax": 99,
+      "price": 1123.18,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "mng",
+      "desiMin": 99,
+      "desiMax": 99,
+      "price": 2230.8,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "aras",
+      "desiMin": 99,
+      "desiMax": 99,
+      "price": 646.56,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "ups",
+      "desiMin": 99,
+      "desiMax": 99,
+      "price": 931.94,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "surat",
+      "desiMin": 100,
+      "desiMax": 100,
+      "price": 1057.75,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "yurtici",
+      "desiMin": 100,
+      "desiMax": 100,
+      "price": 1133.94,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "mng",
+      "desiMin": 100,
+      "desiMax": 100,
+      "price": 2257.29,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "aras",
+      "desiMin": 100,
+      "desiMax": 100,
+      "price": 652.68,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    },
+    {
+      "marketplace": "ciceksepeti",
+      "carrier": "ups",
+      "desiMin": 100,
+      "desiMax": 100,
+      "price": 943.04,
+      "currency": "TRY",
+      "vatIncluded": false,
+      "vatNote": "KDV ve posta hizmet bedeli hariç"
+    }
+  ]
+}

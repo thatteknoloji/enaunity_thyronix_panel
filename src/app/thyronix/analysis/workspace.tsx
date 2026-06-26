@@ -34,6 +34,8 @@ import {
   saveProfitScenario,
   type ProfitScenarioSnapshot,
 } from "@/lib/thyronix/profit-scenario-store";
+import type { AnalysisWorkspaceConfig } from "@/lib/analysis/workspace-config";
+import { DealerProfitabilityTab } from "@/components/dealer/DealerProfitabilityTab";
 
 type TabKey = "profit" | "product" | "competitor";
 
@@ -60,20 +62,7 @@ type AnalysisProduct = {
   feedQuality?: AnalysisFeedQuality;
 };
 
-export type AnalysisWorkspaceConfig = {
-  apiPath: string;
-  badgeLabel: string;
-  title: string;
-  description: string;
-  countCardLabel: string;
-  productPickerLabel: string;
-  productPickerButton: string;
-  productPickerHelp: string;
-  productAnalysisPickerLabel: string;
-  productAnalysisPickerButton: string;
-  productAnalysisPickerHelp: string;
-  loadingSourceLabel: string;
-};
+export type { AnalysisWorkspaceConfig } from "@/lib/analysis/workspace-config";
 
 const DEFAULT_CONFIG: AnalysisWorkspaceConfig = {
   apiPath: "/api/thyronix/analysis",
@@ -151,7 +140,9 @@ export function ThyronixAnalysisWorkspace({ config }: { config: AnalysisWorkspac
   const [scenarioName, setScenarioName] = useState("Yeni Senaryo");
   const [competitorCrawling, setCompetitorCrawling] = useState(false);
   const [competitorCrawlNote, setCompetitorCrawlNote] = useState<string | null>(null);
+  const [dealerProfitMargin, setDealerProfitMargin] = useState<number | null>(null);
 
+  const profitMode = config.profitMode ?? "legacy";
   const [marketplace, setMarketplace] = useState("trendyol");
   const [category, setCategory] = useState("cam-tablo");
   const [cost, setCost] = useState("250");
@@ -569,7 +560,13 @@ export function ThyronixAnalysisWorkspace({ config }: { config: AnalysisWorkspac
               <p className="text-[10px] uppercase tracking-wide text-nexa-text-secondary">{config.countCardLabel}</p>
             </div>
             <div className="rounded-xl border border-nexa-border px-4 py-3">
-              <p className="text-xl font-semibold text-nexa-primary">%{Math.max(0, Math.round(profitCalc.margin))}</p>
+              <p className="text-xl font-semibold text-nexa-primary">
+                {profitMode === "cache"
+                  ? dealerProfitMargin != null
+                    ? `%${Math.max(0, Math.round(dealerProfitMargin))}`
+                    : "—"
+                  : `%${Math.max(0, Math.round(profitCalc.margin))}`}
+              </p>
               <p className="text-[10px] uppercase tracking-wide text-nexa-text-secondary">Anlık Marj</p>
             </div>
             <div className="rounded-xl border border-nexa-border px-4 py-3">
@@ -597,7 +594,15 @@ export function ThyronixAnalysisWorkspace({ config }: { config: AnalysisWorkspac
         ))}
       </div>
 
-      {tab === "profit" && (
+      {tab === "profit" && profitMode === "cache" ? (
+        <DealerProfitabilityTab
+          config={config}
+          products={products}
+          onMarginChange={setDealerProfitMargin}
+        />
+      ) : null}
+
+      {tab === "profit" && profitMode !== "cache" && (
         <div className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
           <div className="space-y-6">
             <div className="rounded-2xl border border-nexa-border bg-nexa-card p-5">

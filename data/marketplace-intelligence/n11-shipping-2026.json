@@ -1,0 +1,316 @@
+{
+  "source": {
+    "sourceName": "N11 Özel Kargo Kampanyası",
+    "sourceUrl": "https://www.n11.com/kampanyalar/ozel-kargo-kampanyasi",
+    "sourceType": "manual",
+    "effectiveDate": "2026-01-01",
+    "vatIncluded": true,
+    "version": "2026",
+    "confidence": "official"
+  },
+  "carriers": {
+    "yurtici": "Yurtiçi Kargo"
+  },
+  "brackets": [
+    {
+      "marketplace": "n11",
+      "carrier": "yurtici",
+      "desiMin": 1,
+      "desiMax": 1,
+      "price": 52.9,
+      "currency": "TRY",
+      "vatIncluded": true,
+      "vatNote": "KDV dahil (özel kargo kampanyası)"
+    },
+    {
+      "marketplace": "n11",
+      "carrier": "yurtici",
+      "desiMin": 2,
+      "desiMax": 2,
+      "price": 55.9,
+      "currency": "TRY",
+      "vatIncluded": true,
+      "vatNote": "KDV dahil (özel kargo kampanyası)"
+    },
+    {
+      "marketplace": "n11",
+      "carrier": "yurtici",
+      "desiMin": 3,
+      "desiMax": 3,
+      "price": 58.9,
+      "currency": "TRY",
+      "vatIncluded": true,
+      "vatNote": "KDV dahil (özel kargo kampanyası)"
+    },
+    {
+      "marketplace": "n11",
+      "carrier": "yurtici",
+      "desiMin": 4,
+      "desiMax": 4,
+      "price": 61.9,
+      "currency": "TRY",
+      "vatIncluded": true,
+      "vatNote": "KDV dahil (özel kargo kampanyası)"
+    },
+    {
+      "marketplace": "n11",
+      "carrier": "yurtici",
+      "desiMin": 5,
+      "desiMax": 5,
+      "price": 64.9,
+      "currency": "TRY",
+      "vatIncluded": true,
+      "vatNote": "KDV dahil (özel kargo kampanyası)"
+    },
+    {
+      "marketplace": "n11",
+      "carrier": "yurtici",
+      "desiMin": 6,
+      "desiMax": 6,
+      "price": 69.9,
+      "currency": "TRY",
+      "vatIncluded": true,
+      "vatNote": "KDV dahil (özel kargo kampanyası)"
+    },
+    {
+      "marketplace": "n11",
+      "carrier": "yurtici",
+      "desiMin": 7,
+      "desiMax": 7,
+      "price": 74.9,
+      "currency": "TRY",
+      "vatIncluded": true,
+      "vatNote": "KDV dahil (özel kargo kampanyası)"
+    },
+    {
+      "marketplace": "n11",
+      "carrier": "yurtici",
+      "desiMin": 8,
+      "desiMax": 8,
+      "price": 79.9,
+      "currency": "TRY",
+      "vatIncluded": true,
+      "vatNote": "KDV dahil (özel kargo kampanyası)"
+    },
+    {
+      "marketplace": "n11",
+      "carrier": "yurtici",
+      "desiMin": 9,
+      "desiMax": 9,
+      "price": 87.9,
+      "currency": "TRY",
+      "vatIncluded": true,
+      "vatNote": "KDV dahil (özel kargo kampanyası)"
+    },
+    {
+      "marketplace": "n11",
+      "carrier": "yurtici",
+      "desiMin": 10,
+      "desiMax": 10,
+      "price": 94.9,
+      "currency": "TRY",
+      "vatIncluded": true,
+      "vatNote": "KDV dahil (özel kargo kampanyası)"
+    },
+    {
+      "marketplace": "n11",
+      "carrier": "yurtici",
+      "desiMin": 11,
+      "desiMax": 11,
+      "price": 124.9,
+      "currency": "TRY",
+      "vatIncluded": true,
+      "vatNote": "KDV dahil (özel kargo kampanyası)"
+    },
+    {
+      "marketplace": "n11",
+      "carrier": "yurtici",
+      "desiMin": 12,
+      "desiMax": 12,
+      "price": 124.9,
+      "currency": "TRY",
+      "vatIncluded": true,
+      "vatNote": "KDV dahil (özel kargo kampanyası)"
+    },
+    {
+      "marketplace": "n11",
+      "carrier": "yurtici",
+      "desiMin": 13,
+      "desiMax": 13,
+      "price": 124.9,
+      "currency": "TRY",
+      "vatIncluded": true,
+      "vatNote": "KDV dahil (özel kargo kampanyası)"
+    },
+    {
+      "marketplace": "n11",
+      "carrier": "yurtici",
+      "desiMin": 14,
+      "desiMax": 14,
+      "price": 124.9,
+      "currency": "TRY",
+      "vatIncluded": true,
+      "vatNote": "KDV dahil (özel kargo kampanyası)"
+    },
+    {
+      "marketplace": "n11",
+      "carrier": "yurtici",
+      "desiMin": 15,
+      "desiMax": 15,
+      "price": 124.9,
+      "currency": "TRY",
+      "vatIncluded": true,
+      "vatNote": "KDV dahil (özel kargo kampanyası)"
+    },
+    {
+      "marketplace": "n11",
+      "carrier": "yurtici",
+      "desiMin": 16,
+      "desiMax": 16,
+      "price": 159.9,
+      "currency": "TRY",
+      "vatIncluded": true,
+      "vatNote": "KDV dahil (özel kargo kampanyası)"
+    },
+    {
+      "marketplace": "n11",
+      "carrier": "yurtici",
+      "desiMin": 17,
+      "desiMax": 17,
+      "price": 159.9,
+      "currency": "TRY",
+      "vatIncluded": true,
+      "vatNote": "KDV dahil (özel kargo kampanyası)"
+    },
+    {
+      "marketplace": "n11",
+      "carrier": "yurtici",
+      "desiMin": 18,
+      "desiMax": 18,
+      "price": 159.9,
+      "currency": "TRY",
+      "vatIncluded": true,
+      "vatNote": "KDV dahil (özel kargo kampanyası)"
+    },
+    {
+      "marketplace": "n11",
+      "carrier": "yurtici",
+      "desiMin": 19,
+      "desiMax": 19,
+      "price": 159.9,
+      "currency": "TRY",
+      "vatIncluded": true,
+      "vatNote": "KDV dahil (özel kargo kampanyası)"
+    },
+    {
+      "marketplace": "n11",
+      "carrier": "yurtici",
+      "desiMin": 20,
+      "desiMax": 20,
+      "price": 159.9,
+      "currency": "TRY",
+      "vatIncluded": true,
+      "vatNote": "KDV dahil (özel kargo kampanyası)"
+    },
+    {
+      "marketplace": "n11",
+      "carrier": "yurtici",
+      "desiMin": 21,
+      "desiMax": 21,
+      "price": 219.9,
+      "currency": "TRY",
+      "vatIncluded": true,
+      "vatNote": "KDV dahil (özel kargo kampanyası)"
+    },
+    {
+      "marketplace": "n11",
+      "carrier": "yurtici",
+      "desiMin": 22,
+      "desiMax": 22,
+      "price": 219.9,
+      "currency": "TRY",
+      "vatIncluded": true,
+      "vatNote": "KDV dahil (özel kargo kampanyası)"
+    },
+    {
+      "marketplace": "n11",
+      "carrier": "yurtici",
+      "desiMin": 23,
+      "desiMax": 23,
+      "price": 219.9,
+      "currency": "TRY",
+      "vatIncluded": true,
+      "vatNote": "KDV dahil (özel kargo kampanyası)"
+    },
+    {
+      "marketplace": "n11",
+      "carrier": "yurtici",
+      "desiMin": 24,
+      "desiMax": 24,
+      "price": 219.9,
+      "currency": "TRY",
+      "vatIncluded": true,
+      "vatNote": "KDV dahil (özel kargo kampanyası)"
+    },
+    {
+      "marketplace": "n11",
+      "carrier": "yurtici",
+      "desiMin": 25,
+      "desiMax": 25,
+      "price": 219.9,
+      "currency": "TRY",
+      "vatIncluded": true,
+      "vatNote": "KDV dahil (özel kargo kampanyası)"
+    },
+    {
+      "marketplace": "n11",
+      "carrier": "yurtici",
+      "desiMin": 26,
+      "desiMax": 26,
+      "price": 219.9,
+      "currency": "TRY",
+      "vatIncluded": true,
+      "vatNote": "KDV dahil (özel kargo kampanyası)"
+    },
+    {
+      "marketplace": "n11",
+      "carrier": "yurtici",
+      "desiMin": 27,
+      "desiMax": 27,
+      "price": 219.9,
+      "currency": "TRY",
+      "vatIncluded": true,
+      "vatNote": "KDV dahil (özel kargo kampanyası)"
+    },
+    {
+      "marketplace": "n11",
+      "carrier": "yurtici",
+      "desiMin": 28,
+      "desiMax": 28,
+      "price": 219.9,
+      "currency": "TRY",
+      "vatIncluded": true,
+      "vatNote": "KDV dahil (özel kargo kampanyası)"
+    },
+    {
+      "marketplace": "n11",
+      "carrier": "yurtici",
+      "desiMin": 29,
+      "desiMax": 29,
+      "price": 219.9,
+      "currency": "TRY",
+      "vatIncluded": true,
+      "vatNote": "KDV dahil (özel kargo kampanyası)"
+    },
+    {
+      "marketplace": "n11",
+      "carrier": "yurtici",
+      "desiMin": 30,
+      "desiMax": 30,
+      "price": 219.9,
+      "currency": "TRY",
+      "vatIncluded": true,
+      "vatNote": "KDV dahil (özel kargo kampanyası)"
+    }
+  ]
+}

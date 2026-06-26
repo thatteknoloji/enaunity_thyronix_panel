@@ -1,0 +1,364 @@
+{
+  "source": {
+    "sourceName": "N11 Komisyon Oranları 2026",
+    "sourceType": "manual",
+    "effectiveDate": "2026-01-01",
+    "vatIncluded": true,
+    "version": "2026",
+    "confidence": "official"
+  },
+  "serviceFees": [
+    {
+      "id": "marketing",
+      "label": "Pazarlama Hizmet Bedeli",
+      "ratePercent": 1,
+      "vatIncluded": false,
+      "vatNote": "+KDV"
+    },
+    {
+      "id": "marketplace",
+      "label": "Pazaryeri Hizmet Bedeli",
+      "ratePercent": 0.67,
+      "vatIncluded": false,
+      "vatNote": "+KDV"
+    }
+  ],
+  "entries": [
+    {
+      "marketplace": "n11",
+      "mainCategory": "Ev Tekstili",
+      "subCategory": "Perde",
+      "productGroup": "Perde",
+      "ratePercent": 20,
+      "vatIncluded": true,
+      "serviceFees": [
+        {
+          "id": "marketing",
+          "label": "Pazarlama Hizmet Bedeli",
+          "ratePercent": 1,
+          "vatIncluded": false,
+          "vatNote": "+KDV"
+        },
+        {
+          "id": "marketplace",
+          "label": "Pazaryeri Hizmet Bedeli",
+          "ratePercent": 0.67,
+          "vatIncluded": false,
+          "vatNote": "+KDV"
+        }
+      ]
+    },
+    {
+      "marketplace": "n11",
+      "mainCategory": "Ev Tekstili",
+      "subCategory": "Koltuk Örtüsü",
+      "productGroup": "Koltuk Örtüsü",
+      "ratePercent": 20,
+      "vatIncluded": true,
+      "serviceFees": [
+        {
+          "id": "marketing",
+          "label": "Pazarlama Hizmet Bedeli",
+          "ratePercent": 1,
+          "vatIncluded": false,
+          "vatNote": "+KDV"
+        },
+        {
+          "id": "marketplace",
+          "label": "Pazaryeri Hizmet Bedeli",
+          "ratePercent": 0.67,
+          "vatIncluded": false,
+          "vatNote": "+KDV"
+        }
+      ]
+    },
+    {
+      "marketplace": "n11",
+      "mainCategory": "Ev Tekstili",
+      "subCategory": "Mutfak Tekstili",
+      "productGroup": "Mutfak Tekstili",
+      "ratePercent": 20,
+      "vatIncluded": true,
+      "serviceFees": [
+        {
+          "id": "marketing",
+          "label": "Pazarlama Hizmet Bedeli",
+          "ratePercent": 1,
+          "vatIncluded": false,
+          "vatNote": "+KDV"
+        },
+        {
+          "id": "marketplace",
+          "label": "Pazaryeri Hizmet Bedeli",
+          "ratePercent": 0.67,
+          "vatIncluded": false,
+          "vatNote": "+KDV"
+        }
+      ]
+    },
+    {
+      "marketplace": "n11",
+      "mainCategory": "Ev Tekstili",
+      "subCategory": "Halı & Kilim",
+      "productGroup": "Halı & Kilim",
+      "ratePercent": 20,
+      "vatIncluded": true,
+      "serviceFees": [
+        {
+          "id": "marketing",
+          "label": "Pazarlama Hizmet Bedeli",
+          "ratePercent": 1,
+          "vatIncluded": false,
+          "vatNote": "+KDV"
+        },
+        {
+          "id": "marketplace",
+          "label": "Pazaryeri Hizmet Bedeli",
+          "ratePercent": 0.67,
+          "vatIncluded": false,
+          "vatNote": "+KDV"
+        }
+      ]
+    },
+    {
+      "marketplace": "n11",
+      "mainCategory": "Ev Tekstili",
+      "subCategory": "Yatak Odası Tekstili",
+      "productGroup": "Yatak Odası Tekstili",
+      "ratePercent": 20,
+      "vatIncluded": true,
+      "serviceFees": [
+        {
+          "id": "marketing",
+          "label": "Pazarlama Hizmet Bedeli",
+          "ratePercent": 1,
+          "vatIncluded": false,
+          "vatNote": "+KDV"
+        },
+        {
+          "id": "marketplace",
+          "label": "Pazaryeri Hizmet Bedeli",
+          "ratePercent": 0.67,
+          "vatIncluded": false,
+          "vatNote": "+KDV"
+        }
+      ]
+    },
+    {
+      "marketplace": "n11",
+      "mainCategory": "Ev Tekstili",
+      "subCategory": "Banyo Tekstili",
+      "productGroup": "Banyo Tekstili",
+      "ratePercent": 20,
+      "vatIncluded": true,
+      "serviceFees": [
+        {
+          "id": "marketing",
+          "label": "Pazarlama Hizmet Bedeli",
+          "ratePercent": 1,
+          "vatIncluded": false,
+          "vatNote": "+KDV"
+        },
+        {
+          "id": "marketplace",
+          "label": "Pazaryeri Hizmet Bedeli",
+          "ratePercent": 0.67,
+          "vatIncluded": false,
+          "vatNote": "+KDV"
+        }
+      ]
+    },
+    {
+      "marketplace": "n11",
+      "mainCategory": "Dekorasyon & Aydınlatma",
+      "subCategory": "Duvar Dekorasyonu",
+      "productGroup": "Duvar Dekorasyonu",
+      "ratePercent": 21,
+      "vatIncluded": true,
+      "serviceFees": [
+        {
+          "id": "marketing",
+          "label": "Pazarlama Hizmet Bedeli",
+          "ratePercent": 1,
+          "vatIncluded": false,
+          "vatNote": "+KDV"
+        },
+        {
+          "id": "marketplace",
+          "label": "Pazaryeri Hizmet Bedeli",
+          "ratePercent": 0.67,
+          "vatIncluded": false,
+          "vatNote": "+KDV"
+        }
+      ]
+    },
+    {
+      "marketplace": "n11",
+      "mainCategory": "Dekorasyon & Aydınlatma",
+      "subCategory": "Tablo",
+      "productGroup": "Tablo",
+      "ratePercent": 21,
+      "vatIncluded": true,
+      "serviceFees": [
+        {
+          "id": "marketing",
+          "label": "Pazarlama Hizmet Bedeli",
+          "ratePercent": 1,
+          "vatIncluded": false,
+          "vatNote": "+KDV"
+        },
+        {
+          "id": "marketplace",
+          "label": "Pazaryeri Hizmet Bedeli",
+          "ratePercent": 0.67,
+          "vatIncluded": false,
+          "vatNote": "+KDV"
+        }
+      ]
+    },
+    {
+      "marketplace": "n11",
+      "mainCategory": "Dekorasyon & Aydınlatma",
+      "subCategory": "Ayna",
+      "productGroup": "Ayna",
+      "ratePercent": 23,
+      "vatIncluded": true,
+      "serviceFees": [
+        {
+          "id": "marketing",
+          "label": "Pazarlama Hizmet Bedeli",
+          "ratePercent": 1,
+          "vatIncluded": false,
+          "vatNote": "+KDV"
+        },
+        {
+          "id": "marketplace",
+          "label": "Pazaryeri Hizmet Bedeli",
+          "ratePercent": 0.67,
+          "vatIncluded": false,
+          "vatNote": "+KDV"
+        }
+      ]
+    },
+    {
+      "marketplace": "n11",
+      "mainCategory": "Dekorasyon & Aydınlatma",
+      "subCategory": "Saat",
+      "productGroup": "Saat",
+      "ratePercent": 23,
+      "vatIncluded": true,
+      "serviceFees": [
+        {
+          "id": "marketing",
+          "label": "Pazarlama Hizmet Bedeli",
+          "ratePercent": 1,
+          "vatIncluded": false,
+          "vatNote": "+KDV"
+        },
+        {
+          "id": "marketplace",
+          "label": "Pazaryeri Hizmet Bedeli",
+          "ratePercent": 0.67,
+          "vatIncluded": false,
+          "vatNote": "+KDV"
+        }
+      ]
+    },
+    {
+      "marketplace": "n11",
+      "mainCategory": "Mobilya",
+      "subCategory": "Mobilya",
+      "productGroup": "Mobilya",
+      "ratePercent": 19,
+      "vatIncluded": true,
+      "serviceFees": [
+        {
+          "id": "marketing",
+          "label": "Pazarlama Hizmet Bedeli",
+          "ratePercent": 1,
+          "vatIncluded": false,
+          "vatNote": "+KDV"
+        },
+        {
+          "id": "marketplace",
+          "label": "Pazaryeri Hizmet Bedeli",
+          "ratePercent": 0.67,
+          "vatIncluded": false,
+          "vatNote": "+KDV"
+        }
+      ]
+    },
+    {
+      "marketplace": "n11",
+      "mainCategory": "Hobi & Oyun",
+      "subCategory": "Puzzle",
+      "productGroup": "Puzzle",
+      "ratePercent": 17,
+      "vatIncluded": true,
+      "serviceFees": [
+        {
+          "id": "marketing",
+          "label": "Pazarlama Hizmet Bedeli",
+          "ratePercent": 1,
+          "vatIncluded": false,
+          "vatNote": "+KDV"
+        },
+        {
+          "id": "marketplace",
+          "label": "Pazaryeri Hizmet Bedeli",
+          "ratePercent": 0.67,
+          "vatIncluded": false,
+          "vatNote": "+KDV"
+        }
+      ]
+    },
+    {
+      "marketplace": "n11",
+      "mainCategory": "Hobi & Oyun",
+      "subCategory": "Poster",
+      "productGroup": "Poster",
+      "ratePercent": 17,
+      "vatIncluded": true,
+      "serviceFees": [
+        {
+          "id": "marketing",
+          "label": "Pazarlama Hizmet Bedeli",
+          "ratePercent": 1,
+          "vatIncluded": false,
+          "vatNote": "+KDV"
+        },
+        {
+          "id": "marketplace",
+          "label": "Pazaryeri Hizmet Bedeli",
+          "ratePercent": 0.67,
+          "vatIncluded": false,
+          "vatNote": "+KDV"
+        }
+      ]
+    },
+    {
+      "marketplace": "n11",
+      "mainCategory": "Mutfak Gereçleri",
+      "subCategory": "Kupa & Bardak",
+      "productGroup": "Kupa & Bardak",
+      "ratePercent": 18,
+      "vatIncluded": true,
+      "serviceFees": [
+        {
+          "id": "marketing",
+          "label": "Pazarlama Hizmet Bedeli",
+          "ratePercent": 1,
+          "vatIncluded": false,
+          "vatNote": "+KDV"
+        },
+        {
+          "id": "marketplace",
+          "label": "Pazaryeri Hizmet Bedeli",
+          "ratePercent": 0.67,
+          "vatIncluded": false,
+          "vatNote": "+KDV"
+        }
+      ]
+    }
+  ]
+}

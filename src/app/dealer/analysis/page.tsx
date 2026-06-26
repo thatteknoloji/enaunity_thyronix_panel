@@ -18,6 +18,7 @@ const ENA_ANALYSIS_CONFIG: AnalysisWorkspaceConfig = {
   productAnalysisPickerHelp:
     "Bayi ürünlerindeki başlık, açıklama ve görsel yapısını ürün analizi tarafına tek tıkla yükle.",
   loadingSourceLabel: "ENA ürünleri",
+  profitMode: "cache",
 };
 
 export default function DealerAnalysisPage() {
