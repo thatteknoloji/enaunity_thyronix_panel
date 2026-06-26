@@ -14,6 +14,7 @@ import type { PricingCustomerType } from "@/lib/pricing-engine/pricing-types";
 import { PodCanvasEngine } from "@/lib/pod-core/canvas-engine";
 import { getDefaultMockupTemplate, getPodProductProfileByTemplateId } from "@/lib/pod-core/mockup-template-registry";
 import { PRICING_UNAVAILABLE_MESSAGE } from "@/lib/pricing-engine/pricing-service";
+import { getPriceCatalogById } from "@/lib/pricing-engine/pod-price-catalog";
 import {
   buildPricingBridgePayload,
   fetchPodPricing,
@@ -118,10 +119,12 @@ export function PodCoreProvider({ children }: { children: ReactNode }) {
     setPricingLoading(true);
     setPricingError(null);
     try {
+      const catalog = tpl.pricingCatalogId ? getPriceCatalogById(tpl.pricingCatalogId) : undefined;
+      const omitDims = tpl.formulaHint === "PIECE" && catalog?.mode !== "FIXED_SIZE";
       const payload = buildPricingBridgePayload(
         tpl,
-        tpl.formulaHint === "PIECE" ? 0 : widthCm,
-        tpl.formulaHint === "PIECE" ? 0 : heightCm,
+        omitDims ? 0 : widthCm,
+        omitDims ? 0 : heightCm,
         quantity,
         customerType
       );

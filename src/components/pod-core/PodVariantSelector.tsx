@@ -2,8 +2,10 @@
 
 import type { PricingCustomerType } from "@/lib/pricing-engine/pricing-types";
 import {
+  CUSHION_PACK4_OPTION_CODES,
   KIRLENT_PACK4_VARIANT,
   listCatalogFixedSizes,
+  lookupCatalogPrice,
   POST_KESIM_OPTION_CODE,
 } from "@/lib/pricing-engine/pod-price-catalog";
 import {
@@ -39,6 +41,11 @@ export function PodVariantSelector() {
     ? listCatalogFixedSizes(mockupTemplate.pricingCatalogId).filter((s) => {
         if (mockupTemplate.printAreaMode === "CIRCLE") return s.variantKey === "round";
         if (mockupTemplate.pricingCatalogId === "CAM") return s.variantKey !== "round";
+        if (mockupTemplate.pricingCatalogId === "KIRLENT") {
+          return sizeVariantKey === KIRLENT_PACK4_VARIANT
+            ? s.variantKey === KIRLENT_PACK4_VARIANT
+            : !s.variantKey;
+        }
         return true;
       })
     : [];
@@ -63,6 +70,25 @@ export function PodVariantSelector() {
       : ""
     : "";
 
+  const kirlentSinglePrice = lookupCatalogPrice({
+    ruleCode: "CUSHION_CATALOG_V1",
+    catalogId: "KIRLENT",
+    widthCm: Math.round(widthCm),
+    heightCm: Math.round(heightCm),
+  })?.finalPrice;
+  const kirlentPack4Price = lookupCatalogPrice({
+    ruleCode: "CUSHION_CATALOG_V1",
+    catalogId: "KIRLENT",
+    widthCm: Math.round(widthCm),
+    heightCm: Math.round(heightCm),
+    sizeVariantKey: KIRLENT_PACK4_VARIANT,
+  })?.finalPrice;
+
+  const stripPack4Options = (codes: string[]) =>
+    codes.filter(
+      (c) => !CUSHION_PACK4_OPTION_CODES.some((p) => p.toLowerCase() === c.toLowerCase())
+    );
+
   const applyPreset = (key: string) => {
     if (!key) return;
     const [dim, variant] = key.split(":");
@@ -70,7 +96,13 @@ export function PodVariantSelector() {
     if (w > 0) setWidthCm(w);
     if (h > 0) setHeightCm(h);
     setSizeVariantKey(variant || undefined);
-    if (variant === KIRLENT_PACK4_VARIANT) setQuantity(4);
+    if (variant === KIRLENT_PACK4_VARIANT) {
+      setQuantity(4);
+      setOptionCodes([...stripPack4Options(optionCodes), "pack4"]);
+    } else {
+      setOptionCodes(stripPack4Options(optionCodes));
+      setQuantity(1);
+    }
   };
 
   return (
@@ -170,11 +202,20 @@ export function PodVariantSelector() {
               const pack4 = e.target.value === KIRLENT_PACK4_VARIANT;
               setSizeVariantKey(pack4 ? KIRLENT_PACK4_VARIANT : undefined);
               setQuantity(pack4 ? 4 : 1);
+              setOptionCodes(
+                pack4
+                  ? [...stripPack4Options(optionCodes), "pack4"]
+                  : stripPack4Options(optionCodes)
+              );
             }}
             className="w-full rounded border border-ena-border bg-white/5 px-2 py-1.5"
           >
-            <option value="single">Tekli — ₺105</option>
-            <option value={KIRLENT_PACK4_VARIANT}>4&apos;lü paket — ₺420</option>
+            <option value="single">
+              Tekli{kirlentSinglePrice != null ? ` — ₺${kirlentSinglePrice}` : ""}
+            </option>
+            <option value={KIRLENT_PACK4_VARIANT}>
+              4&apos;lü paket{kirlentPack4Price != null ? ` — ₺${kirlentPack4Price}` : ""}
+            </option>
           </select>
         </label>
       )}

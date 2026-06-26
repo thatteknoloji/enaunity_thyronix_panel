@@ -37,6 +37,35 @@ export const POST_KESIM_SURCHARGE = 100;
 
 export const KIRLENT_PACK4_VARIANT = "PACK_4";
 
+/** Kırlent 4'lü paket — optionCodes veya sizeVariantKey ile eşleşir */
+export const CUSHION_PACK4_OPTION_CODES = [
+  "pack4",
+  "PACK4",
+  "KIRLENT_4LU",
+  KIRLENT_PACK4_VARIANT,
+] as const;
+
+function isCushionPack4Signal(
+  sizeVariantKey?: string,
+  codes?: string[]
+): boolean {
+  if (sizeVariantKey) {
+    const key = sizeVariantKey.toUpperCase();
+    if (
+      key === KIRLENT_PACK4_VARIANT ||
+      key.includes("PACK4") ||
+      key.includes("PACK_4") ||
+      key.endsWith("_4LU")
+    ) {
+      return true;
+    }
+  }
+  if (!codes?.length) return false;
+  return codes.some((c) =>
+    CUSHION_PACK4_OPTION_CODES.some((p) => p.toLowerCase() === c.toLowerCase())
+  );
+}
+
 function sizeKey(widthCm: number, heightCm: number, variantKey?: string): string {
   const w = Math.round(widthCm);
   const h = Math.round(heightCm);
@@ -208,11 +237,21 @@ export function listCatalogFixedSizes(catalogId: string): CatalogFixedSize[] {
 
 export function resolveCatalogVariantKey(
   variantCodes?: string[],
-  sizeVariantKey?: string
+  sizeVariantKey?: string,
+  optionCodes?: string[]
 ): string | undefined {
-  if (sizeVariantKey) return sizeVariantKey;
+  const packSignals = [...(variantCodes || []), ...(optionCodes || [])];
+
+  if (isCushionPack4Signal(sizeVariantKey, packSignals)) {
+    return KIRLENT_PACK4_VARIANT;
+  }
+
+  if (sizeVariantKey && sizeVariantKey !== "single") {
+    return sizeVariantKey;
+  }
+
   if (!variantCodes?.length) return undefined;
-  if (variantCodes.includes(KIRLENT_PACK4_VARIANT)) return KIRLENT_PACK4_VARIANT;
+
   if (variantCodes.includes("round")) return "round";
   if (variantCodes.includes("teona1")) return "teona1";
   if (variantCodes.includes("puzzle800")) return "puzzle800";
@@ -264,7 +303,11 @@ export function lookupCatalogPrice(input: CatalogLookupInput): CatalogLookupResu
     getPriceCatalogByRuleCode(input.ruleCode);
   if (!catalog) return null;
 
-  const variantKey = resolveCatalogVariantKey(input.variantCodes, input.sizeVariantKey);
+  const variantKey = resolveCatalogVariantKey(
+    input.variantCodes,
+    input.sizeVariantKey,
+    input.optionCodes
+  );
   const w = Math.round(Number(input.widthCm) || 0);
   const h = Math.round(Number(input.heightCm) || 0);
   const qty = Math.max(1, Math.floor(Number(input.quantity) || 1));

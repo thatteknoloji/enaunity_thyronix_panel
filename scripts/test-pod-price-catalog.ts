@@ -50,14 +50,55 @@ async function main() {
 
   assertPrice("CARPET_CATALOG_V1", { widthCm: 200, heightCm: 300 }, 2040, "Halı 200×300 (6 m² × 340)");
 
+  assertPrice("CUSHION_CATALOG_V1", { widthCm: 43, heightCm: 43 }, 80, "Kırlent 43×43 tekli");
   assertPrice("CUSHION_CATALOG_V1", { widthCm: 50, heightCm: 50 }, 105, "Kırlent 50×50 tekli");
+  assertPrice("CUSHION_CATALOG_V1", { widthCm: 60, heightCm: 60 }, 115, "Kırlent 60×60 tekli");
 
+  assertPrice(
+    "CUSHION_CATALOG_V1",
+    { widthCm: 43, heightCm: 43, sizeVariantKey: KIRLENT_PACK4_VARIANT },
+    320,
+    "Kırlent 43×43 4'lü (sizeVariantKey)"
+  );
   assertPrice(
     "CUSHION_CATALOG_V1",
     { widthCm: 50, heightCm: 50, sizeVariantKey: KIRLENT_PACK4_VARIANT },
     420,
-    "Kırlent 50×50 4'lü"
+    "Kırlent 50×50 4'lü (sizeVariantKey)"
   );
+  assertPrice(
+    "CUSHION_CATALOG_V1",
+    { widthCm: 60, heightCm: 60, sizeVariantKey: KIRLENT_PACK4_VARIANT },
+    460,
+    "Kırlent 60×60 4'lü (sizeVariantKey)"
+  );
+
+  assertPrice(
+    "CUSHION_CATALOG_V1",
+    { widthCm: 50, heightCm: 50, optionCodes: ["pack4"] },
+    420,
+    "Kırlent 50×50 4'lü (optionCodes pack4)"
+  );
+  assertPrice(
+    "CUSHION_CATALOG_V1",
+    { widthCm: 50, heightCm: 50, optionCodes: ["KIRLENT_4LU"] },
+    420,
+    "Kırlent 50×50 4'lü (optionCodes KIRLENT_4LU)"
+  );
+  assertPrice(
+    "CUSHION_CATALOG_V1",
+    { widthCm: 50, heightCm: 50, sizeVariantKey: "CUSHION_50x50_PACK4" },
+    420,
+    "Kırlent 50×50 4'lü (CUSHION_50x50_PACK4 key)"
+  );
+
+  const qty4NoPack = lookupCatalogPrice({
+    ruleCode: "CUSHION_CATALOG_V1",
+    widthCm: 50,
+    heightCm: 50,
+    quantity: 4,
+  });
+  assert(qty4NoPack?.finalPrice === 105, "quantity=4 pack seçili değil → tekli fiyat (105)");
 
   assertPrice("MDF_TABLO_CATALOG_V1", { widthCm: 50, heightCm: 70 }, 276, "MDF Tablo 50×70");
 
