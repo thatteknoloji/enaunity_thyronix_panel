@@ -6,7 +6,11 @@ import {
   listCatalogFixedSizes,
   POST_KESIM_OPTION_CODE,
 } from "@/lib/pricing-engine/pod-price-catalog";
-import { listMockupTemplates } from "@/lib/pod-core/mockup-template-registry";
+import {
+  getPodProductProfileByTemplateId,
+  listMockupTemplates,
+} from "@/lib/pod-core/mockup-template-registry";
+import { listPodProductProfiles } from "@/lib/pod-core/product-profiles/pod-product-profile-registry";
 import { usePodCore } from "./pod-core-context";
 
 export function PodVariantSelector() {
@@ -25,14 +29,28 @@ export function PodVariantSelector() {
     setSizeVariantKey,
     optionCodes,
     setOptionCodes,
+    pricing,
   } = usePodCore();
+
   const templates = listMockupTemplates();
+  const profile = getPodProductProfileByTemplateId(mockupTemplate.id);
   const isArea = mockupTemplate.formulaHint === "AREA";
   const catalogSizes = mockupTemplate.pricingCatalogId
-    ? listCatalogFixedSizes(mockupTemplate.pricingCatalogId)
+    ? listCatalogFixedSizes(mockupTemplate.pricingCatalogId).filter((s) => {
+        if (mockupTemplate.printAreaMode === "CIRCLE") return s.variantKey === "round";
+        if (mockupTemplate.pricingCatalogId === "CAM") return s.variantKey !== "round";
+        return true;
+      })
     : [];
   const hasCatalogPresets = catalogSizes.length > 0;
   const postKesim = optionCodes.includes(POST_KESIM_OPTION_CODE);
+  const groups = listPodProductProfiles().reduce<Record<string, typeof templates>>((acc, p) => {
+    const tpl = templates.find((t) => t.id === p.templateId);
+    if (!tpl) return acc;
+    if (!acc[p.category]) acc[p.category] = [];
+    acc[p.category].push(tpl);
+    return acc;
+  }, {});
 
   const presetValue = hasCatalogPresets
     ? catalogSizes.find(
@@ -53,29 +71,60 @@ export function PodVariantSelector() {
     if (h > 0) setHeightCm(h);
     setSizeVariantKey(variant || undefined);
     if (variant === KIRLENT_PACK4_VARIANT) setQuantity(4);
-    else if (mockupTemplate.pricingCatalogId === "NEVRESIM") {
-      setSizeVariantKey(variant);
-    }
   };
 
   return (
     <div className="space-y-3">
       <p className="text-[10px] font-semibold uppercase tracking-wider text-emerald-600">Ürün & Varyant</p>
 
-      <select
-        value={mockupTemplate.id}
-        onChange={(e) => {
-          const tpl = templates.find((t) => t.id === e.target.value);
-          if (tpl) setMockupTemplate(tpl);
-        }}
-        className="w-full rounded-lg border border-ena-border bg-white/5 px-2 py-2 text-xs"
-      >
-        {templates.map((t) => (
-          <option key={t.id} value={t.id}>
-            {t.category} — {t.name}
-          </option>
-        ))}
-      </select>
+      <label className="block space-y-1 text-xs">
+        <span className="text-ena-light/60">Ürün grubu</span>
+        <select
+          value={mockupTemplate.id}
+          onChange={(e) => {
+            const tpl = templates.find((t) => t.id === e.target.value);
+            if (tpl) setMockupTemplate(tpl);
+          }}
+          className="w-full rounded-lg border border-ena-border bg-white/5 px-2 py-2 text-xs"
+        >
+          {Object.entries(groups).map(([category, items]) => (
+            <optgroup key={category} label={category}>
+              {items.map((t) => (
+                <option key={t.id} value={t.id}>
+                  {t.name}
+                </option>
+              ))}
+            </optgroup>
+          ))}
+        </select>
+      </label>
+
+      {profile && (
+        <div className="rounded-lg border border-ena-border bg-white/5 px-2 py-2 text-[10px] space-y-1 text-ena-light/70">
+          <p>
+            <span className="text-ena-light/50">Ürün tipi:</span> {profile.templateType}
+          </p>
+          <p>
+            <span className="text-ena-light/50">Mockup:</span> {profile.mockupType}
+          </p>
+          {profile.catalogId && (
+            <p>
+              <span className="text-ena-light/50">Katalog:</span> {profile.catalogId}
+            </p>
+          )}
+          {pricing && (
+            <p className="text-emerald-400 font-semibold">
+              Güncel fiyat: ₺{pricing.finalPrice.toLocaleString("tr-TR")}
+            </p>
+          )}
+        </div>
+      )}
+
+      {mockupTemplate.warnings?.map((warning) => (
+        <p key={warning} className="text-[10px] text-amber-400/90 rounded border border-amber-500/20 bg-amber-500/5 px-2 py-1.5">
+          {warning}
+        </p>
+      ))}
 
       {hasCatalogPresets && (
         <label className="block space-y-1 text-xs">
@@ -98,20 +147,6 @@ export function PodVariantSelector() {
         </label>
       )}
 
-      <div className="rounded-lg border border-ena-border bg-white/5 px-2 py-2 text-[10px] space-y-1 text-ena-light/70">
-        <p>
-          <span className="text-ena-light/50">Kural:</span> {mockupTemplate.pricingRuleCode}
-        </p>
-        {mockupTemplate.pricingCatalogId && (
-          <p>
-            <span className="text-ena-light/50">Katalog:</span> {mockupTemplate.pricingCatalogId}
-          </p>
-        )}
-        <p>
-          <span className="text-ena-light/50">Malzeme:</span> {mockupTemplate.materialCode}
-        </p>
-      </div>
-
       {mockupTemplate.pricingCatalogId === "NEVRESIM" && (
         <label className="block space-y-1 text-xs">
           <span className="text-ena-light/60">Takım tipi</span>
@@ -126,32 +161,25 @@ export function PodVariantSelector() {
         </label>
       )}
 
-      {isArea && !hasCatalogPresets && (
-        <div className="grid grid-cols-2 gap-2 text-xs">
-          <label className="space-y-1">
-            <span className="text-ena-light/60">Genişlik (cm)</span>
-            <input
-              type="number"
-              min={1}
-              value={widthCm || ""}
-              onChange={(e) => setWidthCm(Number(e.target.value))}
-              className="w-full rounded border border-ena-border bg-white/5 px-2 py-1.5"
-            />
-          </label>
-          <label className="space-y-1">
-            <span className="text-ena-light/60">Yükseklik (cm)</span>
-            <input
-              type="number"
-              min={1}
-              value={heightCm || ""}
-              onChange={(e) => setHeightCm(Number(e.target.value))}
-              className="w-full rounded border border-ena-border bg-white/5 px-2 py-1.5"
-            />
-          </label>
-        </div>
+      {mockupTemplate.pricingCatalogId === "KIRLENT" && (
+        <label className="block space-y-1 text-xs">
+          <span className="text-ena-light/60">Kırlent paketi</span>
+          <select
+            value={sizeVariantKey === KIRLENT_PACK4_VARIANT ? KIRLENT_PACK4_VARIANT : "single"}
+            onChange={(e) => {
+              const pack4 = e.target.value === KIRLENT_PACK4_VARIANT;
+              setSizeVariantKey(pack4 ? KIRLENT_PACK4_VARIANT : undefined);
+              setQuantity(pack4 ? 4 : 1);
+            }}
+            className="w-full rounded border border-ena-border bg-white/5 px-2 py-1.5"
+          >
+            <option value="single">Tekli — ₺105</option>
+            <option value={KIRLENT_PACK4_VARIANT}>4&apos;lü paket — ₺420</option>
+          </select>
+        </label>
       )}
 
-      {isArea && hasCatalogPresets && (
+      {isArea && (
         <div className="grid grid-cols-2 gap-2 text-xs">
           <label className="space-y-1">
             <span className="text-ena-light/60">Genişlik (cm)</span>
@@ -182,7 +210,7 @@ export function PodVariantSelector() {
         </div>
       )}
 
-      {!isArea && mockupTemplate.pricingCatalogId !== "NEVRESIM" && (
+      {!isArea && mockupTemplate.pricingCatalogId !== "NEVRESIM" && mockupTemplate.pricingCatalogId !== "KIRLENT" && (
         <label className="block space-y-1 text-xs">
           <span className="text-ena-light/60">Adet</span>
           <input
@@ -208,16 +236,16 @@ export function PodVariantSelector() {
         </label>
       )}
 
-      <label className="flex items-center gap-2 text-xs text-ena-light/80">
-        <input
-          type="checkbox"
-          checked={postKesim}
-          onChange={(e) =>
-            setOptionCodes(e.target.checked ? [POST_KESIM_OPTION_CODE] : [])
-          }
-        />
-        Post kesim (+₺100)
-      </label>
+      {(profile?.options?.includes("postKesim") || mockupTemplate.pricingCatalogId === "HALI") && (
+        <label className="flex items-center gap-2 text-xs text-ena-light/80">
+          <input
+            type="checkbox"
+            checked={postKesim}
+            onChange={(e) => setOptionCodes(e.target.checked ? [POST_KESIM_OPTION_CODE] : [])}
+          />
+          Post kesim (+₺100)
+        </label>
+      )}
 
       <label className="block space-y-1 text-xs">
         <span className="text-ena-light/60">Müşteri tipi</span>

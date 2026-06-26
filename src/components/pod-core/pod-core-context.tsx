@@ -12,7 +12,8 @@ import {
 } from "react";
 import type { PricingCustomerType } from "@/lib/pricing-engine/pricing-types";
 import { PodCanvasEngine } from "@/lib/pod-core/canvas-engine";
-import { getDefaultMockupTemplate } from "@/lib/pod-core/mockup-template-registry";
+import { getDefaultMockupTemplate, getPodProductProfileByTemplateId } from "@/lib/pod-core/mockup-template-registry";
+import { PRICING_UNAVAILABLE_MESSAGE } from "@/lib/pricing-engine/pricing-service";
 import {
   buildPricingBridgePayload,
   fetchPodPricing,
@@ -134,7 +135,7 @@ export function PodCoreProvider({ children }: { children: ReactNode }) {
     } catch (e) {
       if (seq !== pricingSeq.current) return;
       setPricing(null);
-      setPricingError(e instanceof Error ? e.message : "Fiyat hatası");
+      setPricingError(e instanceof Error ? e.message : PRICING_UNAVAILABLE_MESSAGE);
     } finally {
       if (seq === pricingSeq.current) setPricingLoading(false);
     }
@@ -206,12 +207,16 @@ export function PodCoreProvider({ children }: { children: ReactNode }) {
 
   const setMockupTemplate = useCallback(
     (t: MockupTemplate) => {
+      const profile = getPodProductProfileByTemplateId(t.id);
       templateRef.current = t;
       setMockupTemplateState(t);
       setWidthCm(t.defaultSize.widthCm);
       setHeightCm(t.defaultSize.heightCm);
       setQuantity(t.defaultQuantity);
-      setSizeVariantKey(t.pricingCatalogId === "NEVRESIM" ? "single" : undefined);
+      setSizeVariantKey(
+        profile?.defaultSizeVariantKey ||
+          (t.pricingCatalogId === "NEVRESIM" ? "single" : undefined)
+      );
       setOptionCodes([]);
       engineRef.current?.setMockupTemplate(t);
       refresh();

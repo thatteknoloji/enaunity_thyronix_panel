@@ -1,5 +1,10 @@
 /** Analiz Merkezi ortak ürün sözleşmesi — THYRONIX + ENA */
-export type AnalysisProductSource = "thyronix" | "dealer_product" | "store_catalog" | "package_catalog";
+export type AnalysisProductSource =
+  | "thyronix"
+  | "dealer_product"
+  | "store_catalog"
+  | "package_catalog"
+  | "platform_catalog";
 
 export type AnalysisFeedQuality = {
   hasCategory: boolean;
@@ -43,6 +48,7 @@ export type AnalysisSourceCounts = {
   dealerProduct: number;
   storeCatalog: number;
   packageCatalog: number;
+  platformCatalog?: number;
   total: number;
 };
 

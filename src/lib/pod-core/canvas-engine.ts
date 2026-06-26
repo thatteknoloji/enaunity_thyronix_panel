@@ -92,7 +92,13 @@ export class PodCanvasEngine {
     this.applyViewport();
     if (this.mockupTemplate) {
       this.refreshPrintOverlays();
-      if (this.clipEnabled) clipToPrintableArea(this.canvas, this.printAreaBundle);
+      if (this.clipEnabled) {
+        clipToPrintableArea(
+          this.canvas,
+          this.printAreaBundle,
+          this.mockupTemplate.printAreaMode ?? "RECTANGLE"
+        );
+      }
     }
     const snap = canvasToHistorySnapshot(this.canvas, this.viewport, this.historyTemplateId());
     this.history.reset(snap);
@@ -133,7 +139,11 @@ export class PodCanvasEngine {
   setClipEnabled(enabled: boolean): void {
     this.clipEnabled = enabled;
     if (enabled) {
-      clipToPrintableArea(this.canvas, this.printAreaBundle);
+      clipToPrintableArea(
+        this.canvas,
+        this.printAreaBundle,
+        this.mockupTemplate?.printAreaMode ?? "RECTANGLE"
+      );
     } else {
       clearCanvasClip(this.canvas);
     }
@@ -152,14 +162,23 @@ export class PodCanvasEngine {
       this.printAreaBundle = null;
     }
     this.refreshPrintOverlays();
-    if (this.clipEnabled) {
-      clipToPrintableArea(this.canvas, this.printAreaBundle);
+    if (this.clipEnabled && template) {
+      clipToPrintableArea(
+        this.canvas,
+        this.printAreaBundle,
+        template.printAreaMode ?? "RECTANGLE"
+      );
     }
     this.callbacks.onChange?.();
   }
 
   refreshPrintOverlays(): void {
-    syncPrintOverlays(this.canvas, this.printAreaBundle, this.overlayVisibility);
+    syncPrintOverlays(
+      this.canvas,
+      this.printAreaBundle,
+      this.overlayVisibility,
+      this.mockupTemplate?.printAreaMode ?? "RECTANGLE"
+    );
   }
 
   private historyTemplateId(): string | undefined {

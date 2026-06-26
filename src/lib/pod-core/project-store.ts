@@ -64,6 +64,30 @@ export async function deletePodCoreProject(ownerUserId: string, projectId: strin
   }
 }
 
+export async function listAllPodCoreProjects(): Promise<PodCoreProjectRecord[]> {
+  try {
+    await mkdir(ROOT_DIR, { recursive: true });
+    const userDirs = await readdir(ROOT_DIR);
+    const records: PodCoreProjectRecord[] = [];
+    for (const userId of userDirs) {
+      const dir = path.join(ROOT_DIR, userId);
+      const files = await readdir(dir).catch(() => [] as string[]);
+      for (const file of files) {
+        if (!file.endsWith(".json")) continue;
+        try {
+          const raw = await readFile(path.join(dir, file), "utf-8");
+          records.push(JSON.parse(raw) as PodCoreProjectRecord);
+        } catch {
+          /* skip */
+        }
+      }
+    }
+    return records.sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
+  } catch {
+    return [];
+  }
+}
+
 export async function duplicatePodCoreProject(
   ownerUserId: string,
   projectId: string,

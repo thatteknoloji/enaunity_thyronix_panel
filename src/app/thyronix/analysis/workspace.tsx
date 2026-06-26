@@ -553,6 +553,7 @@ export function ThyronixAnalysisWorkspace({ config }: { config: AnalysisWorkspac
                 {sourceCounts.dealerProduct ? ` Bayi ${sourceCounts.dealerProduct}` : ""}
                 {sourceCounts.storeCatalog ? ` · Mağaza ${sourceCounts.storeCatalog}` : ""}
                 {sourceCounts.packageCatalog ? ` · Depo ${sourceCounts.packageCatalog}` : ""}
+                {sourceCounts.platformCatalog ? ` · Katalog ${sourceCounts.platformCatalog}` : ""}
                 {sourceCounts.thyronix ? ` · THYRONIX ${sourceCounts.thyronix}` : ""}
               </p>
             ) : null}

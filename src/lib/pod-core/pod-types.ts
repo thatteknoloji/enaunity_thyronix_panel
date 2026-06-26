@@ -77,6 +77,7 @@ export type PodOverlayVisibility = {
 export type MockupOrientation = "landscape" | "portrait";
 export type MockupView = "front" | "back" | "left" | "right";
 export type MockupFormulaHint = "AREA" | "PIECE";
+export type PodPrintAreaMode = "RECTANGLE" | "CIRCLE" | "FABRIC_PANEL";
 
 export type MockupDefaultSize = {
   widthCm: number;
@@ -95,6 +96,11 @@ export type MockupTemplate = {
   width: number;
   height: number;
   category: string;
+  /** Product profile id (CAM_TABLO, HALI, …) */
+  profileId?: string;
+  printAreaMode?: PodPrintAreaMode;
+  mockupType?: string;
+  warnings?: string[];
   /** Pricing Engine rule code */
   pricingRuleCode: string;
   /** Hazır fiyat kataloğu id (CAM, MDF_TABLO, PERDE, …) */

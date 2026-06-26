@@ -1,8 +1,10 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { ImagePlus, Type } from "lucide-react";
 import { isSystemObject } from "@/lib/pod-core/print-area-overlay";
+import { getMockupTemplate } from "@/lib/pod-core/mockup-template-registry";
 import { usePodCore } from "@/components/pod-core/pod-core-context";
 
 const ACCEPTED = ["image/png", "image/jpeg", "image/webp"];
@@ -10,9 +12,17 @@ const ACCEPTED = ["image/png", "image/jpeg", "image/webp"];
 export function PodEditorCanvasWorkspace() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const dropRef = useRef<HTMLDivElement>(null);
-  const { engine, refresh, mockupTemplate, widthCm, heightCm, tick } = usePodCore();
+  const { engine, refresh, mockupTemplate, widthCm, heightCm, tick, pricing, setMockupTemplate } = usePodCore();
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [dragOver, setDragOver] = useState(false);
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    const templateId = searchParams.get("template");
+    if (!templateId) return;
+    const tpl = getMockupTemplate(templateId);
+    if (tpl) setMockupTemplate(tpl);
+  }, [searchParams, setMockupTemplate]);
 
   useEffect(() => {
     const el = canvasRef.current;
@@ -133,6 +143,18 @@ export function PodEditorCanvasWorkspace() {
             </div>
           )}
         </div>
+      </div>
+
+      <div className="absolute top-3 left-10 right-3 flex items-center justify-between gap-2 pointer-events-none">
+        <span className="text-[10px] font-semibold text-white/70 bg-black/40 rounded px-2 py-1">
+          {mockupTemplate.category} · {mockupTemplate.name}
+          {mockupTemplate.formulaHint === "AREA" ? ` · ${widthCm}×${heightCm} cm` : ""}
+        </span>
+        {pricing && (
+          <span className="text-[10px] font-bold text-emerald-300 bg-black/40 rounded px-2 py-1 tabular-nums">
+            ₺{pricing.finalPrice.toLocaleString("tr-TR")}
+          </span>
+        )}
       </div>
 
       <div className="absolute bottom-3 left-10 text-[10px] text-white/30 font-mono" key={tick}>

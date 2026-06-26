@@ -50,6 +50,7 @@ import {
   Activity,
   Database,
   Image,
+  LineChart,
 } from "lucide-react";
 
 export type AdminNavItem = {
@@ -101,6 +102,7 @@ export function buildAdminNavGroups(t: (key: string) => string, legacyMarketplac
       items: [
         { href: "/admin", label: "Genel Bakış", icon: LayoutDashboard },
         { href: "/admin/reports", label: t("admin.reports"), icon: BarChart3 },
+        { href: "/admin/analiz-merkezi", label: "Analiz Merkezi", icon: LineChart },
       ],
     },
     {

@@ -3,6 +3,7 @@
  * Run: npx tsx scripts/test-pod-price-catalog.ts
  */
 import { tryCalculateFromCatalog } from "../src/lib/pricing-engine/catalog-pricing-engine";
+import { calculatePricing, isCatalogBackedPricingInput } from "../src/lib/pricing-engine/pricing-service";
 import {
   KIRLENT_PACK4_VARIANT,
   lookupCatalogPrice,
@@ -42,7 +43,7 @@ function assertPrice(
   assert(hit.finalPrice === expected, `${label} → ₺${hit.finalPrice} (beklenen ₺${expected})`);
 }
 
-function main() {
+async function main() {
   console.log("ENA_POD_PRICE_CATALOG_V1 tests\n");
 
   assertPrice("CURTAIN_CATALOG_V1", { widthCm: 280, heightCm: 240 }, 1750, "Perde 280×240");
@@ -59,6 +60,15 @@ function main() {
   );
 
   assertPrice("MDF_TABLO_CATALOG_V1", { widthCm: 50, heightCm: 70 }, 276, "MDF Tablo 50×70");
+
+  assertPrice("CAM_CATALOG_V1", { widthCm: 90, heightCm: 30 }, 940, "Cam 90×30");
+
+  assertPrice(
+    "CAM_CATALOG_V1",
+    { widthCm: 60, heightCm: 60, sizeVariantKey: "round" },
+    1140,
+    "Cam yuvarlak 60×60"
+  );
 
   assertPrice("CAM_CATALOG_V1", { widthCm: 90, heightCm: 60 }, 1687, "Cam 90×60");
 
@@ -99,8 +109,21 @@ function main() {
   });
   assert(noMatch === null, "Perde eşleşmeyen ölçü → null (formula fallback)");
 
+  const unavailable = await calculatePricing({
+    ruleCode: "CAM_CATALOG_V1",
+    catalogId: "CAM",
+    widthCm: 12,
+    heightCm: 12,
+    writeLog: false,
+  });
+  assert(unavailable.priceAvailable === false, "Katalog miss → priceAvailable false (teknik hata yok)");
+  assert(isCatalogBackedPricingInput({ ruleCode: "CAM_CATALOG_V1", catalogId: "CAM" }), "CAM catalog backed");
+
   console.log(`\n${passed} passed, ${failed} failed`);
   if (failed > 0) process.exit(1);
 }
 
-main();
+main().catch((e) => {
+  console.error(e);
+  process.exit(1);
+});

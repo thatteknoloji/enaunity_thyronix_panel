@@ -1,6 +1,6 @@
-import type { Canvas, FabricObject, Rect as FabricRect } from "fabric";
-import { Line, Rect } from "fabric";
-import type { PodOverlayVisibility, PodPrintAreaBundle } from "./pod-types";
+import type { Canvas, FabricObject, Rect as FabricRect, Circle as FabricCircle } from "fabric";
+import { Line, Rect, Circle } from "fabric";
+import type { PodOverlayVisibility, PodPrintAreaBundle, PodPrintAreaMode } from "./pod-types";
 import { POD_OVERLAY_COLORS, POD_OVERLAY_KEY, POD_SYSTEM_KEY } from "./pod-types";
 
 export type OverlayKind = "printable" | "safe" | "bleed" | "grid";
@@ -24,7 +24,8 @@ export function removePrintOverlays(canvas: Canvas | null): void {
 export function syncPrintOverlays(
   canvas: Canvas | null,
   bundle: PodPrintAreaBundle | null,
-  visibility: PodOverlayVisibility
+  visibility: PodOverlayVisibility,
+  printAreaMode: PodPrintAreaMode = "RECTANGLE"
 ): void {
   if (!canvas) return;
   removePrintOverlays(canvas);
@@ -42,7 +43,11 @@ export function syncPrintOverlays(
 
   for (const layer of layers) {
     if (!layer.visible) continue;
-    canvas.add(createAreaRect(layer.kind, layer.rect));
+    canvas.add(
+      printAreaMode === "CIRCLE" && layer.kind === "printable"
+        ? createAreaCircle(layer.kind, layer.rect)
+        : createAreaRect(layer.kind, layer.rect)
+    );
   }
 
   if (visibility.grid) {
@@ -55,6 +60,28 @@ export function syncPrintOverlays(
     }
   });
   canvas.requestRenderAll();
+}
+
+function createAreaCircle(kind: Exclude<OverlayKind, "grid">, area: PodPrintAreaBundle["printable"]): FabricCircle {
+  const radius = Math.min(area.width, area.height) / 2;
+  const circle = new Circle({
+    left: area.x + area.width / 2,
+    top: area.y + area.height / 2,
+    radius,
+    originX: "center",
+    originY: "center",
+    fill: "transparent",
+    stroke: OVERLAY_STROKE[kind],
+    strokeWidth: 2,
+    strokeDashArray: [8, 4],
+    angle: area.rotation ?? 0,
+    selectable: false,
+    evented: false,
+    excludeFromExport: true,
+  });
+  circle.set(POD_OVERLAY_KEY, kind);
+  circle.set(POD_SYSTEM_KEY, true);
+  return circle;
 }
 
 function createAreaRect(kind: Exclude<OverlayKind, "grid">, area: PodPrintAreaBundle["printable"]): FabricRect {
@@ -105,7 +132,11 @@ function addGridLines(canvas: Canvas, area: PodPrintAreaBundle["printable"]): vo
   }
 }
 
-export function clipToPrintableArea(canvas: Canvas | null, bundle: PodPrintAreaBundle | null): void {
+export function clipToPrintableArea(
+  canvas: Canvas | null,
+  bundle: PodPrintAreaBundle | null,
+  printAreaMode: PodPrintAreaMode = "RECTANGLE"
+): void {
   if (!canvas || !bundle) {
     if (canvas) {
       canvas.clipPath = undefined;
@@ -113,14 +144,28 @@ export function clipToPrintableArea(canvas: Canvas | null, bundle: PodPrintAreaB
     }
     return;
   }
-  const clip = new Rect({
-    left: bundle.printable.x,
-    top: bundle.printable.y,
-    width: bundle.printable.width,
-    height: bundle.printable.height,
-    absolutePositioned: true,
-  });
-  canvas.clipPath = clip;
+  const area = bundle.printable;
+  if (printAreaMode === "CIRCLE") {
+    const radius = Math.min(area.width, area.height) / 2;
+    const clip = new Circle({
+      left: area.x + area.width / 2,
+      top: area.y + area.height / 2,
+      radius,
+      originX: "center",
+      originY: "center",
+      absolutePositioned: true,
+    });
+    canvas.clipPath = clip;
+  } else {
+    const clip = new Rect({
+      left: area.x,
+      top: area.y,
+      width: area.width,
+      height: area.height,
+      absolutePositioned: true,
+    });
+    canvas.clipPath = clip;
+  }
   canvas.requestRenderAll();
 }
 

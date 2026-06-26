@@ -218,3 +218,61 @@ export async function loadDealerAnalysisProducts(dealerId: string): Promise<{
 
   return { products, sourceCounts };
 }
+
+export async function loadAdminAnalysisProducts(): Promise<{
+  products: AnalysisProductRecord[];
+  sourceCounts: AnalysisSourceCounts;
+}> {
+  const catalogItems = await prisma.productCatalogItem.findMany({
+    where: { status: "ACTIVE" },
+    orderBy: { updatedAt: "desc" },
+    take: PRODUCT_LIMIT,
+  });
+
+  const records: AnalysisProductRecord[] = catalogItems.map((item) => {
+    const images = parseImagesJson(item.imagesJson);
+    return {
+      id: `pci:${item.id}`,
+      source: "platform_catalog",
+      sourceLabel: "Canlı Ürün Kataloğu",
+      name: item.name,
+      description: null,
+      brand: item.brand || null,
+      category: item.category || null,
+      barcode: item.barcode || null,
+      stockCode: item.sku || null,
+      modelCode: item.sku || null,
+      price: item.salePrice || item.price || 0,
+      costPrice: item.price > 0 ? item.price : null,
+      stock: item.stock ?? 0,
+      image: images[0] || null,
+      images: images.join(","),
+      imageCount: images.length,
+      vatRate: item.vatRate ?? null,
+      shippingCost: null,
+      deliveryTime: null,
+      feedQuality: buildFeedQuality({
+        category: item.category,
+        barcode: item.barcode,
+        stockCode: item.sku,
+        modelCode: item.sku,
+        vatRate: item.vatRate,
+        costPrice: item.price > 0 ? item.price : null,
+        imageCount: images.length,
+        variantCount: 1,
+      }),
+      updatedAt: item.updatedAt.toISOString(),
+    };
+  });
+
+  const products = mergeRecords(records);
+  const sourceCounts: AnalysisSourceCounts = {
+    dealerProduct: 0,
+    storeCatalog: 0,
+    packageCatalog: 0,
+    platformCatalog: products.length,
+    total: products.length,
+  };
+
+  return { products, sourceCounts };
+}

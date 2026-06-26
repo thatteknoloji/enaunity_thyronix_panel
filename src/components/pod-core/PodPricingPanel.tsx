@@ -22,7 +22,14 @@ export function PodPricingPanel() {
     widthCm,
     heightCm,
     quantity,
+    sizeVariantKey,
+    optionCodes,
   } = usePodCore();
+
+  const sizeKey =
+    mockupTemplate.formulaHint === "PIECE"
+      ? sizeVariantKey || `${quantity} adet`
+      : `${Math.round(widthCm)}×${Math.round(heightCm)} cm${sizeVariantKey ? ` (${sizeVariantKey})` : ""}`;
 
   return (
     <div className="space-y-3">
@@ -37,7 +44,7 @@ export function PodPricingPanel() {
       )}
 
       {pricingError && (
-        <p className="text-xs text-red-400 rounded-lg border border-red-500/30 bg-red-500/5 px-2 py-1.5">
+        <p className="text-xs text-amber-300 rounded-lg border border-amber-500/30 bg-amber-500/5 px-2 py-1.5">
           {pricingError}
         </p>
       )}
@@ -48,30 +55,36 @@ export function PodPricingPanel() {
             <p className="text-[10px] text-emerald-700/70 uppercase tracking-wide">Final Fiyat</p>
             <p className="text-2xl font-bold text-emerald-800">{formatTry(pricing.finalPrice)}</p>
             <p className="text-[10px] text-ena-light/60">
-              {customerType === "DEALER" ? "Bayi" : "Perakende"} · {mockupTemplate.pricingRuleCode}
+              {customerType === "DEALER" ? "Bayi" : "Perakende"} · {mockupTemplate.name}
             </p>
+          </div>
+
+          <div className="rounded-lg border border-ena-border bg-white/5 px-2 py-2 text-[10px] space-y-1">
+            {mockupTemplate.pricingCatalogId && (
+              <p>
+                <span className="text-ena-light/50">catalogId:</span> {mockupTemplate.pricingCatalogId}
+              </p>
+            )}
+            <p>
+              <span className="text-ena-light/50">sizeKey:</span> {sizeKey}
+            </p>
+            {optionCodes.length > 0 && (
+              <p>
+                <span className="text-ena-light/50">optionCodes:</span> {optionCodes.join(", ")}
+              </p>
+            )}
           </div>
 
           <div className="grid grid-cols-2 gap-2 text-xs">
             <Stat label="Alan (m²)" value={pricing.areaM2.toFixed(3)} />
             <Stat label="Perakende" value={formatTry(pricing.retailPrice)} />
             <Stat label="Bayi" value={formatTry(pricing.dealerPrice)} />
-            <Stat label="Ölçü" value={
-              mockupTemplate.formulaHint === "PIECE"
-                ? `${quantity} adet`
-                : `${widthCm}×${heightCm} cm`
-            } />
+            <Stat label="Ölçü" value={sizeKey} />
           </div>
 
           <div className="space-y-1 border-t border-ena-border pt-2">
             <p className="text-[10px] font-semibold text-ena-light/50 uppercase">Breakdown</p>
-            <BreakdownRow label="Malzeme" amount={pricing.materialCost} />
-            <BreakdownRow label="İşçilik" amount={pricing.laborCost} />
-            <BreakdownRow label="Baskı" amount={pricing.printCost} />
-            <BreakdownRow label="Fire" amount={pricing.wasteCost} />
-            <BreakdownRow label="Komisyon" amount={pricing.commissionAmount} />
-            <BreakdownRow label="KDV" amount={pricing.taxAmount} />
-            {pricing.breakdown.slice(0, 4).map((line) => (
+            {pricing.breakdown.map((line) => (
               <BreakdownRow key={line.key} label={line.label} amount={line.amount} />
             ))}
           </div>
@@ -101,11 +114,13 @@ function Stat({ label, value }: { label: string; value: string }) {
 }
 
 function BreakdownRow({ label, amount }: { label: string; amount: number }) {
-  if (!amount) return null;
+  if (!amount && !label.toLowerCase().includes("eşleşme") && !label.toLowerCase().includes("katalog")) {
+    return null;
+  }
   return (
     <div className="flex justify-between text-[11px]">
       <span className="text-ena-light/70">{label}</span>
-      <span className="font-mono text-ena-text">{formatTry(amount)}</span>
+      {amount > 0 && <span className="font-mono text-ena-text">{formatTry(amount)}</span>}
     </div>
   );
 }

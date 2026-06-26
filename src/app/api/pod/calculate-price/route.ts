@@ -1,5 +1,8 @@
 import { NextResponse } from "next/server";
-import { calculatePricing } from "@/lib/pricing-engine/pricing-service";
+import {
+  calculatePricing,
+  PRICING_UNAVAILABLE_MESSAGE,
+} from "@/lib/pricing-engine/pricing-service";
 import { toCalculatePricingInput, type PodPricingBridgeRequest } from "@/lib/pod-core/pod-pricing-bridge";
 import type { PricingCustomerType } from "@/lib/pricing-engine/pricing-types";
 
@@ -27,6 +30,14 @@ export async function POST(req: Request) {
 
     const data = await calculatePricing(toCalculatePricingInput(bridgeReq));
 
+    if (data.priceAvailable === false) {
+      return NextResponse.json({
+        success: false,
+        error: PRICING_UNAVAILABLE_MESSAGE,
+        code: "PRICE_NOT_DEFINED",
+      });
+    }
+
     return NextResponse.json({
       success: true,
       data,
@@ -34,10 +45,15 @@ export async function POST(req: Request) {
         calculationTimeMs: Date.now() - started,
         templateId: bridgeReq.templateId,
         variantId: bridgeReq.variantId,
+        catalogId: bridgeReq.pricingCatalogId,
+        sizeVariantKey: bridgeReq.sizeVariantKey,
       },
     });
-  } catch (e) {
-    const msg = e instanceof Error ? e.message : "Fiyat hesaplanamadı";
-    return NextResponse.json({ success: false, error: msg }, { status: 400 });
+  } catch {
+    return NextResponse.json({
+      success: false,
+      error: "Fiyat şu an hesaplanamıyor. Lütfen ölçü ve ürün seçimini kontrol edin.",
+      code: "PRICE_CALC_ERROR",
+    });
   }
 }

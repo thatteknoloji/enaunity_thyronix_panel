@@ -1,6 +1,6 @@
 import type { UnifiedStatus } from "@/lib/customer-products/types";
 import { prisma } from "@/lib/db";
-import { getDealerModuleLicense, getModuleLicenseState } from "./access";
+import { getDealerModuleLicense, getModuleLicenseState, isModuleLicenseEntitled } from "./access";
 import { normalizeModuleKey } from "./module-key";
 import { MARKETPLACE_MODULES, MARKETPLACE_MODULE_KEYS, type MarketplaceCard, resolveMarketplaceCta } from "./marketplace";
 
@@ -24,8 +24,12 @@ export async function buildMarketplaceCard(
   }
 ): Promise<MarketplaceCard> {
   const meta = MARKETPLACE_MODULES[key];
-  const licenseState = await getModuleLicenseState(dealerId, key);
+  let licenseState = await getModuleLicenseState(dealerId, key);
   const license = await getDealerModuleLicense(dealerId, key);
+
+  if (licenseState === "none" && license && isModuleLicenseEntitled(license)) {
+    licenseState = "active";
+  }
 
   const unifiedStatus = product?.status || "INACTIVE";
   const rawStatus = product?.rawStatus || license?.status || null;
@@ -92,7 +96,9 @@ export async function getDealerMarketplaceOverview(
   dealerId: string,
   products?: Array<{ moduleKey: string; status: UnifiedStatus; rawStatus: string; planKey: string | null; planName: string | null }>
 ) {
-  const productMap = Object.fromEntries((products || []).map((p) => [p.moduleKey, p]));
+  const productMap = Object.fromEntries(
+    (products || []).map((p) => [normalizeModuleKey(p.moduleKey), p])
+  );
 
   const modules = await Promise.all(
     MARKETPLACE_MODULE_KEYS.map((key) =>

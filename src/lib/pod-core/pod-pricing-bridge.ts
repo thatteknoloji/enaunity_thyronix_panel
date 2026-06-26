@@ -1,4 +1,5 @@
 import type { CalculatePricingInput, CalculatePricingResult, PricingCustomerType } from "@/lib/pricing-engine/pricing-types";
+import { PRICING_UNAVAILABLE_MESSAGE } from "@/lib/pricing-engine/pricing-service";
 import type { MockupTemplate, PodPricingSnapshot } from "./pod-types";
 
 export type PodPricingBridgeRequest = {
@@ -102,7 +103,12 @@ export async function fetchPodPricing(
     meta?: { calculationTimeMs?: number };
   };
   if (!res.ok || !json.success || !json.data) {
-    throw new Error(json.error || "Fiyat hesaplanamadı");
+    const raw = json.error || "Fiyat hesaplanamadı";
+    const friendly =
+      raw.includes("Fiyat kuralı bulunamadı") || raw.includes("CAM_CATALOG")
+        ? PRICING_UNAVAILABLE_MESSAGE
+        : raw;
+    throw new Error(friendly);
   }
   const calculationTimeMs = json.meta?.calculationTimeMs ?? 0;
   return {

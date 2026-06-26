@@ -342,6 +342,41 @@ export async function getPricingDashboard(): Promise<PricingDashboard> {
   };
 }
 
+export const PRICING_UNAVAILABLE_MESSAGE = "Bu ürün için fiyat henüz tanımlı değil.";
+
+export function isCatalogBackedPricingInput(input: CalculatePricingInput): boolean {
+  return Boolean(input.catalogId) || /_CATALOG_/i.test(input.ruleCode);
+}
+
+function buildUnavailablePricingResult(input: CalculatePricingInput): CalculatePricingResult {
+  return {
+    areaM2: 0,
+    baseCost: 0,
+    materialCost: 0,
+    laborCost: 0,
+    printCost: 0,
+    cuttingCost: 0,
+    packagingCost: 0,
+    shippingCost: 0,
+    wasteCost: 0,
+    variantAdjustment: 0,
+    optionAdjustment: 0,
+    subtotalCost: 0,
+    commissionAmount: 0,
+    profitAmount: 0,
+    taxAmount: 0,
+    retailPrice: 0,
+    dealerPrice: 0,
+    finalPrice: 0,
+    currency: "TRY",
+    breakdown: [{ key: "unavailable", label: PRICING_UNAVAILABLE_MESSAGE, amount: 0 }],
+    ruleId: "catalog:unavailable",
+    ruleCode: input.ruleCode,
+    ruleVersion: 0,
+    priceAvailable: false,
+  };
+}
+
 export async function calculatePricing(input: CalculatePricingInput): Promise<CalculatePricingResult> {
   const catalogResult = tryCalculateFromCatalog(input);
   if (catalogResult) {
@@ -356,7 +391,11 @@ export async function calculatePricing(input: CalculatePricingInput): Promise<Ca
         },
       });
     }
-    return catalogResult;
+    return { ...catalogResult, priceAvailable: true };
+  }
+
+  if (isCatalogBackedPricingInput(input)) {
+    return buildUnavailablePricingResult(input);
   }
 
   const rule = await getPricingRule(input.ruleCode);
@@ -385,7 +424,7 @@ export async function calculatePricing(input: CalculatePricingInput): Promise<Ca
     });
   }
 
-  return result;
+  return { ...result, priceAvailable: true };
 }
 
 export { seedDefaultPricingRules };

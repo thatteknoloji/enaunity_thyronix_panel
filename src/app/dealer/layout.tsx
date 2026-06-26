@@ -24,6 +24,7 @@ function buildStaticGroups(t: (key: string) => string): NavGroup[] {
       label: "Genel",
       items: [
         { href: "/dealer", label: t("dealer.overview"), icon: LayoutDashboard },
+        { href: "/dealer/analysis", label: "Analiz Merkezi", icon: LineChart },
         { href: "/dealer/notifications", label: t("dealer.notifications"), icon: Bell },
         { href: "/dealer/modules", label: "Modül Pazarı", icon: Sparkles },
       ],
@@ -62,7 +63,6 @@ function buildStaticGroups(t: (key: string) => string): NavGroup[] {
       items: [
         { href: "/dealer/marketplace/connections", label: "Pazaryeri Bağlantıları", icon: Plug },
         { href: "/dealer/marketplace/orders", label: "Pazaryeri Siparişleri", icon: ShoppingCart },
-        { href: "/dealer/analysis", label: "Analiz Merkezi", icon: LineChart },
       ],
     },
     {

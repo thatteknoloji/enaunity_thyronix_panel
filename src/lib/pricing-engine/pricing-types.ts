@@ -74,6 +74,7 @@ export type CalculatePricingResult = {
   ruleId: string;
   ruleCode: string;
   ruleVersion: number;
+  priceAvailable?: boolean;
 };
 
 export type PricingRuleWithRelations = {

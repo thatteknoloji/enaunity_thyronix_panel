@@ -59,6 +59,7 @@ export const ALL_PERMISSIONS = {
 
   reports_view: { label: "Raporları Görüntüle", group: "Raporlar" },
   reports_export: { label: "Rapor Dışa Aktar", group: "Raporlar" },
+  analysis_view: { label: "Analiz Merkezi", group: "Raporlar" },
 
   settings_view: { label: "Ayarları Görüntüle", group: "Ayarlar" },
   settings_manage: { label: "Ayarları Yönet", group: "Ayarlar" },
@@ -108,7 +109,7 @@ export const DEFAULT_ADMIN_PERMISSIONS: PermissionKey[] = [
   "admin_users", "admin_roles", "admin_notifications", "admin_logs_view",
   "dealer_transactions_view",
   "marketplace_view", "invoices_view", "thyronix_view", "hive_view", "hive_manage", "hive_integrations", "hive_logs",
-  "reports_view", "reports_export",
+  "reports_view", "reports_export", "analysis_view",
   "settings_view", "settings_manage", "pages_manage",
   "ecosystem_view", "ecosystem_manage",
   "partners_view", "partners_manage", "pod_view",
@@ -158,6 +159,7 @@ export function getNavPermissionMap(): Record<string, PermissionKey[]> {
     "/admin/roles": ["admin_roles"],
     "/admin/notifications": ["admin_notifications"],
     "/admin/reports": ["reports_view"],
+    "/admin/analiz-merkezi": ["analysis_view", "reports_view"],
     "/admin/approval-rules": ["settings_manage"],
     "/admin/webhooks": ["settings_manage"],
     "/admin/dealer-documents": ["dealers_view"],

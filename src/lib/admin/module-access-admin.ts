@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/db";
 import { getAvailablePlans } from "@/lib/modules/access";
-import { normalizeModuleKey } from "@/lib/modules/module-key";
+import { normalizeModuleKey, moduleKeyLookupVariants } from "@/lib/modules/module-key";
 import { syncLicenseMetadataFromPlan } from "@/lib/modules/license-metadata";
 import { createProductAccountLink } from "@/lib/product-links/service";
 import { ensureHiveWorkspace, recordHiveSession } from "@/lib/hive/integration";
@@ -50,7 +50,7 @@ export async function getModuleAccessOverview(moduleKey: AdminModuleKey) {
   const [plans, licenses, dealers, links] = await Promise.all([
     getAvailablePlans(normalizedKey),
     prisma.moduleLicense.findMany({
-      where: { moduleKey: normalizedKey },
+      where: { moduleKey: { in: moduleKeyLookupVariants(normalizedKey) } },
       orderBy: { updatedAt: "desc" },
     }),
     prisma.dealer.findMany({
@@ -136,11 +136,12 @@ export async function upsertModuleLicense(input: {
   const trialEndsAt = input.status === "TRIAL" ? endsAt : null;
 
   const existing = await prisma.moduleLicense.findFirst({
-    where: { dealerId: input.dealerId, moduleKey: normalizedKey },
+    where: { dealerId: input.dealerId, moduleKey: { in: moduleKeyLookupVariants(normalizedKey) } },
     orderBy: { createdAt: "desc" },
   });
 
   const data = {
+    moduleKey: normalizedKey,
     planKey: input.planKey,
     status: input.status,
     startsAt: input.status === "ACTIVE" || input.status === "TRIAL" ? new Date() : existing?.startsAt,
@@ -169,7 +170,6 @@ export async function upsertModuleLicense(input: {
   const created = await prisma.moduleLicense.create({
     data: {
       dealerId: input.dealerId,
-      moduleKey: normalizedKey,
       ...data,
     },
   });
