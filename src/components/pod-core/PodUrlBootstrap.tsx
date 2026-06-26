@@ -8,7 +8,7 @@ import { getMockupTemplate } from "@/lib/pod-core/mockup-template-registry";
 /** URL ?template= & ?project= parametrelerinden stüdyo bootstrap */
 export function PodUrlBootstrap() {
   const searchParams = useSearchParams();
-  const { setMockupTemplate, setProjectMeta } = usePodCore();
+  const { engine, setMockupTemplate, setProjectMeta, refresh } = usePodCore();
 
   useEffect(() => {
     const templateId = searchParams.get("template");
@@ -20,7 +20,7 @@ export function PodUrlBootstrap() {
 
   useEffect(() => {
     const projectId = searchParams.get("project");
-    if (!projectId) return;
+    if (!projectId || !engine) return;
 
     fetch("/api/pod/projects?source=pod_core", {
       method: "POST",
@@ -28,19 +28,24 @@ export function PodUrlBootstrap() {
       body: JSON.stringify({ action: "load", projectId }),
     })
       .then((r) => r.json())
-      .then((d) => {
+      .then(async (d) => {
         if (!d.success || !d.data) return;
         const record = d.data;
         if (record.mockupTemplate) setMockupTemplate(record.mockupTemplate);
+        if (record.design) {
+          await engine.loadDocument(record.design, record.history);
+        }
         setProjectMeta({
           projectId: record.projectId,
           projectName: record.projectName,
           lastLoadedAt: Date.now(),
+          exportCount: record.exportCount ?? 0,
           pricingSnapshot: record.pricingSnapshot ?? null,
         });
+        refresh();
       })
       .catch(() => undefined);
-  }, [searchParams, setMockupTemplate, setProjectMeta]);
+  }, [searchParams, engine, setMockupTemplate, setProjectMeta, refresh]);
 
   return null;
 }

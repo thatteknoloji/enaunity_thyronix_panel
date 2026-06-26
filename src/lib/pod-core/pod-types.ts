@@ -72,6 +72,13 @@ export type PodOverlayVisibility = {
   safe: boolean;
   bleed: boolean;
   grid: boolean;
+  ruler: boolean;
+  centerGuide: boolean;
+};
+
+export type PodPointerCoords = {
+  x: number;
+  y: number;
 };
 
 export type MockupOrientation = "landscape" | "portrait";
@@ -210,7 +217,7 @@ export const POD_CORE_DEFAULTS = {
   zoom: 1,
   minZoom: 0.25,
   maxZoom: 4,
-  historyLimit: 50,
+  historyLimit: 64,
   defaultDpi: 300 as ExportDpi,
   defaultBleedPx: 12,
   defaultSafeMarginPx: 16,

@@ -27,7 +27,7 @@ export default function AdminPodDesignStudioPage() {
           Bayi seçimi sonraki fazda.
         </div>
       </div>
-      <PodEditorProShell />
+      <PodEditorProShell role="admin" />
     </div>
   );
 }

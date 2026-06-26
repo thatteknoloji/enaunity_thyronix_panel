@@ -26,7 +26,7 @@ export function PodUnifiedDesignerShell({ role }: Props) {
           POD Core Tasarım Stüdyosu
         </p>
       </div>
-      <PodEditorProShell />
+      <PodEditorProShell role={role} />
     </div>
   );
 }

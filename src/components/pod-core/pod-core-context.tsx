@@ -11,6 +11,14 @@ import {
   type ReactNode,
 } from "react";
 import type { PricingCustomerType } from "@/lib/pricing-engine/pricing-types";
+import {
+  POD_CORE_DEFAULTS,
+  type MockupTemplate,
+  type PodPointerCoords,
+  type PodPricingSnapshot,
+  type PodPricingSnapshotPersisted,
+} from "@/lib/pod-core/pod-types";
+import type { PodUiRole } from "@/lib/pod-core/pod-ui-bridge";
 import { PodCanvasEngine } from "@/lib/pod-core/canvas-engine";
 import { getDefaultMockupTemplate, getPodProductProfileByTemplateId } from "@/lib/pod-core/mockup-template-registry";
 import { PRICING_UNAVAILABLE_MESSAGE } from "@/lib/pricing-engine/pricing-service";
@@ -19,12 +27,6 @@ import {
   buildPricingBridgePayload,
   fetchPodPricing,
 } from "@/lib/pod-core/pod-pricing-bridge";
-import {
-  POD_CORE_DEFAULTS,
-  type MockupTemplate,
-  type PodPricingSnapshot,
-  type PodPricingSnapshotPersisted,
-} from "@/lib/pod-core/pod-types";
 
 type PodCoreContextValue = {
   engine: PodCanvasEngine | null;
@@ -65,13 +67,21 @@ type PodCoreContextValue = {
     pricingSnapshot?: PodPricingSnapshotPersisted | null;
   }) => void;
   restorePricingSnapshot: (snapshot: PodPricingSnapshotPersisted | null) => void;
+  studioRole: PodUiRole;
+  pointerCoords: PodPointerCoords | null;
 };
 
 const PodCoreContext = createContext<PodCoreContextValue | null>(null);
 
 const PRICING_DEBOUNCE_MS = 400;
 
-export function PodCoreProvider({ children }: { children: ReactNode }) {
+export function PodCoreProvider({
+  children,
+  studioRole = "admin",
+}: {
+  children: ReactNode;
+  studioRole?: PodUiRole;
+}) {
   const engineRef = useRef<PodCanvasEngine | null>(null);
   const templateRef = useRef<MockupTemplate>(getDefaultMockupTemplate());
   const [tick, setTick] = useState(0);
@@ -94,6 +104,7 @@ export function PodCoreProvider({ children }: { children: ReactNode }) {
   const [lastLoadedAt, setLastLoadedAt] = useState<number | null>(null);
   const [exportCount, setExportCount] = useState(0);
   const skipPricingEffect = useRef(false);
+  const [pointerCoords, setPointerCoords] = useState<PodPointerCoords | null>(null);
 
   const refresh = useCallback(() => setTick((n) => n + 1), []);
 
@@ -108,6 +119,7 @@ export function PodCoreProvider({ children }: { children: ReactNode }) {
           setSelectedObjectIds(ids);
           refresh();
         },
+        onPointerMove: (coords) => setPointerCoords(coords),
       },
     });
     engineRef.current.setMockupTemplate(getDefaultMockupTemplate());
@@ -271,6 +283,8 @@ export function PodCoreProvider({ children }: { children: ReactNode }) {
       exportCount,
       setProjectMeta,
       restorePricingSnapshot,
+      studioRole,
+      pointerCoords,
     }),
     [
       tick,
@@ -297,6 +311,8 @@ export function PodCoreProvider({ children }: { children: ReactNode }) {
       exportCount,
       setProjectMeta,
       restorePricingSnapshot,
+      studioRole,
+      pointerCoords,
     ]
   );
 

@@ -3,6 +3,7 @@ import {
   Circle,
   FabricImage,
   FabricObject,
+  Path,
   Rect,
   Textbox,
 } from "fabric";
@@ -22,6 +23,8 @@ import {
   isSystemObject,
   syncPrintOverlays,
 } from "./print-area-overlay";
+import { POD_CLIPART_LIBRARY, type PodClipartItem } from "./clipart-library";
+import { setLayerDisplayName } from "./layer-engine";
 import { ensureObjectId } from "./selection-engine";
 import {
   POD_CORE_DEFAULTS,
@@ -37,6 +40,7 @@ export type PodCanvasEngineCallbacks = {
   onChange?: () => void;
   onSelectionChange?: (ids: string[]) => void;
   onHistoryChange?: () => void;
+  onPointerMove?: (coords: { x: number; y: number } | null) => void;
 };
 
 export type PodCanvasEngineOptions = {
@@ -68,7 +72,14 @@ export class PodCanvasEngine {
     safe: true,
     bleed: true,
     grid: false,
+    ruler: true,
+    centerGuide: true,
   };
+  private snapEnabled = true;
+  private spacePanActive = false;
+  private wheelHandler: ((e: WheelEvent) => void) | null = null;
+  private keyDownHandler: ((e: KeyboardEvent) => void) | null = null;
+  private keyUpHandler: ((e: KeyboardEvent) => void) | null = null;
   private clipEnabled = false;
 
   constructor(options: PodCanvasEngineOptions = {}) {
@@ -89,6 +100,7 @@ export class PodCanvasEngine {
     });
     this.mounted = true;
     this.bindCanvasEvents();
+    this.bindViewportKeys();
     this.applyViewport();
     if (this.mockupTemplate) {
       this.refreshPrintOverlays();
@@ -109,9 +121,99 @@ export class PodCanvasEngine {
 
   dispose(): void {
     if (this.historyTimer) clearTimeout(this.historyTimer);
+    this.unbindViewportKeys();
+    this.unbindWheelZoom();
     this.canvas?.dispose();
     this.canvas = null;
     this.mounted = false;
+  }
+
+  isSnapEnabled(): boolean {
+    return this.snapEnabled;
+  }
+
+  setSnapEnabled(enabled: boolean): void {
+    this.snapEnabled = enabled;
+    this.callbacks.onChange?.();
+  }
+
+  fitToScreen(containerWidth: number, containerHeight: number, padding = 48): void {
+    if (!this.canvas || containerWidth <= 0 || containerHeight <= 0) return;
+    const zoomX = (containerWidth - padding) / this.width;
+    const zoomY = (containerHeight - padding) / this.height;
+    const zoom = Math.max(
+      POD_CORE_DEFAULTS.minZoom,
+      Math.min(POD_CORE_DEFAULTS.maxZoom, Math.min(zoomX, zoomY))
+    );
+    this.viewport.zoom = zoom;
+    this.viewport.panX = (containerWidth - this.width * zoom) / 2;
+    this.viewport.panY = (containerHeight - this.height * zoom) / 2;
+    this.applyViewport();
+    this.callbacks.onChange?.();
+  }
+
+  bindWheelZoom(element: HTMLElement): void {
+    this.unbindWheelZoom();
+    this.wheelHandler = (e: WheelEvent) => {
+      if (!this.canvas) return;
+      e.preventDefault();
+      const delta = e.deltaY > 0 ? -0.08 : 0.08;
+      const next = Math.max(
+        POD_CORE_DEFAULTS.minZoom,
+        Math.min(POD_CORE_DEFAULTS.maxZoom, this.viewport.zoom + delta)
+      );
+      this.viewport.zoom = next;
+      this.applyViewport();
+      this.callbacks.onChange?.();
+    };
+    element.addEventListener("wheel", this.wheelHandler, { passive: false });
+  }
+
+  unbindWheelZoom(): void {
+    if (this.wheelHandler && this.canvas?.upperCanvasEl?.parentElement) {
+      this.canvas.upperCanvasEl.parentElement.removeEventListener("wheel", this.wheelHandler);
+    }
+    this.wheelHandler = null;
+  }
+
+  bindViewportKeys(): void {
+    this.unbindViewportKeys();
+    this.keyDownHandler = (e: KeyboardEvent) => {
+      const tag = (e.target as HTMLElement)?.tagName?.toLowerCase();
+      if (tag === "input" || tag === "textarea" || (e.target as HTMLElement)?.isContentEditable) return;
+      if (e.code === "Space" && !this.spacePanActive) {
+        e.preventDefault();
+        this.spacePanActive = true;
+        if (this.canvas) {
+          this.canvas.defaultCursor = "grab";
+          this.canvas.hoverCursor = "grab";
+        }
+      }
+    };
+    this.keyUpHandler = (e: KeyboardEvent) => {
+      if (e.code === "Space") {
+        this.spacePanActive = false;
+        if (this.canvas && this.activeTool !== "pan") {
+          this.canvas.defaultCursor = "default";
+          this.canvas.hoverCursor = "move";
+        }
+      }
+    };
+    window.addEventListener("keydown", this.keyDownHandler);
+    window.addEventListener("keyup", this.keyUpHandler);
+  }
+
+  unbindViewportKeys(): void {
+    if (this.keyDownHandler) window.removeEventListener("keydown", this.keyDownHandler);
+    if (this.keyUpHandler) window.removeEventListener("keyup", this.keyUpHandler);
+    this.keyDownHandler = null;
+    this.keyUpHandler = null;
+  }
+
+  pointerToCanvas(clientX: number, clientY: number): { x: number; y: number } | null {
+    if (!this.canvas) return null;
+    const point = this.canvas.getScenePoint({ x: clientX, y: clientY } as PointerEvent);
+    return { x: Math.round(point.x), y: Math.round(point.y) };
   }
 
   getViewport(): PodCoreViewport {
@@ -215,7 +317,7 @@ export class PodCanvasEngine {
     });
 
     c.on("object:modified", (e) => {
-      if (e.target) applyCenterGuides(c, e.target);
+      if (e.target && this.snapEnabled) applyCenterGuides(c, e.target);
       this.scheduleHistory("Dönüştürüldü");
       this.callbacks.onChange?.();
     });
@@ -225,7 +327,8 @@ export class PodCanvasEngine {
     c.on("selection:cleared", () => this.emitSelection());
 
     c.on("mouse:down", (opt) => {
-      if (this.activeTool !== "pan") return;
+      const panTool = this.activeTool === "pan" || this.spacePanActive;
+      if (!panTool) return;
       const pt = pointerClientXY(opt.e);
       if (!pt) return;
       this.panActive = true;
@@ -234,8 +337,14 @@ export class PodCanvasEngine {
     });
 
     c.on("mouse:move", (opt) => {
-      if (!this.panActive || this.activeTool !== "pan") return;
       const pt = pointerClientXY(opt.e);
+      if (pt) {
+        const canvasPt = this.pointerToCanvas(pt.x, pt.y);
+        this.callbacks.onPointerMove?.(canvasPt);
+      }
+      if (!this.panActive) return;
+      const panTool = this.activeTool === "pan" || this.spacePanActive;
+      if (!panTool) return;
       if (!pt) return;
       const dx = pt.x - this.panLast.x;
       const dy = pt.y - this.panLast.y;
@@ -249,9 +358,17 @@ export class PodCanvasEngine {
     c.on("mouse:up", () => {
       if (this.panActive) {
         this.panActive = false;
-        if (this.activeTool === "pan") c.defaultCursor = "grab";
+        if (this.activeTool === "pan" || this.spacePanActive) c.defaultCursor = "grab";
+        if (!this.spacePanActive && this.activeTool !== "pan") {
+          c.defaultCursor = "default";
+          c.hoverCursor = "move";
+        }
         this.scheduleHistory("Pan", 0);
       }
+    });
+
+    c.on("mouse:out", () => {
+      this.callbacks.onPointerMove?.(null);
     });
   }
 
@@ -392,6 +509,28 @@ export class PodCanvasEngine {
     } finally {
       URL.revokeObjectURL(url);
     }
+  }
+
+  addClipart(item: PodClipartItem): void {
+    if (!this.canvas) return;
+    const scale = Math.min(1, (this.width * 0.25) / Math.max(item.width, item.height));
+    const path = new Path(item.path, {
+      left: this.width / 2 - (item.width * scale) / 2,
+      top: this.height / 2 - (item.height * scale) / 2,
+      fill: item.fill,
+      scaleX: scale,
+      scaleY: scale,
+    });
+    ensureObjectId(path, this.nextObjectId("clipart"));
+    setLayerDisplayName(path, item.name);
+    this.canvas.add(path);
+    this.canvas.setActiveObject(path);
+    this.canvas.requestRenderAll();
+  }
+
+  addClipartById(id: string): void {
+    const item = POD_CLIPART_LIBRARY.find((c) => c.id === id);
+    if (item) this.addClipart(item);
   }
 
   deleteSelection(): void {

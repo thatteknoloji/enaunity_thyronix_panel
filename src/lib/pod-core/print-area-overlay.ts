@@ -54,6 +54,10 @@ export function syncPrintOverlays(
     addGridLines(canvas, bundle.printable);
   }
 
+  if (visibility.centerGuide) {
+    addCenterGuides(canvas, bundle.printable);
+  }
+
   canvas.getObjects().forEach((o) => {
     if (isSystemObject(o)) {
       canvas.sendObjectToBack(o);
@@ -130,6 +134,32 @@ function addGridLines(canvas: Canvas, area: PodPrintAreaBundle["printable"]): vo
     line.set(POD_OVERLAY_KEY, "grid");
     canvas.add(line);
   }
+}
+
+function addCenterGuides(canvas: Canvas, area: PodPrintAreaBundle["printable"]): void {
+  const cx = area.x + area.width / 2;
+  const cy = area.y + area.height / 2;
+  const vLine = new Line([cx, area.y, cx, area.y + area.height], {
+    stroke: "rgba(52, 211, 153, 0.35)",
+    strokeWidth: 1,
+    strokeDashArray: [6, 6],
+    selectable: false,
+    evented: false,
+    excludeFromExport: true,
+  });
+  vLine.set(POD_SYSTEM_KEY, true);
+  vLine.set(POD_OVERLAY_KEY, "center");
+  const hLine = new Line([area.x, cy, area.x + area.width, cy], {
+    stroke: "rgba(52, 211, 153, 0.35)",
+    strokeWidth: 1,
+    strokeDashArray: [6, 6],
+    selectable: false,
+    evented: false,
+    excludeFromExport: true,
+  });
+  hLine.set(POD_SYSTEM_KEY, true);
+  hLine.set(POD_OVERLAY_KEY, "center");
+  canvas.add(vLine, hLine);
 }
 
 export function clipToPrintableArea(
