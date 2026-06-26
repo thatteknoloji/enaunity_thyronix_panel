@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { PodCoreProvider } from "@/components/pod-core/pod-core-context";
+import { PodUrlBootstrap } from "@/components/pod-core/PodUrlBootstrap";
 import { PodEditorCanvasWorkspace } from "./PodEditorCanvasWorkspace";
 import { PodEditorRightPanel, type RightPanelTab } from "./PodEditorRightPanel";
 import { PodEditorStatusBar } from "./PodEditorStatusBar";
@@ -13,6 +14,9 @@ export function PodEditorProShell() {
 
   return (
     <PodCoreProvider>
+      <Suspense fallback={null}>
+        <PodUrlBootstrap />
+      </Suspense>
       <div className="flex flex-col flex-1 min-h-[600px] rounded-xl border border-white/10 overflow-hidden shadow-2xl shadow-black/30 bg-[#0f1117]">
         <PodEditorTopBar onTabChange={setRightTab} />
         <div className="flex flex-1 min-h-0">

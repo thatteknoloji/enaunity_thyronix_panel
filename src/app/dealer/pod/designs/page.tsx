@@ -1,5 +1,5 @@
-import { PodDesignerWorkspace } from "@/components/pod/PodDesignerWorkspace";
-import { PodDesignLibrary } from "@/components/pod/PodDesignLibrary";
+import { PodProjectList } from "@/components/pod-core/PodProjectList";
+import { PodUnifiedDesignerShell } from "@/components/pod-core/PodUnifiedDesignerShell";
 
 type Props = { searchParams: Promise<{ new?: string }> };
 
@@ -8,15 +8,11 @@ export default async function DealerPodDesignsPage({ searchParams }: Props) {
   const isStudio = params.new === "1";
 
   return (
-    <div className="max-w-5xl">
-      {isStudio ? <PodDesignerWorkspace /> : (
-        <div className="space-y-6">
-          <div>
-            <h1 className="text-xl font-bold text-white">Tasarımlarım</h1>
-            <p className="text-sm text-ena-light/60 mt-1">PNG ve SVG tasarım kütüphaneniz</p>
-          </div>
-          <PodDesignLibrary />
-        </div>
+    <div className="max-w-5xl p-6">
+      {isStudio ? (
+        <PodUnifiedDesignerShell role="dealer" />
+      ) : (
+        <PodProjectList role="dealer" />
       )}
     </div>
   );
