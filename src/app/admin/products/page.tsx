@@ -7,7 +7,8 @@ import { Modal } from "@/components/ui/modal";
 import { formatPrice, formatDate, productUrl } from "@/lib/utils";
 import { toAdminUrl } from "@/lib/auth/admin-access";
 import { ProductsTabs } from "@/components/admin/ProductsTabs";
-import { Plus, Trash2, Search, Upload, FileDown, Barcode, Hash, DollarSign, Tag, AlignLeft, FolderOpen, Percent, X, Check, Pencil, Filter, XCircle, Eye, LayoutGrid, Megaphone } from "lucide-react";
+import { ProductEngineShell } from "@/components/product-engine/ProductEngineShell";
+import { Plus, Trash2, Search, Upload, FileDown, Barcode, Hash, DollarSign, Tag, AlignLeft, FolderOpen, Percent, X, Check, Pencil, Filter, XCircle, Eye, LayoutGrid, Megaphone, Layers } from "lucide-react";
 import toast from "react-hot-toast";
 import { VARIANT_DISPLAY_LABELS, VARIANT_DISPLAY_MODES } from "@/lib/products/variant-display";
 
@@ -16,6 +17,7 @@ interface Category { id:string; name:string; parentId?:string|null; }
 interface CampaignRow { id: string; name: string; active: boolean; }
 
 export default function AdminProductsPage() {
+  const [viewMode, setViewMode] = useState<"engine" | "b2b">("engine");
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [campaigns, setCampaigns] = useState<CampaignRow[]>([]);
@@ -208,6 +210,31 @@ export default function AdminProductsPage() {
 
   return (
     <div>
+      <div className="flex items-center gap-2 mb-4">
+        <button
+          type="button"
+          onClick={() => setViewMode("engine")}
+          className={`inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
+            viewMode === "engine" ? "bg-indigo-600 text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+          }`}
+        >
+          <Layers size={15} /> Product Engine
+        </button>
+        <button
+          type="button"
+          onClick={() => setViewMode("b2b")}
+          className={`inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
+            viewMode === "b2b" ? "bg-gray-900 text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+          }`}
+        >
+          <LayoutGrid size={15} /> B2B Katalog
+        </button>
+      </div>
+
+      {viewMode === "engine" ? (
+        <ProductEngineShell />
+      ) : (
+        <>
       <ProductsTabs />
       <div className="flex items-center justify-between mb-4">
         <div><h1 className="text-2xl font-bold text-gray-900">Ürünler</h1><p className="text-sm text-gray-500 mt-1">Sayfa {safePage}/{totalPages} · {paginated.length} gösteriliyor / {totalFiltered} filtrelenmiş / {products.length} toplam</p></div>
@@ -538,6 +565,8 @@ export default function AdminProductsPage() {
             </div>
           </div>
         </Modal>
+      )}
+        </>
       )}
     </div>
   );
