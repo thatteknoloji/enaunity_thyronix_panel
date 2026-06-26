@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/db";
 import { isAdminRole } from "@/lib/auth/admin-access";
+import { isDealerAccountActive, isDealerApprovalActive } from "@/lib/dealer/dealer-status";
 import {
   getDealerModuleLicense,
   getModuleLicenseState,
@@ -38,12 +39,12 @@ export async function validatePodDealerContext(dealerId: string): Promise<{
     where: { id: dealerId },
     select: { status: true },
   });
-  if (!dealer || dealer.status !== "ACTIVE") {
+  if (!dealer || !isDealerAccountActive(dealer.status)) {
     return { ok: false, code: "DEALER_INACTIVE" };
   }
 
   const approval = await prisma.dealerApproval.findUnique({ where: { dealerId } });
-  if (!approval || approval.status !== "ACTIVE") {
+  if (!approval || !isDealerApprovalActive(approval.status)) {
     return { ok: false, code: "BAYI_ONAYI_YOK" };
   }
 
@@ -77,6 +78,30 @@ export async function assertPodCreatorAccess(user: UserLike | null): Promise<Pod
     };
   }
 
+  const license = await getDealerModuleLicense(user.dealerId, POD_MODULE_KEY);
+  const licenseState = await getModuleLicenseState(user.dealerId, POD_MODULE_KEY);
+
+  if (licenseState === "active" && license && isModuleLicenseEntitled(license)) {
+    const ctx = await validatePodDealerContext(user.dealerId);
+    if (!ctx.ok && ctx.code === "BAYI_ONAYI_YOK") {
+      return {
+        allowed: false,
+        reason: "Bayi onayınız tamamlanmadan POD Creator erişilemez",
+        code: "LISANS_BEKLIYOR",
+        redirectTo: "/dealer/profile",
+      };
+    }
+    if (!ctx.ok) {
+      return {
+        allowed: false,
+        reason: "Bayi hesabınız aktif değil",
+        code: "DEALER_INACTIVE",
+        redirectTo: "/is-ortakligi",
+      };
+    }
+    return { allowed: true };
+  }
+
   const ctx = await validatePodDealerContext(user.dealerId);
   if (!ctx.ok) {
     if (ctx.code === "BAYI_ONAYI_YOK") {
@@ -95,7 +120,6 @@ export async function assertPodCreatorAccess(user: UserLike | null): Promise<Pod
     };
   }
 
-  const license = await getDealerModuleLicense(user.dealerId, POD_MODULE_KEY);
   if (license && !isModuleLicenseEntitled(license)) {
     const expired =
       license.status === "EXPIRED" ||
@@ -111,7 +135,7 @@ export async function assertPodCreatorAccess(user: UserLike | null): Promise<Pod
     }
   }
 
-  const state = await getModuleLicenseState(user.dealerId, POD_MODULE_KEY);
+  const state = licenseState;
   if (state === "none") {
     return {
       allowed: false,
