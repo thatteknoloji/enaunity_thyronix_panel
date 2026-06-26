@@ -3,23 +3,33 @@ import {
   calculatePricing,
   PRICING_UNAVAILABLE_MESSAGE,
 } from "@/lib/pricing-engine/pricing-service";
-import { toCalculatePricingInput, type PodPricingBridgeRequest } from "@/lib/pod-core/pod-pricing-bridge";
+import {
+  toCalculatePricingInput,
+  resolvePricingBridgeFromGraph,
+  type PodPricingBridgeRequest,
+} from "@/lib/pod-core/pod-pricing-bridge";
 import type { PricingCustomerType } from "@/lib/pricing-engine/pricing-types";
 
 export async function POST(req: Request) {
   const started = Date.now();
   try {
     const body = (await req.json()) as Partial<PodPricingBridgeRequest>;
-    const pricingRuleCode = String(body.pricingRuleCode || "");
+    const graphPricing = resolvePricingBridgeFromGraph({
+      templateId: body.templateId ? String(body.templateId) : undefined,
+      productCode: body.variantId ? String(body.variantId) : undefined,
+    });
+    const pricingRuleCode = String(body.pricingRuleCode || graphPricing?.pricingRuleCode || "");
     if (!pricingRuleCode) {
       return NextResponse.json({ success: false, error: "pricingRuleCode zorunlu" }, { status: 400 });
     }
 
     const bridgeReq: PodPricingBridgeRequest = {
-      templateId: String(body.templateId || ""),
+      templateId: String(body.templateId || graphPricing?.templateId || ""),
       variantId: body.variantId ? String(body.variantId) : undefined,
       pricingRuleCode,
-      pricingCatalogId: body.pricingCatalogId ? String(body.pricingCatalogId) : undefined,
+      pricingCatalogId: body.pricingCatalogId
+        ? String(body.pricingCatalogId)
+        : graphPricing?.pricingCatalogId,
       sizeVariantKey: body.sizeVariantKey ? String(body.sizeVariantKey) : undefined,
       widthCm: Number(body.widthCm ?? 0),
       heightCm: Number(body.heightCm ?? 0),

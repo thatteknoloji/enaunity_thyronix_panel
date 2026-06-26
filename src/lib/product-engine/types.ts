@@ -1,3 +1,102 @@
+/** Product Graph V1 — canonical product profile (Single Source of Truth) */
+
+export type ProductGraphIdentity = {
+  productCode: string;
+  productType: string;
+  displayName: string;
+  slug: string;
+  category: string;
+  subcategory: string;
+  isActive: boolean;
+  isPOD: boolean;
+  isDropship: boolean;
+  isMarketplace: boolean;
+  isProduction: boolean;
+};
+
+export type ProductGraphPricing = {
+  pricingCatalogId: string;
+  pricingRuleCode: string;
+  defaultVat: number;
+  defaultCurrency: string;
+  defaultCustomerType: string;
+};
+
+export type ProductGraphPod = {
+  mockupTemplate: string;
+  printArea: string;
+  printAreaRect: { x: number; y: number; width: number; height: number } | null;
+  bleed: string;
+  safeArea: string;
+  exportMode: string;
+  dpi: number;
+};
+
+export type ProductGraphProduction = {
+  productionProfile: string;
+  machineType: string;
+  packagingProfile: string;
+  defaultPriority: string;
+};
+
+export type ProductGraphMarketplace = {
+  marketplacePreset: string;
+  defaultCategory: string;
+  commissionProfile: string;
+  shippingProfile: string;
+};
+
+export type ProductGraphSeo = {
+  entity: string;
+  topic: string;
+  keywords: string[];
+  schemaType: string;
+};
+
+export type ProductGraphAsset = {
+  assetProfile: string;
+  originalImageType: string;
+  mockupProfile: string;
+  excelProfile: string;
+};
+
+export type ProductGraphAnalysis = {
+  analysisProfile: string;
+  costProfile: string;
+  profitProfile: string;
+};
+
+export type ProductGraphProfile = {
+  identity: ProductGraphIdentity;
+  pricing: ProductGraphPricing;
+  pod: ProductGraphPod;
+  production: ProductGraphProduction;
+  marketplace: ProductGraphMarketplace;
+  seo: ProductGraphSeo;
+  asset: ProductGraphAsset;
+  analysis: ProductGraphAnalysis;
+};
+
+export type ProductGraphLookup = {
+  productCode?: string;
+  templateId?: string;
+  category?: string;
+  slug?: string;
+};
+
+export type ProductGraphOverrides = Partial<{
+  identity: Partial<ProductGraphIdentity>;
+  pricing: Partial<ProductGraphPricing>;
+  pod: Partial<ProductGraphPod>;
+  production: Partial<ProductGraphProduction>;
+  marketplace: Partial<ProductGraphMarketplace>;
+  seo: Partial<ProductGraphSeo>;
+  asset: Partial<ProductGraphAsset>;
+  analysis: Partial<ProductGraphAnalysis>;
+}>;
+
+// --- Legacy Product Engine DTO (admin UI + API) ---
+
 export type ProductEngineFlags = {
   active: boolean;
   pod: boolean;
@@ -89,6 +188,7 @@ export type ProductEnginePod = {
 export type ProductEngineDto = {
   id: string;
   source: "pod_profile" | "b2b" | "catalog" | "custom";
+  graph: ProductGraphProfile;
   identity: ProductEngineIdentity;
   production: ProductEngineProduction;
   pricing: ProductEnginePricing;
@@ -102,6 +202,7 @@ export type ProductEngineDto = {
 };
 
 export type ProductEngineOverrides = Partial<{
+  graph: ProductGraphOverrides;
   identity: Partial<ProductEngineIdentity>;
   production: Partial<ProductEngineProduction>;
   pricing: Partial<ProductEnginePricing>;

@@ -10,6 +10,7 @@ import {
   THYRONIX_MARKETPLACE_PRESETS,
 } from "@/lib/thyronix/analysis-presets";
 import { buildFeedQuality } from "@/lib/analysis/types";
+import { listAnalysisProductProfiles } from "@/lib/product-engine/analysis-graph-bridge";
 
 export async function GET() {
   try {
@@ -43,6 +44,7 @@ export async function GET() {
       data: {
         marketplaces: THYRONIX_MARKETPLACE_PRESETS,
         cargoes: THYRONIX_CARGO_PRESETS,
+        engineProfiles: listAnalysisProductProfiles(),
         products: products.map((product) => {
           const imageList = [product.image, ...(product.images || "").split(",").map((item) => item.trim())].filter(Boolean);
           return {

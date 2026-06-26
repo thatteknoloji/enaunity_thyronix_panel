@@ -5,6 +5,7 @@ import {
   listPodProductProfiles,
 } from "./product-profiles/pod-product-profile-registry";
 import type { PodMockupType } from "./product-profiles/pod-product-profile-types";
+import { resolvePodFromGraph, resolvePricingFromGraph } from "@/lib/product-engine/graph-resolvers";
 
 function svgPlaceholder(label: string, w: number, h: number, accent: string, mockupType?: PodMockupType): string {
   const inner =
@@ -78,12 +79,14 @@ function buildTemplateFromProfile(profileId: string): MockupTemplate | null {
   const profile = getPodProductProfile(profileId);
   if (!profile) return null;
   const dims = CANVAS_DIMS[profile.templateId];
-  const printArea = PRINT_AREAS[profile.templateId];
+  const graphPod = resolvePodFromGraph({ productCode: profileId });
+  const graphPricing = resolvePricingFromGraph({ productCode: profileId });
+  const printArea = graphPod?.printAreaRect ?? PRINT_AREAS[profile.templateId];
   if (!dims || !printArea) return null;
 
   return {
     id: profile.templateId,
-    name: profile.name,
+    name: graphPod?.displayName ?? profile.name,
     category: profile.category,
     profileId: profile.id,
     printAreaMode: profile.printAreaMode as PodPrintAreaMode,
@@ -95,8 +98,8 @@ function buildTemplateFromProfile(profileId: string): MockupTemplate | null {
     variant: dims.variant,
     width: dims.width,
     height: dims.height,
-    pricingRuleCode: profile.pricingRuleCode,
-    pricingCatalogId: profile.catalogId,
+    pricingRuleCode: graphPricing?.pricingRuleCode ?? profile.pricingRuleCode,
+    pricingCatalogId: graphPricing?.pricingCatalogId ?? profile.catalogId,
     materialCode: profile.materialCode,
     variantId: profile.variantId,
     defaultSize: profile.defaultSize,

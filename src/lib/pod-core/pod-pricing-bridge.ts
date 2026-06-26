@@ -1,5 +1,6 @@
 import type { CalculatePricingInput, CalculatePricingResult, PricingCustomerType } from "@/lib/pricing-engine/pricing-types";
 import { PRICING_UNAVAILABLE_MESSAGE } from "@/lib/pricing-engine/pricing-service";
+import { enrichTemplateIdFromGraph, resolvePricingFromGraph } from "@/lib/product-engine/graph-resolvers";
 import type { MockupTemplate, PodPricingSnapshot } from "./pod-types";
 
 export type PodPricingBridgeRequest = {
@@ -31,15 +32,33 @@ export function buildPricingBridgePayload(
   quantity: number,
   customerType: PricingCustomerType = "RETAIL"
 ): PodPricingBridgeRequest {
+  const fromGraph = enrichTemplateIdFromGraph(template.id);
   return {
     templateId: template.id,
     variantId: template.variantId,
-    pricingRuleCode: template.pricingRuleCode,
-    pricingCatalogId: template.pricingCatalogId,
+    pricingRuleCode: fromGraph?.pricingRuleCode ?? template.pricingRuleCode,
+    pricingCatalogId: fromGraph?.pricingCatalogId ?? template.pricingCatalogId,
     widthCm: Math.max(1, widthCm),
     heightCm: Math.max(1, heightCm),
     quantity: Math.max(1, quantity),
     customerType,
+  };
+}
+
+/** Resolve pricing fields from Product Graph when templateId or productCode known */
+export function resolvePricingBridgeFromGraph(input: {
+  templateId?: string;
+  productCode?: string;
+}): Pick<PodPricingBridgeRequest, "pricingRuleCode" | "pricingCatalogId" | "templateId"> | null {
+  const pricing = resolvePricingFromGraph({
+    templateId: input.templateId,
+    productCode: input.productCode,
+  });
+  if (!pricing) return null;
+  return {
+    templateId: input.templateId ?? pricing.productCode,
+    pricingRuleCode: pricing.pricingRuleCode,
+    pricingCatalogId: pricing.pricingCatalogId || undefined,
   };
 }
 

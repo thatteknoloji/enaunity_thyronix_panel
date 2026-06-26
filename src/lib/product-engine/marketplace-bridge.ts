@@ -1,19 +1,6 @@
 import { THYRONIX_MARKETPLACE_PRESETS } from "@/lib/thyronix/analysis-presets";
+import { marketplaceSlugForCategory } from "./product-graph-builder";
 import type { ProductEngineMarketplace, ProductEngineMarketplaceChannel } from "./types";
-
-const CATEGORY_SLUG_MAP: Record<string, string> = {
-  "Cam Tablo": "cam-tablo",
-  "Yuvarlak Cam": "cam-tablo",
-  "MDF Tablo": "mdf-tablo",
-  "MDF Puzzle": "mdf-tablo",
-  Halı: "dekor",
-  Kilim: "dekor",
-  Perde: "dekor",
-  Kırlent: "dekor",
-  Nevresim: "dekor",
-  Poster: "dekor",
-  Kupa: "genel",
-};
 
 function emptyChannel(): ProductEngineMarketplaceChannel {
   return {
@@ -26,7 +13,7 @@ function emptyChannel(): ProductEngineMarketplaceChannel {
 }
 
 export function buildMarketplaceDefaults(categoryName: string): ProductEngineMarketplace {
-  const slug = CATEGORY_SLUG_MAP[categoryName] ?? "genel";
+  const slug = marketplaceSlugForCategory(categoryName);
 
   const build = (marketplaceId: string): ProductEngineMarketplaceChannel => {
     const mp = THYRONIX_MARKETPLACE_PRESETS.find((p) => p.value === marketplaceId);

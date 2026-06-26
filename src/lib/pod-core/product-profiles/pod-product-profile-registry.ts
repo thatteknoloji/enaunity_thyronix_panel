@@ -1,5 +1,9 @@
 import type { PodProductProfile } from "./pod-product-profile-types";
 
+/**
+ * POD profile seed data — canonical runtime reads go through Product Engine graph
+ * (@/lib/product-engine/product-graph). Do not duplicate product definitions elsewhere.
+ */
 export const POD_PRODUCT_PROFILES: PodProductProfile[] = [
   {
     id: "CAM_TABLO",
