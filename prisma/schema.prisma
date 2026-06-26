@@ -3933,6 +3933,7 @@ model StoreCategory {
 model StoreOrder {
   id                 String   @id @default(cuid())
   storeId            String
+  orderNumber        String?  @unique
   customerName       String
   customerEmail      String
   customerPhone      String   @default("")
@@ -3943,6 +3944,8 @@ model StoreOrder {
   itemsJson          String   @default("[]")
   totalAmount        Float    @default(0)
   status             String   @default("PENDING")
+  paymentStatus      String   @default("PENDING_MANUAL")
+  notificationStatus String   @default("NOT_CONFIGURED")
   notes              String   @default("")
   trackingCode       String   @default("")
   carrierName        String   @default("")
@@ -3955,6 +3958,7 @@ model StoreOrder {
   @@index([storeId])
   @@index([status])
   @@index([createdAt])
+  @@index([paymentStatus])
 }
 
 model StoreMedia {

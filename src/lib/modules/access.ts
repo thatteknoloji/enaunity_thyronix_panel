@@ -51,7 +51,7 @@ export async function getModuleLicenseState(
 ): Promise<ModuleLicenseState> {
   const key = normalizeModuleKey(moduleKey);
   if (isSuperAdmin(ctx?.userRole || undefined)) return "active";
-  if (key === "ENA_COMMERCE" || key === "AI_DROPSHIP") {
+  if (key === "ENA_COMMERCE") {
     const approval = await prisma.dealerApproval.findUnique({ where: { dealerId } });
     return approval?.status === "ACTIVE" ? "active" : approval ? "pending" : "none";
   }

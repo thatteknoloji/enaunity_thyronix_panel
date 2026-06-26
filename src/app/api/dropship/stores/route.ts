@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { requireAdmin } from "@/lib/auth";
 
+const DEALER_REQUIRED_MSG = "Mağaza oluşturmak için bayi seçilmelidir.";
+
 export async function GET() {
   try {
     await requireAdmin();
@@ -23,8 +25,22 @@ export async function POST(req: Request) {
     const body = await req.json();
     const { name, slug, dealerId, paymentModel } = body;
 
+    if (!dealerId || typeof dealerId !== "string" || !dealerId.trim()) {
+      return NextResponse.json({ success: false, error: DEALER_REQUIRED_MSG }, { status: 400 });
+    }
+
     if (!name || !slug) {
       return NextResponse.json({ success: false, error: "İsim ve slug gerekli" }, { status: 400 });
+    }
+
+    const dealer = await prisma.dealer.findUnique({ where: { id: dealerId.trim() } });
+    if (!dealer) {
+      return NextResponse.json({ success: false, error: "Seçilen bayi bulunamadı" }, { status: 400 });
+    }
+
+    const existingDealerStore = await prisma.dealerStore.findUnique({ where: { dealerId: dealer.id } });
+    if (existingDealerStore) {
+      return NextResponse.json({ success: false, error: "Bu bayinin zaten bir mağazası var" }, { status: 400 });
     }
 
     const existingSlug = await prisma.dealerStore.findUnique({ where: { slug } });
@@ -36,7 +52,7 @@ export async function POST(req: Request) {
       data: {
         name,
         slug,
-        dealerId: dealerId || `admin-${Date.now()}`,
+        dealerId: dealer.id,
         status: "ACTIVE",
         paymentModel: paymentModel || "PLATFORM",
       },

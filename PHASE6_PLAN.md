@@ -1,193 +1,105 @@
-# PHASE 6 — AI Dropship Store Builder
+# PHASE 6 — ENA Dropship Store Builder
+
+> Son güncelleme: ENA_DROPSHIP_STABILIZE_V1 (2026-06-26)
 
 ## Mimari Kararlar (Kesinleşti)
 
 ### Ödeme Modeli
-- **MVP**: `PAYMENT_MODEL = "PLATFORM"` — tüm ödemeler ENAUNITY üzerinden, fatura ENAUNITY'den müşteriye
-- **İlerde**: `PAYMENT_MODEL = "DEALER"` — bayi kendi POS'unu tanımlar, faturayı kendi keser
-- Altyapı (`merchantId`, `taxNumber` alanları) şimdiden `DealerStore` modelinde hazır
+- **MVP (şu an)**: Sipariş kaydı + `paymentStatus: PENDING_MANUAL` — online POS yok
+- **Planlanan PLATFORM**: `paymentModel = "PLATFORM"` — ödemeler ENAUNITY üzerinden
+- **Planlanan DEALER**: `paymentModel = "DEALER"` — bayi kendi POS'unu tanımlar
+- Altyapı (`merchantId`, `taxNumber` alanları) `DealerStore` modelinde hazır
 
-### Fatura
-- ENAUNITY → Müşteri (e-arşiv)
-- ENAUNITY → Bayiye aylık marj ödemesi (havale)
-- Bayi varsa komisyon faturası keser, yoksa gider pusulası
+### Lisans
+- Modül key: **`AI_DROPSHIP`**
+- Tek kaynak: `moduleLicense` tablosu + `getModuleLicenseState()` / `resolveDropshipGatewayStep()`
+- Onaylı bayi otomatik erişim **yok** — trial için açık `moduleLicense` kaydı gerekir
 
 ### Domain
-- **M1-M5**: Subdomain `{slug}.enaunity.com.tr`
-- **M8**: Custom domain + Cloudflare Registrar
-- Checkout domain: her koşulda `enaunity.com.tr/checkout` (POS tek merkezde)
+- Subdomain `{slug}.enaunity.com.tr` → `/store/{slug}`
+- Custom domain: admin onaylı CNAME
 
 ### Diğer Modüllerle İlişki
-- **Hazır Ürün Deposu**: Mağaza ürünlerinin kaynağı (StoreProduct → ProductCatalogItem)
-- **THYRONIX, AI Page Factory, POD Creator**: Bağımsız çalışır, entegrasyon Phase 7'de
-- **Mevcut ProductPackageAccess**: Hangi ürünlerin mağazaya eklenebileceğini belirler
+- **Hazır Ürün Deposu**: Mağaza ürün kaynağı (`StoreProduct` → `ProductCatalogItem`)
+- **THYRONIX, AI Page Factory, POD Creator**: Bağımsız; entegrasyon sonraki faz
+
+---
+
+## Durum Özeti (kod ile uyumlu)
+
+| Alan | Durum |
+|------|--------|
+| Storefront | ✅ done |
+| Cart | ✅ done |
+| Checkout order create | ✅ done (manuel ödeme) |
+| Dealer store setup | ✅ done |
+| Admin store management | ✅ done |
+| Domain routing (subdomain + custom) | ✅ done |
+| Kategori / banner / medya | ✅ done |
+| Tema özelleştirme | ✅ done |
+| Sipariş yönetimi (bayi + admin) | ✅ done |
+| Lisans tutarlılığı | ✅ done (STABILIZE_V1) |
+| **Payments (online POS)** | ⏳ pending |
+| **Fulfillment entegrasyonu** | ⏳ pending |
+| **Sipariş e-posta bildirimi** | ⏳ pending (`notificationStatus: NOT_CONFIGURED`) |
+| **AI özellikleri** | ⏳ pending |
+| **Marketplace sync** | ⏳ pending |
 
 ---
 
 ## Milestone'lar
 
-### M1 ✅ (Tamamlandı)
-**Modeller + Migration + Admin Panel + Registry**
+### M1 ✅ Temel altyapı
+- Prisma: `DealerStore`, `StoreProduct`, `StoreOrder`, `StoreCategory`, `StoreMedia`, `StoreBanner`
+- `AI_DROPSHIP` marketplace kaydı
+- Admin + dealer + gateway + public API
 
-- [x] Prisma modelleri: `DealerStore`, `StoreProduct`, `StoreOrder`
-- [x] `db push` ile tablolar oluşturuldu
-- [x] Module marketplace registration (`AI_DROPSHIP`)
-- [x] Module access control (`access.ts`)
-- [x] Admin sidebar menü
-- [x] Middleware route protection
-- [x] Dealer sidebar integration
-- [x] Admin CRUD API (`/api/dropship/stores`)
-- [x] Dealer store API (`/api/dealer/dropship/store`)
-- [x] Admin panel sayfası (`/admin/dropship`)
-- [x] Dealer panel sayfası (setup + overview - `/dealer/dropship`)
-- [x] Gateway page (`/gateway/dropship`)
-- [x] Gateway API (`/api/gateway/dropship`)
-- [x] Ecosystem showcase (platform-content + seed)
-- [x] Build test geçti
+### M2 ✅ Dealer kurulum paneli
+- Logo, tema, yayın durumu, iletişim, custom domain talebi
 
-### M2 ⬅️ (Sıradaki)
-**Dealer Kurulum Paneli — Detaylı**
-- [ ] Logo yükleme (coverImage)
-- [ ] Tema renkleri (themeJson)
-- [ ] Mağaza açılış/kapanış
-- [ ] Mağaza yayına alma/almama
-- [ ] İletişim bilgileri
+### M3 ✅ Ürün seçimi + fiyatlandırma
+- Hazır Ürün Deposu arama, tekli + bulk ekleme, fiyat/stok
 
-### M3
-**Ürün Seçimi + Fiyatlandırma**
-- [ ] Hazır Ürün Deposu'ndan ürün listeleme
-- [ ] Mağazaya ürün ekleme API
-- [ ] Fiyat belirleme arayüzü
-- [ ] Ürün sıralama
+### M4 ✅ Public storefront + routing
+- `{slug}.enaunity.com.tr`, custom domain rewrite, ürün listesi/detay
 
-### M4
-**Public Storefront + Subdomain Routing**
-- [ ] Middleware hostname routing (`{slug}.enaunity.com.tr` → `store/[slug]`)
-- [ ] Storefront anasayfa
-- [ ] Ürün listesi
-- [ ] Ürün detay
+### M5 ✅ Sepet + checkout + sipariş
+- LocalStorage sepet, checkout form, `StoreOrder` oluşturma, `orderNumber`
 
-### M5
-**Sepet + Checkout + Sipariş**
-- [ ] Sepet sistemi
-- [ ] Checkout (`enaunity.com.tr` üzerinde)
-- [ ] StoreOrder oluşturma
-- [ ] Sipariş onay emaili
+### M6 🔄 Sipariş yönetimi (kısmi)
+- [x] Bayi + admin sipariş paneli, durum, kargo takip kodu
+- [ ] Fulfillment köprüsü (`fulfillmentOrderId`)
+- [ ] E-posta bildirimi
 
-### M6
-**Sipariş Yönetimi + Fulfillment**
-- [ ] Bayi sipariş paneli
-- [ ] Sipariş durum takibi
-- [ ] Fulfillment entegrasyonu
+### M7 ✅ Tema özelleştirme
+- Renk, font, SEO, footer, sosyal, banner
 
-### M7
-**Tema Özelleştirme**
-- [ ] Renk paleti
-- [ ] Font seçimi
-- [ ] Logo + cover
-- [ ] CSS değişkenleri
+### M8 🔄 Custom domain (kısmi)
+- [x] CNAME talebi + admin onay
+- [ ] Cloudflare Registrar satın alma
 
-### M8
-**Custom Domain**
-- [ ] Cloudflare Registrar API entegrasyonu
-- [ ] Custom domain bağlama
-- [ ] SSL sertifikası
-- [ ] Domain doğrulama
+### M9 ⏳ Ödeme entegrasyonu
+- [ ] PLATFORM POS checkout
+- [ ] DEALER POS modeli
+
+### M10 ⏳ AI + Pazaryeri
+- [ ] AI destekli mağaza/ürün özellikleri
+- [ ] Trendyol / HB / Amazon sync
 
 ---
-
-## Veri Modeli
-
-```prisma
-model DealerStore {
-  id                  String   @id @default(cuid())
-  dealerId            String   @unique
-  name                String
-  slug                String   @unique
-  customDomain        String   @default("")
-  customDomainVerified Boolean @default(false)
-  logo                String   @default("")
-  coverImage          String   @default("")
-  aboutText           String   @default("")
-  contactEmail        String   @default("")
-  contactPhone        String   @default("")
-  themeJson           String   @default("{}")
-  paymentModel        String   @default("PLATFORM")  // "PLATFORM" | "DEALER"
-  merchantId          String?
-  merchantApiKey      String?
-  taxNumber           String?
-  taxOffice           String?
-  status              String   @default("DRAFT")
-  orderCount          Int      @default(0)
-  totalRevenue        Float    @default(0)
-  createdAt           DateTime @default(now())
-  updatedAt           DateTime @updatedAt
-
-  products            StoreProduct[]
-  orders              StoreOrder[]
-}
-
-model StoreProduct {
-  id                   String   @id @default(cuid())
-  storeId              String
-  productCatalogItemId String
-  dealerPrice          Float    @default(0)
-  isActive             Boolean  @default(true)
-  sortOrder            Int      @default(0)
-  createdAt            DateTime @default(now())
-  updatedAt            DateTime @updatedAt
-
-  store                DealerStore @relation(fields: [storeId], references: [id], onDelete: Cascade)
-
-  @@unique([storeId, productCatalogItemId])
-}
-
-model StoreOrder {
-  id                 String   @id @default(cuid())
-  storeId            String
-  customerName       String
-  customerEmail      String
-  customerPhone      String   @default("")
-  shippingAddress    String
-  city               String   @default("")
-  district           String   @default("")
-  zipCode            String   @default("")
-  itemsJson          String   @default("[]")
-  totalAmount        Float    @default(0)
-  status             String   @default("PENDING")
-  notes              String   @default("")
-  fulfillmentOrderId String?
-  createdAt          DateTime @default(now())
-  updatedAt          DateTime @updatedAt
-
-  store              DealerStore @relation(fields: [storeId], references: [id], onDelete: Cascade)
-}
-```
-
-## API Routes
-
-### Admin
-- `GET /api/dropship/stores` — tüm mağazalar
-- `GET /api/dropship/stores/[id]` — mağaza detay
-- `PATCH /api/dropship/stores/[id]` — mağaza güncelleme
-
-### Dealer
-- `GET /api/dealer/dropship/store` — kendi mağazasını getir
-- `POST /api/dealer/dropship/store` — mağaza oluştur
-- `PATCH /api/dealer/dropship/store` — mağaza güncelle
-
-### Gateway
-- `GET /api/gateway/dropship` — lisans durumu sorgula
 
 ## Sayfalar
 
 - `/admin/dropship` — admin mağaza listesi
 - `/dealer/dropship` — bayi mağaza yönetimi
 - `/gateway/dropship` — lisans yönlendirme
-- `/platform/dropship` — ekosistem vitrini (dinamik)
-- `/{slug}.enaunity.com.tr` — public storefront (M4)
+- `/platform/dropship` — tanıtım landing
+- `/store/[slug]` — public storefront
+- `/store/[slug]/checkout` — sipariş oluşturma
 
-## Middleware
-- `/dealer/dropship` → lisans kontrolü + JWT doğrulama
-- `/api/dropship/*` → admin-only
-- `/api/dealer/dropship/*` → dealer + admin
+## API Özeti
+
+- Admin: `/api/dropship/*`
+- Bayi: `/api/dealer/dropship/*` (AI_DROPSHIP lisansı zorunlu)
+- Public: `/api/public/store` (GET mağaza, POST sipariş)
+- Gateway: `/api/gateway/dropship`

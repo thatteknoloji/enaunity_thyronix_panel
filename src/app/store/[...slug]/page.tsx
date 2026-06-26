@@ -4,6 +4,7 @@ import { useEffect, useState, useMemo } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Store, ShoppingCart, Package, ChevronRight, Search, Plus, Minus, X, ChevronLeft } from "lucide-react";
 import { useCart } from "@/hooks/useCart";
+import { getCheckoutPaymentNotice } from "@/lib/dropship/payment-display";
 import { parseTheme, getButtonRadius } from "@/components/storefront/theme-utils";
 import type { StoreTheme } from "@/lib/store-themes/types";
 import StorefrontHeader from "@/components/storefront/Header";
@@ -13,6 +14,7 @@ import StorefrontFooter from "@/components/storefront/Footer";
 type StoreData = {
   id: string; name: string; slug: string; logo: string; coverImage: string;
   aboutText: string; contactEmail: string; contactPhone: string; themeJson: string;
+  paymentModel?: string;
 };
 
 type ProductData = {
@@ -462,7 +464,8 @@ function CheckoutPage({ slug, store, theme, items, total, clearCart, router }: {
   const [form, setForm] = useState({ customerName: "", customerEmail: "", customerPhone: "", shippingAddress: "", city: "", district: "", zipCode: "", notes: "" });
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
-  const [orderResult, setOrderResult] = useState<{ id: string; totalAmount: number } | null>(null);
+  const [orderResult, setOrderResult] = useState<{ id: string; orderNumber?: string; totalAmount: number } | null>(null);
+  const paymentInfo = getCheckoutPaymentNotice(store.paymentModel || "PLATFORM");
 
   const submitOrder = async () => {
     setSubmitting(true); setError("");
@@ -498,9 +501,14 @@ function CheckoutPage({ slug, store, theme, items, total, clearCart, router }: {
             <ShoppingCart size={32} className="text-green-400" />
           </div>
           <h1 className="text-2xl font-bold mb-2" style={{ fontFamily: f.headingFont, color: c.textColor }}>Sipariş Alındı!</h1>
-          <p className="mb-2" style={{ color: c.textColor, opacity: 0.6 }}>Sipariş numaran: <span className="text-white font-mono">{orderResult.id}</span></p>
+          <p className="mb-2" style={{ color: c.textColor, opacity: 0.6 }}>
+            Sipariş numaran:{" "}
+            <span className="text-white font-mono">{orderResult.orderNumber || orderResult.id}</span>
+          </p>
           <p className="mb-6" style={{ color: c.textColor, opacity: 0.6 }}>Toplam: <span style={{ color: c.primaryColor }} className="font-bold">{orderResult.totalAmount.toFixed(2)} TL</span></p>
-          <p className="text-sm mb-4" style={{ color: c.textColor, opacity: 0.5 }}>Siparişin incelenip onaylandıktan sonra e-posta ile bilgilendirileceksin.</p>
+          <p className="text-sm mb-4" style={{ color: c.textColor, opacity: 0.5 }}>
+            Ödeme durumu: sipariş sonrası bayi tarafından alınacaktır.
+          </p>
           <p className="text-xs mb-6" style={{ color: c.textColor, opacity: 0.4 }}>
             Siparişini <a href="/siparis-takip" className="underline" style={{ color: c.primaryColor }}>buradan</a> takip edebilirsin.
           </p>
@@ -597,6 +605,19 @@ function CheckoutPage({ slug, store, theme, items, total, clearCart, router }: {
           </div>
 
           <div className="rounded-2xl border p-4" style={{ background: c.cardBg, borderColor: c.textColor + "15" }}>
+            <h2 className="text-sm font-semibold mb-2" style={{ color: c.textColor }}>Ödeme</h2>
+            <p className="text-sm mb-2" style={{ color: c.textColor, opacity: 0.75 }}>
+              Model: <span className="font-medium">{paymentInfo.label}</span>
+              <span className="ml-2 text-xs opacity-60">({paymentInfo.displayModel})</span>
+            </p>
+            {paymentInfo.manualNotice && (
+              <p className="text-xs rounded-lg px-3 py-2" style={{ background: c.primaryColor + "18", color: c.textColor, opacity: 0.85 }}>
+                {paymentInfo.manualNotice}
+              </p>
+            )}
+          </div>
+
+          <div className="rounded-2xl border p-4" style={{ background: c.cardBg, borderColor: c.textColor + "15" }}>
             <h2 className="text-sm font-semibold mb-3" style={{ color: c.textColor }}>Sipariş Özeti ({items.length} ürün)</h2>
             <div className="space-y-2">
               {items.map((item) => (
@@ -620,7 +641,7 @@ function CheckoutPage({ slug, store, theme, items, total, clearCart, router }: {
           <button onClick={submitOrder} disabled={submitting || !form.customerName || !form.customerEmail || !form.shippingAddress || items.length === 0}
             style={{ background: c.primaryColor }}
             className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl text-white font-medium hover:opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed">
-            {submitting ? "Gönderiliyor..." : `Siparişi Tamamla (${total.toFixed(2)} TL)`}
+            {submitting ? "Gönderiliyor..." : "Siparişi Oluştur"}
           </button>
         </div>
       </div>

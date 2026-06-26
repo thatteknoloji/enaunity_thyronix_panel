@@ -638,7 +638,8 @@ export default function DealerDropshipPage() {
 }
 
 type StoreOrder = {
-  id: string; customerName: string; customerEmail: string; customerPhone: string;
+  id: string; orderNumber?: string | null;
+  customerName: string; customerEmail: string; customerPhone: string;
   shippingAddress: string; city: string; district: string; zipCode: string;
   totalAmount: number; status: string;
   itemsJson: string; notes: string; trackingCode: string; carrierName: string;
@@ -844,7 +845,7 @@ function OrdersTab() {
                         </div>
                         <div className="p-3 rounded-xl bg-white/5 space-y-1">
                           <p className="flex items-center gap-1.5 text-ena-light font-medium mb-1"><FileText size={12} /> Sipariş No</p>
-                          <p className="text-white font-mono text-xs break-all">{order.id}</p>
+                          <p className="text-white font-mono text-xs break-all">{order.orderNumber || order.id}</p>
                           <p className="text-ena-light">{new Date(order.createdAt).toLocaleString("tr-TR")}</p>
                         </div>
                         <div className="p-3 rounded-xl bg-white/5 space-y-1">

@@ -55,7 +55,9 @@ export default function AdminDropshipPage() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [showCreate, setShowCreate] = useState(false);
-  const [createForm, setCreateForm] = useState({ name: "", slug: "", paymentModel: "PLATFORM" });
+  const [createForm, setCreateForm] = useState({ name: "", slug: "", paymentModel: "PLATFORM", dealerId: "" });
+  const [dealers, setDealers] = useState<Array<{ id: string; name: string; company: string; email: string }>>([]);
+  const [dealersLoading, setDealersLoading] = useState(false);
   const [products, setProducts] = useState<StoreProduct[]>([]);
   const [catalogSearch, setCatalogSearch] = useState("");
   const [catalogResults, setCatalogResults] = useState<CatalogItem[]>([]);
@@ -70,6 +72,15 @@ export default function AdminDropshipPage() {
       .then((d) => { if (d.success) setStores(d.data); })
       .finally(() => setLoading(false));
   }, []);
+
+  useEffect(() => {
+    if (!showCreate) return;
+    setDealersLoading(true);
+    fetch("/api/admin/dealers")
+      .then((r) => r.json())
+      .then((d) => { if (d.success) setDealers(d.data || []); })
+      .finally(() => setDealersLoading(false));
+  }, [showCreate]);
 
   const loadStoreDetail = async (store: DealerStore) => {
     setSelectedStore(store);
@@ -114,7 +125,7 @@ export default function AdminDropshipPage() {
       body: JSON.stringify(createForm),
     });
     const d = await res.json();
-    if (d.success) { setShowCreate(false); setCreateForm({ name: "", slug: "", paymentModel: "PLATFORM" }); window.location.reload(); }
+    if (d.success) { setShowCreate(false); setCreateForm({ name: "", slug: "", paymentModel: "PLATFORM", dealerId: "" }); window.location.reload(); }
     else setError(d.error || "Hata");
     setSaving(false);
   };
@@ -582,6 +593,21 @@ export default function AdminDropshipPage() {
           <div className="bg-white rounded-2xl p-6 w-full max-w-md space-y-4 shadow-xl" onClick={(e) => e.stopPropagation()}>
             <h2 className="text-lg font-bold text-gray-900">Yeni Mağaza Aç</h2>
             <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Bayi *</label>
+              <select
+                value={createForm.dealerId}
+                onChange={(e) => setCreateForm({ ...createForm, dealerId: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500"
+              >
+                <option value="">{dealersLoading ? "Bayiler yükleniyor..." : "Bayi seçin..."}</option>
+                {dealers.map((d) => (
+                  <option key={d.id} value={d.id}>
+                    {d.company || d.name} — {d.email}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Mağaza Adı</label>
               <input type="text" value={createForm.name}
                 onChange={(e) => setCreateForm({ ...createForm, name: e.target.value, slug: e.target.value.toLowerCase().replace(/[^a-z0-9]/g, "-").replace(/--+/g, "-").replace(/^-|-$/g, "") })}
@@ -605,7 +631,7 @@ export default function AdminDropshipPage() {
               </select>
             </div>
             <div className="flex items-center gap-2 pt-2">
-              <button onClick={createStore} disabled={saving || !createForm.name || !createForm.slug}
+              <button onClick={createStore} disabled={saving || !createForm.name || !createForm.slug || !createForm.dealerId}
                 className="flex-1 px-4 py-2 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-xl font-medium hover:from-orange-600 hover:to-red-600 transition-all disabled:opacity-50 text-sm">
                 {saving ? "Oluşturuluyor..." : "Mağazayı Oluştur"}
               </button>
@@ -762,7 +788,7 @@ function OrdersTab({ storeId }: { storeId: string }) {
             <div key={order.id} className="flex items-center justify-between p-4 rounded-xl bg-gray-50 border">
               <div className="space-y-1">
                 <div className="flex items-center gap-2">
-                  <span className="text-xs font-mono text-gray-400">#{order.id.slice(-6)}</span>
+                  <span className="text-xs font-mono text-gray-400">#{order.orderNumber || order.id.slice(-6)}</span>
                   {statusBadge(order.status)}
                 </div>
                 <p className="text-sm font-medium text-gray-900">{order.customerName}</p>

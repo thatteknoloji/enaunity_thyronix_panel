@@ -1,5 +1,6 @@
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/db";
+import { buildNewStoreOrderMetadata } from "@/lib/dropship/order-metadata";
 
 function firstImageFromJson(imagesJson: string): string {
   try {
@@ -31,6 +32,7 @@ export async function GET(req: NextRequest) {
         contactEmail: true,
         contactPhone: true,
         themeJson: true,
+        paymentModel: true,
       },
     });
 
@@ -143,9 +145,14 @@ export async function POST(req: NextRequest) {
       return { storeProductId: i.storeProductId, quantity: i.quantity || 1, unitPrice: sp.dealerPrice, lineTotal, name: catalogNameMap[sp.productCatalogItemId] || "" };
     });
 
+    const orderMeta = buildNewStoreOrderMetadata();
+
     const order = await prisma.storeOrder.create({
       data: {
         storeId: store.id,
+        orderNumber: orderMeta.orderNumber,
+        paymentStatus: orderMeta.paymentStatus,
+        notificationStatus: orderMeta.notificationStatus,
         customerName,
         customerEmail,
         customerPhone: customerPhone || "",
@@ -175,7 +182,16 @@ export async function POST(req: NextRequest) {
       data: { orderCount: { increment: 1 }, totalRevenue: { increment: totalAmount } },
     });
 
-    return Response.json({ success: true, data: { id: order.id, totalAmount } });
+    return Response.json({
+      success: true,
+      data: {
+        id: order.id,
+        orderNumber: order.orderNumber,
+        totalAmount: order.totalAmount,
+        paymentStatus: order.paymentStatus,
+        notificationStatus: order.notificationStatus,
+      },
+    });
   } catch (e) {
     const msg = e instanceof Error ? e.message : "Hata";
     return Response.json({ success: false, error: msg }, { status: 400 });

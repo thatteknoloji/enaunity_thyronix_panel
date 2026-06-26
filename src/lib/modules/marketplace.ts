@@ -80,7 +80,7 @@ export const MARKETPLACE_MODULES: Record<MarketplaceModuleKey, MarketplaceModule
   AI_DROPSHIP: {
     moduleKey: "AI_DROPSHIP",
     label: "ENA Dropship",
-    description: "Kendi mağazanı aç, ürünleri seç ve satmaya başla — subdomain, sepet, ödeme dahil",
+    description: "Kendi mağazanı aç, Hazır Ürün Deposu'ndan ürün seç, subdomain'inde satışa başla — sepet ve sipariş yönetimi dahil",
     color: "orange",
     appPath: "/dealer/dropship",
     gatewayPath: "/gateway/dropship",
