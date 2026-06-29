@@ -180,9 +180,12 @@ export default function PaymentGatewaysAdminPage() {
   const save = async () => {
     setSaving(true);
     try {
-      const payload = { ...form };
-      if (!payload.esnekposMerchantKey?.trim()) delete payload.esnekposMerchantKey;
-      if (!payload.iyzicoSecretKey?.trim()) delete payload.iyzicoSecretKey;
+      const { esnekposMerchantKey, iyzicoSecretKey, ...rest } = form;
+      const payload = {
+        ...rest,
+        ...(esnekposMerchantKey.trim() ? { esnekposMerchantKey } : {}),
+        ...(iyzicoSecretKey.trim() ? { iyzicoSecretKey } : {}),
+      };
       if (payload.esnekposEnabled && payload.activeCardProvider === "NONE") {
         payload.activeCardProvider = "ESNEKPOS";
       } else if (payload.iyzicoEnabled && payload.activeCardProvider === "NONE") {
