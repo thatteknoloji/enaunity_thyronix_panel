@@ -76,11 +76,10 @@ function navPathMatches(pathname: string, path: string): boolean {
   return pathname.startsWith(`${path}/`);
 }
 
-/** En spesifik eşleşen menü öğesinin href'ini bul */
 export function resolveActiveNavItemHref(
   pathname: string,
   items: { href: string }[],
-  toUrl: (path: string) => string
+  toUrl: (path: string) => string,
 ): string | null {
   let best: string | null = null;
   let bestLen = -1;
@@ -129,6 +128,8 @@ export function buildAdminNavGroups(t: (key: string) => string, legacyMarketplac
       items: [
         { href: "/admin/product-universe", label: "Ürün Evreni", icon: Layers },
         { href: "/admin/products", label: "Canlı Ürünler", icon: Package },
+        { href: "/admin/products/new", label: "Yeni Ürün Ekle", icon: PackagePlus },
+        { href: "/admin/products/import", label: "Toplu Ürün Yükle", icon: Upload },
         { href: "/admin/product-library", label: "Hazır Ürün Deposu", icon: PackagePlus },
         { href: "/admin/fiyat-hesaplama-merkezi", label: "Fiyat Hesaplama Merkezi", icon: DollarSign },
         { href: "/admin/categories", label: "Kategori Yönetimi", icon: Layers },

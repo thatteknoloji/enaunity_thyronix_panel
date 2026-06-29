@@ -1,12 +1,12 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { ProductsTabs } from "@/components/admin/ProductsTabs";
 import { toAdminUrl } from "@/lib/auth/admin-access";
 import {
-  Upload, FileSpreadsheet, CheckCircle, AlertCircle, ChevronRight, ChevronLeft, Loader2,
+  Upload, CheckCircle, AlertCircle, ChevronRight, ChevronLeft, Loader2, Download,
 } from "lucide-react";
 import toast from "react-hot-toast";
 
@@ -35,6 +35,7 @@ interface PreviewData {
   groups: PreviewGroup[];
   categoryValues: string[];
   previewJobId: string;
+  parseErrors?: string[];
 }
 
 const PRESETS = [
@@ -43,6 +44,17 @@ const PRESETS = [
   { id: "hepsiburada", label: "Hepsiburada", desc: "HB export (TY tablo alias)" },
   { id: "generic", label: "Genel Excel/CSV", desc: "name, sku, barcode, price, stock" },
 ];
+
+function downloadTextReport(filename: string, lines: string[]) {
+  const content = lines.filter(Boolean).join("\n");
+  const blob = new Blob([content || "Rapor boş"], { type: "text/plain;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement("a");
+  anchor.href = url;
+  anchor.download = filename;
+  anchor.click();
+  URL.revokeObjectURL(url);
+}
 
 export default function BulkImportPage() {
   const [step, setStep] = useState<Step>("source");
@@ -155,40 +167,50 @@ export default function BulkImportPage() {
 
   const errorCount = preview?.groups.reduce((s, g) => s + g.errors.length, 0) || 0;
   const okGroups = preview?.groups.filter((g) => g.errors.length === 0).length || 0;
+  const previewReportLines = useMemo(() => {
+    if (!preview) return [];
+    const lines: string[] = [];
+    for (const parseError of preview.parseErrors || []) {
+      lines.push(`[PARSE] ${parseError}`);
+    }
+    for (const group of preview.groups) {
+      for (const error of group.errors) lines.push(`[${group.modelCode}] ${error}`);
+      for (const warning of group.warnings) lines.push(`[${group.modelCode}] UYARI: ${warning}`);
+    }
+    return lines;
+  }, [preview]);
 
   return (
     <div className="max-w-4xl">
       <ProductsTabs />
-      <h1 className="text-2xl font-bold text-gray-900 mb-2">Toplu Ürün Yükle</h1>
-      <p className="text-sm text-gray-500 mb-6">
+      <h1 className="mb-2 text-2xl font-bold text-gray-900">Toplu Ürün Yükle</h1>
+      <p className="mb-6 text-sm text-gray-500">
         Model Kodu = parent ürün · Her satır = varyant · Başlık/açıklama upsert ile güncellenir
       </p>
 
-      {/* Step indicator */}
-      <div className="flex items-center gap-2 mb-6 text-xs text-gray-500">
+      <div className="mb-6 flex items-center gap-2 text-xs text-gray-500">
         {(["source", "preview", "categories", "done"] as Step[]).map((s, i) => (
-          <span key={s} className={`flex items-center gap-1 ${step === s || (step === "commit" && s === "categories") ? "text-gray-900 font-semibold" : ""}`}>
+          <span key={s} className={`flex items-center gap-1 ${step === s || (step === "commit" && s === "categories") ? "font-semibold text-gray-900" : ""}`}>
             {i > 0 && <ChevronRight size={12} />}
             {s === "source" ? "1. Kaynak" : s === "preview" ? "2. Önizleme" : s === "categories" ? "3. Kategori" : "4. Tamam"}
           </span>
         ))}
       </div>
 
-      {/* Step 1: Source */}
       {step === "source" && (
         <div className="space-y-4">
           <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
-            <h2 className="text-sm font-semibold text-gray-900 mb-3">Kaynak Format</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <h2 className="mb-3 text-sm font-semibold text-gray-900">Kaynak Format</h2>
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
               {PRESETS.map((p) => (
                 <button
                   key={p.id}
                   type="button"
                   onClick={() => setPreset(p.id)}
-                  className={`text-left p-3 rounded-lg border transition-colors ${preset === p.id ? "border-gray-900 bg-gray-50" : "border-gray-200 hover:border-gray-300"}`}
+                  className={`rounded-lg border p-3 text-left transition-colors ${preset === p.id ? "border-gray-900 bg-gray-50" : "border-gray-200 hover:border-gray-300"}`}
                 >
                   <p className="text-sm font-medium text-gray-900">{p.label}</p>
-                  <p className="text-xs text-gray-500 mt-0.5">{p.desc}</p>
+                  <p className="mt-0.5 text-xs text-gray-500">{p.desc}</p>
                 </button>
               ))}
             </div>
@@ -196,40 +218,63 @@ export default function BulkImportPage() {
 
           <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
             <div
-              className="border-2 border-dashed border-gray-200 rounded-xl p-8 text-center hover:border-gray-300 cursor-pointer"
+              className="cursor-pointer rounded-xl border-2 border-dashed border-gray-200 p-8 text-center hover:border-gray-300"
               onClick={() => inputRef.current?.click()}
             >
-              <Upload size={32} className="mx-auto text-gray-300 mb-2" />
+              <Upload size={32} className="mx-auto mb-2 text-gray-300" />
               <p className="text-sm text-gray-600">{file ? file.name : "Excel, CSV veya XML seçin"}</p>
-              <p className="text-xs text-gray-400 mt-1">.xlsx, .xls, .csv, .xml</p>
+              <p className="mt-1 text-xs text-gray-400">.xlsx, .xls, .csv, .xml</p>
               <input ref={inputRef} type="file" accept=".xlsx,.xls,.csv,.xml" className="hidden"
                 onChange={(e) => setFile(e.target.files?.[0] || null)} />
             </div>
-            <Button className="w-full mt-4" disabled={!file || loading} onClick={handlePreview}>
-              {loading ? <><Loader2 size={14} className="animate-spin mr-1" /> Analiz ediliyor...</> : "Önizleme Oluştur"}
+            <Button className="mt-4 w-full" disabled={!file || loading} onClick={handlePreview}>
+              {loading ? <><Loader2 size={14} className="mr-1 animate-spin" /> Analiz ediliyor...</> : "Önizleme Oluştur"}
             </Button>
           </div>
         </div>
       )}
 
-      {/* Step 2: Preview */}
       {step === "preview" && preview && (
         <div className="space-y-4">
           <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
-              <div className="p-3 bg-gray-50 rounded-lg"><p className="text-xl font-bold">{preview.totalRows}</p><p className="text-xs text-gray-500">Satır</p></div>
-              <div className="p-3 bg-blue-50 rounded-lg"><p className="text-xl font-bold text-blue-700">{preview.groupCount}</p><p className="text-xs text-blue-600">Parent Ürün</p></div>
-              <div className="p-3 bg-green-50 rounded-lg"><p className="text-xl font-bold text-green-700">{okGroups}</p><p className="text-xs text-green-600">Hazır</p></div>
-              <div className="p-3 bg-red-50 rounded-lg"><p className="text-xl font-bold text-red-600">{errorCount}</p><p className="text-xs text-red-500">Hata</p></div>
+            <div className="grid grid-cols-2 gap-3 text-center sm:grid-cols-4">
+              <div className="rounded-lg bg-gray-50 p-3"><p className="text-xl font-bold">{preview.totalRows}</p><p className="text-xs text-gray-500">Satır</p></div>
+              <div className="rounded-lg bg-blue-50 p-3"><p className="text-xl font-bold text-blue-700">{preview.groupCount}</p><p className="text-xs text-blue-600">Parent Ürün</p></div>
+              <div className="rounded-lg bg-green-50 p-3"><p className="text-xl font-bold text-green-700">{okGroups}</p><p className="text-xs text-green-600">Hazır</p></div>
+              <div className="rounded-lg bg-red-50 p-3"><p className="text-xl font-bold text-red-600">{errorCount + (preview.parseErrors?.length || 0)}</p><p className="text-xs text-red-500">Sorun</p></div>
             </div>
-            <p className="text-xs text-gray-500 mt-3">
-              Parent başlık: gruptaki en sık ürün adı · Açıklama: en uzun metin · Upsert ile güncellenir
-            </p>
+            <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
+              <p className="text-xs text-gray-500">
+                Parent başlık: gruptaki en sık ürün adı · Açıklama: en uzun metin · Upsert ile güncellenir
+              </p>
+              {previewReportLines.length > 0 && (
+                <Button
+                  variant="outline"
+                  className="gap-2"
+                  onClick={() => downloadTextReport(`import-preview-${preview.previewJobId}.txt`, previewReportLines)}
+                >
+                  <Download size={14} /> Hata Raporu İndir
+                </Button>
+              )}
+            </div>
           </div>
 
-          <div className="rounded-xl border border-gray-200 bg-white overflow-hidden shadow-sm max-h-96 overflow-y-auto">
+          {(preview.parseErrors?.length || 0) > 0 && (
+            <div className="rounded-xl border border-red-200 bg-red-50 p-4 shadow-sm">
+              <div className="mb-2 flex items-center gap-2 text-sm font-semibold text-red-700">
+                <AlertCircle size={15} /> Dosya parse uyarıları
+              </div>
+              <div className="max-h-40 space-y-1 overflow-y-auto text-xs text-red-700">
+                {(preview.parseErrors || []).slice(0, 12).map((error, index) => (
+                  <p key={`${error}-${index}`}>{error}</p>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <div className="max-h-96 overflow-y-auto overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
             <table className="w-full text-xs">
-              <thead className="bg-gray-50 sticky top-0">
+              <thead className="sticky top-0 bg-gray-50">
                 <tr>
                   <th className="px-3 py-2 text-left">Model Kodu</th>
                   <th className="px-3 py-2 text-left">Parent Başlık</th>
@@ -242,14 +287,14 @@ export default function BulkImportPage() {
                 {preview.groups.map((g) => (
                   <tr key={g.modelCode} className="hover:bg-gray-50/50">
                     <td className="px-3 py-2 font-mono text-gray-700">{g.modelCode}</td>
-                    <td className="px-3 py-2 text-gray-900 max-w-[200px] truncate">{g.name}</td>
+                    <td className="max-w-[200px] truncate px-3 py-2 text-gray-900">{g.name}</td>
                     <td className="px-3 py-2 text-gray-600">{g.category}</td>
                     <td className="px-3 py-2 text-right">{g.variantCount}</td>
                     <td className="px-3 py-2">
                       {g.errors.length ? (
-                        <span className="text-red-600 flex items-center gap-1"><AlertCircle size={12} /> {g.errors[0]}</span>
+                        <span className="flex items-center gap-1 text-red-600"><AlertCircle size={12} /> {g.errors[0]}</span>
                       ) : (
-                        <span className="text-green-600 flex items-center gap-1"><CheckCircle size={12} /> OK</span>
+                        <span className="flex items-center gap-1 text-green-600"><CheckCircle size={12} /> OK</span>
                       )}
                     </td>
                   </tr>
@@ -267,19 +312,18 @@ export default function BulkImportPage() {
         </div>
       )}
 
-      {/* Step 3: Category mapping */}
       {step === "categories" && preview && (
         <div className="space-y-4">
           <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
-            <h2 className="text-sm font-semibold text-gray-900 mb-3">Kategori Eşleme</h2>
-            <p className="text-xs text-gray-500 mb-4">Dosyadaki kategori → mağaza kategorisi (değiştirilebilir)</p>
+            <h2 className="mb-3 text-sm font-semibold text-gray-900">Kategori Eşleme</h2>
+            <p className="mb-4 text-xs text-gray-500">Dosyadaki kategori → mağaza kategorisi (değiştirilebilir)</p>
             {preview.categoryValues.length === 0 ? (
               <p className="text-sm text-gray-400">Kategori sütunu boş — varsayılan kullanılacak</p>
             ) : (
               <div className="space-y-2">
                 {preview.categoryValues.map((src) => (
                   <div key={src} className="flex items-center gap-3">
-                    <span className="text-sm text-gray-600 w-48 truncate" title={src}>{src}</span>
+                    <span className="w-48 truncate text-sm text-gray-600" title={src}>{src}</span>
                     <span className="text-gray-300">→</span>
                     <select
                       className="flex-1 rounded border border-gray-200 px-2 py-1.5 text-sm"
@@ -299,23 +343,22 @@ export default function BulkImportPage() {
           <div className="flex gap-2">
             <Button variant="outline" onClick={() => setStep("preview")}><ChevronLeft size={14} className="mr-1" /> Geri</Button>
             <Button onClick={handleCommit} disabled={loading}>
-              {loading ? <><Loader2 size={14} className="animate-spin mr-1" /> İçe aktarılıyor...</> : `${okGroups} ürünü içe aktar`}
+              {loading ? <><Loader2 size={14} className="mr-1 animate-spin" /> İçe aktarılıyor...</> : `${okGroups} ürünü içe aktar`}
             </Button>
           </div>
         </div>
       )}
 
-      {/* Step: Committing */}
       {step === "commit" && (
         <div className="rounded-xl border border-gray-200 bg-white p-12 text-center shadow-sm">
-          <Loader2 size={40} className="mx-auto text-gray-400 animate-spin mb-4" />
+          <Loader2 size={40} className="mx-auto mb-4 animate-spin text-gray-400" />
           <p className="text-sm text-gray-600">
             {importProgress
               ? `İşleniyor: ${importProgress.progress} / ${importProgress.total} ürün grubu`
               : "Ürünler ve varyantlar kaydediliyor..."}
           </p>
           {importProgress && importProgress.total > 0 && (
-            <div className="mt-4 mx-auto max-w-xs h-2 bg-gray-100 rounded-full overflow-hidden">
+            <div className="mx-auto mt-4 h-2 max-w-xs overflow-hidden rounded-full bg-gray-100">
               <div
                 className="h-full bg-gray-900 transition-all duration-500"
                 style={{ width: `${Math.min(100, (importProgress.progress / importProgress.total) * 100)}%` }}
@@ -325,26 +368,34 @@ export default function BulkImportPage() {
         </div>
       )}
 
-      {/* Step 4: Done */}
       {step === "done" && commitResult && (
         <div className="space-y-4">
           <div className="rounded-xl border border-green-200 bg-green-50 p-6 shadow-sm">
-            <CheckCircle size={32} className="text-green-600 mb-3" />
+            <CheckCircle size={32} className="mb-3 text-green-600" />
             <h2 className="text-lg font-bold text-gray-900">İçe Aktarma Tamamlandı</h2>
-            <div className="grid grid-cols-3 gap-4 mt-4">
-              <div className="text-center p-3 bg-white rounded-lg"><p className="text-2xl font-bold text-green-600">{commitResult.created}</p><p className="text-xs">Yeni</p></div>
-              <div className="text-center p-3 bg-white rounded-lg"><p className="text-2xl font-bold text-blue-600">{commitResult.updated}</p><p className="text-xs">Güncellenen</p></div>
-              <div className="text-center p-3 bg-white rounded-lg"><p className="text-2xl font-bold text-amber-600">{commitResult.skipped}</p><p className="text-xs">Atlanan</p></div>
+            <div className="mt-4 grid grid-cols-3 gap-4">
+              <div className="rounded-lg bg-white p-3 text-center"><p className="text-2xl font-bold text-green-600">{commitResult.created}</p><p className="text-xs">Yeni</p></div>
+              <div className="rounded-lg bg-white p-3 text-center"><p className="text-2xl font-bold text-blue-600">{commitResult.updated}</p><p className="text-xs">Güncellenen</p></div>
+              <div className="rounded-lg bg-white p-3 text-center"><p className="text-2xl font-bold text-amber-600">{commitResult.skipped}</p><p className="text-xs">Atlanan</p></div>
             </div>
             {commitResult.errors.length > 0 && (
-              <div className="mt-4 text-xs text-red-600 max-h-32 overflow-y-auto">
+              <div className="mt-4 max-h-32 overflow-y-auto text-xs text-red-600">
                 {commitResult.errors.slice(0, 20).map((e, i) => <p key={i}>{e}</p>)}
               </div>
             )}
           </div>
-          <div className="flex gap-2 flex-wrap">
+          <div className="flex flex-wrap gap-2">
             <Link href={toAdminUrl("/admin/products")}><Button>Ürün Listesi</Button></Link>
             <Link href={toAdminUrl("/admin/products/import/history")}><Button variant="outline">Import Geçmişi</Button></Link>
+            {commitResult.errors.length > 0 && (
+              <Button
+                variant="outline"
+                className="gap-2"
+                onClick={() => downloadTextReport(`import-result-${Date.now()}.txt`, commitResult.errors)}
+              >
+                <Download size={14} /> Hata Raporu İndir
+              </Button>
+            )}
             {commitResult.productIds.length > 0 && (
               <Button variant="outline" onClick={() => {
                 sessionStorage.setItem("importProductIds", JSON.stringify(commitResult.productIds));
