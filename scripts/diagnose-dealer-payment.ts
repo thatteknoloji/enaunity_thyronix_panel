@@ -16,12 +16,12 @@ if (!emailArg) {
 
 async function findDealer(email: string) {
   const byDealerEmail = await prisma.dealer.findFirst({
-    where: { email: { equals: email, mode: "insensitive" } },
+    where: { email: { equals: email } },
   });
   if (byDealerEmail) return byDealerEmail;
 
   const user = await prisma.user.findFirst({
-    where: { email: { equals: email, mode: "insensitive" } },
+    where: { email: { equals: email } },
   });
   if (user?.dealerId) {
     return prisma.dealer.findUnique({ where: { id: user.dealerId } });
