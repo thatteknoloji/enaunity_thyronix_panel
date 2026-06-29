@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createProviderByKey } from "@/lib/payments/payment-provider-factory";
 import { processPaymentSuccess, processPaymentFailure } from "@/lib/payments/payment-callback-service";
 import { logPaymentWebhook } from "@/lib/payments/webhook-service";
+import { buildAppRedirect } from "@/lib/payments/gateway-config";
 
 export async function POST(req: Request) {
   const url = new URL(req.url);
@@ -23,7 +24,7 @@ export async function POST(req: Request) {
   });
 
   if (!paymentId) {
-    return NextResponse.redirect(new URL("/payment/fail?reason=missing_payment", req.url));
+    return NextResponse.redirect(buildAppRedirect("/payment/fail?reason=missing_payment", req));
   }
 
   const provider = createProviderByKey("IYZICO");
@@ -32,12 +33,12 @@ export async function POST(req: Request) {
   if (verify.success) {
     const result = await processPaymentSuccess(paymentId, "IYZICO");
     if (result.success) {
-      return NextResponse.redirect(new URL(`/payment/success?paymentId=${paymentId}`, req.url));
+      return NextResponse.redirect(buildAppRedirect(`/payment/success?paymentId=${paymentId}`, req));
     }
   }
 
   await processPaymentFailure(paymentId);
-  return NextResponse.redirect(new URL(`/payment/fail?paymentId=${paymentId}`, req.url));
+  return NextResponse.redirect(buildAppRedirect(`/payment/fail?paymentId=${paymentId}`, req));
 }
 
 export async function GET(req: Request) {

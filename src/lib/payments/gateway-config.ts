@@ -53,10 +53,37 @@ export async function getIyzicoConfig() {
 
 export function getSiteBaseUrl(): string {
   return (
-    process.env.NEXT_PUBLIC_APP_URL ||
     process.env.NEXT_PUBLIC_SITE_URL ||
-    "http://localhost:3333"
-  );
+    process.env.NEXT_PUBLIC_APP_URL ||
+    (process.env.NODE_ENV === "production" ? "https://enaunity.com.tr" : "http://localhost:3333")
+  ).replace(/\/$/, "");
+}
+
+/** Nginx/PM2 arkasında req.url localhost olur; kullanıcı yönlendirmeleri için public origin. */
+export function getPublicAppOrigin(req?: Request): string {
+  const forwardedHost = req?.headers.get("x-forwarded-host");
+  const forwardedProto = req?.headers.get("x-forwarded-proto");
+  if (forwardedHost) {
+    const host = forwardedHost.split(",")[0]?.trim();
+    const proto = (forwardedProto || "https").split(",")[0]?.trim() || "https";
+    if (host) return `${proto}://${host}`;
+  }
+
+  if (process.env.ESNEKPOS_BACK_URL) {
+    try {
+      return new URL(process.env.ESNEKPOS_BACK_URL).origin;
+    } catch {
+      // ignore
+    }
+  }
+
+  return getSiteBaseUrl();
+}
+
+export function buildAppRedirect(path: string, req?: Request): string {
+  if (path.startsWith("http://") || path.startsWith("https://")) return path;
+  const origin = getPublicAppOrigin(req);
+  return `${origin}${path.startsWith("/") ? path : `/${path}`}`;
 }
 
 export async function getAvailablePaymentMethods(): Promise<ProductLibraryPaymentMethod[]> {

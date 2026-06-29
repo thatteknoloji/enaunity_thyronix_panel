@@ -4,6 +4,7 @@ import { createProviderByKey } from "@/lib/payments/payment-provider-factory";
 import { processPaymentSuccess, processPaymentFailure } from "@/lib/payments/payment-callback-service";
 import { logPaymentWebhook } from "@/lib/payments/webhook-service";
 import { esnekposOrderRef } from "@/lib/payments/esnekpos-provider";
+import { buildAppRedirect } from "@/lib/payments/gateway-config";
 
 async function resolvePaymentId(paymentId: string, orderRef: string, providerReference: string) {
   if (paymentId) {
@@ -84,7 +85,7 @@ async function handleCallback(req: Request) {
   });
 
   if (!paymentId) {
-    return NextResponse.redirect(new URL("/payment/fail?reason=missing_payment", req.url));
+    return NextResponse.redirect(buildAppRedirect("/payment/fail?reason=missing_payment", req));
   }
 
   const provider = createProviderByKey("ESNEKPOS");
@@ -107,7 +108,7 @@ async function handleCallback(req: Request) {
           where: { id: payment.planKey },
           select: { returnUrl: true },
         });
-        return NextResponse.redirect(new URL(topUp?.returnUrl || "/dealer/balance", req.url));
+        return NextResponse.redirect(buildAppRedirect(topUp?.returnUrl || "/dealer/balance", req));
       }
       if (payment?.moduleKey === "B2B_ORDER" && payment.planKey) {
         const order = await prisma.order.findUnique({
@@ -116,16 +117,16 @@ async function handleCallback(req: Request) {
         });
         if (order) {
           return NextResponse.redirect(
-            new URL(order.dealerId ? `/dealer/orders/${order.id}` : `/admin/orders/${order.id}`, req.url),
+            buildAppRedirect(order.dealerId ? `/dealer/orders/${order.id}` : `/admin/orders/${order.id}`, req),
           );
         }
       }
-      return NextResponse.redirect(new URL(`/payment/success?paymentId=${paymentId}`, req.url));
+      return NextResponse.redirect(buildAppRedirect(`/payment/success?paymentId=${paymentId}`, req));
     }
   }
 
   await processPaymentFailure(paymentId);
-  return NextResponse.redirect(new URL(`/payment/fail?paymentId=${paymentId}`, req.url));
+  return NextResponse.redirect(buildAppRedirect(`/payment/fail?paymentId=${paymentId}`, req));
 }
 
 export async function GET(req: Request) {
