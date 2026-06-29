@@ -265,8 +265,10 @@ export async function savePaymentSettings(input: Partial<PaymentSettingsDTO> & {
   if (input.require3ds !== undefined) data.require3ds = input.require3ds;
   if (input.esnekposEnabled !== undefined) data.esnekposEnabled = input.esnekposEnabled;
   if (input.esnekposSandbox !== undefined) data.esnekposSandbox = input.esnekposSandbox;
-  if (input.esnekposMerchantId !== undefined) data.esnekposMerchantId = input.esnekposMerchantId.trim();
-  const nextEsnekKey = input.esnekposMerchantKey?.trim();
+  if (input.esnekposMerchantId !== undefined) {
+    data.esnekposMerchantId = input.esnekposMerchantId.trim().replace(/^["']+|["']+$/g, "");
+  }
+  const nextEsnekKey = input.esnekposMerchantKey?.trim().replace(/^["']+|["']+$/g, "");
   if (nextEsnekKey && nextEsnekKey !== "••••••••") {
     data.esnekposMerchantKey = nextEsnekKey;
   }
