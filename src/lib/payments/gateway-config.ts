@@ -1,8 +1,6 @@
 import type { PaymentProviderKey } from "./payment-types";
-import {
-  getPaymentSettings,
-  type CardProvider,
-} from "./payment-settings";
+import { getPaymentSettings, type CardProvider } from "./payment-settings";
+import { resolveEsnekCredentials, resolveIyzicoCredentials } from "./credential-resolve";
 
 export type ProductLibraryPaymentMethod = "BANK_TRANSFER" | "ESNEKPOS" | "IYZICO";
 
@@ -20,10 +18,11 @@ export async function getEsnekposConfig() {
   const s = await getPaymentSettings();
   const row = await (await import("@/lib/db")).prisma.paymentGatewaySettings.findUnique({ where: { id: "default" } });
   const sandbox = s.esnekpos.sandbox;
+  const { merchantId, merchantKey } = resolveEsnekCredentials(row ?? undefined);
   return {
     enabled: s.activeCardProvider === "ESNEKPOS" && s.esnekpos.enabled,
-    merchantId: process.env.ESNEKPOS_MERCHANT_ID || process.env.ESNEKPOS_PUBLIC_TOKEN || row?.esnekposMerchantId || "",
-    merchantKey: process.env.ESNEKPOS_SECRET || process.env.ESNEKPOS_MERCHANT_KEY || row?.esnekposMerchantKey || "",
+    merchantId,
+    merchantKey,
     backUrl: process.env.ESNEKPOS_BACK_URL || `${getSiteBaseUrl()}/api/payments/callback/esnekpos`,
     apiUrl:
       process.env.ESNEKPOS_API_URL ||
@@ -38,10 +37,11 @@ export async function getIyzicoConfig() {
   const s = await getPaymentSettings();
   const row = await (await import("@/lib/db")).prisma.paymentGatewaySettings.findUnique({ where: { id: "default" } });
   const sandbox = s.iyzico.sandbox;
+  const { apiKey, secretKey } = resolveIyzicoCredentials(row ?? undefined);
   return {
     enabled: s.activeCardProvider === "IYZICO" && s.iyzico.enabled,
-    apiKey: process.env.IYZICO_API_KEY || row?.iyzicoApiKey || "",
-    secretKey: process.env.IYZICO_SECRET_KEY || row?.iyzicoSecretKey || "",
+    apiKey,
+    secretKey,
     baseUrl:
       process.env.IYZICO_BASE_URL ||
       (sandbox ? "https://sandbox-api.iyzipay.com" : "https://api.iyzipay.com"),

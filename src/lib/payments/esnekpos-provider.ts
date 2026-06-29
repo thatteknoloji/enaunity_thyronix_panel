@@ -113,10 +113,16 @@ export function createEsnekposProvider(): PaymentProvider {
         const redirectUrl = String(data.URL_3DS || "");
 
         if (status !== "SUCCESS" || returnCode !== "0" || !redirectUrl) {
+          const returnMessage = String(data.RETURN_MESSAGE_TR || data.RETURN_MESSAGE || "EsnekPOS ödeme başlatılamadı");
+          const adminHint =
+            returnCode === "100" ||
+            /ödeme yetkisi|servis kullanım yetkisi|yetkisi yok/i.test(returnMessage)
+              ? " EsnekPOS üye işyeri hesabında Ortak Ödeme Sayfası servis yetkisi tanımlı değil — EsnekPOS panelinden yetkiyi açın veya destek@esnekpos.com ile iletişime geçin."
+              : "";
           return {
             success: false,
             status: "FAILED",
-            message: String(data.RETURN_MESSAGE_TR || data.RETURN_MESSAGE || "EsnekPOS ödeme başlatılamadı"),
+            message: `${returnMessage}${adminHint}`,
           };
         }
 

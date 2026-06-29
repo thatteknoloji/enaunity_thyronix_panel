@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { requireAuth } from "@/lib/auth";
 import { buildCheckoutPaymentContext } from "@/lib/payments/checkout-payment-service";
 import { resolveDealerPaymentMethods } from "@/lib/payments/payment-method-policy";
+import { getPaymentSettings } from "@/lib/payments/payment-settings";
 
 export async function GET(req: NextRequest) {
   try {
@@ -16,17 +17,26 @@ export async function GET(req: NextRequest) {
     }
 
     const resolved = await resolveDealerPaymentMethods(user.dealerId);
+    const cardAvailable = resolved.methods.some((m) => m === "ESNEKPOS" || m === "IYZICO");
     const ctx = await buildCheckoutPaymentContext({
       dealerId: user.dealerId,
       cartTotal,
       balanceEnabled: resolved.balanceEnabled,
+      cardAvailable,
     });
+
+    const settings = await getPaymentSettings();
+    const cardSettings =
+      settings.activeCardProvider === "ESNEKPOS" ? settings.esnekpos : settings.iyzico;
 
     return NextResponse.json({
       success: true,
       data: {
         ...ctx,
         bankTransferEnabled: resolved.bankTransferEnabled,
+        cardAvailable,
+        cardEnabled: resolved.cardEnabled,
+        cardDisplayName: cardSettings.displayName || "Kredi Kartı",
         cardMethods: resolved.methods.filter((m) => m === "ESNEKPOS" || m === "IYZICO"),
       },
     });

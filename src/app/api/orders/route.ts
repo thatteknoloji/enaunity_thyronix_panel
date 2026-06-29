@@ -136,10 +136,12 @@ export async function POST(req: Request) {
 
     if (dealer) {
       const resolvedMethods = await resolveDealerPaymentMethods(dealer.id);
+      const cardAvailable = resolvedMethods.methods.some((m) => m === "ESNEKPOS" || m === "IYZICO");
       checkoutCtx = await buildCheckoutPaymentContext({
         dealerId: dealer.id,
         cartTotal: finalTotal,
         balanceEnabled: resolvedMethods.balanceEnabled,
+        cardAvailable,
       });
 
       if (paymentModeRaw) {
@@ -227,10 +229,12 @@ export async function POST(req: Request) {
       const creditCheck = await checkDealerCredit(dealer.id, finalTotal);
       if (!creditCheck.ok) {
         const resolved = await resolveDealerPaymentMethods(dealer.id);
+        const cardAvailable = resolved.methods.some((m) => m === "ESNEKPOS" || m === "IYZICO");
         const ctx = checkoutCtx || await buildCheckoutPaymentContext({
           dealerId: dealer.id,
           cartTotal: finalTotal,
           balanceEnabled: resolved.balanceEnabled,
+          cardAvailable,
         });
         return NextResponse.json({
           success: false,

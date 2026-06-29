@@ -19,6 +19,8 @@ type CheckoutContext = {
   shortfall: number;
   bankTransferEnabled?: boolean;
   cardMethods?: string[];
+  cardDisplayName?: string;
+  cardAvailable?: boolean;
 };
 
 type Props = {
@@ -80,13 +82,16 @@ export function DealerCheckoutPaymentPanel({
 
   const selections = useMemo(() => {
     if (!ctx) return [] as DealerPaymentSelection[];
+    const hasCard = (ctx.cardMethods?.length || 0) > 0 && ctx.cardAvailable !== false;
     const next: DealerPaymentSelection[] = [];
     if (ctx.methods.includes("BALANCE_ONLY")) next.push("BALANCE_ONLY");
-    if (ctx.methods.includes("SPLIT")) next.push("SPLIT");
-    if (ctx.methods.includes("CARD_ONLY")) next.push("CARD_ONLY");
+    if (hasCard && ctx.methods.includes("SPLIT")) next.push("SPLIT");
+    if (hasCard && ctx.methods.includes("CARD_ONLY")) next.push("CARD_ONLY");
     if (ctx.bankTransferEnabled) next.push("BANK_TRANSFER");
     return next;
   }, [ctx]);
+
+  const cardLabel = ctx?.cardDisplayName || "Kredi Kartı";
 
   if (fetching) {
     return (
@@ -118,8 +123,13 @@ export function DealerCheckoutPaymentPanel({
 
       <div className="space-y-2">
         {(["BALANCE_ONLY", "SPLIT", "CARD_ONLY", "BANK_TRANSFER"] as DealerPaymentSelection[]).map((m) => {
+          const hasCard = (ctx.cardMethods?.length || 0) > 0 && ctx.cardAvailable !== false;
           const enabled =
-            m === "BANK_TRANSFER" ? Boolean(ctx.bankTransferEnabled) : ctx.methods.includes(m as PaymentMode);
+            m === "BANK_TRANSFER"
+              ? Boolean(ctx.bankTransferEnabled)
+              : m === "CARD_ONLY" || m === "SPLIT"
+                ? hasCard && ctx.methods.includes(m as PaymentMode)
+                : ctx.methods.includes(m as PaymentMode);
           return (
             <button
               key={m}
@@ -141,7 +151,13 @@ export function DealerCheckoutPaymentPanel({
               )}
               <div>
                 <div className="text-sm font-medium text-gray-900">
-                  {m === "BANK_TRANSFER" ? "Havale / EFT ile öde" : MODE_LABELS[m as PaymentMode]}
+                  {m === "BANK_TRANSFER"
+                    ? "Havale / EFT ile öde"
+                    : m === "CARD_ONLY"
+                      ? `${cardLabel} ile öde`
+                      : m === "SPLIT"
+                        ? `Bakiye + ${cardLabel}`
+                        : MODE_LABELS[m as PaymentMode]}
                 </div>
                 {m === "BALANCE_ONLY" && !enabled && ctx.shortfall > 0 && (
                   <p className="text-xs text-amber-600 mt-0.5">
@@ -170,6 +186,12 @@ export function DealerCheckoutPaymentPanel({
           );
         })}
       </div>
+
+      {ctx.cardAvailable === false && (
+        <div className="rounded-lg bg-amber-50 border border-amber-200 p-3 text-xs text-amber-800">
+          Kredi kartı ödemesi şu an kapalı. Yönetici: Admin → Ödeme Altyapısı → EsnekPOS credential girin.
+        </div>
+      )}
 
       {ctx.shortfall > 0 && (
         <div className="rounded-lg bg-blue-50 border border-blue-100 p-3 text-xs text-blue-800">

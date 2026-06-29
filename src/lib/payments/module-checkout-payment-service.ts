@@ -118,10 +118,12 @@ export async function processModulePurchase(input: ModulePurchaseInput): Promise
 
   const { resolveDealerPaymentMethods } = await import("./payment-method-policy");
   const policy = await resolveDealerPaymentMethods(dealerId);
+  const cardAvailable = policy.methods.some((m) => m === "ESNEKPOS" || m === "IYZICO");
   const checkoutCtx = await buildCheckoutPaymentContext({
     dealerId,
     cartTotal: baseAmount,
     balanceEnabled: policy.balanceEnabled,
+    cardAvailable,
   });
 
   let paymentMode: PaymentMode | null = input.paymentMode || null;

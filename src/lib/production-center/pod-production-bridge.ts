@@ -1,5 +1,6 @@
 import { listAllPodCoreProjects } from "@/lib/pod-core/project-store";
 import type { PodCoreProjectRecord } from "@/lib/pod-core/pod-types";
+import { resolvePodFromGraph, resolveProductionFromGraph } from "@/lib/product-engine/graph-resolvers";
 import type { CreateProductionJobInput } from "./types";
 
 function dataUrlToPathHint(dataUrl: string, ext: string): string {
@@ -20,19 +21,26 @@ export async function resolvePodProductionAssets(
   if (!project) return {};
 
   const pack = project.productionPack;
+  const graphPod = resolvePodFromGraph({ templateId: project.templateId });
+  const graphProd = resolveProductionFromGraph({ templateId: project.templateId });
   const patch: Partial<CreateProductionJobInput> = {
     orderSource: "POD_ORDER",
     orderId: project.projectId,
-    productType: project.mockupTemplate?.name ?? project.projectName,
+    productType: graphPod?.displayName ?? project.mockupTemplate?.name ?? project.projectName,
     variant: project.templateId,
     widthCm: project.widthCm,
     heightCm: project.heightCm,
     quantity: project.quantity,
+    priority: graphProd?.defaultPriority ?? "NORMAL",
+    machineName: graphProd?.machineType ?? "",
     pricingSnapshot: (project.pricingSnapshot as Record<string, unknown> | null) ?? undefined,
     metadata: {
       podProjectId: project.projectId,
       podProjectName: project.projectName,
       templateId: project.templateId,
+      productCode: graphPod?.productCode,
+      productionProfile: graphProd?.productionProfile,
+      packagingProfile: graphProd?.packagingProfile,
     },
   };
 

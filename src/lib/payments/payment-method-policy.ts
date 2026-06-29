@@ -158,3 +158,21 @@ export async function upsertPaymentMethodPolicy(input: {
 export async function listPaymentMethodPolicies() {
   return prisma.paymentMethodPolicy.findMany({ orderBy: [{ scope: "asc" }, { scopeKey: "asc" }] });
 }
+
+/** Tüm bayiler için kart, havale ve bakiye ödemesini açar; engelleyici grup/bayi politikalarını kaldırır. */
+export async function ensureAllPaymentsOpen(updatedBy?: string) {
+  await upsertPaymentMethodPolicy({
+    scope: "GLOBAL",
+    scopeKey: "",
+    cardEnabled: true,
+    bankTransferEnabled: true,
+    balanceEnabled: true,
+    updatedBy,
+  });
+
+  const removed = await prisma.paymentMethodPolicy.deleteMany({
+    where: { scope: { in: ["GROUP", "DEALER"] } },
+  });
+
+  return { globalPolicySet: true, removedPolicies: removed.count };
+}

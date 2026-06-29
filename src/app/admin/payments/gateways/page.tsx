@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, CreditCard, Save, Shield, Wallet, Zap } from "lucide-react";
+import { ArrowLeft, CreditCard, Save, Shield, Wallet, Zap, Unlock } from "lucide-react";
 import { toAdminUrl } from "@/lib/auth/admin-access";
 import { AdminFormField, AdminFormSelect } from "@/components/admin/AdminFormField";
 import toast from "react-hot-toast";
@@ -92,6 +92,7 @@ export default function PaymentGatewaysAdminPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [savingBalance, setSavingBalance] = useState(false);
+  const [openingAll, setOpeningAll] = useState(false);
   const [envHint, setEnvHint] = useState({ esnek: false, iyzico: false });
 
   useEffect(() => {
@@ -200,6 +201,41 @@ export default function PaymentGatewaysAdminPage() {
     }
   };
 
+  const openAllPaymentMethods = async () => {
+    if (!confirm("Tüm bayiler için kart, havale ve bakiye ödemesi açılacak. Grup/bayi engelleri kaldırılacak. Devam?")) {
+      return;
+    }
+    setOpeningAll(true);
+    try {
+      const r = await fetch("/api/admin/payments/ensure-open", { method: "POST" });
+      const d = await r.json();
+      if (!d.success) {
+        toast.error(d.error || "Açılamadı");
+        return;
+      }
+      toast.success(d.data?.message || "Tüm ödeme yöntemleri açıldı");
+      setForm((p) => ({
+        ...p,
+        bankTransferEnabled: true,
+        esnekposEnabled: p.esnekposEnabled || d.data?.gateway?.esnekposConfigured,
+        activeCardProvider:
+          d.data?.gateway?.activeCardProvider !== "NONE"
+            ? d.data.gateway.activeCardProvider
+            : p.activeCardProvider,
+      }));
+      setBalanceForm((p) => ({
+        ...p,
+        enabled: true,
+        splitEnabled: true,
+        bankTransferEnabled: true,
+      }));
+    } catch {
+      toast.error("İşlem başarısız");
+    } finally {
+      setOpeningAll(false);
+    }
+  };
+
   const previewMethods = useMemo(() => {
     const m: string[] = [];
     if (form.bankTransferEnabled) m.push("Havale / EFT");
@@ -243,10 +279,27 @@ export default function PaymentGatewaysAdminPage() {
         </button>
       </div>
 
+      <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4 mb-6 text-sm text-emerald-900 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div>
+          <p className="font-semibold">Bayi ödeme engeli mi var?</p>
+          <p className="text-emerald-800 text-xs mt-1">
+            Kart, havale ve bakiye ödemesini tüm bayiler için tek tıkla açın. Grup/bayi bazlı kapatma politikaları temizlenir.
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={openAllPaymentMethods}
+          disabled={openingAll}
+          className="shrink-0 px-4 py-2 text-sm bg-emerald-700 text-white rounded-lg flex items-center gap-1.5 disabled:opacity-50 hover:bg-emerald-800"
+        >
+          <Unlock size={14} /> {openingAll ? "Açılıyor..." : "Tüm Ödeme Yöntemlerini Aç"}
+        </button>
+      </div>
+
       <div className="rounded-xl border border-blue-100 bg-blue-50 p-4 mb-6 text-sm text-blue-900">
         <p className="font-semibold mb-1">Aktif kart sağlayıcısı: tek seçim</p>
         <p className="text-blue-800 text-xs">
-          Hangisini aktif edersen müşteri panelinde yalnızca o görünür. Credential&apos;lar buradan veya <code className="bg-white/60 px-1 rounded">.env</code> üzerinden okunur (.env öncelikli).
+          Hangisini aktif edersen müşteri panelinde yalnızca o görünür. Admin panelden kaydettiğiniz Merchant ID / Key önceliklidir; <code className="bg-white/60 px-1 rounded">.env</code> yalnızca DB boşken kullanılır.
         </p>
         <div className="mt-2 flex flex-wrap gap-2">
           {previewMethods.map((m) => (
@@ -273,6 +326,13 @@ export default function PaymentGatewaysAdminPage() {
       <div className="rounded-xl border bg-white p-6 shadow-sm space-y-4">
         {tab === "general" && (
           <>
+            <p className="text-xs text-gray-500">
+              Gelişmiş bayi/grup politikaları için{" "}
+              <Link href={toAdminUrl("/admin/payments/policies")} className="text-gray-900 underline">
+                Ödeme Politikaları
+              </Link>{" "}
+              sayfasını kullanın (Sipariş &amp; Finans menüsünde).
+            </p>
             <label className="flex items-center gap-2 text-sm text-gray-800">
               <input type="checkbox" checked={form.bankTransferEnabled} onChange={(e) => update({ bankTransferEnabled: e.target.checked })} />
               Havale / EFT aktif
@@ -298,11 +358,14 @@ export default function PaymentGatewaysAdminPage() {
 
         {tab === "esnekpos" && (
           <>
+            <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg p-2">
+              <strong>Merchant ID</strong> = EsnekPOS panelindeki domain (ör. <code>enaunity.com.tr/</code>) — Public Token değil.
+            </p>
             {envHint.esnek && <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg p-2">ESNEKPOS_ENABLED=true — .env aktif</p>}
             <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={form.esnekposEnabled} onChange={(e) => update({ esnekposEnabled: e.target.checked })} /> EsnekPOS aktif</label>
             <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={form.esnekposSandbox} onChange={(e) => update({ esnekposSandbox: e.target.checked })} /> Sandbox modu</label>
             <AdminFormField label="Görünen Ad" value={form.esnekposDisplayName} onChange={(v) => update({ esnekposDisplayName: v })} />
-            <AdminFormField label="Merchant ID" value={form.esnekposMerchantId} onChange={(v) => update({ esnekposMerchantId: v })} />
+            <AdminFormField label="Merchant ID (domain)" value={form.esnekposMerchantId} onChange={(v) => update({ esnekposMerchantId: v })} placeholder="enaunity.com.tr/" />
             <AdminFormField label="Merchant Key / Secret" value={form.esnekposMerchantKey} onChange={(v) => update({ esnekposMerchantKey: v })} placeholder="Boş bırak = değiştirme" />
             <div className="grid md:grid-cols-2 gap-4">
               <AdminFormField label="Ek Ücret (%)" value={String(form.esnekposExtraFeePct)} onChange={(v) => update({ esnekposExtraFeePct: parseFloat(v) || 0 })} />

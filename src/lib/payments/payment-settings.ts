@@ -2,6 +2,7 @@ import { prisma } from "@/lib/db";
 import type { PaymentGatewaySettings } from "@prisma/client";
 import type { ProductLibraryPaymentMethod } from "./gateway-config";
 import type { PaymentProviderKey } from "./payment-types";
+import { resolveEsnekCredentials, resolveIyzicoCredentials } from "./credential-resolve";
 
 export type CardProvider = "ESNEKPOS" | "IYZICO" | "NONE";
 
@@ -56,7 +57,7 @@ const DEFAULT_ROW = {
   esnekposInstallments: false,
   esnekposMaxInstall: 1,
   esnekposMinAmount: 0,
-  esnekposDisplayName: "EsnekPOS",
+  esnekposDisplayName: "Kredi Kartı",
   iyzicoEnabled: false,
   iyzicoSandbox: true,
   iyzicoApiKey: "",
@@ -100,8 +101,7 @@ function envIyzicoEnabled() {
 }
 
 function mergeEsnek(row: typeof DEFAULT_ROW): ProviderSettings {
-  const merchantId = process.env.ESNEKPOS_MERCHANT_ID || process.env.ESNEKPOS_PUBLIC_TOKEN || row.esnekposMerchantId;
-  const merchantKey = process.env.ESNEKPOS_SECRET || process.env.ESNEKPOS_MERCHANT_KEY || row.esnekposMerchantKey;
+  const { merchantId, merchantKey } = resolveEsnekCredentials(row);
   const enabled =
     row.esnekposEnabled ||
     envEsnekEnabled() ||
@@ -122,8 +122,7 @@ function mergeEsnek(row: typeof DEFAULT_ROW): ProviderSettings {
 }
 
 function mergeIyzico(row: typeof DEFAULT_ROW): ProviderSettings {
-  const apiKey = process.env.IYZICO_API_KEY || row.iyzicoApiKey;
-  const secretKey = process.env.IYZICO_SECRET_KEY || row.iyzicoSecretKey;
+  const { apiKey, secretKey } = resolveIyzicoCredentials(row);
   const enabled =
     row.iyzicoEnabled ||
     envIyzicoEnabled() ||
@@ -181,12 +180,22 @@ export function invalidatePaymentSettingsCache() {
 async function syncPaymentGatewayFromEnv(row: PaymentGatewaySettings): Promise<PaymentGatewaySettings> {
   const updates: Record<string, unknown> = {};
 
-  const dbEsnekConfigured = Boolean(row.esnekposMerchantId && row.esnekposMerchantKey);
+  const envMerchantId = process.env.ESNEKPOS_MERCHANT_ID || process.env.ESNEKPOS_PUBLIC_TOKEN || "";
+  const envMerchantKey = process.env.ESNEKPOS_SECRET || process.env.ESNEKPOS_MERCHANT_KEY || "";
+  const dbEsnekConfigured = Boolean(
+    (row.esnekposMerchantId || envMerchantId) && (row.esnekposMerchantKey || envMerchantKey),
+  );
   const dbIyzicoConfigured = Boolean(row.iyzicoApiKey && row.iyzicoSecretKey);
 
   if ((hasEnvEsnekCredentials() && envEsnekEnabled()) || dbEsnekConfigured) {
     if (!row.esnekposEnabled) updates.esnekposEnabled = true;
     if (row.activeCardProvider === "NONE") updates.activeCardProvider = "ESNEKPOS";
+    if (envMerchantId && row.esnekposMerchantId !== envMerchantId) {
+      updates.esnekposMerchantId = envMerchantId;
+    }
+    if (envMerchantKey && row.esnekposMerchantKey !== envMerchantKey) {
+      updates.esnekposMerchantKey = envMerchantKey;
+    }
   } else if ((hasEnvIyzicoCredentials() && envIyzicoEnabled()) || dbIyzicoConfigured) {
     if (!row.iyzicoEnabled) updates.iyzicoEnabled = true;
     if (row.activeCardProvider === "NONE") updates.activeCardProvider = "IYZICO";

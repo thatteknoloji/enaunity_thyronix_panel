@@ -148,7 +148,7 @@ export function getNavPermissionMap(): Record<string, PermissionKey[]> {
     "/admin/campaigns": ["campaigns_manage"],
     "/admin/returns": ["returns_view"],
     "/admin/payments": ["payments_view"],
-    "/admin/payments/policies": ["payments_manage"],
+    "/admin/payments/policies": ["payments_view", "payments_manage"],
     "/admin/payment-terms": ["payments_view"],
     "/admin/stock-movements": ["stock_view"],
     "/admin/stock-counts": ["stock_manage"],

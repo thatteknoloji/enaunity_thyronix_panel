@@ -133,6 +133,8 @@ model Product {
   trustBadgesJson   String                @default("[]")
   backorderable     Boolean               @default(false)
   eta               String                @default("")
+  vatRate           Float                 @default(20)
+  vatIncluded       Boolean               @default(true)
   createdAt         DateTime              @default(now())
   updatedAt         DateTime              @updatedAt
   orderItems        OrderItem[]

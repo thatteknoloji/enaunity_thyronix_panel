@@ -24,6 +24,7 @@ export async function buildCheckoutPaymentContext(opts: {
   dealerId: string;
   cartTotal: number;
   balanceEnabled?: boolean;
+  cardAvailable?: boolean;
 }): Promise<CheckoutPaymentContext> {
   const settings = await getBalanceTopUpSettings();
   const balanceInfo = await getDealerBalance(opts.dealerId);
@@ -35,9 +36,14 @@ export async function buildCheckoutPaymentContext(opts: {
     ? cartTotal
     : roundMoney(Math.max(0, Math.min(availableBalance, cartTotal)));
   const cardPortion = roundMoney(cartTotal - balancePortion);
-  const canSplit =
-    balanceEnabled && settings.splitEnabled && balancePortion > 0 && cardPortion > 0;
-  const canCardOnly = cartTotal > 0;
+  const canCardOnly = cartTotal > 0 && opts.cardAvailable !== false;
+  const canSplitCard =
+    opts.cardAvailable !== false &&
+    balanceEnabled &&
+    settings.splitEnabled &&
+    balancePortion > 0 &&
+    cardPortion > 0;
+  const canSplit = canSplitCard;
   const shortfall = roundMoney(Math.max(0, cartTotal - availableBalance));
 
   const methods: PaymentMode[] = [];

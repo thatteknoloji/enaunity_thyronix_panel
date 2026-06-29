@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE "Product" ADD COLUMN "vatRate" REAL NOT NULL DEFAULT 20;
+ALTER TABLE "Product" ADD COLUMN "vatIncluded" BOOLEAN NOT NULL DEFAULT true;

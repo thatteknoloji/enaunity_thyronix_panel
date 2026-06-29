@@ -51,6 +51,8 @@ export interface Product {
   minOrderQuantity: number
   backorderable: boolean
   eta: string
+  vatRate?: number
+  vatIncluded?: boolean
   createdAt: string
 }
 

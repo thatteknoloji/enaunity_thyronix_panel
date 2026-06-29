@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -8,10 +8,12 @@ import { Input } from "@/components/ui/input";
 import { formatPrice } from "@/lib/utils";
 import { useCartStore } from "@/lib/cart-store";
 import type { User } from "@/types";
-import { ChevronLeft, Building2, Tag, AlertTriangle, Clock, Paperclip, X, FileText, ImageIcon, ArrowRight, MapPinned, Sparkles, BadgeCheck, CreditCard } from "lucide-react";
+import { ChevronLeft, Building2, Tag, AlertTriangle, Paperclip, X, FileText, ImageIcon, ArrowRight, MapPinned, Sparkles, BadgeCheck, CreditCard } from "lucide-react";
 import Link from "next/link";
 import { PaymentCheckoutPanel } from "@/components/payments/PaymentCheckoutPanel";
 import { DealerCheckoutPaymentPanel } from "@/components/payments/DealerCheckoutPaymentPanel";
+import { VatSummary } from "@/components/pricing/VatSummary";
+import { buildCartVatBreakdown } from "@/lib/pricing/vat-breakdown";
 
 interface DealerInfo {
   discountRate: number;
@@ -69,6 +71,7 @@ export default function CheckoutPage() {
   const [paymentAlternatives, setPaymentAlternatives] = useState<string[]>([]);
   const [showOnlineSuggestion, setShowOnlineSuggestion] = useState(false);
   const [addressSyncing, setAddressSyncing] = useState(false);
+  const paymentErrorRef = useRef<HTMLDivElement>(null);
 
   const isDealer = !!dealer;
   const canUseDealerPayment = !!paymentDealerId;
@@ -143,6 +146,18 @@ export default function CheckoutPage() {
   const isOwnSite = platform === "own";
   const effectiveShipping = campaignFreeShip ? 0 : (isOwnSite ? shippingCost : 0);
   const total = rawTotal - couponDiscount - campaignDiscount + termFeeAmount + effectiveShipping;
+  const vatBreakdown = useMemo(() => buildCartVatBreakdown(items), [items]);
+  const checkoutExtraLines = useMemo(() => {
+    const lines: Array<{ label: string; amount: number; tone?: "discount" | "fee" }> = [];
+    if (couponDiscount > 0) lines.push({ label: "Kupon indirimi", amount: couponDiscount, tone: "discount" });
+    if (campaignDiscount > 0) lines.push({ label: campaignLabel || "Kampanya indirimi", amount: campaignDiscount, tone: "discount" });
+    if (termFeeAmount > 0) lines.push({ label: `${paymentTerm?.days ?? 0} gün vade farkı`, amount: termFeeAmount, tone: "fee" });
+    if (effectiveShipping > 0) lines.push({ label: "Kargo", amount: effectiveShipping, tone: "fee" });
+  if (campaignFreeShip && effectiveShipping === 0 && shippingCost > 0) {
+      lines.push({ label: "Kargo (kampanya)", amount: 0, tone: "fee" });
+    }
+    return lines;
+  }, [campaignDiscount, campaignFreeShip, campaignLabel, couponDiscount, effectiveShipping, paymentTerm?.days, shippingCost, termFeeAmount]);
   const dealerCreditLimit = dealer?.creditLimit || 0;
   const dealerOpeningBalance = dealer?.openingBalance || 0;
   const dealerCreditEnabled = Boolean(dealer && (dealerCreditLimit > 0 || dealer.allowNegative));
@@ -223,6 +238,12 @@ export default function CheckoutPage() {
     }
   };
 
+  const scrollToPaymentError = () => {
+    window.setTimeout(() => {
+      paymentErrorRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }, 50);
+  };
+
   const submitOrder = async (opts?: {
     paymentMethod?: string;
     paymentMode?: string;
@@ -235,9 +256,9 @@ export default function CheckoutPage() {
     setError("");
 
     try {
-      if (!platform) { setError("Lütfen bir platform seçin"); return false; }
+      if (!platform) { setError("Lütfen bir platform seçin"); scrollToPaymentError(); return false; }
       const addrToCheck = sameAddress ? invoiceAddress : deliveryAddress;
-      if (!invoiceAddress.trim() || !addrToCheck.trim()) { setError("Adres bilgilerini doldurun"); return false; }
+      if (!invoiceAddress.trim() || !addrToCheck.trim()) { setError("Adres bilgilerini doldurun"); scrollToPaymentError(); return false; }
       if (canUseDealerPayment && !paymentMethod && !paymentMode) {
         setError("Bayi siparişi için lütfen bir ödeme yöntemi seçin.");
         return false;
@@ -350,9 +371,11 @@ export default function CheckoutPage() {
         setPaymentAlternatives(data.alternatives);
         setShowOnlineSuggestion(true);
       }
+      scrollToPaymentError();
       return false;
     } catch (err) {
       setError(err instanceof Error ? err.message : "Sipariş oluşturulamadı");
+      scrollToPaymentError();
       return false;
     } finally {
       setSubmitting(false);
@@ -528,13 +551,18 @@ export default function CheckoutPage() {
           {items.map((item) => {
             const itemPrice = item.effectivePrice ?? item.product.price;
             const itemTotal = itemPrice * item.quantity;
+            const vatRate = item.product.vatRate ?? 20;
+            const vatIncluded = item.product.vatIncluded ?? true;
             return (
               <div key={item.id} className="flex items-center justify-between border-b border-ena-border pb-3">
                 <div className="flex items-center gap-3 min-w-0">
                   <img src={item.product.image} alt={item.product.name} className="h-12 w-12 rounded object-cover shrink-0" />
                   <div className="truncate">
                     <p className="text-sm font-medium text-ena-text truncate">{item.product.name}</p>
-                    <p className="text-xs text-ena-light">Adet: {item.quantity} x {formatPrice(itemPrice)}</p>
+                    <p className="text-xs text-ena-light">
+                      Adet: {item.quantity} × {formatPrice(itemPrice)}
+                      {vatIncluded ? ` (KDV dahil %${vatRate})` : ` (KDV hariç %${vatRate})`}
+                    </p>
                   </div>
                 </div>
                 <p className="text-sm font-bold text-ena-primary shrink-0">{formatPrice(itemTotal)}</p>
@@ -572,46 +600,11 @@ export default function CheckoutPage() {
           {couponError && <p className="text-xs text-ena-primary mt-1">{couponError}</p>}
         </div>
 
-        <div className="mt-4 space-y-1 text-sm">
-          {isDealer && (
-            <div className="flex justify-between text-green-400">
-              <div className="flex items-center gap-1">
-                <Tag size={14} />
-                <span>Bayi İndirimi (%{dealer?.discountRate || 0})</span>
-              </div>
-            </div>
-          )}
-          {paymentTerm && paymentTerm.rate > 0 && (
-            <div className="flex justify-between text-amber-400">
-              <div className="flex items-center gap-1">
-                <Clock size={14} />
-                <span>{paymentTerm.days} Gün Vade (%{paymentTerm.rate})</span>
-              </div>
-              <span>+{formatPrice(termFeeAmount)}</span>
-            </div>
-          )}
-          {couponDiscount > 0 && (
-            <div className="flex justify-between text-emerald-400">
-              <span>Kupon İndirimi</span>
-              <span>-{formatPrice(couponDiscount)}</span>
-            </div>
-          )}
-          {campaignDiscount > 0 && (
-            <div className="flex justify-between text-ena-primary">
-              <span>🎯 {campaignLabel}</span>
-              <span>-{formatPrice(campaignDiscount)}</span>
-            </div>
-          )}
-          {campaignFreeShip && (
-            <div className="flex justify-between text-emerald-400">
-              <span>🚚 {campaignLabel}</span>
-              <span>Bedava</span>
-            </div>
-          )}
-          <div className="flex justify-between text-lg font-bold text-ena-text border-t border-ena-border pt-2 mt-2">
-            <span>Genel Toplam</span>
-            <span>{formatPrice(total)}</span>
-          </div>
+        <div className="mt-4">
+          <VatSummary
+            breakdown={vatBreakdown}
+            extraLines={checkoutExtraLines}
+          />
         </div>
       </motion.div>
 
@@ -748,7 +741,7 @@ export default function CheckoutPage() {
       </motion.form>
 
       {showGatewayPaymentPanel && (
-        <div className="pt-4 mt-6 border-t border-ena-border">
+        <div ref={paymentErrorRef} className="pt-4 mt-6 border-t border-ena-border">
           <p className="text-sm text-ena-light mb-3">
             {canUseDealerPayment
               ? "Ödeme yöntemini aşağıdan seçin. Bayi siparişi admin onayına gider."
@@ -767,6 +760,9 @@ export default function CheckoutPage() {
               title="B2B Online Ödeme"
               loading={submitting || addressSyncing}
               dealerId={paymentDealerId || undefined}
+              vatBreakdown={vatBreakdown}
+              extraLines={checkoutExtraLines}
+              errorMessage={error || undefined}
               onConfirm={handleOnlinePayment}
             />
           )}

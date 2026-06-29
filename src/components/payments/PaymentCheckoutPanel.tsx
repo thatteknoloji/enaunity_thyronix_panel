@@ -3,6 +3,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { CreditCard, Landmark, Loader2, Wallet } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { VatSummary } from "@/components/pricing/VatSummary";
+import type { VatAggregate } from "@/lib/pricing/vat-breakdown";
 
 export interface PaymentCheckoutSettings {
   methods: string[];
@@ -22,8 +24,8 @@ export interface PaymentCheckoutSettings {
 const METHOD_LABELS: Record<string, string> = {
   DEALER_ACCOUNT: "Bakiye / Cari Hesap",
   BANK_TRANSFER: "Havale / EFT",
-  ESNEKPOS: "EsnekPOS",
-  IYZICO: "İyzico",
+  ESNEKPOS: "Kredi Kartı",
+  IYZICO: "Kredi Kartı",
 };
 
 type Props = {
@@ -33,9 +35,22 @@ type Props = {
   onConfirm: (method: string, installmentCount: number) => void | Promise<void>;
   loading?: boolean;
   title?: string;
+  vatBreakdown?: VatAggregate;
+  extraLines?: Array<{ label: string; amount: number; tone?: "discount" | "fee" }>;
+  errorMessage?: string;
 };
 
-export function PaymentCheckoutPanel({ amount, currency = "TRY", dealerId, onConfirm, loading, title }: Props) {
+export function PaymentCheckoutPanel({
+  amount,
+  currency = "TRY",
+  dealerId,
+  onConfirm,
+  loading,
+  title,
+  vatBreakdown,
+  extraLines = [],
+  errorMessage,
+}: Props) {
   const [settings, setSettings] = useState<PaymentCheckoutSettings | null>(null);
   const [method, setMethod] = useState("BANK_TRANSFER");
   const [installment, setInstallment] = useState(1);
@@ -96,8 +111,9 @@ export function PaymentCheckoutPanel({ amount, currency = "TRY", dealerId, onCon
 
   if (!availableMethods.length) {
     return (
-      <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
-        Ödeme yöntemi yapılandırılmamış. Admin → Ödeme Altyapısı
+      <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800 space-y-2">
+        <p>Kredi kartı ödemesi şu an aktif değil.</p>
+        <p className="text-xs">Yönetici: Admin → Ödeme Altyapısı → EsnekPOS sekmesinde Merchant ID olarak <strong>enaunity.com.tr/</strong> ve Merchant Key girin, kaydedin.</p>
       </div>
     );
   }
@@ -145,19 +161,37 @@ export function PaymentCheckoutPanel({ amount, currency = "TRY", dealerId, onCon
       )}
 
       <div className="rounded-lg bg-gray-50 p-4 text-sm space-y-1">
-        <div className="flex justify-between text-gray-600"><span>Tutar</span><span>{pricing.base.toLocaleString("tr-TR")} {currency}</span></div>
-        {pricing.fee > 0 && (
-          <div className="flex justify-between text-gray-600"><span>İşlem ücreti</span><span>+{pricing.fee.toLocaleString("tr-TR")} {currency}</span></div>
+        {vatBreakdown ? (
+          <VatSummary
+            breakdown={vatBreakdown}
+            extraFee={pricing.fee}
+            extraLines={extraLines}
+            currency={currency}
+            compact
+          />
+        ) : (
+          <>
+            <div className="flex justify-between text-gray-600"><span>Tutar</span><span>{pricing.base.toLocaleString("tr-TR")} {currency}</span></div>
+            {pricing.fee > 0 && (
+              <div className="flex justify-between text-gray-600"><span>İşlem ücreti</span><span>+{pricing.fee.toLocaleString("tr-TR")} {currency}</span></div>
+            )}
+            <div className="flex justify-between font-bold text-gray-900 pt-1 border-t border-gray-200">
+              <span>Toplam</span><span>{pricing.total.toLocaleString("tr-TR")} {currency}</span>
+            </div>
+          </>
         )}
-        <div className="flex justify-between font-bold text-gray-900 pt-1 border-t border-gray-200">
-          <span>Toplam</span><span>{pricing.total.toLocaleString("tr-TR")} {currency}</span>
-        </div>
         {installment > 1 && (
           <p className="text-xs text-gray-500 pt-1">
             ≈ {(pricing.total / installment).toLocaleString("tr-TR")} {currency} × {installment} taksit
           </p>
         )}
       </div>
+
+      {errorMessage && (
+        <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800 whitespace-pre-line">
+          {errorMessage}
+        </div>
+      )}
 
       {pricing.total < (currentSettings.minAmount || 0) && method !== "BANK_TRANSFER" && method !== "DEALER_ACCOUNT" && (
         <p className="text-xs text-red-600">Minimum ödeme tutarı: {currentSettings.minAmount} {currency}</p>

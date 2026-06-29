@@ -32,7 +32,7 @@ function cartesianProduct(a:any[][]):any[][]{if(!a.length)return[[]];const r:any
 export default function EditProductPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
-  const [form,setForm]=useState({name:"",description:"",price:"",image:"",category:"Cam Tablo",subcategory:"",brand:"",modelCode:"",sku:"",barcode:"",weight:"",dimensions:"",tags:"",stock:"",minStockLevel:"",maxStockLevel:"",backorderable:false,eta:""});
+  const [form,setForm]=useState({name:"",description:"",price:"",image:"",category:"Cam Tablo",subcategory:"",brand:"",modelCode:"",sku:"",barcode:"",weight:"",dimensions:"",tags:"",stock:"",minStockLevel:"",maxStockLevel:"",backorderable:false,eta:"",vatRate:"20",vatIncluded:true});
   const [specs,setSpecs]=useState<{key:string;value:string}[]>([]);
   const [variants,setVariants]=useState<VariantCombo[]>([]);
   const [variantGroups,setVariantGroups]=useState<VariantGroup[]>([]);
@@ -55,7 +55,7 @@ export default function EditProductPage() {
     ]).then(([p,v,camps]) => {
       if (!p.success) { setLoadError(p.error||"Ürün bulunamadı"); setLoading(false); return; }
       const d=p.data||{};
-      setForm({name:d.name||"",description:d.description||"",price:String(d.price||""),image:d.image||"",category:d.category||"Cam Tablo",subcategory:d.subcategory||"",brand:d.brand||"",modelCode:d.modelCode||"",sku:d.sku||"",barcode:d.barcode||"",weight:String(d.weight||""),dimensions:d.dimensions||"",tags:d.tags||"",stock:String(d.stock||""),minStockLevel:String(d.minStockLevel||""),maxStockLevel:String(d.maxStockLevel||""),backorderable:d.backorderable||false,eta:d.eta||""});
+      setForm({name:d.name||"",description:d.description||"",price:String(d.price||""),image:d.image||"",category:d.category||"Cam Tablo",subcategory:d.subcategory||"",brand:d.brand||"",modelCode:d.modelCode||"",sku:d.sku||"",barcode:d.barcode||"",weight:String(d.weight||""),dimensions:d.dimensions||"",tags:d.tags||"",stock:String(d.stock||""),minStockLevel:String(d.minStockLevel||""),maxStockLevel:String(d.maxStockLevel||""),backorderable:d.backorderable||false,eta:d.eta||"",vatRate:String(d.vatRate ?? 20),vatIncluded:d.vatIncluded ?? true});
       setImagesJson(d.images || "[]");
       try{const s=JSON.parse(d.specs||"[]");setSpecs(Array.isArray(s)?s:[])}catch{setSpecs([])}
       const assigned = (camps.data || [])
@@ -90,6 +90,8 @@ export default function EditProductPage() {
       maxStockLevel:parseInt(form.maxStockLevel)||0,
       backorderable:form.backorderable,
       eta:form.eta,
+      vatRate: parseFloat(form.vatRate) || 20,
+      vatIncluded: form.vatIncluded,
       specs:JSON.stringify(specsArr.filter(s=>s.key)),
       variantDisplayMode: merchandising.variantDisplayMode,
       salePrice: parseFloat(merchandising.salePrice) || 0,
@@ -198,6 +200,11 @@ export default function EditProductPage() {
             <div><label className="block text-xs font-semibold text-gray-600 uppercase mb-1">Kategori</label><select className={ic} value={form.category} onChange={e=>update("category",e.target.value)}>{CATEGORIES.map(c=><option key={c}>{c}</option>)}</select></div>
             <div><label className="block text-xs font-semibold text-gray-600 uppercase mb-1">Alt Kategori</label><input className={ic} value={form.subcategory} onChange={e=>update("subcategory",e.target.value)}/></div>
             <div><label className="block text-xs font-semibold text-gray-600 uppercase mb-1">Fiyat (₺) *</label><input type="number" step="0.01" className={ic} value={form.price} onChange={e=>update("price",e.target.value)} required/></div>
+            <div><label className="block text-xs font-semibold text-gray-600 uppercase mb-1">KDV Oranı (%)</label><input type="number" step="0.01" className={ic} value={form.vatRate} onChange={e=>update("vatRate",e.target.value)}/></div>
+            <div className="flex items-center gap-2 pt-6">
+              <input type="checkbox" id="vatIncluded" className="rounded border-gray-300" checked={form.vatIncluded} onChange={e=>setForm({...form,vatIncluded:e.target.checked})}/>
+              <label htmlFor="vatIncluded" className="text-xs font-semibold text-gray-600 uppercase">Fiyat KDV dahil</label>
+            </div>
             <div><label className="block text-xs font-semibold text-gray-600 uppercase mb-1">Stok *</label><input type="number" className={ic} value={form.stock} onChange={e=>update("stock",e.target.value)} required/></div>
             <div><label className="block text-xs font-semibold text-gray-600 uppercase mb-1">Min Stok</label><input type="number" className={ic} value={form.minStockLevel} onChange={e=>update("minStockLevel",e.target.value)}/></div>
             <div><label className="block text-xs font-semibold text-gray-600 uppercase mb-1">Maks Stok</label><input type="number" className={ic} value={form.maxStockLevel} onChange={e=>update("maxStockLevel",e.target.value)}/></div>
