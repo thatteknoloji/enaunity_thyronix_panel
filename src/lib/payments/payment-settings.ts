@@ -190,10 +190,11 @@ async function syncPaymentGatewayFromEnv(row: PaymentGatewaySettings): Promise<P
   if ((hasEnvEsnekCredentials() && envEsnekEnabled()) || dbEsnekConfigured) {
     if (!row.esnekposEnabled) updates.esnekposEnabled = true;
     if (row.activeCardProvider === "NONE") updates.activeCardProvider = "ESNEKPOS";
-    if (envMerchantId && row.esnekposMerchantId !== envMerchantId) {
+    // Yalnızca DB boşken .env'den bootstrap — admin kaydı asla ezilmez
+    if (envMerchantId && !row.esnekposMerchantId?.trim()) {
       updates.esnekposMerchantId = envMerchantId;
     }
-    if (envMerchantKey && row.esnekposMerchantKey !== envMerchantKey) {
+    if (envMerchantKey && !row.esnekposMerchantKey?.trim()) {
       updates.esnekposMerchantKey = envMerchantKey;
     }
   } else if ((hasEnvIyzicoCredentials() && envIyzicoEnabled()) || dbIyzicoConfigured) {
@@ -264,9 +265,10 @@ export async function savePaymentSettings(input: Partial<PaymentSettingsDTO> & {
   if (input.require3ds !== undefined) data.require3ds = input.require3ds;
   if (input.esnekposEnabled !== undefined) data.esnekposEnabled = input.esnekposEnabled;
   if (input.esnekposSandbox !== undefined) data.esnekposSandbox = input.esnekposSandbox;
-  if (input.esnekposMerchantId !== undefined) data.esnekposMerchantId = input.esnekposMerchantId;
-  if (input.esnekposMerchantKey !== undefined && input.esnekposMerchantKey !== "••••••••") {
-    data.esnekposMerchantKey = input.esnekposMerchantKey;
+  if (input.esnekposMerchantId !== undefined) data.esnekposMerchantId = input.esnekposMerchantId.trim();
+  const nextEsnekKey = input.esnekposMerchantKey?.trim();
+  if (nextEsnekKey && nextEsnekKey !== "••••••••") {
+    data.esnekposMerchantKey = nextEsnekKey;
   }
   if (input.esnekposExtraFeePct !== undefined) data.esnekposExtraFeePct = input.esnekposExtraFeePct;
   if (input.esnekposExtraFeeFix !== undefined) data.esnekposExtraFeeFix = input.esnekposExtraFeeFix;
@@ -276,9 +278,10 @@ export async function savePaymentSettings(input: Partial<PaymentSettingsDTO> & {
   if (input.esnekposDisplayName !== undefined) data.esnekposDisplayName = input.esnekposDisplayName;
   if (input.iyzicoEnabled !== undefined) data.iyzicoEnabled = input.iyzicoEnabled;
   if (input.iyzicoSandbox !== undefined) data.iyzicoSandbox = input.iyzicoSandbox;
-  if (input.iyzicoApiKey !== undefined) data.iyzicoApiKey = input.iyzicoApiKey;
-  if (input.iyzicoSecretKey !== undefined && input.iyzicoSecretKey !== "••••••••") {
-    data.iyzicoSecretKey = input.iyzicoSecretKey;
+  if (input.iyzicoApiKey !== undefined) data.iyzicoApiKey = input.iyzicoApiKey.trim();
+  const nextIyzicoSecret = input.iyzicoSecretKey?.trim();
+  if (nextIyzicoSecret && nextIyzicoSecret !== "••••••••") {
+    data.iyzicoSecretKey = nextIyzicoSecret;
   }
   if (input.iyzicoExtraFeePct !== undefined) data.iyzicoExtraFeePct = input.iyzicoExtraFeePct;
   if (input.iyzicoExtraFeeFix !== undefined) data.iyzicoExtraFeeFix = input.iyzicoExtraFeeFix;

@@ -181,6 +181,8 @@ export default function PaymentGatewaysAdminPage() {
     setSaving(true);
     try {
       const payload = { ...form };
+      if (!payload.esnekposMerchantKey?.trim()) delete payload.esnekposMerchantKey;
+      if (!payload.iyzicoSecretKey?.trim()) delete payload.iyzicoSecretKey;
       if (payload.esnekposEnabled && payload.activeCardProvider === "NONE") {
         payload.activeCardProvider = "ESNEKPOS";
       } else if (payload.iyzicoEnabled && payload.activeCardProvider === "NONE") {
