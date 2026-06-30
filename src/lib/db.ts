@@ -9,7 +9,11 @@ function createPrismaClient() {
 
 function getPrismaClient(): PrismaClient {
   const cached = globalForPrisma.prisma;
-  if (cached && typeof cached.paymentGatewaySettings?.upsert === "function") {
+  if (
+    cached &&
+    typeof cached.paymentGatewaySettings?.upsert === "function" &&
+    typeof cached.cartRecoverySettings?.upsert === "function"
+  ) {
     return cached;
   }
   const client = createPrismaClient();

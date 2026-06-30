@@ -10,10 +10,13 @@ import {
   Mail,
   MessageSquareText,
   Package,
+  Plus,
   RefreshCw,
+  Settings2,
   Search,
   ShoppingCart,
   Sparkles,
+  Trash2,
   Users,
   Wallet,
 } from "lucide-react";
@@ -62,6 +65,32 @@ type CartMetrics = {
   dealers: number;
   customers: number;
   totalValue: number;
+};
+
+type CartRecoverySettings = {
+  id: string;
+  adminAlertEnabled: boolean;
+  autoReminderEnabled: boolean;
+  customerReminderHours: number;
+  dealerReminderHours: number;
+  secondReminderHours: number;
+  cooldownHours: number;
+  approvedByAdminId: string;
+  approvedByAdminName: string;
+  lastAdminAlertAt: string | null;
+  updatedAt: string;
+};
+
+type ProductLookupItem = {
+  id: string;
+  name: string;
+  image: string;
+  sku: string;
+  barcode: string;
+  modelCode: string;
+  price: number;
+  stock: number;
+  minOrderQuantity: number;
 };
 
 type CartDetail = {
@@ -145,6 +174,7 @@ type CartDetail = {
       image: string;
     }>;
   }>;
+  settings: CartRecoverySettings;
 };
 
 type Suggestion = {
@@ -223,11 +253,29 @@ export default function AdminCartsPage() {
   const [carts, setCarts] = useState<CartSummary[]>([]);
   const [selectedCartId, setSelectedCartId] = useState<string | null>(null);
   const [detail, setDetail] = useState<CartDetail | null>(null);
+  const [settings, setSettings] = useState<CartRecoverySettings | null>(null);
   const [loadingList, setLoadingList] = useState(true);
   const [loadingDetail, setLoadingDetail] = useState(false);
   const [loadingAction, setLoadingAction] = useState<string | null>(null);
   const [pagination, setPagination] = useState({ page: 1, totalPages: 1, total: 0 });
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
+  const [productSearch, setProductSearch] = useState("");
+  const [productResults, setProductResults] = useState<ProductLookupItem[]>([]);
+  const [newItemQuantity, setNewItemQuantity] = useState(1);
+  const [settingsDraft, setSettingsDraft] = useState({
+    adminAlertEnabled: true,
+    autoReminderEnabled: false,
+    customerReminderHours: 2,
+    dealerReminderHours: 4,
+    secondReminderHours: 24,
+    cooldownHours: 24,
+  });
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const cartId = new URLSearchParams(window.location.search).get("cartId");
+    if (cartId) setSelectedCartId(cartId);
+  }, []);
 
   const queryString = useMemo(() => {
     const params = new URLSearchParams();
@@ -248,6 +296,22 @@ export default function AdminCartsPage() {
     const res = await fetch("/api/admin/carts/metrics");
     const data = await res.json();
     if (data.success) setMetrics(data.data);
+  }, []);
+
+  const fetchSettings = useCallback(async () => {
+    const res = await fetch("/api/admin/carts/settings");
+    const data = await res.json();
+    if (data.success) {
+      setSettings(data.data);
+      setSettingsDraft({
+        adminAlertEnabled: data.data.adminAlertEnabled,
+        autoReminderEnabled: data.data.autoReminderEnabled,
+        customerReminderHours: data.data.customerReminderHours,
+        dealerReminderHours: data.data.dealerReminderHours,
+        secondReminderHours: data.data.secondReminderHours,
+        cooldownHours: data.data.cooldownHours,
+      });
+    }
   }, []);
 
   const fetchList = useCallback(async () => {
@@ -272,13 +336,23 @@ export default function AdminCartsPage() {
     const data = await res.json();
     if (data.success) {
       setDetail(data.data);
+      setSettings(data.data.settings);
+      setSettingsDraft({
+        adminAlertEnabled: data.data.settings.adminAlertEnabled,
+        autoReminderEnabled: data.data.settings.autoReminderEnabled,
+        customerReminderHours: data.data.settings.customerReminderHours,
+        dealerReminderHours: data.data.settings.dealerReminderHours,
+        secondReminderHours: data.data.settings.secondReminderHours,
+        cooldownHours: data.data.settings.cooldownHours,
+      });
     }
     if (!silent) setLoadingDetail(false);
   }, []);
 
   useEffect(() => {
     void fetchMetrics();
-  }, [fetchMetrics]);
+    void fetchSettings();
+  }, [fetchMetrics, fetchSettings]);
 
   useEffect(() => {
     void fetchList();
@@ -358,6 +432,99 @@ export default function AdminCartsPage() {
       toast.success(action === "sales_task" ? "Görev notu oluşturuldu" : "Öneri aksiyonu işlendi");
     } else {
       toast.error(data.error || "Aksiyon işlenemedi");
+    }
+    setLoadingAction(null);
+  };
+
+  useEffect(() => {
+    if (productSearch.trim().length < 2) {
+      setProductResults([]);
+      return;
+    }
+    const timer = window.setTimeout(async () => {
+      const res = await fetch(`/api/products/lookup?q=${encodeURIComponent(productSearch.trim())}`);
+      const data = await res.json();
+      if (data.success) {
+        setProductResults(data.data || []);
+      }
+    }, 250);
+    return () => window.clearTimeout(timer);
+  }, [productSearch]);
+
+  const updateCartItemQuantity = async (itemId: string, quantity: number) => {
+    if (!selectedCartId) return;
+    setLoadingAction(`item:${itemId}`);
+    const res = await fetch(`/api/admin/carts/${selectedCartId}/items/${itemId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ quantity }),
+    });
+    const data = await res.json();
+    if (data.success) {
+      setDetail(data.data);
+      setSettings(data.data.settings);
+      void fetchList();
+      toast.success("Sepet güncellendi");
+    } else {
+      toast.error(data.error || "Sepet güncellenemedi");
+    }
+    setLoadingAction(null);
+  };
+
+  const removeCartItem = async (itemId: string) => {
+    if (!selectedCartId) return;
+    setLoadingAction(`item-delete:${itemId}`);
+    const res = await fetch(`/api/admin/carts/${selectedCartId}/items/${itemId}`, {
+      method: "DELETE",
+    });
+    const data = await res.json();
+    if (data.success) {
+      setDetail(data.data);
+      setSettings(data.data.settings);
+      void fetchList();
+      toast.success("Ürün sepetten çıkarıldı");
+    } else {
+      toast.error(data.error || "Ürün çıkarılamadı");
+    }
+    setLoadingAction(null);
+  };
+
+  const addProductToCart = async (productId: string) => {
+    if (!selectedCartId) return;
+    setLoadingAction(`add-product:${productId}`);
+    const res = await fetch(`/api/admin/carts/${selectedCartId}/items`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ productId, quantity: newItemQuantity }),
+    });
+    const data = await res.json();
+    if (data.success) {
+      setDetail(data.data);
+      setSettings(data.data.settings);
+      setProductSearch("");
+      setProductResults([]);
+      setNewItemQuantity(1);
+      void fetchList();
+      toast.success("Ürün sepete eklendi");
+    } else {
+      toast.error(data.error || "Ürün eklenemedi");
+    }
+    setLoadingAction(null);
+  };
+
+  const saveSettings = async () => {
+    setLoadingAction("settings");
+    const res = await fetch("/api/admin/carts/settings", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(settingsDraft),
+    });
+    const data = await res.json();
+    if (data.success) {
+      setSettings(data.data);
+      toast.success("Sepet otomasyonu ayarları kaydedildi");
+    } else {
+      toast.error(data.error || "Ayarlar kaydedilemedi");
     }
     setLoadingAction(null);
   };
@@ -493,6 +660,62 @@ export default function AdminCartsPage() {
             />
           </label>
         </div>
+      </div>
+
+      <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <div className="flex items-center gap-2">
+              <Settings2 size={16} className="text-gray-500" />
+              <h2 className="font-semibold text-gray-900">Terk Sepet Otomasyonu</h2>
+            </div>
+            <p className="mt-1 text-sm text-gray-500">
+              Admin alarmı açık kalsın, otomatik kullanıcı bildirimi ise sadece sen onay verdiğinde devreye girsin.
+            </p>
+          </div>
+          <Button className="gap-2" disabled={loadingAction === "settings"} onClick={saveSettings}>
+            <Settings2 size={15} />
+            Ayarları Kaydet
+          </Button>
+        </div>
+        <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-6">
+          <label className="rounded-xl border border-gray-200 p-3">
+            <span className="flex items-center justify-between text-sm font-medium text-gray-800">
+              Admin alarmı
+              <input type="checkbox" checked={settingsDraft.adminAlertEnabled} onChange={(event) => setSettingsDraft((prev) => ({ ...prev, adminAlertEnabled: event.target.checked }))} />
+            </span>
+            <span className="mt-1 block text-xs text-gray-500">Terk adayı sepet oluşunca admin bildirimi düşer.</span>
+          </label>
+          <label className="rounded-xl border border-gray-200 p-3">
+            <span className="flex items-center justify-between text-sm font-medium text-gray-800">
+              Otomatik reminder
+              <input type="checkbox" checked={settingsDraft.autoReminderEnabled} onChange={(event) => setSettingsDraft((prev) => ({ ...prev, autoReminderEnabled: event.target.checked }))} />
+            </span>
+            <span className="mt-1 block text-xs text-gray-500">Admin onaylı otomatik terk bildirimi.</span>
+          </label>
+          <label>
+            <span className="mb-1.5 block text-xs font-semibold uppercase tracking-[0.18em] text-gray-500">Müşteri Saat</span>
+            <input type="number" min={1} value={settingsDraft.customerReminderHours} onChange={(event) => setSettingsDraft((prev) => ({ ...prev, customerReminderHours: Number(event.target.value || 0) }))} className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm outline-none focus:border-gray-400" />
+          </label>
+          <label>
+            <span className="mb-1.5 block text-xs font-semibold uppercase tracking-[0.18em] text-gray-500">Bayi Saat</span>
+            <input type="number" min={1} value={settingsDraft.dealerReminderHours} onChange={(event) => setSettingsDraft((prev) => ({ ...prev, dealerReminderHours: Number(event.target.value || 0) }))} className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm outline-none focus:border-gray-400" />
+          </label>
+          <label>
+            <span className="mb-1.5 block text-xs font-semibold uppercase tracking-[0.18em] text-gray-500">2. Kademe Saat</span>
+            <input type="number" min={1} value={settingsDraft.secondReminderHours} onChange={(event) => setSettingsDraft((prev) => ({ ...prev, secondReminderHours: Number(event.target.value || 0) }))} className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm outline-none focus:border-gray-400" />
+          </label>
+          <label>
+            <span className="mb-1.5 block text-xs font-semibold uppercase tracking-[0.18em] text-gray-500">Cooldown Saat</span>
+            <input type="number" min={1} value={settingsDraft.cooldownHours} onChange={(event) => setSettingsDraft((prev) => ({ ...prev, cooldownHours: Number(event.target.value || 0) }))} className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm outline-none focus:border-gray-400" />
+          </label>
+        </div>
+        {settings ? (
+          <p className="mt-3 text-xs text-gray-500">
+            Son onay: {settings.approvedByAdminName || "yok"} • Güncelleme: {formatDate(settings.updatedAt)}
+            {settings.lastAdminAlertAt ? ` • Son terk alarmı: ${formatDate(settings.lastAdminAlertAt)}` : ""}
+          </p>
+        ) : null}
       </div>
 
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-12">
@@ -731,6 +954,46 @@ export default function AdminCartsPage() {
                   <h3 className="font-semibold text-gray-900">Canlı Sepet İçeriği</h3>
                   <span className="text-xs text-gray-500">{detail.items.length} kalem</span>
                 </div>
+                <div className="mt-4 rounded-2xl border border-dashed border-gray-300 p-4">
+                  <div className="flex flex-wrap items-end gap-3">
+                    <label className="min-w-[260px] flex-1">
+                      <span className="mb-1.5 block text-xs font-semibold uppercase tracking-[0.18em] text-gray-500">Ürün ekle</span>
+                      <input
+                        value={productSearch}
+                        onChange={(event) => setProductSearch(event.target.value)}
+                        placeholder="Ürün adı, SKU, barkod, model"
+                        className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm outline-none focus:border-gray-400"
+                      />
+                    </label>
+                    <label className="w-28">
+                      <span className="mb-1.5 block text-xs font-semibold uppercase tracking-[0.18em] text-gray-500">Adet</span>
+                      <input
+                        type="number"
+                        min={1}
+                        value={newItemQuantity}
+                        onChange={(event) => setNewItemQuantity(Math.max(1, Number(event.target.value || 1)))}
+                        className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm outline-none focus:border-gray-400"
+                      />
+                    </label>
+                  </div>
+                  {productResults.length > 0 ? (
+                    <div className="mt-3 grid grid-cols-1 gap-2 lg:grid-cols-2">
+                      {productResults.map((product) => (
+                        <div key={product.id} className="flex items-center gap-3 rounded-xl border border-gray-200 p-3">
+                          <img src={product.image || "/placeholder.svg"} alt={product.name} className="h-12 w-12 rounded-xl object-cover bg-gray-100" />
+                          <div className="min-w-0 flex-1">
+                            <p className="truncate font-medium text-gray-900">{product.name}</p>
+                            <p className="text-xs text-gray-500">SKU: {product.sku || "-"} • Barkod: {product.barcode || "-"} • Min: {product.minOrderQuantity}</p>
+                          </div>
+                          <Button size="sm" className="gap-1" disabled={loadingAction?.startsWith("add-product:")} onClick={() => addProductToCart(product.id)}>
+                            <Plus size={14} />
+                            Ekle
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  ) : null}
+                </div>
                 <div className="mt-4 space-y-3">
                   {detail.items.map((item) => (
                     <div key={item.id} className="flex flex-wrap items-center gap-4 rounded-2xl border border-gray-200 p-4">
@@ -744,7 +1007,23 @@ export default function AdminCartsPage() {
                           Kategori: {item.product.category || "-"} • Stok: {item.product.stock}
                         </p>
                       </div>
-                      <div className="text-right">
+                      <div className="ml-auto flex flex-wrap items-center gap-2">
+                        <div className="flex items-center gap-2 rounded-xl border border-gray-200 px-2 py-1.5">
+                          <button className="text-sm font-semibold text-gray-600" onClick={() => updateCartItemQuantity(item.id, Math.max(0, item.quantity - 1))}>-</button>
+                          <input
+                            type="number"
+                            min={0}
+                            value={item.quantity}
+                            onChange={(event) => updateCartItemQuantity(item.id, Math.max(0, Number(event.target.value || 0)))}
+                            className="w-14 border-0 bg-transparent text-center text-sm font-semibold text-gray-900 outline-none"
+                          />
+                          <button className="text-sm font-semibold text-gray-600" onClick={() => updateCartItemQuantity(item.id, item.quantity + 1)}>+</button>
+                        </div>
+                        <button className="rounded-xl border border-rose-200 p-2 text-rose-600 transition hover:bg-rose-50" onClick={() => removeCartItem(item.id)}>
+                          <Trash2 size={15} />
+                        </button>
+                      </div>
+                      <div className="w-full text-right sm:w-auto">
                         <p className="font-bold text-gray-900">{formatPrice(item.lineTotal)}</p>
                         <p className="text-xs text-gray-500">
                           {item.quantity} adet • {formatPrice(item.effectivePrice)}

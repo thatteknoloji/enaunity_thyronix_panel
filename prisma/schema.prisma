@@ -2055,6 +2055,21 @@ model SiteSettings {
   updatedAt              DateTime @updatedAt
 }
 
+model CartRecoverySettings {
+  id                        String   @id @default("default")
+  adminAlertEnabled         Boolean  @default(true)
+  autoReminderEnabled       Boolean  @default(false)
+  customerReminderHours     Int      @default(2)
+  dealerReminderHours       Int      @default(4)
+  secondReminderHours       Int      @default(24)
+  cooldownHours             Int      @default(24)
+  approvedByAdminId         String   @default("")
+  approvedByAdminName       String   @default("")
+  lastAdminAlertAt          DateTime?
+  createdAt                 DateTime @default(now())
+  updatedAt                 DateTime @updatedAt
+}
+
 model HomepageHero {
   id                       String               @id @default(cuid())
   eyebrowText              String               @default("")

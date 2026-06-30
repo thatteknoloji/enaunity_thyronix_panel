@@ -4,6 +4,7 @@ import { getDealerPrice } from "@/lib/dealer-pricing";
 import { applyCampaigns } from "@/lib/campaign-engine";
 import { createNotification, sendEmail } from "@/lib/notifications";
 import { logAdminAction } from "@/lib/auth";
+import { ADMIN_ROLES } from "@/lib/auth/admin-access";
 
 export type CartLifecycleStatus = "live" | "idle" | "abandoned_candidate" | "empty";
 export type CartAudience = "dealer" | "customer";
@@ -20,6 +21,20 @@ export type ReminderTemplateKey =
   | "cart_reminder_basic"
   | "cart_reminder_support"
   | "cart_reminder_quote";
+
+type CartRecoverySettingsDTO = {
+  id: string;
+  adminAlertEnabled: boolean;
+  autoReminderEnabled: boolean;
+  customerReminderHours: number;
+  dealerReminderHours: number;
+  secondReminderHours: number;
+  cooldownHours: number;
+  approvedByAdminId: string;
+  approvedByAdminName: string;
+  lastAdminAlertAt: string | null;
+  updatedAt: string;
+};
 
 const LIVE_MINUTES = 15;
 const ABANDONED_HOURS = 24;
@@ -131,6 +146,90 @@ function safeJsonParse<T>(value: string | null | undefined, fallback: T): T {
 function serializeDate(value: Date | string | null | undefined): string | null {
   if (!value) return null;
   return value instanceof Date ? value.toISOString() : new Date(value).toISOString();
+}
+
+function toSettingsDTO(settings: {
+  id: string;
+  adminAlertEnabled: boolean;
+  autoReminderEnabled: boolean;
+  customerReminderHours: number;
+  dealerReminderHours: number;
+  secondReminderHours: number;
+  cooldownHours: number;
+  approvedByAdminId: string;
+  approvedByAdminName: string;
+  lastAdminAlertAt: Date | null;
+  updatedAt: Date;
+}): CartRecoverySettingsDTO {
+  return {
+    id: settings.id,
+    adminAlertEnabled: settings.adminAlertEnabled,
+    autoReminderEnabled: settings.autoReminderEnabled,
+    customerReminderHours: settings.customerReminderHours,
+    dealerReminderHours: settings.dealerReminderHours,
+    secondReminderHours: settings.secondReminderHours,
+    cooldownHours: settings.cooldownHours,
+    approvedByAdminId: settings.approvedByAdminId,
+    approvedByAdminName: settings.approvedByAdminName,
+    lastAdminAlertAt: serializeDate(settings.lastAdminAlertAt),
+    updatedAt: settings.updatedAt.toISOString(),
+  };
+}
+
+export async function getCartRecoverySettings(): Promise<CartRecoverySettingsDTO> {
+  const settings = await prisma.cartRecoverySettings.upsert({
+    where: { id: "default" },
+    update: {},
+    create: { id: "default" },
+  });
+  return toSettingsDTO(settings);
+}
+
+export async function updateCartRecoverySettings(input: {
+  adminAlertEnabled?: boolean;
+  autoReminderEnabled?: boolean;
+  customerReminderHours?: number;
+  dealerReminderHours?: number;
+  secondReminderHours?: number;
+  cooldownHours?: number;
+  approvedByAdminId?: string;
+  approvedByAdminName?: string;
+}) {
+  const customerReminderHours = typeof input.customerReminderHours === "number" ? Math.max(1, Math.round(input.customerReminderHours)) : undefined;
+  const dealerReminderHours = typeof input.dealerReminderHours === "number" ? Math.max(1, Math.round(input.dealerReminderHours)) : undefined;
+  const secondReminderHours = typeof input.secondReminderHours === "number" ? Math.max(1, Math.round(input.secondReminderHours)) : undefined;
+  const cooldownHours = typeof input.cooldownHours === "number" ? Math.max(1, Math.round(input.cooldownHours)) : undefined;
+
+  const settings = await prisma.cartRecoverySettings.upsert({
+    where: { id: "default" },
+    update: {
+      ...(typeof input.adminAlertEnabled === "boolean" ? { adminAlertEnabled: input.adminAlertEnabled } : {}),
+      ...(typeof input.autoReminderEnabled === "boolean" ? { autoReminderEnabled: input.autoReminderEnabled } : {}),
+      ...(typeof customerReminderHours === "number" ? { customerReminderHours } : {}),
+      ...(typeof dealerReminderHours === "number" ? { dealerReminderHours } : {}),
+      ...(typeof secondReminderHours === "number" ? { secondReminderHours } : {}),
+      ...(typeof cooldownHours === "number" ? { cooldownHours } : {}),
+      ...(typeof input.autoReminderEnabled === "boolean" && input.autoReminderEnabled
+        ? {
+            approvedByAdminId: input.approvedByAdminId || "",
+            approvedByAdminName: input.approvedByAdminName || "",
+          }
+        : {}),
+    },
+    create: {
+      id: "default",
+      adminAlertEnabled: input.adminAlertEnabled ?? true,
+      autoReminderEnabled: input.autoReminderEnabled ?? false,
+      customerReminderHours: customerReminderHours ?? 2,
+      dealerReminderHours: dealerReminderHours ?? 4,
+      secondReminderHours: secondReminderHours ?? 24,
+      cooldownHours: cooldownHours ?? 24,
+      approvedByAdminId: input.approvedByAdminId || "",
+      approvedByAdminName: input.approvedByAdminName || "",
+    },
+  });
+
+  return toSettingsDTO(settings);
 }
 
 function hoursBetween(now: Date, then: Date) {
@@ -565,13 +664,13 @@ function buildReminderTemplate(templateKey: ReminderTemplateKey, summary: CartSu
   };
 }
 
-async function hasReminderCooldown(cartId: string, templateKey: ReminderTemplateKey) {
+async function hasReminderCooldown(cartId: string, templateKey: string, cooldownHours = REMINDER_COOLDOWN_HOURS) {
   const existing = await prisma.cartReminderLog.findFirst({
     where: {
       cartId,
       templateKey,
       createdAt: {
-        gte: new Date(Date.now() - REMINDER_COOLDOWN_HOURS * 60 * 60 * 1000),
+        gte: new Date(Date.now() - cooldownHours * 60 * 60 * 1000),
       },
       status: {
         in: ["queued", "sent"],
@@ -581,6 +680,80 @@ async function hasReminderCooldown(cartId: string, templateKey: ReminderTemplate
   });
 
   return Boolean(existing);
+}
+
+async function notifyAdminsForAbandonedCart(summary: CartSummary, cooldownHours: number) {
+  const templateKey = "admin_abandoned_cart_alert";
+  if (await hasReminderCooldown(summary.id, templateKey, cooldownHours)) {
+    return { skipped: true };
+  }
+
+  const admins = await prisma.user.findMany({
+    where: {
+      role: {
+        in: ADMIN_ROLES,
+      },
+    },
+    select: {
+      id: true,
+    },
+  });
+
+  if (admins.length === 0) {
+    await prisma.cartReminderLog.create({
+      data: {
+        cartId: summary.id,
+        userId: summary.userId,
+        dealerId: summary.dealerId,
+        channel: "panel",
+        templateKey,
+        status: "skipped",
+        sentByAdminId: "system",
+        sentByAdminName: "system",
+        payloadJson: JSON.stringify({
+          target: "admins",
+          reason: "no_admin_accounts",
+        }),
+      },
+    });
+    return { skipped: true, adminCount: 0 };
+  }
+
+  await Promise.all(
+    admins.map((admin) =>
+      createNotification({
+        userId: admin.id,
+        title: "Terk edilen sepet dikkat istiyor",
+        message: `${summary.company || summary.dealerName || summary.userName} sepeti ${summary.itemCount} kalem ve ${summary.cartTotal.toFixed(2)} TL ile terk adayı oldu.`,
+        type: "warning",
+        link: `/admin/carts?cartId=${summary.id}`,
+      }),
+    ),
+  );
+
+  await prisma.cartReminderLog.create({
+    data: {
+      cartId: summary.id,
+      userId: summary.userId,
+      dealerId: summary.dealerId,
+      channel: "panel",
+      templateKey,
+      status: "sent",
+      sentByAdminId: "system",
+      sentByAdminName: "system",
+      payloadJson: JSON.stringify({
+        target: "admins",
+        adminCount: admins.length,
+      }),
+    },
+  });
+
+  await prisma.cartRecoverySettings.updateMany({
+    where: { id: "default" },
+    data: { lastAdminAlertAt: new Date() },
+  });
+
+  return { skipped: false, adminCount: admins.length };
 }
 
 export async function sendCartReminder(params: {
@@ -841,7 +1014,153 @@ export async function getObservedCartDetail(cartId: string) {
         image: item.product?.image || "/placeholder.svg",
       })),
     })),
+    settings: await getCartRecoverySettings(),
   };
+}
+
+export async function addCartItemAsAdmin(params: {
+  cartId: string;
+  adminId: string;
+  adminName: string;
+  productId: string;
+  quantity: number;
+  variantId?: string;
+}) {
+  const cart = await prisma.cart.findUnique({
+    where: { id: params.cartId },
+    include: cartBaseInclude,
+  });
+  if (!cart) throw new Error("Sepet bulunamadı");
+  if (params.quantity < 1) throw new Error("Geçerli bir adet girin");
+
+  const product = await prisma.product.findUnique({ where: { id: params.productId } });
+  if (!product) throw new Error("Ürün bulunamadı");
+
+  const variantId = params.variantId || "";
+  const existing = await prisma.cartItem.findFirst({
+    where: {
+      cartId: params.cartId,
+      productId: params.productId,
+      variantId,
+    },
+  });
+
+  const quantityBefore = existing?.quantity || 0;
+  const quantityAfter = quantityBefore + params.quantity;
+  if (quantityAfter < product.minOrderQuantity) {
+    throw new Error(`Bu ürün için minimum sipariş adedi ${product.minOrderQuantity}`);
+  }
+
+  if (existing) {
+    await prisma.cartItem.update({
+      where: { id: existing.id },
+      data: { quantity: quantityAfter },
+    });
+  } else {
+    await prisma.cartItem.create({
+      data: {
+        cartId: params.cartId,
+        productId: params.productId,
+        variantId,
+        quantity: params.quantity,
+      },
+    });
+  }
+
+  await recordCartActivity({
+    cartId: params.cartId,
+    userId: cart.userId,
+    dealerId: cart.user.dealerId || null,
+    eventType: existing ? "update_qty" : "add",
+    productId: params.productId,
+    variantId,
+    quantityBefore,
+    quantityAfter,
+    metadata: {
+      source: "admin",
+      adminId: params.adminId,
+      adminName: params.adminName,
+    },
+  });
+
+  await logAdminAction(params.adminId, params.adminName, "admin_cart_add_item", params.cartId, JSON.stringify({
+    productId: params.productId,
+    quantity: params.quantity,
+  }));
+
+  return getObservedCartDetail(params.cartId);
+}
+
+export async function updateCartItemAsAdmin(params: {
+  cartId: string;
+  itemId: string;
+  adminId: string;
+  adminName: string;
+  quantity: number;
+}) {
+  const cart = await prisma.cart.findUnique({
+    where: { id: params.cartId },
+    include: cartBaseInclude,
+  });
+  if (!cart) throw new Error("Sepet bulunamadı");
+
+  const item = await prisma.cartItem.findUnique({
+    where: { id: params.itemId },
+  });
+  if (!item || item.cartId !== params.cartId) throw new Error("Sepet kalemi bulunamadı");
+
+  if (params.quantity <= 0) {
+    await prisma.cartItem.delete({ where: { id: item.id } });
+    const remaining = await prisma.cartItem.count({ where: { cartId: params.cartId } });
+    await recordCartActivity({
+      cartId: params.cartId,
+      userId: cart.userId,
+      dealerId: cart.user.dealerId || null,
+      eventType: remaining === 0 ? "clear" : "remove",
+      productId: item.productId,
+      variantId: item.variantId,
+      quantityBefore: item.quantity,
+      quantityAfter: 0,
+      metadata: {
+        source: "admin",
+        adminId: params.adminId,
+        adminName: params.adminName,
+      },
+    });
+  } else {
+    const product = await prisma.product.findUnique({ where: { id: item.productId } });
+    if (!product) throw new Error("Ürün bulunamadı");
+    if (params.quantity < product.minOrderQuantity) {
+      throw new Error(`Bu ürün için minimum sipariş adedi ${product.minOrderQuantity}`);
+    }
+
+    await prisma.cartItem.update({
+      where: { id: item.id },
+      data: { quantity: params.quantity },
+    });
+    await recordCartActivity({
+      cartId: params.cartId,
+      userId: cart.userId,
+      dealerId: cart.user.dealerId || null,
+      eventType: "update_qty",
+      productId: item.productId,
+      variantId: item.variantId,
+      quantityBefore: item.quantity,
+      quantityAfter: params.quantity,
+      metadata: {
+        source: "admin",
+        adminId: params.adminId,
+        adminName: params.adminName,
+      },
+    });
+  }
+
+  await logAdminAction(params.adminId, params.adminName, "admin_cart_update_item", params.cartId, JSON.stringify({
+    itemId: params.itemId,
+    quantity: params.quantity,
+  }));
+
+  return getObservedCartDetail(params.cartId);
 }
 
 function chooseAutomaticTemplate(summary: CartSummary, lastCheckoutStartedAt: Date | null) {
@@ -851,6 +1170,7 @@ function chooseAutomaticTemplate(summary: CartSummary, lastCheckoutStartedAt: Da
 }
 
 export async function runCartRecoveryWorker() {
+  const settings = await getCartRecoverySettings();
   const candidateCarts = await prisma.cart.findMany({
     where: {
       items: {
@@ -879,10 +1199,14 @@ export async function runCartRecoveryWorker() {
     }
 
     const idleHours = hoursBetween(new Date(), cart.lastActivityAt);
-    const threshold = summary.audience === "dealer" ? 4 : 2;
+    const threshold = summary.audience === "dealer" ? settings.dealerReminderHours : settings.customerReminderHours;
     if (idleHours < threshold) {
       skipped += 1;
       continue;
+    }
+
+    if (summary.status === "abandoned_candidate" && settings.adminAlertEnabled) {
+      await notifyAdminsForAbandonedCart(summary, settings.cooldownHours);
     }
 
     const lastCheckoutStarted = await prisma.cartActivity.findFirst({
@@ -910,9 +1234,17 @@ export async function runCartRecoveryWorker() {
       (!lastCheckoutCompleted || lastCheckoutStarted.createdAt > lastCheckoutCompleted.createdAt)
         ? lastCheckoutStarted.createdAt
         : null;
-    const templateKey = chooseAutomaticTemplate(summary, prioritizeCheckout);
+    const templateKey =
+      idleHours >= settings.secondReminderHours
+        ? ("cart_reminder_quote" as const)
+        : chooseAutomaticTemplate(summary, prioritizeCheckout);
 
-    if (await hasReminderCooldown(cart.id, templateKey)) {
+    if (!settings.autoReminderEnabled) {
+      skipped += 1;
+      continue;
+    }
+
+    if (await hasReminderCooldown(cart.id, templateKey, settings.cooldownHours)) {
       skipped += 1;
       continue;
     }
