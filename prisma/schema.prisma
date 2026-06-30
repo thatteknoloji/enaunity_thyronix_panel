@@ -39,6 +39,8 @@ model User {
   updatedAt DateTime        @updatedAt
   orders    Order[]
   cart      Cart?
+  cartActivities    CartActivity[]
+  cartReminderLogs  CartReminderLog[]
   reviews   Review[]
   productAccountLinks ProductAccountLink[]
   appearance          UserAppearance?
@@ -362,20 +364,73 @@ model OrderItem {
 }
 
 model Cart {
-  id     String     @id @default(cuid())
-  userId String     @unique
-  user   User       @relation(fields: [userId], references: [id])
-  items  CartItem[]
+  id             String            @id @default(cuid())
+  userId         String            @unique
+  user           User              @relation(fields: [userId], references: [id])
+  items          CartItem[]
+  activities     CartActivity[]
+  reminderLogs   CartReminderLog[]
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @default(now()) @updatedAt
+  lastActivityAt DateTime          @default(now())
 }
 
 model CartItem {
-  id        String  @id @default(cuid())
+  id        String   @id @default(cuid())
   cartId    String
-  cart      Cart    @relation(fields: [cartId], references: [id])
+  cart      Cart     @relation(fields: [cartId], references: [id])
   productId String
-  product   Product @relation(fields: [productId], references: [id])
-  variantId String  @default("")
+  product   Product  @relation(fields: [productId], references: [id])
+  variantId String   @default("")
   quantity  Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+}
+
+model CartActivity {
+  id                String   @id @default(cuid())
+  cartId            String
+  cart              Cart     @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  userId            String
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  dealerId          String?
+  dealer            Dealer?  @relation(fields: [dealerId], references: [id], onDelete: SetNull)
+  eventType         String
+  productId         String   @default("")
+  variantId         String   @default("")
+  quantityBefore    Int      @default(0)
+  quantityAfter     Int      @default(0)
+  cartItemCount     Int      @default(0)
+  cartTotalSnapshot Float    @default(0)
+  metadataJson      String   @default("{}")
+  createdAt         DateTime @default(now())
+
+  @@index([cartId, createdAt])
+  @@index([userId, createdAt])
+  @@index([dealerId, createdAt])
+  @@index([eventType, createdAt])
+}
+
+model CartReminderLog {
+  id              String   @id @default(cuid())
+  cartId          String
+  cart            Cart     @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  dealerId        String?
+  dealer          Dealer?  @relation(fields: [dealerId], references: [id], onDelete: SetNull)
+  channel         String
+  templateKey     String
+  status          String   @default("queued")
+  sentByAdminId   String   @default("")
+  sentByAdminName String   @default("")
+  payloadJson     String   @default("{}")
+  createdAt       DateTime @default(now())
+
+  @@index([cartId, createdAt])
+  @@index([userId, createdAt])
+  @@index([dealerId, createdAt])
+  @@index([channel, templateKey, createdAt])
 }
 
 model PartnerApplication {
@@ -443,6 +498,8 @@ model Dealer {
   payments        Payment[]
   quotes          Quote[]
   notifications   Notification[]
+  cartActivities  CartActivity[]
+  cartReminderLogs CartReminderLog[]
   subUsers        SubUser[]
   dealerPrices    DealerPrice[]
   paymentTerm     PaymentTerm?

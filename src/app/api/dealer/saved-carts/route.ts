@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getSession } from "@/lib/auth";
+import { recordCartActivity } from "@/lib/cart/cart-observer-service";
 
 export async function GET() {
   try {
@@ -47,6 +48,21 @@ export async function POST(req: Request) {
       },
       include: { items: { include: { product: true } } },
     });
+
+    const liveCart = await prisma.cart.findUnique({ where: { userId: user.id } });
+    if (liveCart) {
+      await recordCartActivity({
+        cartId: liveCart.id,
+        userId: user.id,
+        dealerId: user.dealerId,
+        eventType: "saved_cart_created",
+        metadata: {
+          savedCartId: cart.id,
+          savedCartName: cart.name,
+        },
+        touchCart: false,
+      });
+    }
 
     return NextResponse.json({ success: true, data: cart });
   } catch {

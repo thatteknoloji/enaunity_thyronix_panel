@@ -28,6 +28,7 @@ import {
   roundMoney,
   type PaymentMode,
 } from "@/lib/payments/checkout-payment-service";
+import { recordCartActivity } from "@/lib/cart/cart-observer-service";
 
 export async function GET() {
   try {
@@ -347,6 +348,27 @@ export async function POST(req: Request) {
         },
       },
       include: { items: { include: { product: true } } },
+    });
+
+    await recordCartActivity({
+      cartId: cart.id,
+      userId: user.id,
+      dealerId: dealer?.id || user.dealerId || null,
+      eventType: "checkout_completed",
+      quantityBefore: itemDetails.reduce((sum, item) => sum + item.quantity, 0),
+      quantityAfter: 0,
+      snapshot: {
+        cartItemCount: itemDetails.length,
+        cartTotalSnapshot: finalTotal,
+      },
+      metadata: {
+        orderId: order.id,
+        paymentMethod: gatewayMethod,
+        paymentMode: paymentMode || null,
+        status: orderStatus,
+        finalTotal,
+        platform: platform || "",
+      },
     });
 
     await prisma.cartItem.deleteMany({ where: { cartId: cart.id } });

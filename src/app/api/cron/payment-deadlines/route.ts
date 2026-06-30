@@ -4,6 +4,7 @@ import { runThyronixBulkJob } from "@/lib/thyronix/bulk-job-worker";
 import { runSubscriptionLifecycleJobs } from "@/lib/modules/subscription-lifecycle-worker";
 import { runScheduledCampaignJobs } from "@/lib/notifications/campaigns";
 import { prisma } from "@/lib/db";
+import { runCartRecoveryWorker } from "@/lib/cart/cart-observer-service";
 
 export async function GET(req: Request) {
   try {
@@ -15,6 +16,7 @@ export async function GET(req: Request) {
     const paymentResult = await runPaymentDeadlineJobs();
     const subscriptionResult = await runSubscriptionLifecycleJobs();
     const campaignResult = await runScheduledCampaignJobs();
+    const cartRecoveryResult = await runCartRecoveryWorker();
 
     const pendingJobs = await prisma.thyronixBulkJob.findMany({
       where: { status: { in: ["pending", "running"] } },
@@ -31,6 +33,7 @@ export async function GET(req: Request) {
         payments: paymentResult,
         subscriptions: subscriptionResult,
         campaigns: campaignResult,
+        cartRecovery: cartRecoveryResult,
         bulkJobs: bulkResults.length,
       },
     });

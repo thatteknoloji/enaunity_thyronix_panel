@@ -4,6 +4,7 @@ import { getSession } from "@/lib/auth";
 import { getDealerPrice } from "@/lib/dealer-pricing";
 import { applyCampaigns } from "@/lib/campaign-engine";
 import { formatPrice } from "@/lib/utils";
+import { recordCartActivity } from "@/lib/cart/cart-observer-service";
 
 export async function GET() {
   try {
@@ -125,9 +126,29 @@ export async function POST(req: Request) {
         where: { id: existing.id },
         data: { quantity: newQuantity },
       });
+      await recordCartActivity({
+        cartId: cart.id,
+        userId: user.id,
+        dealerId: user.dealerId || null,
+        eventType: "update_qty",
+        productId,
+        variantId,
+        quantityBefore: existing.quantity,
+        quantityAfter: newQuantity,
+      });
     } else {
       await prisma.cartItem.create({
         data: { cartId: cart.id, productId, variantId, quantity },
+      });
+      await recordCartActivity({
+        cartId: cart.id,
+        userId: user.id,
+        dealerId: user.dealerId || null,
+        eventType: "add",
+        productId,
+        variantId,
+        quantityBefore: 0,
+        quantityAfter: quantity,
       });
     }
 
@@ -172,7 +193,43 @@ export async function PUT(req: Request) {
     }
 
     const { itemId, quantity } = await req.json();
-    await prisma.cartItem.update({ where: { id: itemId }, data: { quantity } });
+    const existing = await prisma.cartItem.findUnique({
+      where: { id: itemId },
+      include: {
+        cart: true,
+      },
+    });
+
+    if (!existing || existing.cart.userId !== user.id) {
+      return NextResponse.json({ success: false, error: "Sepet kalemi bulunamadı" }, { status: 404 });
+    }
+
+    if (quantity <= 0) {
+      await prisma.cartItem.delete({ where: { id: itemId } });
+      const remaining = await prisma.cartItem.count({ where: { cartId: existing.cartId } });
+      await recordCartActivity({
+        cartId: existing.cartId,
+        userId: user.id,
+        dealerId: user.dealerId || null,
+        eventType: remaining === 0 ? "clear" : "remove",
+        productId: existing.productId,
+        variantId: existing.variantId,
+        quantityBefore: existing.quantity,
+        quantityAfter: 0,
+      });
+    } else {
+      await prisma.cartItem.update({ where: { id: itemId }, data: { quantity } });
+      await recordCartActivity({
+        cartId: existing.cartId,
+        userId: user.id,
+        dealerId: user.dealerId || null,
+        eventType: "update_qty",
+        productId: existing.productId,
+        variantId: existing.variantId,
+        quantityBefore: existing.quantity,
+        quantityAfter: quantity,
+      });
+    }
 
     const cart = await prisma.cart.findUnique({
       where: { userId: user.id },
@@ -193,7 +250,29 @@ export async function DELETE(req: Request) {
     }
 
     const { itemId } = await req.json();
+    const existing = await prisma.cartItem.findUnique({
+      where: { id: itemId },
+      include: {
+        cart: true,
+      },
+    });
+
+    if (!existing || existing.cart.userId !== user.id) {
+      return NextResponse.json({ success: false, error: "Sepet kalemi bulunamadı" }, { status: 404 });
+    }
+
     await prisma.cartItem.delete({ where: { id: itemId } });
+    const remaining = await prisma.cartItem.count({ where: { cartId: existing.cartId } });
+    await recordCartActivity({
+      cartId: existing.cartId,
+      userId: user.id,
+      dealerId: user.dealerId || null,
+      eventType: remaining === 0 ? "clear" : "remove",
+      productId: existing.productId,
+      variantId: existing.variantId,
+      quantityBefore: existing.quantity,
+      quantityAfter: 0,
+    });
 
     const cart = await prisma.cart.findUnique({
       where: { userId: user.id },

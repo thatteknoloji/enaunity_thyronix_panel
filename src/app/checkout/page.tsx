@@ -72,6 +72,7 @@ export default function CheckoutPage() {
   const [showOnlineSuggestion, setShowOnlineSuggestion] = useState(false);
   const [addressSyncing, setAddressSyncing] = useState(false);
   const paymentErrorRef = useRef<HTMLDivElement>(null);
+  const checkoutObservedRef = useRef(false);
 
   const isDealer = !!dealer;
   const canUseDealerPayment = !!paymentDealerId;
@@ -139,6 +140,12 @@ export default function CheckoutPage() {
       setCampaignFreeShip(freeShip);
     });
   }, [items]);
+
+  useEffect(() => {
+    if (checkoutObservedRef.current || items.length === 0) return;
+    checkoutObservedRef.current = true;
+    void fetch("/api/cart/checkout-start", { method: "POST" }).catch(() => {});
+  }, [items.length]);
 
   const rawTotal = items.reduce((sum, i) => sum + (i.effectivePrice ?? i.product.price) * i.quantity, 0);
   const termFeeAmount = paymentTerm?.rate ? Math.round(rawTotal * (paymentTerm.rate / 100) * 100) / 100 : 0;

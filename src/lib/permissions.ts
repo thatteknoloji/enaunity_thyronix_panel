@@ -142,6 +142,7 @@ export function getNavPermissionMap(): Record<string, PermissionKey[]> {
     "/admin/partner-applications": ["dealers_view"],
     "/admin/api-keys": ["dealers_view"],
     "/admin/orders": ["orders_view"],
+    "/admin/carts": ["orders_view"],
     "/admin/backorders": ["orders_backorder"],
     "/admin/quotes": ["quotes_manage"],
     "/admin/coupons": ["coupons_manage"],
