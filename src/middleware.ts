@@ -54,6 +54,58 @@ function jsonError(status: number, message: string) {
   return NextResponse.json({ success: false, error: message }, { status });
 }
 
+function getForwardedProto(request: NextRequest): string {
+  return (
+    request.headers.get("x-forwarded-proto")?.split(",")[0]?.trim() ||
+    request.nextUrl.protocol.replace(":", "") ||
+    "https"
+  );
+}
+
+function getForwardedHost(request: NextRequest): string {
+  return (
+    request.headers.get("x-forwarded-host")?.split(",")[0]?.trim() ||
+    request.headers.get("host")?.split(",")[0]?.trim() ||
+    request.nextUrl.host
+  );
+}
+
+function normalizeToPublicUrl(url: URL, request: NextRequest): URL {
+  const normalized = new URL(url.toString());
+  const forwardedProto = getForwardedProto(request);
+  const forwardedHost = getForwardedHost(request);
+  const [hostname, explicitPort = ""] = forwardedHost.split(":");
+  const appPort = process.env.PORT || "3333";
+  const isInternalPort = normalized.port === appPort || normalized.port === "3333";
+  const isInternalHost = ["127.0.0.1", "localhost"].includes(normalized.hostname.toLowerCase());
+
+  if (isInternalPort || isInternalHost) {
+    normalized.protocol = `${forwardedProto}:`;
+    normalized.hostname = hostname || normalized.hostname;
+    if (!explicitPort || explicitPort === "80" || explicitPort === "443") {
+      normalized.port = "";
+    } else {
+      normalized.port = explicitPort;
+    }
+  }
+
+  return normalized;
+}
+
+function getPublicRequestUrl(request: NextRequest): URL {
+  return normalizeToPublicUrl(new URL(request.url), request);
+}
+
+function redirectTo(request: NextRequest, target: string | URL, status?: number) {
+  const destination =
+    target instanceof URL
+      ? normalizeToPublicUrl(target, request)
+      : new URL(target, getPublicRequestUrl(request));
+  return typeof status === "number"
+    ? NextResponse.redirect(destination, status)
+    : NextResponse.redirect(destination);
+}
+
 /** LinkSlash bayi erişimi — lisanssız → tanıtım sayfası */
 async function guardLinkSlashDealerAccess(
   request: NextRequest,
@@ -66,11 +118,11 @@ async function guardLinkSlashDealerAccess(
     const checkData = await checkRes.json();
     if (checkData.access) return null;
     if (checkData.reason === "BAYI_ONAYI_YOK") {
-      return NextResponse.redirect(new URL("/dealer/profile", request.url));
+      return redirectTo(request, "/dealer/profile");
     }
-    return NextResponse.redirect(new URL("/platform/linkslash", request.url));
+    return redirectTo(request, "/platform/linkslash");
   } catch {
-    return NextResponse.redirect(new URL("/platform/linkslash", request.url));
+    return redirectTo(request, "/platform/linkslash");
   }
 }
 
@@ -157,6 +209,7 @@ export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const isApi = pathname.startsWith("/api/");
   const token = request.cookies.get("token")?.value;
+  const publicRequestUrl = getPublicRequestUrl(request);
 
   // Use Host header for domain detection (nextUrl.hostname = IP when behind proxy)
   const rawHost = request.headers.get("host") || request.nextUrl.hostname;
@@ -164,8 +217,9 @@ export async function middleware(request: NextRequest) {
 
   // www → apex (ana sayfa ve tüm rotalar aynı host'ta kalsın)
   if (hostname.startsWith("www.")) {
-    const apex = request.nextUrl.clone();
+    const apex = normalizeToPublicUrl(request.nextUrl.clone(), request);
     apex.hostname = hostname.slice(4);
+    apex.port = "";
     return NextResponse.redirect(apex, 301);
   }
 
@@ -223,13 +277,13 @@ export async function middleware(request: NextRequest) {
   const legacyRedirect = await resolveLegacyRedirectRule(request, pathname);
   if (legacyRedirect) {
     const destination = new URL(legacyRedirect.targetUrl, request.url);
-    return NextResponse.redirect(destination, legacyRedirect.statusCode);
+    return redirectTo(request, destination, legacyRedirect.statusCode);
   }
 
   const redirectRule = await resolveRedirectRule(request, pathname);
   if (redirectRule) {
     const destination = new URL(redirectRule.toPath, request.url);
-    return NextResponse.redirect(destination, redirectRule.statusCode);
+    return redirectTo(request, destination, redirectRule.statusCode);
   }
 
   // Mağaza / tanıtım — giriş zorunlu değil
@@ -251,11 +305,11 @@ export async function middleware(request: NextRequest) {
   // ── Redirect old /nexa/* to /thyronix/* ──
   if (pathname.startsWith("/nexa/") || pathname === "/nexa") {
     const newPath = pathname.replace("/nexa", "/thyronix");
-    return NextResponse.redirect(new URL(newPath, request.url), 301);
+    return redirectTo(request, newPath, 301);
   }
   if (pathname.startsWith("/api/nexa/")) {
     const newPath = pathname.replace("/api/nexa", "/api/thyronix");
-    return NextResponse.redirect(new URL(newPath, request.url), 301);
+    return redirectTo(request, newPath, 301);
   }
 
   // ── Public feed output endpoints (no auth required) ──
@@ -272,7 +326,7 @@ export async function middleware(request: NextRequest) {
   if (pathname.startsWith("/admin") && !pathname.startsWith(adminSecret)) {
     if (isApi) return jsonError(404, "Bulunamadı");
     const target = pathname.replace(/^\/admin/, adminSecret) || adminSecret;
-    return NextResponse.redirect(new URL(target, request.url));
+    return redirectTo(request, target);
   }
   // Allow secret path to pass through (will be checked for role later)
   if (pathname.startsWith(adminSecret)) {
@@ -283,7 +337,7 @@ export async function middleware(request: NextRequest) {
   }
 
   if (pathname === "/login" || pathname === "/giris") {
-    return NextResponse.redirect(new URL("/auth/login", request.url));
+    return redirectTo(request, "/auth/login");
   }
 
   // ── Affiliate referral (?ref=ENA-XXXXXX) — cookie + VISIT kaydı ──
@@ -304,7 +358,7 @@ export async function middleware(request: NextRequest) {
         body: JSON.stringify({
           referralCode: refCode,
           landingPath: pathname,
-          sourceUrl: request.url,
+          sourceUrl: publicRequestUrl.toString(),
           ip: request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || request.headers.get("x-real-ip") || "",
           userAgent: request.headers.get("user-agent") || "",
         }),
@@ -338,7 +392,7 @@ export async function middleware(request: NextRequest) {
     const blocked = request.nextUrl.clone();
     blocked.pathname = "/linkslash/downloads";
     blocked.searchParams.set("blocked", "extension");
-    return NextResponse.redirect(blocked);
+    return redirectTo(request, blocked);
   }
 
   if (/^\/downloads\/linkslash\/.*\.apk$/i.test(pathname)) {
@@ -348,7 +402,7 @@ export async function middleware(request: NextRequest) {
     const blocked = request.nextUrl.clone();
     blocked.pathname = "/linkslash/downloads";
     blocked.searchParams.set("blocked", "apk");
-    return NextResponse.redirect(blocked);
+    return redirectTo(request, blocked);
   }
 
   // ── Public LinkSlash marketing (no auth) ──
@@ -365,13 +419,13 @@ export async function middleware(request: NextRequest) {
     !pathname.startsWith("/linkslash/downloads")
   ) {
     if (!token) {
-      const loginUrl = new URL("/auth/login", request.url);
+      const loginUrl = new URL("/auth/login", publicRequestUrl);
       loginUrl.searchParams.set("redirect", pathname);
-      return NextResponse.redirect(loginUrl);
+      return redirectTo(request, loginUrl);
     }
     const payloadLs = await verifyJWT(token);
     if (!payloadLs) {
-      return NextResponse.redirect(new URL("/auth/login", request.url));
+      return redirectTo(request, "/auth/login");
     }
     if (isAdminRole((payloadLs.role as string) || "")) return NextResponse.next();
     const dealerIdLs = (payloadLs as { dealerId?: string }).dealerId;
@@ -380,18 +434,18 @@ export async function middleware(request: NextRequest) {
       if (blocked) return blocked;
       return NextResponse.next();
     }
-    return NextResponse.redirect(new URL("/gateway/linkslash", request.url));
+    return redirectTo(request, "/gateway/linkslash");
   }
 
   // ── LinkSlash dealer route ──
   if (pathname.startsWith("/dealer/linkslash")) {
     if (!token) {
-      const loginUrl = new URL("/auth/login", request.url);
+      const loginUrl = new URL("/auth/login", publicRequestUrl);
       loginUrl.searchParams.set("redirect", pathname);
-      return NextResponse.redirect(loginUrl);
+      return redirectTo(request, loginUrl);
     }
     const payloadLs = await verifyJWT(token);
-    if (!payloadLs) return NextResponse.redirect(new URL("/auth/login", request.url));
+    if (!payloadLs) return redirectTo(request, "/auth/login");
     if (isAdminRole((payloadLs.role as string) || "")) return NextResponse.next();
     const dealerIdLs = (payloadLs as { dealerId?: string }).dealerId;
     if (dealerIdLs) {
@@ -399,18 +453,18 @@ export async function middleware(request: NextRequest) {
       if (blocked) return blocked;
       return NextResponse.next();
     }
-    return NextResponse.redirect(new URL("/gateway/linkslash", request.url));
+    return redirectTo(request, "/gateway/linkslash");
   }
 
   // ── POD Creator dealer route ──
   if (pathname.startsWith("/dealer/pod")) {
     if (!token) {
-      const loginUrl = new URL("/auth/login", request.url);
+      const loginUrl = new URL("/auth/login", publicRequestUrl);
       loginUrl.searchParams.set("redirect", pathname);
-      return NextResponse.redirect(loginUrl);
+      return redirectTo(request, loginUrl);
     }
     const payloadPod = await verifyJWT(token);
-    if (!payloadPod) return NextResponse.redirect(new URL("/auth/login", request.url));
+    if (!payloadPod) return redirectTo(request, "/auth/login");
     if (isAdminRole((payloadPod.role as string) || "")) return NextResponse.next();
     const dealerIdPod = (payloadPod as { dealerId?: string }).dealerId;
     if (dealerIdPod) {
@@ -421,12 +475,12 @@ export async function middleware(request: NextRequest) {
         const checkData = await checkRes.json();
         if (!checkData.access) {
           if (checkData.reason === "LISANS_YOK") {
-            return NextResponse.redirect(new URL("/gateway/pod", request.url));
+            return redirectTo(request, "/gateway/pod");
           }
-          return NextResponse.redirect(new URL("/gateway/pod", request.url));
+          return redirectTo(request, "/gateway/pod");
         }
       } catch {
-        return NextResponse.redirect(new URL("/gateway/pod", request.url));
+        return redirectTo(request, "/gateway/pod");
       }
     }
     return NextResponse.next();
@@ -435,12 +489,12 @@ export async function middleware(request: NextRequest) {
   // ── AI Page Factory dealer route ──
   if (pathname.startsWith("/dealer/page-factory")) {
     if (!token) {
-      const loginUrl = new URL("/auth/login", request.url);
+      const loginUrl = new URL("/auth/login", publicRequestUrl);
       loginUrl.searchParams.set("redirect", pathname);
-      return NextResponse.redirect(loginUrl);
+      return redirectTo(request, loginUrl);
     }
     const payloadPf = await verifyJWT(token);
-    if (!payloadPf) return NextResponse.redirect(new URL("/auth/login", request.url));
+    if (!payloadPf) return redirectTo(request, "/auth/login");
     if (isAdminRole((payloadPf.role as string) || "")) return NextResponse.next();
     const dealerIdPf = (payloadPf as { dealerId?: string }).dealerId;
     if (dealerIdPf) {
@@ -450,10 +504,10 @@ export async function middleware(request: NextRequest) {
         );
         const checkData = await checkRes.json();
         if (!checkData.access) {
-          return NextResponse.redirect(new URL("/gateway/page-factory", request.url));
+          return redirectTo(request, "/gateway/page-factory");
         }
       } catch {
-        return NextResponse.redirect(new URL("/gateway/page-factory", request.url));
+        return redirectTo(request, "/gateway/page-factory");
       }
     }
     return NextResponse.next();
@@ -462,12 +516,12 @@ export async function middleware(request: NextRequest) {
   // ── AI Dropship Store dealer route ──
   if (pathname.startsWith("/dealer/dropship")) {
     if (!token) {
-      const loginUrl = new URL("/auth/login", request.url);
+      const loginUrl = new URL("/auth/login", publicRequestUrl);
       loginUrl.searchParams.set("redirect", pathname);
-      return NextResponse.redirect(loginUrl);
+      return redirectTo(request, loginUrl);
     }
     const payloadDs = await verifyJWT(token);
-    if (!payloadDs) return NextResponse.redirect(new URL("/auth/login", request.url));
+    if (!payloadDs) return redirectTo(request, "/auth/login");
     if (isAdminRole((payloadDs.role as string) || "")) return NextResponse.next();
     const dealerIdDs = (payloadDs as { dealerId?: string }).dealerId;
     if (dealerIdDs) {
@@ -477,10 +531,10 @@ export async function middleware(request: NextRequest) {
         );
         const checkData = await checkRes.json();
         if (!checkData.access) {
-          return NextResponse.redirect(new URL("/gateway/dropship", request.url));
+          return redirectTo(request, "/gateway/dropship");
         }
       } catch {
-        return NextResponse.redirect(new URL("/gateway/dropship", request.url));
+        return redirectTo(request, "/gateway/dropship");
       }
     }
     return NextResponse.next();
@@ -489,9 +543,9 @@ export async function middleware(request: NextRequest) {
   // ── Product Gateway (ENA session required) ──
   if (pathname.startsWith("/gateway")) {
     if (!token) {
-      const loginUrl = new URL("/auth/login", request.url);
+      const loginUrl = new URL("/auth/login", publicRequestUrl);
       loginUrl.searchParams.set("redirect", pathname);
-      return NextResponse.redirect(loginUrl);
+      return redirectTo(request, loginUrl);
     }
     return NextResponse.next();
   }
@@ -550,9 +604,9 @@ export async function middleware(request: NextRequest) {
     if (isApi) return jsonError(401, "Oturum bulunamadı");
     if (isPublicStorefront) return NextResponse.next();
     if (pathname === "/thyronix/login") return NextResponse.next();
-    const loginUrl = new URL(pathname.startsWith("/thyronix") ? "/thyronix/login" : "/auth/login", request.url);
+    const loginUrl = new URL(pathname.startsWith("/thyronix") ? "/thyronix/login" : "/auth/login", publicRequestUrl);
     loginUrl.searchParams.set("redirect", pathname);
-    return NextResponse.redirect(loginUrl);
+    return redirectTo(request, loginUrl);
   }
 
   const payload = await verifyJWT(token);
@@ -563,7 +617,7 @@ export async function middleware(request: NextRequest) {
       res.cookies.delete("token");
       return res;
     }
-    const res = NextResponse.redirect(new URL("/auth/login", request.url));
+    const res = redirectTo(request, "/auth/login");
     res.cookies.delete("token");
     return res;
   }
@@ -582,9 +636,9 @@ export async function middleware(request: NextRequest) {
         const checkData = await checkRes.json();
         if (checkData.access) return NextResponse.next();
         if (checkData.reason === "LISANS_YOK") {
-          return NextResponse.redirect(new URL("/platform/thyronix", request.url));
+          return redirectTo(request, "/platform/thyronix");
         }
-        return NextResponse.redirect(new URL("/thyronix/pending", request.url));
+        return redirectTo(request, "/thyronix/pending");
       } catch {
         return NextResponse.next();
       }
@@ -593,9 +647,9 @@ export async function middleware(request: NextRequest) {
     const thyronixOk = request.cookies.get("thyronix_ok")?.value;
     if (thyronixOk) return NextResponse.next();
 
-    const redirect = new URL("/thyronix/login", request.url);
+    const redirect = new URL("/thyronix/login", publicRequestUrl);
     redirect.searchParams.set("redirect", pathname);
-    return NextResponse.redirect(redirect);
+    return redirectTo(request, redirect);
   }
 
   // ── HIVE route protection ──
@@ -609,20 +663,20 @@ export async function middleware(request: NextRequest) {
         const checkRes = await fetch(`${internalBasePath()}/api/internal/check-module-access?dealerId=${dealerId}&moduleKey=HIVE`);
         const checkData = await checkRes.json();
         if (!checkData.access) {
-          if (checkData.reason === "LISANS_YOK") return NextResponse.redirect(new URL("/platform/hive", request.url));
-          return NextResponse.redirect(new URL("/hive/pending", request.url));
+          if (checkData.reason === "LISANS_YOK") return redirectTo(request, "/platform/hive");
+          return redirectTo(request, "/hive/pending");
         }
         return NextResponse.next();
       } catch { return NextResponse.next(); }
     }
-    return NextResponse.redirect(new URL("/platform/hive", request.url));
+    return redirectTo(request, "/platform/hive");
   }
 
   // ── Admin route protection ──
   if (pathname.startsWith("/admin")) {
     if (!isAdminRole(role)) {
       if (isApi) return jsonError(403, "Yetkisiz erişim");
-      return NextResponse.redirect(new URL("/", request.url));
+      return redirectTo(request, "/");
     }
     return NextResponse.next();
   }
@@ -778,7 +832,7 @@ export async function middleware(request: NextRequest) {
         }
       }
       if (isApi) return jsonError(403, "Yetkisiz erişim");
-      return NextResponse.redirect(new URL("/auth/login", request.url));
+      return redirectTo(request, "/auth/login");
     }
     return NextResponse.next();
   }
