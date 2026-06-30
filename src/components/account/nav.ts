@@ -1,7 +1,7 @@
 import type { LucideIcon } from "lucide-react";
 import {
   Home, User as UserIcon, Shield, ShoppingCart, FileText, Save, Heart,
-  Wallet, ReceiptText, CreditCard, MapPin, Upload, RotateCcw, Sparkles, Store, Gift, FileSignature, Palette, Bell,
+  Wallet, ReceiptText, CreditCard, MapPin, Upload, RotateCcw, Sparkles, Store, Gift, FileSignature, Palette, Bell, Download,
 } from "lucide-react";
 import { getAdminSecretPath, isAdminRole } from "@/lib/auth/admin-access";
 
@@ -44,6 +44,7 @@ export const ACCOUNT_NAV: NavGroup[] = [
       { type: "tab", key: "orders", label: "Siparişler", icon: ShoppingCart },
       { type: "tab", key: "quotes", label: "Teklifler", icon: FileText },
       { type: "tab", key: "contracts", label: "Sözleşmeler", icon: FileSignature },
+      { type: "link", href: "/products/digital-library", label: "Dijital Ürünler", icon: Download },
       { type: "tab", key: "saved-carts", label: "Kayıtlı Sepetler", icon: Save },
       { type: "tab", key: "wishlist", label: "Favoriler", icon: Heart },
       { type: "tab", key: "coupons", label: "Kampanyalar", icon: Gift },

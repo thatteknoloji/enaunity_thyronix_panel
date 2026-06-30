@@ -4,6 +4,7 @@ import { requireAdmin } from "@/lib/auth";
 import { addDealerBalance } from "@/lib/dealer-pricing";
 import { createNotification, sendEmail, notifyOrderStatus } from "@/lib/notifications";
 import { getOrderStockStatus } from "@/lib/orders/order-stock-service";
+import { syncDigitalAccessGrants } from "@/lib/products/digital-access";
 
 export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -27,8 +28,9 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
     }
 
     const warehouseStatus = await getOrderStockStatus(order.id);
+    const digitalDeliveries = await syncDigitalAccessGrants(order.id);
 
-    return NextResponse.json({ success: true, data: { ...order, warehouseStatus } });
+    return NextResponse.json({ success: true, data: { ...order, warehouseStatus, digitalDeliveries } });
   } catch {
     return NextResponse.json({ success: false, error: "Yetkisiz erişim" }, { status: 401 });
   }
@@ -62,80 +64,87 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
       return NextResponse.json({ success: false, error: "Sipariş bulunamadı" }, { status: 404 });
     }
 
-    // Stock deduction on approve
-    if (status === "approved" && currentOrder.status === "pending_approval") {
-      const stockItems = currentOrder.items.filter((item) => item.productId);
-      await Promise.all(
-        stockItems.map((item) =>
-          prisma.stockMovement.create({
-            data: {
-              productId: item.productId!,
-              type: "exit",
-              quantity: item.quantity,
-              note: `Sipariş #${id.slice(0, 8)} onaylandı`,
-              orderId: id,
+    const order = await prisma.$transaction(async (tx) => {
+      if (status === "approved" && currentOrder.status === "pending_approval") {
+        const stockItems = currentOrder.items.filter((item) => item.productId);
+        await Promise.all(
+          stockItems.map((item) =>
+            tx.stockMovement.create({
+              data: {
+                productId: item.productId!,
+                type: "exit",
+                quantity: item.quantity,
+                note: `Sipariş #${id.slice(0, 8)} onaylandı`,
+                orderId: id,
+              },
+            })
+          )
+        );
+        await Promise.all(
+          stockItems.map((item) =>
+            tx.product.update({
+              where: { id: item.productId! },
+              data: { stock: { decrement: item.quantity } },
+            })
+          )
+        );
+      }
+
+      if (status === "cancelled" && currentOrder.status !== "pending_approval" && currentOrder.status !== "cancelled") {
+        const stockItems = currentOrder.items.filter((item) => item.productId);
+        await Promise.all(
+          stockItems.map((item) =>
+            tx.stockMovement.create({
+              data: {
+                productId: item.productId!,
+                type: "return",
+                quantity: item.quantity,
+                note: `Sipariş #${id.slice(0, 8)} iptal edildi`,
+                orderId: id,
+              },
+            })
+          )
+        );
+        await Promise.all(
+          stockItems.map((item) =>
+            tx.product.update({
+              where: { id: item.productId! },
+              data: { stock: { increment: item.quantity } },
+            })
+          )
+        );
+      }
+
+      if (status === "cancelled" && currentOrder.dealerId && currentOrder.status !== "cancelled") {
+        await addDealerBalance(
+          currentOrder.dealerId,
+          currentOrder.total,
+          id,
+          "REFUND",
+          `Admin iptal iadesi #${id.slice(0, 8)}`,
+          tx
+        );
+      }
+
+      return tx.order.update({
+        where: { id },
+        data: {
+          status,
+          statusHistory: {
+            create: {
+              status,
+              note: `Admin tarafından "${statusLabels[status] || status}" olarak güncellendi`,
+              changedBy: "admin",
             },
-          })
-        )
-      );
-      await Promise.all(
-        stockItems.map((item) =>
-          prisma.product.update({
-            where: { id: item.productId! },
-            data: { stock: { decrement: item.quantity } },
-          })
-        )
-      );
-    }
-
-    // Stock return on cancel if stock was deducted
-    if (status === "cancelled" && currentOrder.status !== "pending_approval" && currentOrder.status !== "cancelled") {
-      const stockItems = currentOrder.items.filter((item) => item.productId);
-      await Promise.all(
-        stockItems.map((item) =>
-          prisma.stockMovement.create({
-            data: {
-              productId: item.productId!,
-              type: "return",
-              quantity: item.quantity,
-              note: `Sipariş #${id.slice(0, 8)} iptal edildi`,
-              orderId: id,
-            },
-          })
-        )
-      );
-      await Promise.all(
-        stockItems.map((item) =>
-          prisma.product.update({
-            where: { id: item.productId! },
-            data: { stock: { increment: item.quantity } },
-          })
-        )
-      );
-    }
-
-    // Refund dealer balance on cancel
-    if (status === "cancelled" && currentOrder.dealerId && currentOrder.status !== "cancelled") {
-      await addDealerBalance(currentOrder.dealerId, currentOrder.total);
-    }
-
-    const order = await prisma.order.update({
-      where: { id },
-      data: {
-        status,
-        statusHistory: {
-          create: {
-            status,
-            note: `Admin tarafından "${statusLabels[status] || status}" olarak güncellendi`,
-            changedBy: "admin",
           },
         },
-      },
-      include: { dealer: true, user: true },
+        include: { dealer: true, user: true },
+      });
     });
 
     const { onOrderStatusChanged } = await import("@/lib/invoices/order-invoice-bridge");
     await onOrderStatusChanged(id, status);
+    const digitalDeliveries = await syncDigitalAccessGrants(id).catch(() => []);
 
     if (order.dealer) {
       await notifyOrderStatus(
@@ -150,7 +159,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
       await processOrderCommission(id).catch(() => {});
     }
 
-    return NextResponse.json({ success: true, data: order });
+    return NextResponse.json({ success: true, data: { ...order, digitalDeliveries } });
   } catch {
     return NextResponse.json({ success: false, error: "Sunucu hatası" }, { status: 500 });
   }

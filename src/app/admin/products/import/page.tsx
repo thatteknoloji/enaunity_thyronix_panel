@@ -12,6 +12,19 @@ import toast from "react-hot-toast";
 
 type Step = "source" | "preview" | "categories" | "commit" | "done";
 
+type FieldMappingState = {
+  name?: string;
+  description?: string;
+  brand?: string;
+  category?: string;
+  modelCode?: string;
+  sku?: string;
+  barcode?: string;
+  price?: string;
+  stock?: string;
+  image?: string;
+};
+
 interface PreviewGroup {
   modelCode: string;
   name: string;
@@ -36,6 +49,8 @@ interface PreviewData {
   categoryValues: string[];
   previewJobId: string;
   parseErrors?: string[];
+  columns?: string[];
+  mapping?: FieldMappingState;
 }
 
 const PRESETS = [
@@ -43,6 +58,19 @@ const PRESETS = [
   { id: "trendyol_tablo", label: "Trendyol Tablo", desc: "Model Kodu + varyant satırları (veriler_part1 formatı)" },
   { id: "hepsiburada", label: "Hepsiburada", desc: "HB export (TY tablo alias)" },
   { id: "generic", label: "Genel Excel/CSV", desc: "name, sku, barcode, price, stock" },
+];
+
+const MAPPING_FIELDS: Array<{ key: keyof FieldMappingState; label: string }> = [
+  { key: "name", label: "Ürün Adı" },
+  { key: "description", label: "Açıklama" },
+  { key: "brand", label: "Marka" },
+  { key: "category", label: "Kategori" },
+  { key: "modelCode", label: "Model Kodu" },
+  { key: "sku", label: "Stok Kodu / SKU" },
+  { key: "barcode", label: "Barkod" },
+  { key: "price", label: "Fiyat" },
+  { key: "stock", label: "Stok" },
+  { key: "image", label: "Görsel" },
 ];
 
 function downloadTextReport(filename: string, lines: string[]) {
@@ -63,6 +91,7 @@ export default function BulkImportPage() {
   const [loading, setLoading] = useState(false);
   const [preview, setPreview] = useState<PreviewData | null>(null);
   const [categoryMapping, setCategoryMapping] = useState<Record<string, string>>({});
+  const [fieldMapping, setFieldMapping] = useState<FieldMappingState>({});
   const [categories, setCategories] = useState<{ id: string; name: string }[]>([]);
   const [commitResult, setCommitResult] = useState<{ created: number; updated: number; skipped: number; errors: string[]; productIds: string[] } | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -73,17 +102,22 @@ export default function BulkImportPage() {
     }).catch(() => {});
   }, []);
 
-  const handlePreview = async () => {
+  const handlePreview = async (mappingOverride?: FieldMappingState) => {
     if (!file) return;
     setLoading(true);
     const fd = new FormData();
     fd.append("file", file);
     fd.append("preset", preset);
+    const mappingPayload = mappingOverride ?? fieldMapping;
+    if (Object.values(mappingPayload).some(Boolean)) {
+      fd.append("mapping", JSON.stringify(mappingPayload));
+    }
     try {
       const res = await fetch("/api/admin/products/import/preview", { method: "POST", body: fd });
       const data = await res.json();
       if (!data.success) { toast.error(data.error || "Önizleme hatası"); return; }
       setPreview(data.data);
+      setFieldMapping(data.data.mapping || {});
       const mapping: Record<string, string> = {};
       for (const cat of data.data.categoryValues || []) {
         const match = categories.find((c) => c.name.toLowerCase() === cat.toLowerCase());
@@ -227,17 +261,48 @@ export default function BulkImportPage() {
               <input ref={inputRef} type="file" accept=".xlsx,.xls,.csv,.xml" className="hidden"
                 onChange={(e) => setFile(e.target.files?.[0] || null)} />
             </div>
-            <Button className="mt-4 w-full" disabled={!file || loading} onClick={handlePreview}>
+	            <Button className="mt-4 w-full" disabled={!file || loading} onClick={async () => { await handlePreview(); }}>
               {loading ? <><Loader2 size={14} className="mr-1 animate-spin" /> Analiz ediliyor...</> : "Önizleme Oluştur"}
             </Button>
           </div>
         </div>
       )}
 
-      {step === "preview" && preview && (
-        <div className="space-y-4">
-          <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
-            <div className="grid grid-cols-2 gap-3 text-center sm:grid-cols-4">
+	      {step === "preview" && preview && (
+	        <div className="space-y-4">
+	          {!!preview.columns?.length && (
+	            <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+	              <div className="flex flex-wrap items-center justify-between gap-2">
+	                <div>
+	                  <h2 className="text-sm font-semibold text-gray-900">Alan Eşleme</h2>
+	                  <p className="mt-1 text-xs text-gray-500">Gerekirse sütunları değiştir, sonra önizlemeyi aynı dosya üzerinden yenile.</p>
+	                </div>
+	                <Button variant="outline" className="gap-2" onClick={async () => { await handlePreview(fieldMapping); }} disabled={loading}>
+	                  {loading ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />} Önizlemeyi Yenile
+	                </Button>
+	              </div>
+	              <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-2">
+	                {MAPPING_FIELDS.map((field) => (
+	                  <div key={field.key}>
+	                    <label className="mb-1 block text-[11px] font-semibold uppercase text-gray-500">{field.label}</label>
+	                    <select
+	                      className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none"
+	                      value={fieldMapping[field.key] || ""}
+	                      onChange={(e) => setFieldMapping((prev) => ({ ...prev, [field.key]: e.target.value }))}
+	                    >
+	                      <option value="">Kolon seç</option>
+	                      {preview.columns!.map((column) => (
+	                        <option key={`${field.key}-${column}`} value={column}>{column}</option>
+	                      ))}
+	                    </select>
+	                  </div>
+	                ))}
+	              </div>
+	            </div>
+	          )}
+
+	          <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+	            <div className="grid grid-cols-2 gap-3 text-center sm:grid-cols-4">
               <div className="rounded-lg bg-gray-50 p-3"><p className="text-xl font-bold">{preview.totalRows}</p><p className="text-xs text-gray-500">Satır</p></div>
               <div className="rounded-lg bg-blue-50 p-3"><p className="text-xl font-bold text-blue-700">{preview.groupCount}</p><p className="text-xs text-blue-600">Parent Ürün</p></div>
               <div className="rounded-lg bg-green-50 p-3"><p className="text-xl font-bold text-green-700">{okGroups}</p><p className="text-xs text-green-600">Hazır</p></div>

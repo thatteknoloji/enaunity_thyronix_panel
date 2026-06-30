@@ -1,3 +1,4 @@
+import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db";
 import {
   getAccountingEngine,
@@ -27,6 +28,8 @@ export type DealerBalanceInfo = {
   riskLevel: string;
   source: "dealer_account" | "legacy_balance";
 };
+
+type DbClient = Prisma.TransactionClient | typeof prisma;
 
 function computeRiskLevel(balance: number, creditLimit: number): string {
   const debt = Math.max(0, -balance);
@@ -59,17 +62,17 @@ function mapTypeToLegacy(type: string, isCredit: boolean): string {
   return isCredit ? "payment_credit" : "order_debit";
 }
 
-export async function getDealerAccount(dealerId: string) {
-  return prisma.dealerAccount.findUnique({ where: { dealerId } });
+export async function getDealerAccount(dealerId: string, db: DbClient = prisma) {
+  return db.dealerAccount.findUnique({ where: { dealerId } });
 }
 
-export async function ensureDealerAccount(dealerId: string) {
-  let account = await prisma.dealerAccount.findUnique({ where: { dealerId } });
+export async function ensureDealerAccount(dealerId: string, db: DbClient = prisma) {
+  let account = await db.dealerAccount.findUnique({ where: { dealerId } });
   if (!account) {
-    const dealer = await prisma.dealer.findUnique({ where: { id: dealerId } });
+    const dealer = await db.dealer.findUnique({ where: { id: dealerId } });
     const creditLimit = dealer?.creditLimit ?? 0;
     const openingBalance = dealer?.balance ?? 0;
-    account = await prisma.dealerAccount.create({
+    account = await db.dealerAccount.create({
       data: {
         dealerId,
         creditLimit,
@@ -82,9 +85,9 @@ export async function ensureDealerAccount(dealerId: string) {
   return account;
 }
 
-export async function syncLegacyDealerBalance(dealerId: string) {
-  const account = await ensureDealerAccount(dealerId);
-  await prisma.dealer.update({
+export async function syncLegacyDealerBalance(dealerId: string, db: DbClient = prisma) {
+  const account = await ensureDealerAccount(dealerId, db);
+  await db.dealer.update({
     where: { id: dealerId },
     data: { balance: account.currentBalance },
   });
@@ -100,7 +103,7 @@ async function mirrorLegacyTransaction(params: {
   orderId?: string;
   notes?: string;
   balanceAfter: number;
-}) {
+}, db: DbClient = prisma) {
   if (!shouldMirrorLegacyTransaction()) return;
 
   const amount = params.debit > 0 ? params.debit : params.credit;
@@ -108,11 +111,11 @@ async function mirrorLegacyTransaction(params: {
 
   let legacyOrderId: string | null = null;
   if (params.orderId) {
-    const coreOrder = await prisma.order.findUnique({ where: { id: params.orderId }, select: { id: true } });
+    const coreOrder = await db.order.findUnique({ where: { id: params.orderId }, select: { id: true } });
     if (coreOrder) legacyOrderId = params.orderId;
   }
 
-  await prisma.dealerTransaction.create({
+  await db.dealerTransaction.create({
     data: {
       dealerId: params.dealerId,
       type: legacyType,
@@ -124,15 +127,15 @@ async function mirrorLegacyTransaction(params: {
   });
 }
 
-export async function postAccountTransaction(params: PostAccountTransactionParams) {
-  const account = await ensureDealerAccount(params.dealerId);
+export async function postAccountTransaction(params: PostAccountTransactionParams, db: DbClient = prisma) {
+  const account = await ensureDealerAccount(params.dealerId, db);
   const debit = params.debit ?? 0;
   const credit = params.credit ?? 0;
   // Wallet semantics: charges reduce balance, payments increase balance
   const balanceAfter = account.currentBalance - debit + credit;
   const availableLimit = account.creditLimit - Math.max(0, -balanceAfter);
 
-  const tx = await prisma.dealerAccountTransaction.create({
+  const tx = await db.dealerAccountTransaction.create({
     data: {
       accountId: account.id,
       dealerId: params.dealerId,
@@ -148,7 +151,7 @@ export async function postAccountTransaction(params: PostAccountTransactionParam
     },
   });
 
-  await prisma.dealerAccount.update({
+  await db.dealerAccount.update({
     where: { id: account.id },
     data: {
       currentBalance: balanceAfter,
@@ -157,7 +160,7 @@ export async function postAccountTransaction(params: PostAccountTransactionParam
     },
   });
 
-  await syncLegacyDealerBalance(params.dealerId);
+  await syncLegacyDealerBalance(params.dealerId, db);
 
   await mirrorLegacyTransaction({
     dealerId: params.dealerId,
@@ -168,7 +171,7 @@ export async function postAccountTransaction(params: PostAccountTransactionParam
     orderId: params.legacyOrderId || params.orderId || params.coreOrderId,
     notes: params.notes,
     balanceAfter,
-  });
+  }, db);
 
   return tx;
 }
@@ -254,12 +257,13 @@ export async function addDealerBalance(
   amount: number,
   orderId?: string,
   type = "REFUND",
-  note = "Bakiye iadesi"
+  note = "Bakiye iadesi",
+  db: DbClient = prisma
 ) {
   if (!isDealerAccountEngine()) {
-    await prisma.dealer.update({ where: { id: dealerId }, data: { balance: { increment: amount } } });
-    const dealer = await prisma.dealer.findUnique({ where: { id: dealerId }, select: { balance: true } });
-    await prisma.dealerTransaction.create({
+    await db.dealer.update({ where: { id: dealerId }, data: { balance: { increment: amount } } });
+    const dealer = await db.dealer.findUnique({ where: { id: dealerId }, select: { balance: true } });
+    await db.dealerTransaction.create({
       data: {
         dealerId,
         type: mapTypeToLegacy(type, true),
@@ -279,7 +283,7 @@ export async function addDealerBalance(
     credit: amount,
     legacyOrderId: orderId,
     notes: note,
-  });
+  }, db);
 }
 
 export async function postOrderCostToAccount(dealerId: string, orderId: string) {

@@ -19,6 +19,7 @@ import {
   Download,
   ExternalLink,
   FileText,
+  Link2,
   Paperclip,
   PencilLine,
   Package,
@@ -26,6 +27,11 @@ import {
   Wallet,
   XCircle,
 } from "lucide-react";
+import {
+  canUnlockDigitalDelivery,
+  digitalModeLabel,
+  parseDigitalDeliverySnapshot,
+} from "@/lib/products/digital-delivery";
 
 const statusVariant: Record<string, "default" | "success" | "warning" | "danger"> = {
   pending_approval: "warning",
@@ -69,6 +75,7 @@ type OrderDetail = {
     id: string;
     quantity: number;
     price: number;
+    metadataJson?: string | null;
     product?: { name?: string | null; image?: string | null } | null;
     productCatalogItem?: { name?: string | null; imagesJson?: string | null } | null;
   }>;
@@ -76,6 +83,25 @@ type OrderDetail = {
   attachments?: OrderAttachment[];
   payments?: OrderPayment[];
   invoices?: OrderInvoice[];
+  digitalDeliveries?: Array<{
+    id: string;
+    orderItemId: string;
+    productName: string;
+    mode: string;
+    modeLabel: string;
+    status: string;
+    statusLabel: string;
+    canAccess: boolean;
+    assetName: string;
+    assetUrl: string;
+    accessInstructions: string;
+    licenseValue: string;
+    licenseSource: string;
+    downloadLimit: number;
+    downloadCount: number;
+    lastAccessedAt: string | null;
+    logs: Array<{ id: string; eventType: string; actorType: string; note: string; createdAt: string }>;
+  }>;
   warehouseStatus?: {
     reserved: boolean;
     hasWarnings: boolean;
@@ -120,6 +146,11 @@ function MetaRow({ label, value }: { label: string; value: string }) {
   );
 }
 
+function parseDigitalMetadata(value?: string | null) {
+  const metadata = parseMetadata(value);
+  return parseDigitalDeliverySnapshot((metadata as { digitalDelivery?: unknown }).digitalDelivery);
+}
+
 export default function DealerOrderDetailPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
@@ -129,6 +160,7 @@ export default function DealerOrderDetailPage() {
   const [draftAddress, setDraftAddress] = useState("");
   const [draftNotes, setDraftNotes] = useState("");
   const [saving, setSaving] = useState(false);
+  const [openingGrantId, setOpeningGrantId] = useState("");
 
   useEffect(() => {
     if (!id) return;
@@ -147,7 +179,21 @@ export default function DealerOrderDetailPage() {
   const paymentInfo = order ? getOrderPaymentInfo(order) : { method: "", label: "", locked: false };
   const canEditOrder = !!order && ["pending", "pending_approval", "waiting_payment"].includes(order.status);
   const metadata = useMemo(() => parseMetadata(order?.metadataJson), [order?.metadataJson]);
+  const digitalItems = useMemo(() => order?.digitalDeliveries || [], [order?.digitalDeliveries]);
   const invoice = order?.invoices?.[0] || null;
+
+  const openSecureLink = async (grantId: string) => {
+    setOpeningGrantId(grantId);
+    const res = await fetch(`/api/digital-access/${grantId}/token`, { method: "POST" });
+    const data = await res.json();
+    if (!data.success) {
+      toast.error(data.error || "Güvenli link açılamadı");
+      setOpeningGrantId("");
+      return;
+    }
+    window.open(data.data.url, "_blank", "noopener,noreferrer");
+    setOpeningGrantId("");
+  };
 
   const handleSave = async () => {
     if (!canEditOrder) return;
@@ -351,6 +397,7 @@ export default function DealerOrderDetailPage() {
               {order.items.map((item) => {
                 const name = item.product?.name || item.productCatalogItem?.name || "Ürün";
                 const image = item.product?.image || "/placeholder.svg";
+                const digitalDelivery = parseDigitalMetadata(item.metadataJson);
                 return (
                   <div key={item.id} className="flex items-center justify-between gap-4 px-5 py-4 hover:bg-ena-card/40 transition-colors">
                     <div className="flex items-center gap-3 min-w-0">
@@ -358,6 +405,11 @@ export default function DealerOrderDetailPage() {
                       <div className="min-w-0">
                         <p className="text-sm font-medium text-ena-text truncate">{name}</p>
                         <p className="text-xs text-ena-light/50">{item.quantity} adet x {formatPrice(item.price)}</p>
+                        {digitalDelivery ? (
+                          <p className="mt-1 inline-flex rounded-full border border-indigo-400/30 bg-indigo-500/10 px-2 py-0.5 text-[11px] font-medium text-indigo-200">
+                            {digitalModeLabel(digitalDelivery.mode)}
+                          </p>
+                        ) : null}
                       </div>
                     </div>
                     <p className="text-sm font-bold text-ena-text shrink-0">{formatPrice(item.price * item.quantity)}</p>
@@ -370,6 +422,77 @@ export default function DealerOrderDetailPage() {
               <span className="font-bold text-ena-text">{formatPrice(order.total)}</span>
             </div>
           </div>
+
+          {digitalItems.length > 0 ? (
+            <div className="rounded-xl border border-indigo-400/30 bg-indigo-500/10 p-5 shadow-sm">
+              <h2 className="mb-4 flex items-center gap-2 text-sm font-semibold text-indigo-100">
+                <Download size={16} /> Dijital Teslimatlar
+              </h2>
+              <div className="space-y-3">
+                {digitalItems.map((delivery) => {
+                  return (
+                    <div key={delivery.id} className="rounded-2xl border border-indigo-300/20 bg-black/10 p-4">
+                      <div className="flex flex-wrap items-start justify-between gap-3">
+                        <div>
+                          <p className="font-semibold text-white">{delivery.productName}</p>
+                          <p className="mt-1 text-xs text-indigo-100/80">{delivery.modeLabel}</p>
+                        </div>
+                        <span className={`rounded-full px-2.5 py-1 text-[11px] font-medium ${delivery.canAccess ? "bg-emerald-500/15 text-emerald-200" : delivery.status === "revoked" ? "bg-rose-500/15 text-rose-100" : "bg-amber-500/15 text-amber-100"}`}>
+                          {delivery.statusLabel}
+                        </span>
+                      </div>
+                      {delivery.accessInstructions ? (
+                        <p className="mt-3 whitespace-pre-wrap text-sm text-indigo-100/85">{delivery.accessInstructions}</p>
+                      ) : null}
+                      {delivery.licenseValue ? (
+                        <div className="mt-3 rounded-xl border border-indigo-300/20 bg-white/5 p-3">
+                          <p className="mb-1 text-xs font-semibold uppercase tracking-wider text-indigo-100/60">Lisans / Erişim İçeriği</p>
+                          <p className="whitespace-pre-wrap break-words font-mono text-sm text-white">{delivery.licenseValue}</p>
+                          {delivery.licenseSource ? (
+                            <p className="mt-2 text-xs text-indigo-100/60">Kaynak: {delivery.licenseSource}</p>
+                          ) : null}
+                        </div>
+                      ) : null}
+                      <div className="mt-4 flex flex-wrap items-center gap-2">
+                        {delivery.assetUrl && delivery.canAccess ? (
+                          <Button
+                            variant="outline"
+                            className="gap-2 border-indigo-300/20 bg-white/10 text-white hover:bg-white/20"
+                            onClick={() => openSecureLink(delivery.id)}
+                            disabled={openingGrantId === delivery.id}
+                          >
+                            {delivery.mode === "external_access" ? <Link2 size={14} /> : <Download size={14} />}
+                            {openingGrantId === delivery.id
+                              ? "Hazırlanıyor..."
+                              : delivery.assetName || (delivery.mode === "external_access" ? "Erişimi Aç" : "Dosyayı İndir")}
+                          </Button>
+                        ) : null}
+                        {delivery.downloadLimit ? (
+                          <span className="text-xs text-indigo-100/60">İndirme: {delivery.downloadCount}/{delivery.downloadLimit}</span>
+                        ) : null}
+                      </div>
+                      {delivery.lastAccessedAt ? (
+                        <p className="mt-3 text-xs text-indigo-100/60">Son erişim: {formatDate(delivery.lastAccessedAt)}</p>
+                      ) : null}
+                      {delivery.logs.length > 0 ? (
+                        <div className="mt-3 rounded-xl border border-indigo-300/20 bg-white/5 p-3">
+                          <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-indigo-100/60">Son Hareketler</p>
+                          <div className="space-y-1 text-xs text-indigo-100/70">
+                            {delivery.logs.map((log) => (
+                              <div key={log.id} className="flex flex-wrap items-center justify-between gap-2">
+                                <span>{log.note || log.eventType}</span>
+                                <span>{formatDate(log.createdAt)}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      ) : null}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          ) : null}
 
           {order.statusHistory && order.statusHistory.length > 0 && (() => {
             const history = order.statusHistory;

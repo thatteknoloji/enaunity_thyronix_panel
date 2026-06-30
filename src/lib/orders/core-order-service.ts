@@ -243,16 +243,42 @@ export type ListCoreOrdersFilters = {
   fulfillmentStatus?: string;
   sourceType?: string;
   marketplace?: string;
+  search?: string;
   limit?: number;
 };
 
 export async function listCoreOrders(filters: ListCoreOrdersFilters) {
   const where: Record<string, unknown> = {};
+  const andClauses: Record<string, unknown>[] = [];
   if (filters.dealerId) where.dealerId = filters.dealerId;
   if (filters.status) where.status = filters.status;
   if (filters.fulfillmentStatus) where.fulfillmentStatus = filters.fulfillmentStatus;
   if (filters.sourceType) where.sourceType = filters.sourceType;
   if (filters.marketplace) where.marketplace = filters.marketplace.toUpperCase();
+  if (filters.search) {
+    andClauses.push({
+      OR: [
+        { id: { contains: filters.search } },
+        { orderNumber: { contains: filters.search } },
+        { marketplaceOrderId: { contains: filters.search } },
+        { customerName: { contains: filters.search } },
+        { customerPhone: { contains: filters.search } },
+        { customerCity: { contains: filters.search } },
+        {
+          items: {
+            some: {
+              OR: [
+                { name: { contains: filters.search } },
+                { sku: { contains: filters.search } },
+                { barcode: { contains: filters.search } },
+              ],
+            },
+          },
+        },
+      ],
+    });
+  }
+  if (andClauses.length > 0) where.AND = andClauses;
 
   return prisma.order.findMany({
     where,

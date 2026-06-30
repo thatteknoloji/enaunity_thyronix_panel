@@ -70,6 +70,14 @@ export async function updateDealerProduct(
   });
 }
 
+export async function deleteDealerProduct(dealerId: string, id: string) {
+  const existing = await prisma.dealerProduct.findFirst({ where: { id, dealerId } });
+  if (!existing) throw new Error("Ürün bulunamadı");
+
+  await prisma.dealerProduct.delete({ where: { id } });
+  return { id };
+}
+
 export async function createManualOperasyonOrder(
   dealerId: string,
   input: {

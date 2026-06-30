@@ -17,38 +17,46 @@ export async function GET(req: Request) {
     const page = parseInt(searchParams.get("page") || "1");
     const limit = parseInt(searchParams.get("limit") || "20");
 
-    const where: any = {};
-    const OR: any[] = [];
+    const where: Record<string, any> = {};
+    const andClauses: Record<string, any>[] = [];
 
     if (search) {
-      OR.push(
-        { id: { contains: search } },
-        { user: { name: { contains: search } } },
-        { user: { email: { contains: search } } },
-        { dealer: { company: { contains: search } } },
-        { dealer: { name: { contains: search } } },
-      );
+      andClauses.push({
+        OR: [
+          { id: { contains: search } },
+          { user: { name: { contains: search } } },
+          { user: { email: { contains: search } } },
+          { dealer: { company: { contains: search } } },
+          { dealer: { name: { contains: search } } },
+        ],
+      });
     }
 
     if (status && status !== "all") {
-      where.OR = [
-        { status },
-        { fulfillmentStatus: status },
-      ];
+      andClauses.push({
+        OR: [
+          { status },
+          { fulfillmentStatus: status },
+        ],
+      });
     }
+
+    if (searchParams.get("excludeMarketplace") === "true") {
+      where.sourceType = "B2B";
+      andClauses.push({ status: { not: "waiting_payment" } });
+    }
+
     const fulfillmentStatus = searchParams.get("fulfillmentStatus");
     if (fulfillmentStatus) where.fulfillmentStatus = fulfillmentStatus;
     const sourceType = searchParams.get("sourceType");
     if (sourceType) where.sourceType = sourceType;
-    if (searchParams.get("excludeMarketplace") === "true") {
-      where.sourceType = "B2B";
-      where.AND = [...(where.AND || []), { status: { not: "waiting_payment" } }];
-    }
     if (fromDate) where.createdAt = { ...(where.createdAt || {}), gte: new Date(fromDate) };
     if (toDate) where.createdAt = { ...(where.createdAt || {}), lte: new Date(toDate + "T23:59:59.999Z") };
     if (minAmount) where.total = { ...(where.total || {}), gte: parseFloat(minAmount) };
     if (maxAmount) where.total = { ...(where.total || {}), lte: parseFloat(maxAmount) };
-    if (OR.length > 0) where.OR = OR;
+    if (andClauses.length > 0) {
+      where.AND = andClauses;
+    }
 
     const orderBy: any = {};
     switch (sort) {
@@ -99,40 +107,42 @@ export async function PATCH(req: Request) {
     const noteMap: Record<string, string> = { approve: "Toplu onaylandı", cancel: "Toplu iptal edildi", ship: "Toplu kargoya verildi" };
 
     for (const id of ids) {
-      const order = await prisma.order.findUnique({ where: { id }, include: { items: true } });
-      if (!order) continue;
+      await prisma.$transaction(async (tx) => {
+        const order = await tx.order.findUnique({ where: { id }, include: { items: true } });
+        if (!order) return;
 
-      // Stock deduction on batch approve
-      if (action === "approve" && order.status === "pending_approval") {
-        const stockItems = order.items.filter((item) => item.productId);
-        await Promise.all(stockItems.map((item) =>
-          prisma.stockMovement.create({ data: { productId: item.productId!, type: "exit", quantity: item.quantity, note: `Toplu onay #${id.slice(0, 8)}`, orderId: id } })
-        ));
-        await Promise.all(stockItems.map((item) =>
-          prisma.product.update({ where: { id: item.productId! }, data: { stock: { decrement: item.quantity } } })
-        ));
-      }
-
-      // Stock return + balance refund on batch cancel
-      if (action === "cancel" && order.status !== "cancelled") {
-        if (order.status !== "pending_approval") {
+        if (action === "approve" && order.status === "pending_approval") {
           const stockItems = order.items.filter((item) => item.productId);
           await Promise.all(stockItems.map((item) =>
-            prisma.stockMovement.create({ data: { productId: item.productId!, type: "return", quantity: item.quantity, note: `Toplu iptal #${id.slice(0, 8)}`, orderId: id } })
+            tx.stockMovement.create({ data: { productId: item.productId!, type: "exit", quantity: item.quantity, note: `Toplu onay #${id.slice(0, 8)}`, orderId: id } })
           ));
           await Promise.all(stockItems.map((item) =>
-            prisma.product.update({ where: { id: item.productId! }, data: { stock: { increment: item.quantity } } })
+            tx.product.update({ where: { id: item.productId! }, data: { stock: { decrement: item.quantity } } })
           ));
         }
-        if (order.dealerId) await addDealerBalance(order.dealerId, order.total);
-      }
 
-      await prisma.order.update({
-        where: { id },
-        data: {
-          status: newStatus,
-          statusHistory: { create: { status: newStatus, note: noteMap[action], changedBy: "admin" } },
-        },
+        if (action === "cancel" && order.status !== "cancelled") {
+          if (order.status !== "pending_approval") {
+            const stockItems = order.items.filter((item) => item.productId);
+            await Promise.all(stockItems.map((item) =>
+              tx.stockMovement.create({ data: { productId: item.productId!, type: "return", quantity: item.quantity, note: `Toplu iptal #${id.slice(0, 8)}`, orderId: id } })
+            ));
+            await Promise.all(stockItems.map((item) =>
+              tx.product.update({ where: { id: item.productId! }, data: { stock: { increment: item.quantity } } })
+            ));
+          }
+          if (order.dealerId) {
+            await addDealerBalance(order.dealerId, order.total, id, "REFUND", `Toplu iptal #${id.slice(0, 8)}`, tx);
+          }
+        }
+
+        await tx.order.update({
+          where: { id },
+          data: {
+            status: newStatus,
+            statusHistory: { create: { status: newStatus, note: noteMap[action], changedBy: "admin" } },
+          },
+        });
       });
     }
 

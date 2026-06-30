@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { formatPrice } from "@/lib/utils";
 import { useCartStore } from "@/lib/cart-store";
 import type { Product } from "@/types";
-import { Play, ChevronLeft, ChevronRight, Building2, Package, Truck, Minus, Plus, Star, Clock, Heart } from "lucide-react";
+import { Play, ChevronLeft, ChevronRight, Building2, Package, Truck, Minus, Plus, Star, Clock, Heart, Download } from "lucide-react";
 import CountdownTimer from "@/components/CountdownTimer";
 import { VariantSelector } from "@/components/products/VariantSelector";
 import { ProductTrustBadges } from "@/components/products/ProductTrustBadges";
@@ -77,8 +77,12 @@ export default function ProductDetailPage() {
           .then(r => r.json()).then(d2 => setProductBundles((d2.data || []).filter((b: any) =>
             b.items?.some((i: any) => i.productId === productId)
           )));
-        fetch(`/api/shipping?productId=${productId}`)
-          .then(r => r.json()).then(d2 => { if (d2.success) setShippingInfo(d2.data); });
+        if (d.data.productType !== "digital") {
+          fetch(`/api/shipping?productId=${productId}`)
+            .then(r => r.json()).then(d2 => { if (d2.success) setShippingInfo(d2.data); });
+        } else {
+          setShippingInfo(null);
+        }
       })
       .catch(() => { setPageError("Veri yüklenemedi"); setLoading(false); });
   }, [slug]);
@@ -189,6 +193,7 @@ export default function ProductDetailPage() {
     : null;
   const totalPrice = displayPrice * quantity;
   const stockClass = displayStock > 10 ? "text-green-400" : displayStock > 0 ? "text-yellow-400" : "text-ena-primary";
+  const isDigitalProduct = product.productType === "digital";
 
   const handleAddToCart = () => {
     if (Object.keys(variantGroups).length > 0 && !matchedVariant) {
@@ -459,6 +464,14 @@ export default function ProductDetailPage() {
                 {displayStock > 0 && ` (${displayStock} adet)`}
               </span>
             </div>
+            {isDigitalProduct && (
+              <div className="flex items-center gap-2 text-indigo-300 text-sm">
+                <Download size={14} />
+                <span>
+                  Dijital teslim: {(product.digitalAssetName || product.digitalDeliveryMode || "erişim").toString()}
+                </span>
+              </div>
+            )}
             {displayStock <= 0 && product.backorderable && product.eta && (
               <div className="flex items-center gap-2 text-amber-400 text-xs">
                 <Clock size={13} />

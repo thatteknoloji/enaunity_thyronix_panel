@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Modal } from "@/components/ui/modal";
@@ -15,6 +15,7 @@ import { VARIANT_DISPLAY_LABELS, VARIANT_DISPLAY_MODES } from "@/lib/products/va
 interface Product { id:string; name:string; slug?:string; category:string; price:number; stock:number; sku:string; barcode:string; createdAt:string; minStockLevel:number; maxStockLevel:number; brand:string; tags:string; image?:string; description?:string; _count?:{variants:number}; }
 interface Category { id:string; name:string; parentId?:string|null; }
 interface CampaignRow { id: string; name: string; active: boolean; }
+interface PaginationState { page: number; limit: number; total: number; totalPages: number; }
 
 export default function AdminProductsPage() {
   const [viewMode, setViewMode] = useState<"engine" | "b2b">("b2b");
@@ -22,6 +23,7 @@ export default function AdminProductsPage() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [campaigns, setCampaigns] = useState<CampaignRow[]>([]);
   const [loading, setLoading] = useState(true);
+  const [pagination, setPagination] = useState<PaginationState>({ page: 1, limit: 50, total: 0, totalPages: 1 });
 
   const [search, setSearch] = useState("");
   const [filterCat, setFilterCat] = useState("");
@@ -54,12 +56,26 @@ export default function AdminProductsPage() {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(50);
 
-  const fetchProducts = () => {
-    fetch("/api/admin/products").then(r=>r.json()).then(d=>setProducts(d.data||[])).finally(()=>setLoading(false));
-  };
+  const fetchProducts = useCallback((signal?: AbortSignal) => {
+    const params = new URLSearchParams();
+    if (search.trim()) params.set("search", search.trim());
+    if (filterCat) params.set("category", filterCat);
+    if (filterStock) params.set("stock", filterStock);
+    if (filterPriceMin) params.set("minPrice", filterPriceMin);
+    if (filterPriceMax) params.set("maxPrice", filterPriceMax);
+    params.set("page", String(page));
+    params.set("limit", String(pageSize));
+
+    return fetch(`/api/admin/products?${params.toString()}`, { signal })
+      .then(r=>r.json())
+      .then(d => {
+        setProducts(d.data || []);
+        setPagination(d.pagination || { page, limit: pageSize, total: d.data?.length || 0, totalPages: 1 });
+      })
+      .finally(()=>setLoading(false));
+  }, [filterCat, filterPriceMax, filterPriceMin, filterStock, page, pageSize, search]);
 
   useEffect(() => {
-    fetchProducts();
     fetch("/api/admin/categories").then(r=>r.json()).then(d=>setCategories(d.data||[]));
     fetch("/api/admin/campaigns").then(r=>r.json()).then(d=>setCampaigns((d.data||[]).map((c: CampaignRow)=>({id:c.id,name:c.name,active:c.active}))));
     try {
@@ -75,9 +91,30 @@ export default function AdminProductsPage() {
     } catch { }
   }, []);
 
+  useEffect(() => {
+    const controller = new AbortController();
+    const timeout = window.setTimeout(() => {
+      setLoading(true);
+      fetchProducts(controller.signal).catch(() => setLoading(false));
+    }, 250);
+
+    return () => {
+      controller.abort();
+      window.clearTimeout(timeout);
+    };
+  }, [fetchProducts]);
+
   const handleDelete = async (id: string) => {
     if (!confirm("Bu ürünü silmek istediğinize emin misiniz?")) return;
-    await fetch(`/api/admin/products/${id}`, { method: "DELETE" });
+    const res = await fetch(`/api/admin/products/${id}`, { method: "DELETE" });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || !data.success) {
+      const blockerText = Array.isArray(data?.blockers)
+        ? ` (${data.blockers.map((item: { label: string; count: number }) => `${item.count} ${item.label}`).join(", ")})`
+        : "";
+      toast.error((data?.error || "Silme başarısız") + blockerText);
+      return;
+    }
     fetchProducts(); toast.success("Silindi");
   };
 
@@ -86,8 +123,8 @@ export default function AdminProductsPage() {
   };
 
   const toggleAll = () => {
-    if (selected.size===paginated.length&&paginated.length>0) setSelected(new Set());
-    else setSelected(new Set(paginated.map(p=>p.id)));
+    if (selected.size===products.length&&products.length>0) setSelected(new Set());
+    else setSelected(new Set(products.map(p=>p.id)));
   };
 
   const startBulkAction = (action: string) => {
@@ -115,7 +152,7 @@ export default function AdminProductsPage() {
     if (res.ok) {
       const d = await res.json();
       toast.success(`${d.data?.updated||0} ürün güncellendi`);
-      setSelected(new Set()); setBulkOpen(false); setBulkValue(""); fetchProducts();
+      setSelected(new Set()); setBulkOpen(false); setBulkValue(""); fetchProducts().catch(() => {});
     } else toast.error("İşlem başarısız");
     setBulkLoading(false);
   };
@@ -160,31 +197,23 @@ export default function AdminProductsPage() {
       setVariantBulkPrice("");
       setVariantBulkStock("");
       setVariantBulkOptPrices([]);
-      fetchProducts();
+      fetchProducts().catch(() => {});
     } else toast.error(d.error || "Hata");
     setVariantBulkLoading(false);
   };
-
-  const filtered = products.filter(p => {
-    if (search && !p.name.toLowerCase().includes(search.toLowerCase()) && !p.sku.toLowerCase().includes(search.toLowerCase()) && !p.barcode.toLowerCase().includes(search.toLowerCase()) && !p.brand.toLowerCase().includes(search.toLowerCase()) && !p.tags.toLowerCase().includes(search.toLowerCase())) return false;
-    if (filterCat && p.category !== filterCat) return false;
-    if (filterStock==="low" && p.stock>p.minStockLevel) return false;
-    if (filterStock==="out" && p.stock>0) return false;
-    if (filterStock==="ok" && p.stock<=p.minStockLevel) return false;
-    if (filterPriceMin && p.price<parseFloat(filterPriceMin)) return false;
-    if (filterPriceMax && p.price>parseFloat(filterPriceMax)) return false;
-    return true;
-  });
 
   const hasFilters = search || filterCat || filterStock || filterPriceMin || filterPriceMax;
   const clearFilters = () => { setSearch(""); setFilterCat(""); setFilterStock(""); setFilterPriceMin(""); setFilterPriceMax(""); setPage(1); };
   useEffect(() => { setPage(1); }, [search, filterCat, filterStock, filterPriceMin, filterPriceMax]);
 
-  const totalFiltered = filtered.length;
-  const totalPages = Math.max(1, Math.ceil(totalFiltered / pageSize));
+  const totalFiltered = pagination.total;
+  const totalPages = Math.max(1, pagination.totalPages || 1);
   const safePage = Math.min(page, totalPages);
-  const paginated = filtered.slice((safePage - 1) * pageSize, safePage * pageSize);
+  const paginated = products;
   const goToPage = (p: number) => setPage(Math.max(1, Math.min(p, totalPages)));
+  useEffect(() => {
+    if (page > totalPages) setPage(totalPages);
+  }, [page, totalPages]);
 
   const PAGE_SIZES = [20, 50, 100, 200];
 
@@ -265,7 +294,7 @@ export default function AdminProductsPage() {
         <>
       <ProductsTabs />
       <div className="mb-4 flex items-center justify-between">
-        <div><h1 className="text-2xl font-bold text-gray-900">Ürünler</h1><p className="mt-1 text-sm text-gray-500">Sayfa {safePage}/{totalPages} · {paginated.length} gösteriliyor / {totalFiltered} filtrelenmiş / {products.length} toplam</p></div>
+        <div><h1 className="text-2xl font-bold text-gray-900">Ürünler</h1><p className="mt-1 text-sm text-gray-500">Sayfa {safePage}/{totalPages} · {paginated.length} gösteriliyor / {totalFiltered} filtrelenmiş</p></div>
         <div className="flex flex-wrap gap-2">
           <button onClick={() => setShowFilters(!showFilters)} className={`inline-flex items-center gap-1.5 rounded-lg border px-3 py-2 text-sm transition-colors ${hasFilters?"border-amber-300 bg-amber-50 text-amber-700":"border-gray-200 text-gray-600 hover:bg-gray-50"}`}><Filter size={15}/> Filtre {hasFilters&&"✓"}</button>
           <a href="/api/admin/export?type=products" className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50"><FileDown size={15}/> Excel</a>

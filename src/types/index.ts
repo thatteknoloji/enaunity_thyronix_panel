@@ -36,6 +36,7 @@ export interface Product {
   id: string
   name: string
   description: string
+  productType?: string
   subtitle?: string
   shortDescription?: string
   badgeText?: string
@@ -53,6 +54,13 @@ export interface Product {
   eta: string
   vatRate?: number
   vatIncluded?: boolean
+  digitalDeliveryMode?: string
+  digitalAssetUrl?: string
+  digitalAssetName?: string
+  digitalAccessInstructions?: string
+  digitalDownloadLimit?: number
+  digitalLicenseTemplate?: string
+  digitalRequiresApproval?: boolean
   createdAt: string
 }
 

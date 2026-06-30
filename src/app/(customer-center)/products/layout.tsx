@@ -2,11 +2,12 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Package, CreditCard, FileText, LifeBuoy, Shield } from "lucide-react";
+import { CreditCard, Download, FileText, LifeBuoy, Package, Shield } from "lucide-react";
 
 const NAV = [
   { href: "/products", label: "Ürünlerim", icon: Package },
   { href: "/products/licenses", label: "Lisanslar", icon: Shield },
+  { href: "/products/digital-library", label: "Dijital Ürünler", icon: Download },
   { href: "/products/payments", label: "Ödemeler", icon: CreditCard },
   { href: "/products/invoices", label: "Faturalar", icon: FileText },
   { href: "/products/support", label: "Destek", icon: LifeBuoy },

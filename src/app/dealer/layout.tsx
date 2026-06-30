@@ -6,7 +6,7 @@ import Link from "next/link";
 import {
   LayoutDashboard, ShoppingCart, User, LogOut, ChevronLeft, ChevronRight, Home, Store, Wallet,
   FileText, Users, RotateCcw, Bell, ReceiptText, Menu, Upload, Heart, Zap, MapPin,
-  FileSignature, Truck, Plug, Package, Handshake, Sparkles, LineChart, Shirt, Image, Layers, FolderKanban,
+  FileSignature, Truck, Plug, Package, Handshake, Sparkles, LineChart, Shirt, Image, Layers, FolderKanban, Download,
   type LucideIcon,
 } from "lucide-react";
 import NotificationBell from "@/components/NotificationBell";
@@ -52,6 +52,7 @@ function buildStaticGroups(t: (key: string) => string): NavGroup[] {
       items: [
         { href: "/dealer/my-products", label: "Bayi Ürünlerim", icon: Package },
         { href: "/dealer/product-library", label: "Hazır Ürünler", icon: Package },
+        { href: "/dealer/digital-library", label: "Dijital Kütüphane", icon: Download },
         { href: "/dealer/manual-order", label: "Manuel Sipariş", icon: Upload },
         { href: "/dealer/fulfillment/orders", label: "Fulfillment Siparişleri", icon: ShoppingCart },
         { href: "/dealer/fulfillment/shipments", label: "Kargolarım", icon: Truck },

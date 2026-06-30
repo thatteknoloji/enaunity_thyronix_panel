@@ -1,6 +1,11 @@
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db";
 import { slugify } from "@/lib/utils";
+import {
+  buildDigitalDeliverySnapshot,
+  normalizeDigitalDeliveryMode,
+  normalizeProductType,
+} from "@/lib/products/digital-delivery";
 
 type DbClient = typeof prisma | Prisma.TransactionClient;
 
@@ -22,6 +27,7 @@ export interface AdminVariantInput {
 export interface NormalizedAdminProductPayload {
   name: string;
   description: string;
+  productType: string;
   price: number;
   image: string;
   images: string;
@@ -41,6 +47,14 @@ export interface NormalizedAdminProductPayload {
   eta: string;
   vatRate: number;
   vatIncluded: boolean;
+  digitalDeliveryMode: string;
+  digitalAssetUrl: string;
+  digitalAssetName: string;
+  digitalAccessInstructions: string;
+  digitalDownloadLimit: number;
+  digitalLicenseTemplate: string;
+  digitalLicensePoolBulk: string;
+  digitalRequiresApproval: boolean;
   specs: string;
   variantDisplayMode: string;
   salePrice: number;
@@ -70,6 +84,17 @@ export interface DuplicateProbePayload {
   barcode?: string;
   modelCode?: string;
   variants?: Array<{ sku?: string; barcode?: string }>;
+}
+
+function parseLicensePoolBulk(value: string) {
+  return Array.from(
+    new Set(
+      value
+        .split(/\r?\n/)
+        .map((line) => line.trim())
+        .filter(Boolean),
+    ),
+  );
 }
 
 function text(value: unknown) {
@@ -194,6 +219,7 @@ export function validateAdminProductPayload(raw: Record<string, unknown>) {
   const payload: NormalizedAdminProductPayload = {
     name: text(raw.name),
     description: text(raw.description),
+    productType: normalizeProductType(raw.productType),
     price: numberValue(raw.price),
     image: gallery.image,
     images: gallery.images,
@@ -213,6 +239,14 @@ export function validateAdminProductPayload(raw: Record<string, unknown>) {
     eta: text(raw.eta),
     vatRate: numberValue(raw.vatRate, 20),
     vatIncluded: boolValue(raw.vatIncluded, true),
+    digitalDeliveryMode: normalizeDigitalDeliveryMode(raw.digitalDeliveryMode),
+    digitalAssetUrl: text(raw.digitalAssetUrl),
+    digitalAssetName: text(raw.digitalAssetName),
+    digitalAccessInstructions: text(raw.digitalAccessInstructions),
+    digitalDownloadLimit: integerValue(raw.digitalDownloadLimit),
+    digitalLicenseTemplate: text(raw.digitalLicenseTemplate),
+    digitalLicensePoolBulk: text(raw.digitalLicensePoolBulk),
+    digitalRequiresApproval: boolValue(raw.digitalRequiresApproval),
     specs: JSON.stringify(specs),
     variantDisplayMode: text(raw.variantDisplayMode) || "buttons",
     salePrice: numberValue(raw.salePrice),
@@ -241,8 +275,26 @@ export function validateAdminProductPayload(raw: Record<string, unknown>) {
   if (payload.salePrice > 0 && payload.salePrice > payload.price) {
     errors.push("İndirimli fiyat ürün fiyatından büyük olamaz.");
   }
-  if (payload.backorderable && !payload.eta) {
+  if (payload.backorderable && !payload.eta && payload.productType !== "digital") {
     errors.push("Ön sipariş için tahmini teslimat girilmeli.");
+  }
+  if (payload.productType === "digital") {
+    if (!payload.digitalDeliveryMode) {
+      errors.push("Dijital ürün için teslim modeli seçilmeli.");
+    }
+    if (
+      payload.digitalDeliveryMode === "download" &&
+      !payload.digitalAssetUrl &&
+      !payload.digitalLicenseTemplate
+    ) {
+      errors.push("İndirme tipi dijital ürün için dosya/link veya içerik girilmeli.");
+    }
+    if (payload.digitalDeliveryMode === "external_access" && !payload.digitalAssetUrl) {
+      errors.push("Harici erişim tipi için erişim linki zorunlu.");
+    }
+    if (payload.digitalDeliveryMode === "license" && !payload.digitalLicenseTemplate) {
+      errors.push("Lisans tipi için anahtar veya şablon girilmeli.");
+    }
   }
 
   const seenGroupNames = new Set<string>();
@@ -281,6 +333,25 @@ export function validateAdminProductPayload(raw: Record<string, unknown>) {
 
   if (payload.variants.length > 0) {
     payload.stock = payload.variants.reduce((sum, variant) => sum + Math.max(0, variant.stock), 0);
+  }
+
+  if (payload.productType === "digital") {
+    payload.weight = 0;
+    payload.dimensions = "";
+    payload.backorderable = false;
+    payload.eta = "";
+    if (payload.variants.length === 0) {
+      payload.stock = Math.max(0, payload.stock);
+    }
+  } else {
+    payload.digitalDeliveryMode = "";
+    payload.digitalAssetUrl = "";
+    payload.digitalAssetName = "";
+    payload.digitalAccessInstructions = "";
+    payload.digitalDownloadLimit = 0;
+    payload.digitalLicenseTemplate = "";
+    payload.digitalLicensePoolBulk = "";
+    payload.digitalRequiresApproval = false;
   }
 
   return { payload, errors };
@@ -410,6 +481,46 @@ async function ensureProductSlug(
   }
 }
 
+async function syncDigitalLicensePool(
+  db: DbClient,
+  productId: string,
+  payload: NormalizedAdminProductPayload,
+) {
+  const shouldManagePool = payload.productType === "digital" && payload.digitalDeliveryMode === "license";
+  const desiredCodes = shouldManagePool ? parseLicensePoolBulk(payload.digitalLicensePoolBulk) : [];
+  const desiredSet = new Set(desiredCodes);
+  const existing = await db.digitalLicensePoolItem.findMany({ where: { productId } });
+
+  for (const row of existing) {
+    if (row.status === "assigned") continue;
+    if (!shouldManagePool || !desiredSet.has(row.code)) {
+      await db.digitalLicensePoolItem.update({
+        where: { id: row.id },
+        data: { status: "archived" },
+      });
+      continue;
+    }
+
+    if (row.status === "archived") {
+      await db.digitalLicensePoolItem.update({
+        where: { id: row.id },
+        data: { status: "available" },
+      });
+    }
+  }
+
+  const missing = desiredCodes.filter((code) => !existing.some((row) => row.code === code));
+  if (missing.length > 0) {
+    await db.digitalLicensePoolItem.createMany({
+      data: missing.map((code) => ({
+        productId,
+        code,
+        status: "available",
+      })),
+    });
+  }
+}
+
 export async function saveAdminProductGraph(
   payload: NormalizedAdminProductPayload,
   options: { productId?: string } = {},
@@ -422,10 +533,12 @@ export async function saveAdminProductGraph(
       payload.variants.length > 0
         ? payload.variants.reduce((sum, variant) => sum + Math.max(0, variant.stock), 0)
         : payload.stock;
+    const digitalSnapshot = buildDigitalDeliverySnapshot(payload);
 
     const productData = {
       name: payload.name,
       description: payload.description || payload.name,
+      productType: payload.productType,
       price: payload.price,
       image: payload.image || "/placeholder.svg",
       images: payload.images,
@@ -454,6 +567,13 @@ export async function saveAdminProductGraph(
       eta: payload.eta,
       vatRate: payload.vatRate,
       vatIncluded: payload.vatIncluded,
+      digitalDeliveryMode: digitalSnapshot.mode,
+      digitalAssetUrl: digitalSnapshot.assetUrl,
+      digitalAssetName: digitalSnapshot.assetName,
+      digitalAccessInstructions: digitalSnapshot.instructions,
+      digitalDownloadLimit: digitalSnapshot.downloadLimit,
+      digitalLicenseTemplate: digitalSnapshot.licenseTemplate,
+      digitalRequiresApproval: digitalSnapshot.requiresApproval,
       slug,
     };
 
@@ -514,6 +634,8 @@ export async function saveAdminProductGraph(
         })),
       });
     }
+
+    await syncDigitalLicensePool(tx, product.id, payload);
 
     return product;
   });

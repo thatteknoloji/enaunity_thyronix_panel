@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import toast from "react-hot-toast";
-import { ArrowLeft, Plus, Package, Upload, FileText, Trash2 } from "lucide-react";
+import { ArrowLeft, Plus, Package, Upload, FileText, Trash2, Pencil } from "lucide-react";
 import { parseVariants, type DealerProductVariant } from "@/lib/dealer-products/types";
 
 type Product = {
@@ -20,6 +20,7 @@ type Product = {
 export default function DealerMyProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [showForm, setShowForm] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState({
     name: "",
     description: "",
@@ -38,6 +39,51 @@ export default function DealerMyProductsPage() {
   }, []);
 
   useEffect(() => { load(); }, [load]);
+
+  const resetForm = () => {
+    setEditingId(null);
+    setForm({
+      name: "",
+      description: "",
+      imageUrl: "",
+      specPdfUrl: "",
+      basePrice: "0",
+      variantLabel: "",
+      variantPrice: "",
+    });
+  };
+
+  const removeProduct = async (id: string) => {
+    if (!confirm("Bu bayi ürünü silinsin mi?")) return;
+    const r = await fetch("/api/dealer/my-products", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id }),
+    });
+    const d = await r.json();
+    if (d.success) {
+      toast.success("Ürün silindi");
+      load();
+      return;
+    }
+    toast.error(d.error || "Silme başarısız");
+  };
+
+  const startEdit = (product: Product) => {
+    const variants = parseVariants(product.variantsJson);
+    const primaryVariant = variants[0];
+    setEditingId(product.id);
+    setForm({
+      name: product.name,
+      description: product.description || "",
+      imageUrl: product.imageUrl,
+      specPdfUrl: product.specPdfUrl,
+      basePrice: String(product.basePrice || 0),
+      variantLabel: primaryVariant?.label || "",
+      variantPrice: primaryVariant ? String(primaryVariant.price || 0) : "",
+    });
+    setShowForm(true);
+  };
 
   const uploadFile = async (file: File, kind: "image" | "pdf") => {
     setUploading(kind);
@@ -68,9 +114,10 @@ export default function DealerMyProductsPage() {
       });
     }
     const r = await fetch("/api/dealer/my-products", {
-      method: "POST",
+      method: editingId ? "PUT" : "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
+        ...(editingId ? { id: editingId } : {}),
         name: form.name,
         description: form.description,
         imageUrl: form.imageUrl,
@@ -81,9 +128,9 @@ export default function DealerMyProductsPage() {
     });
     const d = await r.json();
     if (d.success) {
-      toast.success("Ürün eklendi");
+      toast.success(editingId ? "Ürün güncellendi" : "Ürün eklendi");
       setShowForm(false);
-      setForm({ name: "", description: "", imageUrl: "", specPdfUrl: "", basePrice: "0", variantLabel: "", variantPrice: "" });
+      resetForm();
       load();
     } else toast.error(d.error || "Hata");
   };
@@ -99,7 +146,7 @@ export default function DealerMyProductsPage() {
           </div>
         </div>
         <button
-          onClick={() => setShowForm(true)}
+          onClick={() => { resetForm(); setShowForm(true); }}
           className="inline-flex items-center gap-1 px-3 py-2 bg-gray-900 text-white rounded-lg text-sm"
         >
           <Plus size={16} /> Ürün Ekle
@@ -135,6 +182,20 @@ export default function DealerMyProductsPage() {
                     <Link href={`/dealer/manual-order?product=${p.id}`} className="text-emerald-600 hover:underline">
                       Sipariş ver →
                     </Link>
+                    <button
+                      type="button"
+                      onClick={() => startEdit(p)}
+                      className="text-sky-600 hover:underline inline-flex items-center gap-1"
+                    >
+                      <Pencil size={12} /> Düzenle
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => removeProduct(p.id)}
+                      className="text-red-600 hover:underline inline-flex items-center gap-1"
+                    >
+                      <Trash2 size={12} /> Sil
+                    </button>
                   </div>
                 </div>
               </div>
@@ -144,9 +205,9 @@ export default function DealerMyProductsPage() {
       </div>
 
       {showForm && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4" onClick={() => setShowForm(false)}>
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4" onClick={() => { setShowForm(false); resetForm(); }}>
           <form onSubmit={submit} className="bg-white rounded-xl max-w-md w-full p-6 space-y-3" onClick={(e) => e.stopPropagation()}>
-            <h3 className="font-bold text-lg">Yeni Bayi Ürünü</h3>
+            <h3 className="font-bold text-lg">{editingId ? "Bayi Ürününü Düzenle" : "Yeni Bayi Ürünü"}</h3>
             <input required placeholder="Ürün adı" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })}
               className="w-full rounded border px-3 py-2 text-sm" />
             <textarea placeholder="Açıklama (opsiyonel)" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })}
@@ -171,8 +232,8 @@ export default function DealerMyProductsPage() {
               <p className="text-xs text-emerald-600">Dosyalar hazır ✓</p>
             )}
             <div className="flex gap-2 pt-2">
-              <button type="submit" disabled={!form.imageUrl || !form.specPdfUrl} className="flex-1 py-2 bg-gray-900 text-white rounded-lg text-sm disabled:opacity-40">Kaydet</button>
-              <button type="button" onClick={() => setShowForm(false)} className="px-4 py-2 text-sm text-gray-500">İptal</button>
+              <button type="submit" disabled={!form.imageUrl || !form.specPdfUrl} className="flex-1 py-2 bg-gray-900 text-white rounded-lg text-sm disabled:opacity-40">{editingId ? "Güncelle" : "Kaydet"}</button>
+              <button type="button" onClick={() => { setShowForm(false); resetForm(); }} className="px-4 py-2 text-sm text-gray-500">İptal</button>
             </div>
           </form>
         </div>

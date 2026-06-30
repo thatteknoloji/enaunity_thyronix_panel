@@ -71,14 +71,24 @@ export default function DealerOrdersPage() {
     if (opt && "filter" in opt && opt.filter === "sourceType") params.set("sourceType", statusFilter);
     else if (opt && "filter" in opt && opt.filter === "fulfillmentStatus") params.set("fulfillmentStatus", statusFilter);
     else if (statusFilter) params.set("status", statusFilter);
+    if (search.trim()) params.set("search", search.trim());
 
-    fetch(`/api/dealer/orders?${params}`)
-      .then((r) => r.json())
-      .then((d) => {
-        if (d.success) setOrders(d.data);
-      })
-      .finally(() => setLoading(false));
-  }, [statusFilter]);
+    const controller = new AbortController();
+    const timeout = window.setTimeout(() => {
+      setLoading(true);
+      fetch(`/api/dealer/orders?${params}`, { signal: controller.signal })
+        .then((r) => r.json())
+        .then((d) => {
+          if (d.success) setOrders(d.data);
+        })
+        .finally(() => setLoading(false));
+    }, 250);
+
+    return () => {
+      controller.abort();
+      window.clearTimeout(timeout);
+    };
+  }, [search, statusFilter]);
 
   const filtered = orders.filter((o) => {
     const matchSearch = search === "" ||

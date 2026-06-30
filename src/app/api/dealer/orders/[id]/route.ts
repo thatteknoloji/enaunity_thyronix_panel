@@ -4,7 +4,7 @@ import { requireDealer } from "@/lib/auth";
 import { addDealerBalance } from "@/lib/dealer-pricing";
 import { sendEmail } from "@/lib/notifications";
 import { getOrderStockStatus } from "@/lib/orders/order-stock-service";
-import { rejectPayment } from "@/lib/payments/payment-service";
+import { syncDigitalAccessGrants } from "@/lib/products/digital-access";
 
 const EDITABLE_STATUSES = new Set(["pending", "pending_approval", "waiting_payment"]);
 
@@ -26,7 +26,8 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
       return NextResponse.json({ success: false, error: "Sipariş bulunamadı" }, { status: 404 });
     }
     const warehouseStatus = await getOrderStockStatus(order.id);
-    return NextResponse.json({ success: true, data: { ...order, warehouseStatus } });
+    const digitalDeliveries = await syncDigitalAccessGrants(order.id);
+    return NextResponse.json({ success: true, data: { ...order, warehouseStatus, digitalDeliveries } });
   } catch {
     return NextResponse.json({ success: false, error: "Hata" }, { status: 500 });
   }
@@ -76,48 +77,78 @@ export async function PUT(_req: Request, { params }: { params: Promise<{ id: str
       return NextResponse.json({ success: true, data: updated });
     }
 
-    if (order.status === "waiting_payment") {
-      const payment = await prisma.modulePayment.findFirst({
-        where: {
-          dealerId: user.dealerId!,
-          moduleKey: "B2B_ORDER",
-          planKey: id,
-          status: { in: ["PENDING", "WAITING_PAYMENT", "MANUAL_REVIEW"] },
-        },
-      });
-
-      if (payment) {
-        await rejectPayment(payment.id);
-      } else {
-        await prisma.order.update({
-          where: { id },
-          data: { status: "cancelled" },
+    const updated = await prisma.$transaction(async (tx) => {
+      if (order.status === "waiting_payment") {
+        const payment = await tx.modulePayment.findFirst({
+          where: {
+            dealerId: user.dealerId!,
+            moduleKey: "B2B_ORDER",
+            planKey: id,
+            status: { in: ["PENDING", "WAITING_PAYMENT", "MANUAL_REVIEW"] },
+          },
         });
+
+        if (payment) {
+          await tx.modulePayment.update({
+            where: { id: payment.id },
+            data: { status: "FAILED" },
+          });
+        }
       }
-    } else {
-      await prisma.order.update({
+
+      if (order.status === "pending_approval") {
+        await addDealerBalance(
+          user.dealerId!,
+          order.total,
+          id,
+          "REFUND",
+          `Bayi iptal iadesi #${id.slice(0, 8)}`,
+          tx
+        );
+      }
+
+      const cancelledOrder = await tx.order.update({
         where: { id },
-        data: { status: "cancelled" },
-      });
-    }
-
-    if (order.status === "pending_approval") {
-      await addDealerBalance(user.dealerId!, order.total);
-    }
-
-    const updated = await prisma.order.update({
-      where: { id },
-      data: {
-        status: "cancelled",
-        statusHistory: {
-          create: {
-            status: "cancelled",
-            note: "Bayi tarafından iptal edildi",
-            changedBy: "dealer",
+        data: {
+          status: "cancelled",
+          statusHistory: {
+            create: {
+              status: "cancelled",
+              note: "Bayi tarafından iptal edildi",
+              changedBy: "dealer",
+            },
           },
         },
-      },
-      include: { items: true },
+        include: { items: true },
+      });
+
+      if (order.status !== "pending_approval" && order.status !== "waiting_payment") {
+        const stockItems = cancelledOrder.items.filter((item) => item.productId);
+        await Promise.all(
+          stockItems.map((item) =>
+            tx.stockMovement.create({
+              data: {
+                productId: item.productId!,
+                type: "return",
+                quantity: item.quantity,
+                note: `İptal #${id.slice(0, 8)}`,
+                orderId: id,
+              },
+            })
+          )
+        );
+
+        await Promise.all(
+          stockItems.map((item) =>
+            tx.product.update({
+              where: { id: item.productId! },
+              data: { stock: { increment: item.quantity } },
+            })
+          )
+        );
+      }
+
+      return cancelledOrder;
     });
 
     const dealer = await prisma.dealer.findUnique({ where: { id: user.dealerId! } });
@@ -129,32 +160,7 @@ export async function PUT(_req: Request, { params }: { params: Promise<{ id: str
       }).catch(() => {});
     }
 
-    // Only return stock if it was already deducted.
-    if (order.status !== "pending_approval" && order.status !== "waiting_payment") {
-      const stockItems = updated.items.filter((item) => item.productId);
-      await Promise.all(
-        stockItems.map((item) =>
-          prisma.stockMovement.create({
-            data: {
-              productId: item.productId!,
-              type: "return",
-              quantity: item.quantity,
-              note: `İptal #${id.slice(0, 8)}`,
-              orderId: id,
-            },
-          })
-        )
-      );
-
-      await Promise.all(
-        stockItems.map((item) =>
-          prisma.product.update({
-            where: { id: item.productId! },
-            data: { stock: { increment: item.quantity } },
-          })
-        )
-      );
-    }
+    await syncDigitalAccessGrants(id).catch(() => {});
 
     return NextResponse.json({ success: true, data: updated });
   } catch {

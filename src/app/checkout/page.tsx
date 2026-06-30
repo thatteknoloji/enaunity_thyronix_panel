@@ -148,10 +148,11 @@ export default function CheckoutPage() {
   }, [items.length]);
 
   const rawTotal = items.reduce((sum, i) => sum + (i.effectivePrice ?? i.product.price) * i.quantity, 0);
+  const allDigital = items.length > 0 && items.every((item) => item.product.productType === "digital");
   const termFeeAmount = paymentTerm?.rate ? Math.round(rawTotal * (paymentTerm.rate / 100) * 100) / 100 : 0;
   const selectedPlatform = PLATFORMS.find(p => p.value === platform);
   const isOwnSite = platform === "own";
-  const effectiveShipping = campaignFreeShip ? 0 : (isOwnSite ? shippingCost : 0);
+  const effectiveShipping = allDigital ? 0 : campaignFreeShip ? 0 : (isOwnSite ? shippingCost : 0);
   const total = rawTotal - couponDiscount - campaignDiscount + termFeeAmount + effectiveShipping;
   const vatBreakdown = useMemo(() => buildCartVatBreakdown(items), [items]);
   const checkoutExtraLines = useMemo(() => {
@@ -170,13 +171,13 @@ export default function CheckoutPage() {
   const dealerCreditEnabled = Boolean(dealer && (dealerCreditLimit > 0 || dealer.allowNegative));
   const dealerCreditCapacity = dealerCreditLimit + dealerOpeningBalance;
   const dealerCreditExceeded = dealerCreditEnabled && !dealer?.allowNegative && dealerCreditLimit > 0 && total > dealerCreditCapacity;
-  const dealerAddressesReady = Boolean(invoiceAddress.trim() && (sameAddress ? invoiceAddress.trim() : deliveryAddress.trim()));
+  const dealerAddressesReady = Boolean(invoiceAddress.trim() && (allDigital || sameAddress ? invoiceAddress.trim() : deliveryAddress.trim()));
   const shouldPersistDealerAddresses = Boolean(
     isDealer &&
       dealerAddressesReady &&
       (
         invoiceAddress.trim() !== String(dealer?.billingAddress || "").trim() ||
-        (sameAddress ? invoiceAddress.trim() : deliveryAddress.trim()) !== String(dealer?.shippingAddress || "").trim() ||
+        (allDigital ? invoiceAddress.trim() : (sameAddress ? invoiceAddress.trim() : deliveryAddress.trim())) !== String(dealer?.shippingAddress || "").trim() ||
         taxId.trim() !== String(dealer?.taxNumber || "").trim()
       )
   );
@@ -220,7 +221,7 @@ export default function CheckoutPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           billingAddress: invoiceAddress.trim(),
-          shippingAddress: sameAddress ? invoiceAddress.trim() : deliveryAddress.trim(),
+          shippingAddress: allDigital ? invoiceAddress.trim() : sameAddress ? invoiceAddress.trim() : deliveryAddress.trim(),
           taxNumber: taxId.trim(),
         }),
       });
@@ -233,7 +234,7 @@ export default function CheckoutPage() {
         setDealer((current) => current ? ({
           ...current,
           billingAddress: invoiceAddress.trim(),
-          shippingAddress: sameAddress ? invoiceAddress.trim() : deliveryAddress.trim(),
+          shippingAddress: allDigital ? invoiceAddress.trim() : sameAddress ? invoiceAddress.trim() : deliveryAddress.trim(),
           taxNumber: taxId.trim(),
         }) : current);
         return true;
@@ -264,8 +265,8 @@ export default function CheckoutPage() {
 
     try {
       if (!platform) { setError("Lütfen bir platform seçin"); scrollToPaymentError(); return false; }
-      const addrToCheck = sameAddress ? invoiceAddress : deliveryAddress;
-      if (!invoiceAddress.trim() || !addrToCheck.trim()) { setError("Adres bilgilerini doldurun"); scrollToPaymentError(); return false; }
+      const addrToCheck = allDigital || sameAddress ? invoiceAddress : deliveryAddress;
+      if (!invoiceAddress.trim() || (!allDigital && !addrToCheck.trim())) { setError(allDigital ? "Fatura adresini doldurun" : "Adres bilgilerini doldurun"); scrollToPaymentError(); return false; }
       if (canUseDealerPayment && !paymentMethod && !paymentMode) {
         setError("Bayi siparişi için lütfen bir ödeme yöntemi seçin.");
         return false;
@@ -302,8 +303,8 @@ export default function CheckoutPage() {
         company,
         taxId,
         invoiceAddress,
-        deliveryAddress: sameAddress ? invoiceAddress : deliveryAddress,
-        sameAddress,
+        deliveryAddress: allDigital ? invoiceAddress : sameAddress ? invoiceAddress : deliveryAddress,
+        sameAddress: allDigital ? true : sameAddress,
         couponDiscount,
         campaignDiscount,
         campaignLabel,
@@ -645,9 +646,21 @@ export default function CheckoutPage() {
           {platform && (
             <div className="mt-3 text-xs text-ena-light leading-relaxed bg-ena-dark/30 rounded-2xl p-3">
               {isOwnSite ? (
-                <span>Kendi sitenizden gelen siparişlerde <strong className="text-ena-text">kargo ücreti {formatPrice(effectiveShipping)}</strong> sepete yansıtılır. Fatura ve teslimat adreslerini ayrı ayrı girebilirsiniz.</span>
+                <span>
+                  {allDigital ? (
+                    <>Bu sipariş tamamen <strong className="text-ena-text">dijital ürün</strong> içeriyor. Kargo ve fiziksel teslimat akışı kapalı, ödeme sonrası erişim açılır.</>
+                  ) : (
+                    <>Kendi sitenizden gelen siparişlerde <strong className="text-ena-text">kargo ücreti {formatPrice(effectiveShipping)}</strong> sepete yansıtılır. Fatura ve teslimat adreslerini ayrı ayrı girebilirsiniz.</>
+                  )}
+                </span>
               ) : (
-                <span>Pazaryeri siparişlerinde <strong className="text-ena-text">kargo ücretsizdir</strong>. Fatura adresi bayi adresiniz, teslimat adresi ise kargo şablonundaki adrestir.</span>
+                <span>
+                  {allDigital ? (
+                    <>Bu siparişte yalnızca <strong className="text-ena-text">dijital teslim</strong> var. Pazaryeri seçimi korunur ama kargo alanları devre dışı kalır.</>
+                  ) : (
+                    <>Pazaryeri siparişlerinde <strong className="text-ena-text">kargo ücretsizdir</strong>. Fatura adresi bayi adresiniz, teslimat adresi ise kargo şablonundaki adrestir.</>
+                  )}
+                </span>
               )}
             </div>
           )}
@@ -689,19 +702,25 @@ export default function CheckoutPage() {
             <div className="space-y-4">
               <Input id="invoiceAddress" label="Fatura Adresi" placeholder="Mahalle, Sokak, Apartman, Daire, Şehir..." value={invoiceAddress} onChange={(e) => setInvoiceAddress(e.target.value)} required />
 
-              <div className="flex items-center gap-2">
-                <input type="checkbox" id="sameAddress" checked={sameAddress} onChange={e => setSameAddress(e.target.checked)} className="rounded border-ena-border bg-ena-card/60" />
-                <label htmlFor="sameAddress" className="text-sm text-ena-light">Teslimat adresi fatura adresi ile aynı</label>
-              </div>
+              {!allDigital ? (
+                <div className="flex items-center gap-2">
+                  <input type="checkbox" id="sameAddress" checked={sameAddress} onChange={e => setSameAddress(e.target.checked)} className="rounded border-ena-border bg-ena-card/60" />
+                  <label htmlFor="sameAddress" className="text-sm text-ena-light">Teslimat adresi fatura adresi ile aynı</label>
+                </div>
+              ) : (
+                <div className="rounded-2xl border border-indigo-400/30 bg-indigo-500/10 p-3 text-xs text-indigo-100">
+                  Bu sipariş dijital ürün içerdiği için teslimat adresi ve kargo akışı kapatıldı. Fatura adresi sipariş kaydı için kullanılacak.
+                </div>
+              )}
 
-              {!sameAddress && (
+              {!sameAddress && !allDigital && (
                 <div>
                   <Input id="deliveryAddress" label="Teslimat Adresi" placeholder="Mahalle, Sokak, Apartman, Daire, Şehir..." value={deliveryAddress} onChange={(e) => setDeliveryAddress(e.target.value)} required />
                   {isOwnSite && <p className="text-xs text-amber-400 mt-1">Kendi sitem siparişlerinde teslimat adresi fatura adresinden farklıysa mutlaka eksiksiz doldurulmalıdır.</p>}
                 </div>
               )}
 
-              {platform && !isOwnSite && (
+              {platform && !isOwnSite && !allDigital && (
                 <div className="text-xs text-ena-light bg-ena-dark/30 rounded-2xl p-3 leading-relaxed border border-ena-border">
                   <strong className="text-ena-text">Pazaryeri siparişlerinde adres akışı</strong><br />
                   Fatura adresi olarak bayi adresiniz kullanılır. Teslimat ise pazaryeri kargo şablonundaki kayıtlı adrese göre ilerler.
@@ -711,7 +730,7 @@ export default function CheckoutPage() {
           </div>
         </div>
 
-        {isOwnSite && shippingCost > 0 && (
+        {isOwnSite && shippingCost > 0 && !allDigital && (
           <div className="flex justify-between text-sm text-ena-light border-t border-ena-border pt-2">
             <span>Kargo Ücreti</span>
             <span className="font-bold text-ena-text">{formatPrice(effectiveShipping)}</span>

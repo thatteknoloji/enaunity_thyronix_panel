@@ -29,6 +29,8 @@ import {
   type PaymentMode,
 } from "@/lib/payments/checkout-payment-service";
 import { recordCartActivity } from "@/lib/cart/cart-observer-service";
+import { buildDigitalDeliverySnapshot, isDigitalProduct } from "@/lib/products/digital-delivery";
+import { syncDigitalAccessGrants } from "@/lib/products/digital-access";
 
 export async function GET() {
   try {
@@ -107,6 +109,8 @@ export async function POST(req: Request) {
     );
 
     const total = itemDetails.reduce((sum, item) => sum + item.effectivePrice * item.quantity, 0);
+    const containsDigital = itemDetails.some((item) => isDigitalProduct(item.product));
+    const allDigital = itemDetails.length > 0 && itemDetails.every((item) => isDigitalProduct(item.product));
 
     let finalDiscount = 0;
     if (couponId && discount) {
@@ -127,7 +131,7 @@ export async function POST(req: Request) {
     const totalDiscount = Math.min(total, finalDiscount + campaignDiscount);
     const subTotal = total - totalDiscount;
     const termFee = (paymentTermRate && paymentTermRate > 0) ? total * (paymentTermRate / 100) : 0;
-    const shipping = typeof shippingCost === "number" && shippingCost > 0 ? shippingCost : 0;
+    const shipping = allDigital ? 0 : typeof shippingCost === "number" && shippingCost > 0 ? shippingCost : 0;
     const finalTotal = subTotal + termFee + (campaignFreeShip ? 0 : shipping);
 
     const method = (paymentMethod || "DEALER_ACCOUNT") as ProductLibraryPaymentMethod | "DEALER_ACCOUNT" | "SPLIT";
@@ -255,6 +259,7 @@ export async function POST(req: Request) {
 
     let hasBackorder = false;
     for (const item of itemDetails) {
+      if (isDigitalProduct(item.product)) continue;
       if (item.product.backorderable && item.product.stock < item.quantity) {
         hasBackorder = true;
         break;
@@ -295,6 +300,8 @@ export async function POST(req: Request) {
       campaignLabel,
       campaignFreeShip,
       shippingCost: campaignFreeShip ? 0 : shipping,
+      containsDigital,
+      allDigital,
       paymentMethod: gatewayMethod,
       paymentMode: paymentMode || null,
       installmentCount: useGatewayPayment ? installmentCount : undefined,
@@ -333,6 +340,10 @@ export async function POST(req: Request) {
             productId: item.productId,
             quantity: item.quantity,
             price: item.effectivePrice,
+            metadataJson: JSON.stringify({
+              productType: item.product.productType || "physical",
+              digitalDelivery: buildDigitalDeliverySnapshot(item.product),
+            }),
           })),
         },
         statusHistory: {
@@ -349,6 +360,8 @@ export async function POST(req: Request) {
       },
       include: { items: { include: { product: true } } },
     });
+
+    await syncDigitalAccessGrants(order.id).catch(() => {});
 
     await recordCartActivity({
       cartId: cart.id,
@@ -473,6 +486,7 @@ export async function POST(req: Request) {
 
       if (!result.success) {
         await prisma.order.update({ where: { id: order.id }, data: { status: "cancelled" } });
+        await syncDigitalAccessGrants(order.id).catch(() => {});
         return NextResponse.json({ success: false, error: result.message || "Ödeme başlatılamadı" }, { status: 400 });
       }
 

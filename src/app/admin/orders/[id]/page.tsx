@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import type { ComponentType } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
+import toast from "react-hot-toast";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { formatDate, formatPrice } from "@/lib/utils";
@@ -15,14 +16,23 @@ import {
   Copy,
   ExternalLink,
   FileText,
+  Link2,
+  Lock,
   MapPin,
   Package,
   Paperclip,
+  Send,
   Truck,
+  Unlock,
   User,
   Wallet,
 } from "lucide-react";
 import { getOrderPaymentInfo } from "@/lib/orders/payment-metadata";
+import {
+  canUnlockDigitalDelivery,
+  digitalModeLabel,
+  parseDigitalDeliverySnapshot,
+} from "@/lib/products/digital-delivery";
 
 type DetailOrder = {
   id: string;
@@ -49,6 +59,7 @@ type DetailOrder = {
     id: string;
     quantity: number;
     price: number;
+    metadataJson?: string | null;
     product?: { name?: string; image?: string } | null;
     productCatalogItem?: { name?: string; imagesJson?: string } | null;
   }>;
@@ -56,6 +67,25 @@ type DetailOrder = {
   attachments?: Array<{ id: string; fileName: string; fileUrl: string; fileType: string }>;
   payments?: Array<{ id: string; amount: number; type: string; status: string; note: string; createdAt: string }>;
   invoices?: Array<{ id: string; number: string; status: string; paymentStatus: string; total: number; pdfUrl: string; createdAt: string }>;
+  digitalDeliveries?: Array<{
+    id: string;
+    orderItemId: string;
+    productName: string;
+    mode: string;
+    modeLabel: string;
+    status: string;
+    statusLabel: string;
+    canAccess: boolean;
+    assetName: string;
+    assetUrl: string;
+    accessInstructions: string;
+    licenseValue: string;
+    licenseSource: string;
+    downloadLimit: number;
+    downloadCount: number;
+    lastAccessedAt: string | null;
+    logs: Array<{ id: string; eventType: string; actorType: string; note: string; createdAt: string }>;
+  }>;
   warehouseStatus?: {
     reserved: boolean;
     hasWarnings: boolean;
@@ -125,6 +155,19 @@ function parseMetadata(value?: string | null) {
   }
 }
 
+function getCatalogImage(value?: string | null) {
+  if (!value) return "";
+  try {
+    const parsed = JSON.parse(value);
+    if (Array.isArray(parsed) && typeof parsed[0] === "string") {
+      return parsed[0] || "";
+    }
+    return "";
+  } catch {
+    return "";
+  }
+}
+
 function getFileKind(fileType?: string, fileName?: string) {
   const name = (fileName || "").toLowerCase();
   const type = (fileType || "").toLowerCase();
@@ -132,13 +175,19 @@ function getFileKind(fileType?: string, fileName?: string) {
   return "pdf";
 }
 
+function parseDigitalMetadata(value?: string | null) {
+  const metadata = parseMetadata(value);
+  return parseDigitalDeliverySnapshot((metadata as { digitalDelivery?: unknown }).digitalDelivery);
+}
+
 export default function AdminOrderDetailPage() {
   const router = useRouter();
   const { id } = useParams<{ id: string }>();
   const [order, setOrder] = useState<DetailOrder | null>(null);
   const [loading, setLoading] = useState(true);
+  const [actioningId, setActioningId] = useState("");
 
-  useEffect(() => {
+  const loadOrder = () => {
     if (!id) return;
     fetch(`/api/admin/orders/${id}`)
       .then((r) => r.json())
@@ -146,6 +195,10 @@ export default function AdminOrderDetailPage() {
         if (d.success) setOrder(d.data);
       })
       .finally(() => setLoading(false));
+  };
+
+  useEffect(() => {
+    loadOrder();
   }, [id]);
 
   const metadata = useMemo(() => parseMetadata(order?.metadataJson) as OrderMetadata, [order?.metadataJson]);
@@ -175,6 +228,44 @@ export default function AdminOrderDetailPage() {
 
   const invoice = order.invoices?.[0] || null;
   const canShowHistory = order.statusHistory && order.statusHistory.length > 0;
+  const digitalItems = order.digitalDeliveries || [];
+
+  const runGrantAction = async (grantId: string, action: "resend" | "activate" | "revoke" | "restore") => {
+    setActioningId(`${grantId}:${action}`);
+    const res = await fetch(`/api/admin/digital-access/${grantId}/action`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action }),
+    });
+    const data = await res.json();
+    if (!data.success) {
+      toast.error(data.error || "İşlem başarısız");
+      setActioningId("");
+      return;
+    }
+    toast.success(
+      action === "resend"
+        ? "Teslimat bildirimi yeniden gönderildi"
+        : action === "revoke"
+          ? "Erişim kapatıldı"
+          : "Erişim açıldı",
+    );
+    loadOrder();
+    setActioningId("");
+  };
+
+  const openSecureLink = async (grantId: string) => {
+    setActioningId(`${grantId}:open`);
+    const res = await fetch(`/api/digital-access/${grantId}/token`, { method: "POST" });
+    const data = await res.json();
+    if (!data.success) {
+      toast.error(data.error || "Güvenli link açılamadı");
+      setActioningId("");
+      return;
+    }
+    window.open(data.data.url, "_blank", "noopener,noreferrer");
+    setActioningId("");
+  };
 
   return (
     <div className="space-y-6">
@@ -226,13 +317,19 @@ export default function AdminOrderDetailPage() {
             <div className="divide-y divide-gray-100">
               {order.items.map((item) => {
                 const productName = item.product?.name || item.productCatalogItem?.name || "Ürün";
-                const image = item.product?.image || "/placeholder.svg";
+                const image = item.product?.image || getCatalogImage(item.productCatalogItem?.imagesJson) || "/placeholder.svg";
+                const digitalDelivery = parseDigitalMetadata(item.metadataJson);
                 return (
                   <div key={item.id} className="flex items-center gap-4 px-5 py-4">
                     <img src={image || "/placeholder.svg"} alt={productName} className="h-16 w-16 rounded-lg object-cover bg-gray-100" />
                     <div className="min-w-0 flex-1">
                       <p className="font-medium text-gray-900 truncate">{productName}</p>
                       <p className="text-xs text-gray-500 mt-1">Adet: {item.quantity} • Birim: {formatPrice(item.price)}</p>
+                      {digitalDelivery ? (
+                        <p className="mt-1 inline-flex rounded-full border border-indigo-200 bg-indigo-50 px-2 py-0.5 text-[11px] font-medium text-indigo-700">
+                          {digitalModeLabel(digitalDelivery.mode)}
+                        </p>
+                      ) : null}
                     </div>
                     <p className="font-bold text-gray-900">{formatPrice(item.price * item.quantity)}</p>
                   </div>
@@ -240,6 +337,106 @@ export default function AdminOrderDetailPage() {
               })}
             </div>
           </section>
+
+          {digitalItems.length > 0 ? (
+            <section className="rounded-xl border border-indigo-200 bg-indigo-50 p-5 shadow-sm">
+              <h2 className="mb-4 flex items-center gap-2 font-semibold text-indigo-950">
+                <FileText size={16} /> Dijital Teslimatlar
+              </h2>
+              <div className="space-y-3">
+                {digitalItems.map((delivery) => {
+                  const busyBase = `${delivery.id}:`;
+                  return (
+                    <div key={delivery.id} className="rounded-2xl border border-indigo-200 bg-white p-4">
+                      <div className="flex flex-wrap items-start justify-between gap-3">
+                        <div>
+                          <p className="font-semibold text-gray-900">{delivery.productName}</p>
+                          <p className="mt-1 text-xs text-indigo-700">{delivery.modeLabel}</p>
+                        </div>
+                        <span className={`rounded-full px-2.5 py-1 text-[11px] font-medium ${delivery.canAccess ? "bg-emerald-100 text-emerald-700" : delivery.status === "revoked" ? "bg-rose-100 text-rose-700" : "bg-amber-100 text-amber-700"}`}>
+                          {delivery.statusLabel}
+                        </span>
+                      </div>
+                      {delivery.accessInstructions ? (
+                        <p className="mt-3 whitespace-pre-wrap text-sm text-gray-700">{delivery.accessInstructions}</p>
+                      ) : null}
+                      {delivery.licenseValue ? (
+                        <div className="mt-3 rounded-xl border border-gray-200 bg-gray-50 p-3">
+                          <p className="mb-1 text-xs font-semibold uppercase tracking-wider text-gray-500">Lisans / Erişim İçeriği</p>
+                          <p className="whitespace-pre-wrap break-words font-mono text-sm text-gray-900">{delivery.licenseValue}</p>
+                          {delivery.licenseSource ? (
+                            <p className="mt-2 text-xs text-gray-500">Kaynak: {delivery.licenseSource}</p>
+                          ) : null}
+                        </div>
+                      ) : null}
+                      <div className="mt-4 flex flex-wrap items-center gap-2">
+                        {delivery.assetUrl && delivery.canAccess ? (
+                          <Button
+                            variant="outline"
+                            className="gap-2"
+                            onClick={() => openSecureLink(delivery.id)}
+                            disabled={actioningId === `${delivery.id}:open`}
+                          >
+                            {delivery.mode === "external_access" ? <Link2 size={14} /> : <ExternalLink size={14} />}
+                            {actioningId === `${delivery.id}:open`
+                              ? "Hazırlanıyor..."
+                              : delivery.assetName || (delivery.mode === "external_access" ? "Erişimi Aç" : "Dosyayı Aç")}
+                          </Button>
+                        ) : null}
+                        {delivery.downloadLimit ? (
+                          <span className="text-xs text-gray-500">İndirme: {delivery.downloadCount}/{delivery.downloadLimit}</span>
+                        ) : null}
+                        <Button
+                          variant="outline"
+                          className="gap-2"
+                          onClick={() => runGrantAction(delivery.id, "resend")}
+                          disabled={actioningId === `${delivery.id}:resend`}
+                        >
+                          <Send size={14} /> {actioningId === `${delivery.id}:resend` ? "Gönderiliyor..." : "Yeniden Gönder"}
+                        </Button>
+                        {delivery.status === "revoked" ? (
+                          <Button
+                            variant="outline"
+                            className="gap-2"
+                            onClick={() => runGrantAction(delivery.id, "restore")}
+                            disabled={actioningId === `${delivery.id}:restore`}
+                          >
+                            <Unlock size={14} /> Yeniden Aç
+                          </Button>
+                        ) : (
+                          <Button
+                            variant="outline"
+                            className="gap-2"
+                            onClick={() => runGrantAction(delivery.id, delivery.canAccess ? "revoke" : "activate")}
+                            disabled={actioningId === `${delivery.id}:${delivery.canAccess ? "revoke" : "activate"}`}
+                          >
+                            {delivery.canAccess ? <Lock size={14} /> : <Unlock size={14} />}
+                            {delivery.canAccess ? "Erişimi Kapat" : "Teslimatı Aç"}
+                          </Button>
+                        )}
+                      </div>
+                      {delivery.lastAccessedAt ? (
+                        <p className="mt-3 text-xs text-gray-500">Son erişim: {formatDate(delivery.lastAccessedAt)}</p>
+                      ) : null}
+                      {delivery.logs.length > 0 ? (
+                        <div className="mt-3 rounded-xl border border-gray-200 bg-gray-50 p-3">
+                          <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-gray-500">Son Loglar</p>
+                          <div className="space-y-1 text-xs text-gray-600">
+                            {delivery.logs.map((log) => (
+                              <div key={log.id} className="flex flex-wrap items-center justify-between gap-2">
+                                <span>{log.note || log.eventType}</span>
+                                <span>{formatDate(log.createdAt)}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      ) : null}
+                    </div>
+                  );
+                })}
+              </div>
+            </section>
+          ) : null}
 
           <section className="rounded-xl border border-gray-200 bg-white shadow-sm p-5">
             <h2 className="font-semibold text-gray-900 mb-4">Sipariş Geçmişi</h2>

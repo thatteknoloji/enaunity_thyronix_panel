@@ -49,6 +49,7 @@ model User {
   cookieConsents      CookieConsent[]
   legalReacceptTasks  LegalReacceptanceTask[]
   legalReacceptStatus String          @default("ok") // ok | pending_reacceptance
+  digitalAccessGrants DigitalAccessGrant[]
 }
 
 model MemberDocument {
@@ -107,6 +108,7 @@ model Product {
   name              String
   slug              String                @default("") @unique
   description       String
+  productType       String                @default("physical")
   price             Float
   costPrice         Float                 @default(0)
   image             String                @default("/placeholder.svg")
@@ -137,6 +139,13 @@ model Product {
   eta               String                @default("")
   vatRate           Float                 @default(20)
   vatIncluded       Boolean               @default(true)
+  digitalDeliveryMode        String       @default("")
+  digitalAssetUrl            String       @default("")
+  digitalAssetName           String       @default("")
+  digitalAccessInstructions  String       @default("")
+  digitalDownloadLimit       Int          @default(0)
+  digitalLicenseTemplate     String       @default("")
+  digitalRequiresApproval    Boolean      @default(false)
   createdAt         DateTime              @default(now())
   updatedAt         DateTime              @updatedAt
   orderItems        OrderItem[]
@@ -158,6 +167,8 @@ model Product {
   stockCountItems   StockCountItem[]
   favoriteProducts  FavoriteProduct[]
   savedCartItems    SavedCartItem[]
+  digitalAccessGrants DigitalAccessGrant[]
+  digitalLicensePoolItems DigitalLicensePoolItem[]
 }
 
 model VariantGroup {
@@ -325,6 +336,7 @@ model Order {
   shipments        DealerShipment[] @relation("CoreOrderShipments")
   warehouseMovements DealerWarehouseMovement[] @relation("CoreOrderWarehouse")
   invoices         Invoice[]
+  digitalAccessGrants DigitalAccessGrant[]
 
   @@index([dealerId])
   @@index([marketplaceOrderId])
@@ -361,6 +373,7 @@ model OrderItem {
   thyronixProductId    String   @default("")
   sourceType           String   @default("")
   metadataJson         String   @default("{}")
+  digitalAccessGrants  DigitalAccessGrant[]
 }
 
 model Cart {
@@ -525,6 +538,89 @@ model Dealer {
   balanceTopUps          DealerBalanceTopUp[]
   createdAt       DateTime           @default(now())
   updatedAt       DateTime           @updatedAt
+  digitalAccessGrants DigitalAccessGrant[]
+}
+
+model DigitalAccessGrant {
+  id                 String   @id @default(cuid())
+  orderId            String
+  order              Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  orderItemId        String   @unique
+  orderItem          OrderItem @relation(fields: [orderItemId], references: [id], onDelete: Cascade)
+  userId             String
+  user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  dealerId           String?
+  dealer             Dealer?  @relation(fields: [dealerId], references: [id], onDelete: SetNull)
+  productId          String?
+  product            Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
+  mode               String   @default("")
+  status             String   @default("pending") // pending | active | revoked
+  assetUrl           String   @default("")
+  assetName          String   @default("")
+  accessInstructions String   @default("")
+  licenseValue       String   @default("")
+  licenseSource      String   @default("")
+  requiresApproval   Boolean  @default(false)
+  downloadLimit      Int      @default(0)
+  downloadCount      Int      @default(0)
+  metadataJson       String   @default("{}")
+  deliveredAt        DateTime?
+  lastAccessedAt     DateTime?
+  revokedAt          DateTime?
+  revokedBy          String   @default("")
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+  tokens             DigitalAccessToken[]
+  logs               DigitalAccessLog[]
+
+  @@index([orderId])
+  @@index([userId, status])
+  @@index([dealerId, status])
+  @@index([productId])
+}
+
+model DigitalAccessToken {
+  id        String   @id @default(cuid())
+  grantId   String
+  grant     DigitalAccessGrant @relation(fields: [grantId], references: [id], onDelete: Cascade)
+  token     String   @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime @default(now())
+
+  @@index([grantId])
+  @@index([expiresAt])
+}
+
+model DigitalAccessLog {
+  id         String   @id @default(cuid())
+  grantId     String
+  grant       DigitalAccessGrant @relation(fields: [grantId], references: [id], onDelete: Cascade)
+  eventType   String
+  actorType   String   @default("system")
+  actorId     String   @default("")
+  note        String   @default("")
+  payloadJson String   @default("{}")
+  createdAt   DateTime @default(now())
+
+  @@index([grantId, createdAt])
+}
+
+model DigitalLicensePoolItem {
+  id              String   @id @default(cuid())
+  productId        String
+  product          Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  code             String
+  label            String   @default("")
+  status           String   @default("available") // available | assigned | archived
+  assignedGrantId  String   @default("")
+  assignedAt       DateTime?
+  metadataJson     String   @default("{}")
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@unique([productId, code])
+  @@index([productId, status])
 }
 
 model DealerPrice {

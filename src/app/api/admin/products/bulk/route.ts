@@ -1,10 +1,17 @@
+import { randomInt } from "crypto";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { requireAdmin } from "@/lib/auth";
 import { bulkAssignCampaigns } from "@/lib/products/campaign-assign";
 import { normalizeVariantDisplayMode } from "@/lib/products/variant-display";
 
-function genBarcode(): string { return `2${Date.now().toString().slice(-11)}${Math.random().toString(36).slice(2, 5)}`; }
+function genBarcode(): string {
+  return `2${Array.from({ length: 12 }, () => randomInt(0, 10)).join("")}`;
+}
+
+function escapeRegExp(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
 
 export async function PATCH(req: Request) {
   try {
@@ -51,8 +58,8 @@ export async function PATCH(req: Request) {
         if (mode === "prefix") update.name = `${value} ${p.name}`;
         else if (mode === "suffix") update.name = `${p.name} ${value}`;
         else if (mode === "replace") update.name = value;
-        else if (mode === "replaceFirst") update.name = p.name.replace(new RegExp(`^${value}`), "");
-        else if (mode === "replaceLast") update.name = p.name.replace(new RegExp(`${value}$`), "");
+        else if (mode === "replaceFirst") update.name = p.name.replace(new RegExp(`^${escapeRegExp(String(value || ""))}`), "");
+        else if (mode === "replaceLast") update.name = p.name.replace(new RegExp(`${escapeRegExp(String(value || ""))}$`), "");
       } else if (action === "description") {
         if (mode === "prefix") update.description = `${value}\n${p.description}`;
         else if (mode === "suffix") update.description = `${p.description}\n${value}`;

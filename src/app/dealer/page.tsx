@@ -5,7 +5,7 @@ import Link from "next/link";
 import { formatPrice, formatDate } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Package, ShoppingCart, TrendingUp, TrendingDown, Clock, AlertTriangle, Wallet, RotateCcw, Bell, ChevronUp, ChevronDown, ArrowUpRight, CreditCard, Truck, BarChart3, Star, Heart, FileText, Zap, Sparkles, ArrowRight } from "lucide-react";
+import { Package, ShoppingCart, TrendingUp, TrendingDown, Clock, AlertTriangle, Wallet, RotateCcw, Bell, ChevronUp, ChevronDown, ArrowUpRight, CreditCard, Truck, BarChart3, Star, Heart, FileText, Zap, Sparkles, ArrowRight, Download } from "lucide-react";
 import { BarChart, DonutChart } from "@/components/Charts";
 import type { MarketplaceCard } from "@/lib/modules/marketplace";
 
@@ -178,6 +178,7 @@ export default function DealerDashboard() {
           <Link href="/dealer/quick-order"><Button variant="outline" size="sm" className="border-ena-border text-ena-light"><Zap size={15} className="mr-1.5"/> Hızlı Sipariş</Button></Link>
           <Link href="/catalog"><Button variant="outline" size="sm" className="border-ena-border text-ena-light"><ShoppingCart size={15} className="mr-1.5"/> Ürün Kataloğu</Button></Link>
           <Link href="/dealer/orders"><Button variant="outline" size="sm" className="border-ena-border text-ena-light"><Package size={15} className="mr-1.5"/> Siparişlerim</Button></Link>
+          <Link href="/dealer/digital-library"><Button variant="outline" size="sm" className="border-ena-border text-ena-light"><Download size={15} className="mr-1.5"/> Dijital Kütüphane</Button></Link>
           <Link href="/dealer/quotes"><Button variant="outline" size="sm" className="border-ena-border text-ena-light"><FileText size={15} className="mr-1.5"/> Teklif Al</Button></Link>
           <Link href="/dealer/balance"><Button variant="outline" size="sm" className="border-ena-border text-ena-light"><Wallet size={15} className="mr-1.5"/> Bakiye</Button></Link>
         </div>

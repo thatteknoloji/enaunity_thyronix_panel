@@ -32,22 +32,26 @@ export async function POST(req: Request) {
     let columns: string[] = [];
     let parseErrors: string[] = [];
     let preset: ImportPresetId;
+    let mapping: FieldMapping;
 
     if (ext === "csv") {
       const text = buffer.toString("utf-8");
       preset = (presetParam === "auto" ? "generic" : presetParam) as ImportPresetId;
-      const mapping = mergeMapping(preset, overrides);
+      mapping = mergeMapping(preset, overrides);
       rows = parseCsvText(text, mapping);
+      columns = Object.keys((rows[0]?.raw || {}) as Record<string, unknown>);
     } else if (ext === "xml") {
       const { parseXmlImportRows } = await import("@/lib/products/marketplace-import/xml-parser");
       preset = (presetParam === "auto" ? "trendyol_tablo" : presetParam) as ImportPresetId;
-      rows = parseXmlImportRows(buffer.toString("utf-8"), mergeMapping(preset, overrides));
+      mapping = mergeMapping(preset, overrides);
+      rows = parseXmlImportRows(buffer.toString("utf-8"), mapping);
+      columns = Object.keys((rows[0]?.raw || {}) as Record<string, unknown>);
     } else {
       const probe = parseRowsFromBuffer(buffer, getPresetMapping("generic"), fileName);
       columns = probe.columns;
       parseErrors = probe.errors;
       preset = presetParam === "auto" ? detectPreset(columns) : (presetParam as ImportPresetId);
-      const mapping = mergeMapping(preset, overrides);
+      mapping = mergeMapping(preset, overrides);
       const result = parseRowsFromBuffer(buffer, mapping, fileName);
       rows = result.rows;
       parseErrors = result.errors;
@@ -104,6 +108,8 @@ export async function POST(req: Request) {
         })),
         categoryValues,
         parseErrors,
+        columns,
+        mapping,
       },
     });
   } catch (e) {

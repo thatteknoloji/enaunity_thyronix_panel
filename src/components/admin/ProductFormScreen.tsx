@@ -9,8 +9,12 @@ import {
   ArrowRightLeft,
   Barcode,
   CheckCircle2,
+  Download,
   Hash,
+  KeyRound,
   Layers,
+  Link2,
+  Lock,
   Package,
   Plus,
   Save,
@@ -36,6 +40,11 @@ import {
   type ProductPresentationState,
 } from "@/components/admin/ProductPresentationPanel";
 import { toAdminUrl } from "@/lib/auth/admin-access";
+import {
+  DIGITAL_DELIVERY_MODES,
+  PRODUCT_TYPES,
+  digitalModeLabel,
+} from "@/lib/products/digital-delivery";
 
 type Mode = "create" | "edit";
 
@@ -171,6 +180,7 @@ export function ProductFormScreen({
   const [form, setForm] = useState({
     name: "",
     description: "",
+    productType: "physical",
     price: "",
     image: "",
     category: "",
@@ -189,6 +199,14 @@ export function ProductFormScreen({
     eta: "",
     vatRate: "20",
     vatIncluded: true,
+    digitalDeliveryMode: "",
+    digitalAssetUrl: "",
+    digitalAssetName: "",
+    digitalAccessInstructions: "",
+    digitalDownloadLimit: "0",
+    digitalLicenseTemplate: "",
+    digitalLicensePoolBulk: "",
+    digitalRequiresApproval: false,
   });
   const [imagesJson, setImagesJson] = useState("[]");
   const [specs, setSpecs] = useState<Array<{ key: string; value: string }>>([]);
@@ -217,7 +235,7 @@ export function ProductFormScreen({
     if (!isEdit || !productId) return;
 
     Promise.all([
-      fetch(`/api/products/${productId}`).then((response) => response.json()),
+      fetch(`/api/admin/products/${productId}`).then((response) => response.json()),
       fetch(`/api/admin/variants?productId=${productId}`).then((response) => response.json()),
       fetch(`/api/admin/campaigns`).then((response) => response.json()).catch(() => ({ data: [] })),
     ])
@@ -231,6 +249,7 @@ export function ProductFormScreen({
         setForm({
           name: product.name || "",
           description: product.description || "",
+          productType: product.productType || "physical",
           price: String(product.price || ""),
           image: product.image || "",
           category: product.category || "",
@@ -249,6 +268,14 @@ export function ProductFormScreen({
           eta: product.eta || "",
           vatRate: String(product.vatRate ?? 20),
           vatIncluded: product.vatIncluded ?? true,
+          digitalDeliveryMode: product.digitalDeliveryMode || "",
+          digitalAssetUrl: product.digitalAssetUrl || "",
+          digitalAssetName: product.digitalAssetName || "",
+          digitalAccessInstructions: product.digitalAccessInstructions || "",
+          digitalDownloadLimit: String(product.digitalDownloadLimit ?? 0),
+          digitalLicenseTemplate: product.digitalLicenseTemplate || "",
+          digitalLicensePoolBulk: product.digitalLicensePoolBulk || "",
+          digitalRequiresApproval: Boolean(product.digitalRequiresApproval),
         });
         setImagesJson(product.images || "[]");
         try {
@@ -460,6 +487,7 @@ export function ProductFormScreen({
   const submitDisabled = submitting || duplicateLoading || duplicateConflicts.length > 0;
   const inputClassName =
     "w-full rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-900 focus:border-gray-400 focus:outline-none";
+  const isDigitalProduct = form.productType === "digital";
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -485,6 +513,15 @@ export function ProductFormScreen({
           eta: form.eta,
           vatRate: parseFloat(form.vatRate) || 20,
           vatIncluded: form.vatIncluded,
+          productType: form.productType,
+          digitalDeliveryMode: form.digitalDeliveryMode,
+          digitalAssetUrl: form.digitalAssetUrl,
+          digitalAssetName: form.digitalAssetName,
+          digitalAccessInstructions: form.digitalAccessInstructions,
+          digitalDownloadLimit: parseInt(form.digitalDownloadLimit || "0", 10) || 0,
+          digitalLicenseTemplate: form.digitalLicenseTemplate,
+          digitalLicensePoolBulk: form.digitalLicensePoolBulk,
+          digitalRequiresApproval: form.digitalRequiresApproval,
           specs,
           images: imagesJson,
           campaignIds: merchandising.campaignIds,
@@ -639,6 +676,43 @@ export function ProductFormScreen({
           <h2 className="mb-4 flex items-center gap-2 text-sm font-semibold text-gray-700">
             <Package size={16} /> Temel Bilgiler
           </h2>
+          <div className="mb-5 grid gap-3 md:grid-cols-4">
+            {PRODUCT_TYPES.map((type) => {
+              const active = form.productType === type;
+              const labelMap: Record<string, string> = {
+                physical: "Fiziksel",
+                production: "Üretim",
+                dealer_transfer: "Bayi / Aktarılabilir",
+                digital: "Dijital",
+              };
+              const descMap: Record<string, string> = {
+                physical: "Kargo, stok ve adres akışıyla çalışan klasik ürün.",
+                production: "Üretim merkezine giden, operasyon odaklı işlenen ürün.",
+                dealer_transfer: "Bayiye aktarılabilir, paket / entegrasyon odaklı ürün.",
+                digital: "Dosya, lisans, erişim linki veya manuel dijital teslim.",
+              };
+              return (
+                <button
+                  key={type}
+                  type="button"
+                  onClick={() =>
+                    setForm((current) => ({
+                      ...current,
+                      productType: type,
+                      backorderable: type === "digital" ? false : current.backorderable,
+                      eta: type === "digital" ? "" : current.eta,
+                    }))
+                  }
+                  className={`rounded-2xl border px-4 py-4 text-left transition-colors ${
+                    active ? "border-gray-900 bg-gray-900 text-white" : "border-gray-200 bg-gray-50 text-gray-700 hover:bg-white"
+                  }`}
+                >
+                  <div className="text-sm font-semibold">{labelMap[type]}</div>
+                  <p className={`mt-2 text-xs leading-5 ${active ? "text-gray-200" : "text-gray-500"}`}>{descMap[type]}</p>
+                </button>
+              );
+            })}
+          </div>
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div>
               <label className="mb-1 block text-xs font-semibold uppercase text-gray-600">Ürün Adı *</label>
@@ -796,6 +870,7 @@ export function ProductFormScreen({
                 className={inputClassName}
                 value={form.weight}
                 onChange={(event) => updateForm("weight", event.target.value)}
+                disabled={isDigitalProduct}
               />
             </div>
             <div>
@@ -805,14 +880,16 @@ export function ProductFormScreen({
                 value={form.dimensions}
                 onChange={(event) => updateForm("dimensions", event.target.value)}
                 placeholder="100x50x20 cm"
+                disabled={isDigitalProduct}
               />
             </div>
-            <div className="flex items-center gap-2">
+            <div className={`flex items-center gap-2 ${isDigitalProduct ? "opacity-50" : ""}`}>
               <input
                 id="backorderable"
                 type="checkbox"
                 className="rounded border-gray-300"
                 checked={form.backorderable}
+                disabled={isDigitalProduct}
                 onChange={(event) =>
                   setForm((current) => ({
                     ...current,
@@ -825,7 +902,7 @@ export function ProductFormScreen({
                 Ön siparişe izin ver
               </label>
             </div>
-            {form.backorderable && (
+            {form.backorderable && !isDigitalProduct && (
               <div>
                 <label className="mb-1 block text-xs font-semibold uppercase text-gray-600">Tahmini Teslimat</label>
                 <input
@@ -847,6 +924,117 @@ export function ProductFormScreen({
             />
           </div>
         </div>
+
+        {isDigitalProduct && (
+          <div className="rounded-2xl border border-indigo-200 bg-indigo-50 p-6 shadow-sm">
+            <h2 className="mb-4 flex items-center gap-2 text-sm font-semibold text-indigo-900">
+              <Download size={16} /> Dijital Teslim
+            </h2>
+            <div className="grid gap-4 md:grid-cols-2">
+              <div>
+                <label className="mb-1 block text-xs font-semibold uppercase text-indigo-900/80">Teslim Modeli</label>
+                <select
+                  className={inputClassName}
+                  value={form.digitalDeliveryMode}
+                  onChange={(event) => updateForm("digitalDeliveryMode", event.target.value)}
+                >
+                  <option value="">Teslim modeli seç</option>
+                  {DIGITAL_DELIVERY_MODES.map((mode) => (
+                    <option key={mode} value={mode}>
+                      {digitalModeLabel(mode)}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="mb-1 block text-xs font-semibold uppercase text-indigo-900/80">Görünen Dosya / Varlık Adı</label>
+                <input
+                  className={inputClassName}
+                  value={form.digitalAssetName}
+                  onChange={(event) => updateForm("digitalAssetName", event.target.value)}
+                  placeholder="E-kitap PDF, Kurulum Paketi, Eğitim Erişimi"
+                />
+              </div>
+              <div className="md:col-span-2">
+                <label className="mb-1 block text-xs font-semibold uppercase text-indigo-900/80">
+                  {form.digitalDeliveryMode === "license" ? "Lisans / Aktivasyon İçeriği" : "Dosya / Erişim Linki"}
+                </label>
+                <div className="relative">
+                  <input
+                    className={`${inputClassName} pl-10`}
+                    value={form.digitalAssetUrl}
+                    onChange={(event) => updateForm("digitalAssetUrl", event.target.value)}
+                    placeholder={
+                      form.digitalDeliveryMode === "external_access"
+                        ? "https://..."
+                        : form.digitalDeliveryMode === "download"
+                          ? "/uploads/... veya harici link"
+                          : "Opsiyonel link"
+                    }
+                  />
+                  <Link2 size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-indigo-400" />
+                </div>
+              </div>
+              <div className="md:col-span-2">
+                <label className="mb-1 block text-xs font-semibold uppercase text-indigo-900/80">Lisans Anahtarı / Şablon / İçerik</label>
+                <div className="relative">
+                  <textarea
+                    className={`${inputClassName} min-h-[110px] pl-10`}
+                    value={form.digitalLicenseTemplate}
+                    onChange={(event) => updateForm("digitalLicenseTemplate", event.target.value)}
+                    placeholder="ABC-123-XYZ veya müşteriye gösterilecek özel erişim metni"
+                  />
+                  <KeyRound size={15} className="pointer-events-none absolute left-3 top-4 text-indigo-400" />
+                </div>
+              </div>
+              {form.digitalDeliveryMode === "license" ? (
+                <div className="md:col-span-2">
+                  <label className="mb-1 block text-xs font-semibold uppercase text-indigo-900/80">Lisans Havuzu (satır satır)</label>
+                  <textarea
+                    className={`${inputClassName} min-h-[140px]`}
+                    value={form.digitalLicensePoolBulk}
+                    onChange={(event) => updateForm("digitalLicensePoolBulk", event.target.value)}
+                    placeholder={"ABC-123-XYZ\nDEF-456-KLM\nGHI-789-PRS"}
+                  />
+                  <p className="mt-2 text-xs text-indigo-900/60">
+                    Her satır ayrı lisans anahtarıdır. Atanmış anahtarlar korunur, boşta kalanlar otomatik arşivlenir.
+                  </p>
+                </div>
+              ) : null}
+              <div>
+                <label className="mb-1 block text-xs font-semibold uppercase text-indigo-900/80">İndirme Limiti</label>
+                <input
+                  type="number"
+                  className={inputClassName}
+                  value={form.digitalDownloadLimit}
+                  onChange={(event) => updateForm("digitalDownloadLimit", event.target.value)}
+                  placeholder="0 = sınırsız"
+                />
+              </div>
+              <div className="flex items-center gap-2 pt-6">
+                <input
+                  id="digitalRequiresApproval"
+                  type="checkbox"
+                  className="rounded border-gray-300"
+                  checked={form.digitalRequiresApproval}
+                  onChange={(event) => updateForm("digitalRequiresApproval", event.target.checked)}
+                />
+                <label htmlFor="digitalRequiresApproval" className="inline-flex items-center gap-2 text-xs font-semibold uppercase text-indigo-900/80">
+                  <Lock size={13} /> Admin onayı olmadan açılmasın
+                </label>
+              </div>
+              <div className="md:col-span-2">
+                <label className="mb-1 block text-xs font-semibold uppercase text-indigo-900/80">Teslimat Açıklaması / Kullanım Notu</label>
+                <textarea
+                  className={`${inputClassName} min-h-[100px]`}
+                  value={form.digitalAccessInstructions}
+                  onChange={(event) => updateForm("digitalAccessInstructions", event.target.value)}
+                  placeholder="Satın alma sonrası müşteriye gösterilecek kullanım, kurulum veya erişim bilgisi"
+                />
+              </div>
+            </div>
+          </div>
+        )}
 
         <ProductPresentationPanel
           value={presentation}
