@@ -30,6 +30,12 @@ export type ThyronixSourceSyncResult = {
   feeds?: Array<{ url: string; count: number; error?: string }>;
 };
 
+type ThyronixSourceSyncOptions = {
+  fetchTimeoutMs?: number;
+  refreshFeedTotals?: boolean;
+  snapshot?: boolean;
+};
+
 async function preSnapshot(sourceId: string, sourceName: string) {
   try {
     const count = await prisma.thyronixProduct.count({ where: { sourceId } });
@@ -140,10 +146,16 @@ export function isThyronixSourceDue(source: { lastSync: Date | null; interval: n
   return source.lastSync.getTime() + intervalMinutes * 60 * 1000 <= now.getTime();
 }
 
-export async function syncThyronixSourceById(sourceId: string): Promise<ThyronixSourceSyncResult> {
+export async function syncThyronixSourceById(
+  sourceId: string,
+  opts: ThyronixSourceSyncOptions = {},
+): Promise<ThyronixSourceSyncResult> {
   const source = await prisma.thyronixSource.findUnique({ where: { id: sourceId } });
   if (!source) throw new Error("Kaynak bulunamadı");
 
+  const fetchTimeoutMs = Math.max(10000, Math.min(opts.fetchTimeoutMs || 180000, 180000));
+  const shouldRefreshFeedTotals = opts.refreshFeedTotals !== false;
+  const shouldSnapshot = opts.snapshot !== false;
   const startTime = Date.now();
   const sourceType = (source as any).type || "xml";
   const url = (source as any).xmlUrl || source.xmlUrl;
@@ -152,7 +164,7 @@ export async function syncThyronixSourceById(sourceId: string): Promise<Thyronix
   const fixedValues = parseFixedValues((source as any).fixedValues);
   assertSourceMappingReady(sourceType, customFieldMap, variantFieldMap, fixedValues);
 
-  await preSnapshot(source.id, source.name);
+  if (shouldSnapshot) await preSnapshot(source.id, source.name);
 
   try {
     if (sourceType === "xml") {
@@ -168,7 +180,13 @@ export async function syncThyronixSourceById(sourceId: string): Promise<Thyronix
       }
 
       const feedUrls = resolveSourceFeedUrls(url, (source as any).fixedValues);
-      const { products, feedStats } = await fetchAndParseXmlFeeds(feedUrls, template, customFieldMap, variantFieldMap);
+      const { products, feedStats } = await fetchAndParseXmlFeeds(
+        feedUrls,
+        template,
+        customFieldMap,
+        variantFieldMap,
+        fetchTimeoutMs,
+      );
       const seen = new Set<string>();
       const usedExternalIds = new Set<string>();
       const allData: any[] = [];
@@ -185,13 +203,13 @@ export async function syncThyronixSourceById(sourceId: string): Promise<Thyronix
         await prisma.thyronixProduct.createMany({ data: allData.slice(i, i + BATCH) });
       }
 
-      await postSnapshot(source.id, source.name, allData.length);
+      if (shouldSnapshot) await postSnapshot(source.id, source.name, allData.length);
       const now = new Date();
       await prisma.thyronixSource.update({
         where: { id: source.id },
         data: { productCount: allData.length, lastSync: now, status: "active", errorLog: null } as any,
       });
-      await refreshDealerFeedTotals(source.dealerId || null);
+      if (shouldRefreshFeedTotals) await refreshDealerFeedTotals(source.dealerId || null);
       await prisma.thyronixSyncLog.create({
         data: {
           type: "source-sync",
@@ -305,12 +323,12 @@ export async function syncThyronixSourceById(sourceId: string): Promise<Thyronix
       }
 
       const total = creates.length + updates.length;
-      await postSnapshot(source.id, source.name, total, invalid);
+      if (shouldSnapshot) await postSnapshot(source.id, source.name, total, invalid);
       await prisma.thyronixSource.update({
         where: { id: source.id },
         data: { productCount: total, lastSync: new Date(), status: "active", errorLog: null } as any,
       });
-      await refreshDealerFeedTotals(source.dealerId || null);
+      if (shouldRefreshFeedTotals) await refreshDealerFeedTotals(source.dealerId || null);
       await prisma.thyronixSyncLog.create({
         data: {
           type: "source-sync",
@@ -405,12 +423,12 @@ export async function syncThyronixSourceById(sourceId: string): Promise<Thyronix
       }
 
       const total = creates.length + updates.length;
-      await postSnapshot(source.id, source.name, total);
+      if (shouldSnapshot) await postSnapshot(source.id, source.name, total);
       await prisma.thyronixSource.update({
         where: { id: source.id },
         data: { productCount: total, lastSync: new Date(), status: "active", errorLog: null } as any,
       });
-      await refreshDealerFeedTotals(source.dealerId || null);
+      if (shouldRefreshFeedTotals) await refreshDealerFeedTotals(source.dealerId || null);
       await prisma.thyronixSyncLog.create({
         data: {
           type: "source-sync",
@@ -442,7 +460,7 @@ export async function syncThyronixSourceById(sourceId: string): Promise<Thyronix
   }
 }
 
-export async function syncDueThyronixSources(opts?: { now?: Date; limit?: number }) {
+export async function syncDueThyronixSources(opts?: { now?: Date; limit?: number } & ThyronixSourceSyncOptions) {
   const now = opts?.now || new Date();
   const limit = Math.max(1, Math.min(opts?.limit || 10, 25));
   const sources = await prisma.thyronixSource.findMany({
@@ -454,7 +472,7 @@ export async function syncDueThyronixSources(opts?: { now?: Date; limit?: number
 
   for (const source of due) {
     try {
-      results.push(await syncThyronixSourceById(source.id));
+      results.push(await syncThyronixSourceById(source.id, opts));
     } catch (error) {
       results.push({
         sourceId: source.id,

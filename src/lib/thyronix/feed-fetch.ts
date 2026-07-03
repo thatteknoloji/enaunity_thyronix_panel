@@ -243,6 +243,7 @@ export async function fetchAndParseXmlFeeds(
   template: FeedTemplate,
   customFieldMap?: Record<string, string>,
   variantFieldMap?: Record<string, string>,
+  timeoutMs = 180000,
 ): Promise<{ products: ParsedFeedProduct[]; feedStats: { url: string; count: number; error?: string }[] }> {
   const allProducts: ParsedFeedProduct[] = [];
   const feedStats: { url: string; count: number; error?: string }[] = [];
@@ -250,12 +251,12 @@ export async function fetchAndParseXmlFeeds(
 
   for (const url of urls) {
     try {
-      const xmlText = await fetchXmlText(url, 180000);
+      const xmlText = await fetchXmlText(url, timeoutMs);
       const indexedUrls = discoverIndexedFeedUrls(xmlText);
       const xmlChunks: string[] = [];
       if (indexedUrls.length > 0) {
         for (const subUrl of indexedUrls) {
-          xmlChunks.push(await fetchXmlText(subUrl, 180000));
+          xmlChunks.push(await fetchXmlText(subUrl, timeoutMs));
         }
       } else {
         xmlChunks.push(xmlText);

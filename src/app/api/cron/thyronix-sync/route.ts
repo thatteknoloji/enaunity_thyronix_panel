@@ -6,11 +6,21 @@ import { syncDueThyronixSources } from "@/lib/thyronix/source-sync-runner";
 
 export const dynamic = "force-dynamic";
 
-async function refreshDueFeeds(now: Date) {
-  const feeds = await prisma.thyronixFeed.findMany({ where: { status: "active", sourceId: null } });
+function clampInt(value: string | null, fallback: number, min: number, max: number) {
+  const parsed = Number.parseInt(String(value || ""), 10);
+  if (!Number.isFinite(parsed)) return fallback;
+  return Math.max(min, Math.min(parsed, max));
+}
+
+async function refreshDueFeeds(now: Date, limit: number) {
+  const feeds = await prisma.thyronixFeed.findMany({
+    where: { status: "active", sourceId: null },
+    orderBy: [{ lastPublished: "asc" }, { createdAt: "asc" }],
+  });
   const results: Array<{ feedId: string; feedName: string; products: number; duration: number; error?: string }> = [];
 
   for (const feed of feeds) {
+    if (results.length >= limit) break;
     const scheduleHours = Math.max(12, Number((feed as any).schedule || 12) || 12);
     const lastPublished = (feed as any).lastPublished as Date | null;
     const nextRun = lastPublished
@@ -62,19 +72,30 @@ async function refreshDueFeeds(now: Date) {
 
 export async function GET(req: Request) {
   try {
-    const secret = req.headers.get("x-cron-secret") || new URL(req.url).searchParams.get("secret");
+    const url = new URL(req.url);
+    const secret = req.headers.get("x-cron-secret") || url.searchParams.get("secret");
     if (process.env.CRON_SECRET && secret !== process.env.CRON_SECRET) {
       return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
     }
 
+    const sourceLimit = clampInt(url.searchParams.get("sourceLimit"), 2, 1, 5);
+    const feedLimit = clampInt(url.searchParams.get("feedLimit"), 1, 0, 3);
+    const fetchTimeoutMs = clampInt(url.searchParams.get("fetchTimeoutMs"), 60000, 10000, 180000);
     const now = new Date();
-    const sourceSync = await syncDueThyronixSources({ now, limit: 10 });
-    const feedRefresh = await refreshDueFeeds(now);
+    const sourceSync = await syncDueThyronixSources({
+      now,
+      limit: sourceLimit,
+      fetchTimeoutMs,
+      refreshFeedTotals: false,
+      snapshot: false,
+    });
+    const feedRefresh = await refreshDueFeeds(now, feedLimit);
 
     return NextResponse.json({
       success: true,
       data: {
         schedule: "12 saat",
+        limits: { sourceLimit, feedLimit, fetchTimeoutMs },
         sources: sourceSync,
         feeds: feedRefresh,
       },
