@@ -1,6 +1,7 @@
 import { XMLParser } from "fast-xml-parser";
 import type { FeedTemplate } from "./templates";
 import { buildSourceMetadataJson, safeJsonStringify } from "./source-metadata";
+import { parseThyronixNumber } from "./number";
 
 interface ThyronixProductInput {
   name?: string; description?: string; brand?: string; category?: string;
@@ -36,9 +37,7 @@ function buildReverseMap(fieldMap: Record<string, string>): Record<string, strin
 }
 
 function parseNumber(val: unknown): number | undefined {
-  if (val === null || val === undefined || val === "") return undefined;
-  const n = Number(String(val).replace(/[^0-9.,-]/g, "").replace(",", "."));
-  return isNaN(n) ? undefined : n;
+  return parseThyronixNumber(val) ?? undefined;
 }
 
 function pickString(...values: unknown[]): string | undefined {
@@ -294,6 +293,13 @@ export function parseXmlToProducts(
         : fiyat;
       product.price = parseNumber(p ?? fromFiyat) ?? product.price;
     }
+    if (product.vatRate === undefined) {
+      product.vatRate = parseNumber(
+        item.kdv ?? item.KDV ?? item.Kdv ?? item.kdvOrani ?? item.KdvOrani ??
+        item.KDVOrani ?? item.vat ?? item.Vat ?? item.vatRate ?? item.VatRate ??
+        item.tax_rate ?? item.TaxRate ?? item.taxRate
+      );
+    }
     if (product.stock === undefined) {
       product.stock =
         parseNumber(item.quantity ?? item.miktar ?? item.StokAdedi ?? item.stok ?? item.urun_stok) ?? 0;
@@ -372,13 +378,19 @@ export function parseXmlToProducts(
       product.variants = variantItems.map((vi: any) => {
         let variantBarcode = vi.barcode || vi.Barcode || vi.BARKOD;
         let variantSku = vi.sku || vi.Sku || vi.SKU;
-        let variantPrice = parseNumber(vi.price || vi.Price || vi.satilacakFiyat);
-        let variantStock = parseNumber(vi.stock || vi.Stock || vi.stok || vi.quantity) ?? 0;
-        let variantImage = vi.image || vi.Image;
+        let variantPrice = parseNumber(vi.price || vi.Price || vi.satilacakFiyat || vi.SatisFiyati || vi.fiyat);
+        let variantStock = parseNumber(vi.stock || vi.Stock || vi.stok || vi.quantity || vi.StokAdedi || vi.miktar || vi.Miktar) ?? 0;
+        let variantImage = vi.image || vi.Image || vi.Resim || vi.resim;
         const variantOpts: Array<{ group: string; value: string }> = [];
         let mappedVariantGroup = "";
         let mappedVariantValue = "";
-        const consumedKeys = new Set<string>(["barcode", "Barcode", "BARKOD", "sku", "Sku", "SKU", "price", "Price", "satilacakFiyat", "stock", "Stock", "stok", "quantity", "image", "Image"]);
+        const consumedKeys = new Set<string>([
+          "barcode", "Barcode", "BARKOD", "Barkod",
+          "sku", "Sku", "SKU",
+          "price", "Price", "satilacakFiyat", "SatisFiyati", "fiyat",
+          "stock", "Stock", "stok", "quantity", "StokAdedi", "miktar", "Miktar",
+          "image", "Image", "Resim", "resim",
+        ]);
 
         if (variantFieldMap && typeof variantFieldMap === "object") {
           for (const [rawField, role] of Object.entries(variantFieldMap)) {
@@ -410,6 +422,7 @@ export function parseXmlToProducts(
                 break;
               case "variantValue":
                 mappedVariantValue = rawValue;
+                if (!mappedVariantGroup) mappedVariantGroup = rawField;
                 break;
               default:
                 break;

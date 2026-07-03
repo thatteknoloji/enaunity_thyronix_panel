@@ -44,6 +44,7 @@ const statusOptions = [
 const statusVariant: Record<string, "default" | "success" | "warning" | "danger"> = {
   pending: "warning",
   pending_approval: "warning",
+  waiting_payment: "warning",
   approved: "default",
   shipped: "default",
   delivered: "success",
@@ -53,6 +54,7 @@ const statusVariant: Record<string, "default" | "success" | "warning" | "danger"
 const statusText: Record<string, string> = {
   pending: "Hazırlanıyor",
   pending_approval: "Onay Bekliyor",
+  waiting_payment: "Ödeme Bekliyor",
   approved: "Onaylandı",
   shipped: "Kargoda",
   delivered: "Teslim Edildi",

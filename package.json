@@ -78,6 +78,7 @@
     "audit:invoice-convergence": "tsx scripts/audit-invoice-convergence.ts",
     "test:invoice-convergence": "tsx scripts/test-invoice-convergence.ts",
     "test:payment-gateways": "tsx scripts/test-payment-gateways.ts",
+    "recover:critical": "tsx scripts/recover-critical-state.ts",
     "test:production-readiness": "tsx scripts/test-production-readiness.ts",
     "rebuild": "rm -rf .next && next build",
     "clean": "rm -rf .next"

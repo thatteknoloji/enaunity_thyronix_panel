@@ -9,6 +9,8 @@ export interface FieldMap {
   modelCode?: string;
   externalId?: string;
   price: string;
+  discountedPrice?: string;
+  salePrice?: string;
   costPrice?: string;
   stock: string;
   currency?: string;
@@ -58,7 +60,7 @@ export const ALL_TEMPLATES: FeedTemplate[] = [
     variantElement: "varyantlar", variantItemElement: "varyant",
     xmlHeader: ENCODING,
     cdataFields: ["description"],
-    fieldMap: { name: "urunAdi", description: "aciklama", brand: "marka", category: "kategoriAdi", barcode: "barkod", stockCode: "stokKodu", modelCode: "modelKodu", price: "fiyat", costPrice: "alisFiyati", stock: "stokAdedi", currency: "paraBirimi", image: "resim", images: "resimler", weight: "agirlik", dimensions: "ebat", vatRate: "kdvOrani", deliveryTime: "kargoSuresi", manufacturer: "uretici", warranty: "garantiSuresi", shippingCost: "kargoUcreti", productUrl: "urunLinki", status: "durum" },
+    fieldMap: { name: "urunAdi", description: "aciklama", brand: "marka", category: "kategoriAdi", barcode: "barkod", stockCode: "stokKodu", modelCode: "modelKodu", price: "fiyat", discountedPrice: "indirimliFiyat", costPrice: "alisFiyati", stock: "stokAdedi", currency: "paraBirimi", image: "resim", images: "resimler", weight: "agirlik", dimensions: "ebat", vatRate: "kdvOrani", deliveryTime: "kargoSuresi", manufacturer: "uretici", warranty: "garantiSuresi", shippingCost: "kargoUcreti", productUrl: "urunLinki", status: "durum" },
     notes: "En yaygın entegratör, 500+ mağaza"
   },
   {
@@ -282,7 +284,7 @@ export const ALL_TEMPLATES: FeedTemplate[] = [
     rootElement: "products", itemElement: "product",
     xmlHeader: ENCODING,
     cdataFields: ["description"],
-    fieldMap: { name: "name", description: "description", brand: "brand", category: "category", barcode: "barcode", stockCode: "sku", price: "price", stock: "stock", currency: "currency", image: "image", images: "images", weight: "weight", dimensions: "dimensions", vatRate: "vat", status: "status", deliveryTime: "delivery", productUrl: "url" },
+    fieldMap: { name: "name", description: "description", brand: "brand", category: "category", barcode: "barcode", stockCode: "sku", modelCode: "modelCode", externalId: "externalId", price: "price", discountedPrice: "discountedPrice", costPrice: "costPrice", stock: "stock", currency: "currency", image: "image", images: "images", weight: "weight", dimensions: "dimensions", vatRate: "vat", status: "status", deliveryTime: "delivery", manufacturer: "manufacturer", warranty: "warranty", shippingCost: "shippingCost", productUrl: "url" },
     notes: "Alan eşleştirmeleri kullanıcı tarafından değiştirilebilir"
   },
   {

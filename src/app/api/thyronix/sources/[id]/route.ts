@@ -22,7 +22,7 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
         fieldMapping: body.fieldMapping || null,
         variantMapping: body.variantMapping || null,
         fixedValues: body.fixedValues || null,
-        interval: body.interval ?? 60,
+        interval: body.interval ?? 720,
         status: body.status,
       } as any,
     });

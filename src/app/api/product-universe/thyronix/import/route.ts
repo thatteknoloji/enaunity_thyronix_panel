@@ -10,11 +10,22 @@ export async function POST(req: Request) {
     const sourceIds = Array.isArray(body.sourceIds)
       ? body.sourceIds.map(String).filter(Boolean)
       : undefined;
+    const dryRun = body.dryRun === true;
+
+    if (!dryRun && body.manualBridgeConfirm !== "ENA_ADMIN_MANUAL_IMPORT") {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "THYRONIX bağımsızdır. Gerçek aktarım için manuel admin import onayı gerekir.",
+        },
+        { status: 400 },
+      );
+    }
 
     const result = await runThyronixBridgeImport({
       sourceIds,
       onlyActiveSources: body.onlyActiveSources !== false,
-      dryRun: body.dryRun === true,
+      dryRun,
       limit: body.limit != null ? Number(body.limit) : 1000,
       minStock: body.minStock != null ? Number(body.minStock) : 0,
       analyze: body.analyze !== false,

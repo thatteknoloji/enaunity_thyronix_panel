@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useMemo } from "react";
-import { Radio, Heart, FileDown, CheckCircle, Clock, Play, Copy, Trash2, Plus, Save, X, ExternalLink, Layers } from "lucide-react";
+import { Radio, Heart, FileDown, CheckCircle, Clock, Play, Copy, Trash2, Plus, Save, X, ExternalLink, Layers, Link2 } from "lucide-react";
 import toast from "react-hot-toast";
 import { FEED_MAX_PRODUCTS_PER_FILE, planFeedChunks } from "@/lib/thyronix/feed-chunk";
 import HealthPage from "../health/page";
@@ -26,6 +26,12 @@ type Feed = {
   status: string;
   outputFormat: string;
   productCount: number;
+  liveProductCount?: number;
+  countMismatch?: boolean;
+  chunkPlan?: ReturnType<typeof planFeedChunks>;
+  outputUrls?: Record<string, string>;
+  outputParts?: Array<{ part: number; productCount?: number; label?: string; urls: Record<string, string> }>;
+  liveError?: string;
   lastPublished: string | null;
   schedule: number;
   sourceId?: string | null;
@@ -111,6 +117,12 @@ export default function FeedCenterPage() {
       }
       load();
     } else toast.error(d.error || "Yayın hatası");
+  };
+
+  const copyToClipboard = async (value: string, label = "Link") => {
+    const absolute = value.startsWith("http") ? value : `${window.location.origin}${value}`;
+    await navigator.clipboard.writeText(absolute);
+    toast.success(`${label} kopyalandı`);
   };
 
   return (
@@ -217,15 +229,28 @@ export default function FeedCenterPage() {
                 </thead>
                 <tbody className="divide-y divide-nexa-border">
                   {feeds.map((f) => {
-                    const feedParts = planFeedChunks(f.productCount || 0);
+                    const effectiveCount = f.liveProductCount ?? f.productCount ?? 0;
+                    const feedParts = f.chunkPlan || planFeedChunks(effectiveCount);
+                    const outputParts = f.outputParts?.length ? f.outputParts : [{
+                      part: 1,
+                      productCount: effectiveCount,
+                      label: "Parça 1/1",
+                      urls: f.outputUrls || { xml: `/api/thyronix/feed/${f.id}/output.xml` },
+                    }];
                     return (
                     <tr key={f.id} className="hover:bg-nexa-hover">
                       <td className="px-4 py-3 font-medium text-nexa-text">
                         {f.sourceId ? f.name : "Bayi XML"}
                         <div className="text-xs text-nexa-text-secondary">
-                          {(f.productCount || 0).toLocaleString("tr-TR")} ürün
+                          {effectiveCount.toLocaleString("tr-TR")} ürün
                           {feedParts.needsSplit && (
                             <span className="ml-2 text-amber-400">· {feedParts.partCount} parça</span>
+                          )}
+                          {f.countMismatch && (
+                            <span className="ml-2 text-nexa-warning">· kayıt sayısı yenilenecek</span>
+                          )}
+                          {f.liveError && (
+                            <span className="ml-2 text-nexa-danger">· canlı sayı alınamadı</span>
                           )}
                         </div>
                       </td>
@@ -245,22 +270,30 @@ export default function FeedCenterPage() {
                       <td className="px-4 py-3"><span className={`text-xs ${f.status === "active" ? "text-nexa-success" : "text-nexa-warning"}`}>{f.status}</span></td>
                       <td className="px-4 py-3 text-nexa-text-secondary text-xs">{f.schedule || 24} saat</td>
                       <td className="px-4 py-3">
-                        <div className="flex justify-end gap-1 flex-wrap">
+                        <div className="flex justify-end gap-1 flex-wrap max-w-[420px] ml-auto">
                           <button onClick={() => publishFeed(f.id)} className="p-2 rounded-lg hover:bg-nexa-primary/10 text-nexa-primary" title="Yayınla"><Play size={14} /></button>
-                          {feedParts.partCount <= 1 ? (
-                            <a href={`/api/thyronix/feed/${f.id}/output.xml`} target="_blank" className="p-2 rounded-lg hover:bg-nexa-hover text-nexa-text-secondary" title="XML"><ExternalLink size={14} /></a>
-                          ) : (
-                            feedParts.parts.map((p) => (
+                          {outputParts.map((p) => (
+                            <div key={p.part} className="inline-flex items-center rounded-lg border border-nexa-border bg-nexa-bg overflow-hidden">
                               <a
-                                key={p.part}
-                                href={`/api/thyronix/feed/${f.id}/output.xml?part=${p.part}`}
+                                href={p.urls.xml}
                                 target="_blank"
-                                className="px-2 py-1 rounded text-[10px] bg-nexa-bg border border-nexa-border text-nexa-text-secondary hover:text-nexa-primary whitespace-nowrap"
-                                title={`${p.label} — ${p.productCount.toLocaleString("tr-TR")} ürün`}
+                                className="px-2 py-1 text-[10px] text-nexa-text-secondary hover:text-nexa-primary whitespace-nowrap"
+                                title={`${p.label || `Parça ${p.part}`} — ${(p.productCount || 0).toLocaleString("tr-TR")} ürün`}
                               >
                                 Bayi XML {p.part}
                               </a>
-                            ))
+                              <button
+                                type="button"
+                                onClick={() => copyToClipboard(p.urls.xml, `Bayi XML ${p.part}`)}
+                                className="px-1.5 py-1 text-nexa-text-secondary hover:text-nexa-primary border-l border-nexa-border"
+                                title="Linki kopyala"
+                              >
+                                <Link2 size={11} />
+                              </button>
+                            </div>
+                          ))}
+                          {f.outputUrls?.csv && (
+                            <a href={f.outputUrls.csv} target="_blank" className="p-2 rounded-lg hover:bg-nexa-hover text-nexa-text-secondary" title="CSV"><ExternalLink size={14} /></a>
                           )}
                           <button onClick={() => { setEditing(f); setForm({ name: f.name, channel: f.channel, outputFormat: f.outputFormat, schedule: f.schedule || 24 }); setShowForm(true); }} className="p-2 rounded-lg hover:bg-nexa-hover text-nexa-text-secondary"><Copy size={14} /></button>
                           <button onClick={() => deleteFeed(f.id)} className="p-2 rounded-lg hover:bg-nexa-danger/10 text-nexa-danger"><Trash2 size={14} /></button>

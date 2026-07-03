@@ -8,6 +8,8 @@ import {
   type VhtFeedDefinition,
 } from "./vht-supplier-feeds";
 import {
+  buildParsedProductIdentity,
+  ensureUniqueRowExternalId,
   fetchAndParseXmlFeeds,
   maskFeedUrl,
   parseFixedValues,
@@ -107,11 +109,13 @@ export async function syncVhtSourceById(sourceId: string) {
   const { products } = await fetchAndParseXmlFeeds(feedUrls, template, fieldMapping, variantMapping);
 
   const seen = new Set<string>();
+  const usedExternalIds = new Set<string>();
   const rows = [];
   for (const p of products) {
-    const row = productToThyronixRow(p, sourceId, fixedValues);
-    if (seen.has(row.externalId)) continue;
-    seen.add(row.externalId);
+    const identity = buildParsedProductIdentity(p);
+    if (seen.has(identity)) continue;
+    seen.add(identity);
+    const row = ensureUniqueRowExternalId(productToThyronixRow(p, sourceId, fixedValues), identity, usedExternalIds);
     rows.push(row);
   }
 

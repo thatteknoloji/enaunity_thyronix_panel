@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { parseExcel, mapExcelToProducts, type ExcelProductRow, type ExcelValidationSummary } from "@/lib/thyronix/excel-parser";
 import { requireThyronixDealerOrAdmin } from "@/lib/thyronix/access";
+import { buildVariantMappingReadiness, inferVariantFieldsFromColumns } from "@/lib/thyronix/mapping-validation";
 
 function parseJsonRecord(value: unknown): Record<string, string> {
   if (!value) return {};
@@ -62,6 +63,7 @@ export async function POST(req: Request) {
     let sheetName: string | undefined;
     let headerRow = 1;
     let fieldMapping: Record<string, string> = {};
+    let variantMapping: Record<string, string> = {};
     let fixedValues: Record<string, string> = {};
 
     const ct = req.headers.get("content-type") || "";
@@ -73,6 +75,7 @@ export async function POST(req: Request) {
       sheetName = (formData.get("sheetName") as string) || undefined;
       headerRow = parseInt((formData.get("headerRow") as string) || "1");
       fieldMapping = parseJsonRecord(formData.get("fieldMapping"));
+      variantMapping = parseJsonRecord(formData.get("variantMapping"));
       fixedValues = parseJsonRecord(formData.get("fixedValues"));
 
       if (file) {
@@ -86,11 +89,12 @@ export async function POST(req: Request) {
       }
     } else {
       const body = await req.json();
-      const { url, sheetName: sn, headerRow: hr, fieldMapping: fm, fixedValues: fv } = body;
+      const { url, sheetName: sn, headerRow: hr, fieldMapping: fm, variantMapping: vm, fixedValues: fv } = body;
       if (!url) return NextResponse.json({ error: "URL gerekli" }, { status: 400 });
       sheetName = sn || undefined;
       headerRow = hr || 1;
       fieldMapping = parseJsonRecord(fm);
+      variantMapping = parseJsonRecord(vm);
       fixedValues = parseJsonRecord(fv);
 
       const res = await fetch(url, { signal: AbortSignal.timeout(30000) });
@@ -99,8 +103,9 @@ export async function POST(req: Request) {
     }
 
     const result = parseExcel(buffer, sheetName, headerRow);
+    const variantFields = inferVariantFieldsFromColumns(result.columns);
     const mappedRows: ExcelProductRow[] = Object.keys(fieldMapping).length > 0
-      ? mapExcelToProducts(result.allRows, fieldMapping, fixedValues)
+      ? mapExcelToProducts(result.allRows, fieldMapping, fixedValues, variantMapping)
       : result.allRows.map((row, idx) => {
           const hasName = result.columns.some(c => String(row[c] || "").trim().length > 1);
           const hasPrice = result.columns.some(c => {
@@ -120,6 +125,7 @@ export async function POST(req: Request) {
         }) as ExcelProductRow[];
 
     const validation = buildValidationSummary(mappedRows);
+    const variantReadiness = buildVariantMappingReadiness(variantFields, variantMapping);
 
     return NextResponse.json({
       success: true,
@@ -129,9 +135,14 @@ export async function POST(req: Request) {
         headerRow: result.headerRow,
         columns: result.columns,
         previewRows: result.previewRows,
+        variantFields,
+        variantSampleValues: Object.fromEntries(
+          variantFields.map((field) => [field, String(result.previewRows[0]?.[field] ?? "").slice(0, 80)]),
+        ),
         totalRows: validation.validRows + validation.invalidRows,
         errors: result.errors,
         validation,
+        variantReadiness,
         mappingAware: Object.keys(fieldMapping).length > 0,
       },
     });

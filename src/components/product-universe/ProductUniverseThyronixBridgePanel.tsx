@@ -85,6 +85,13 @@ export function ProductUniverseThyronixBridgePanel() {
   }, [loadStatus]);
 
   const runImport = async (opts?: { all?: boolean }) => {
+    if (!dryRun) {
+      const ok = window.confirm(
+        "THYRONIX bağımsız Excel/XML alanıdır. Bu işlem seçili THYRONIX ürünlerini manuel admin aksiyonu olarak Product Universe'e aktarır. Devam edilsin mi?",
+      );
+      if (!ok) return;
+    }
+
     setRunning(true);
     setError(null);
     setResult(null);
@@ -105,6 +112,7 @@ export function ProductUniverseThyronixBridgePanel() {
             minStock,
             analyze,
             cursor,
+            manualBridgeConfirm: dryRun ? undefined : "ENA_ADMIN_MANUAL_IMPORT",
           }),
         });
         if (!d.success) throw new Error(d.error || "Import başarısız");

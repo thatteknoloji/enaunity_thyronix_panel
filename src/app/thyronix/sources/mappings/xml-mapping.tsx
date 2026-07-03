@@ -26,6 +26,9 @@ export default function XmlMappingUI({
   const grouped = templates.reduce((acc:Record<string,any[]>,t)=>{
     (acc[t.group||"Diğer"]=acc[t.group||"Diğer"]||[]).push(t); return acc;
   },{});
+  const variantFieldList = Array.from(new Set([...variantFields, ...Object.keys(variantMapping)]));
+  const variantRoles = Object.values(variantMapping).filter((role) => role && role !== "variantIgnore");
+  const variantReady = variantFieldList.length === 0 || (variantRoles.includes("variantValue") && (variantRoles.includes("variantBarcode") || variantRoles.includes("variantSku")));
 
   return (
     <div className="space-y-4">
@@ -121,9 +124,11 @@ export default function XmlMappingUI({
       {(variantFields.length > 0 || Object.keys(variantMapping).length > 0) && (
         <div className="p-3 rounded-xl bg-nexa-card border border-nexa-border">
           <p className="text-xs text-nexa-text-secondary mb-2">
-            <span className="text-nexa-warning font-semibold">Ⓥ Varyant alanları:</span> {Array.from(new Set([...variantFields, ...Object.keys(variantMapping)])).join(", ") || "—"}
+            <span className="text-nexa-warning font-semibold">Ⓥ Varyant alanları:</span> {variantFieldList.join(", ") || "—"}
           </p>
-          <p className="text-[10px] text-nexa-text-secondary">Eşleştirmediğin alanlar otomatik özellik olarak işlenmeye devam eder.</p>
+          <p className="text-[10px] text-nexa-text-secondary">
+            Varyant algılandıysa varyant değeri ve varyant barkod/SKU eşleştirmesi zorunludur.
+          </p>
         </div>
       )}
 
@@ -133,15 +138,15 @@ export default function XmlMappingUI({
           <div className="flex items-center gap-2 mb-3">
             <CheckCircle2 size={16} className="text-nexa-primary"/>
             <h3 className="text-sm font-semibold text-nexa-text">Varyant Alan Eşleştirme</h3>
-            <span className="text-[11px] text-nexa-text-secondary ml-auto">
-              {Array.from(new Set([...variantFields, ...Object.keys(variantMapping)])).filter(f=>variantMapping[f]).length}
+            <span className={`text-[11px] ml-auto ${variantReady ? "text-nexa-success" : "text-nexa-warning"}`}>
+              {variantReady ? "Hazır" : "Zorunlu"} · {variantFieldList.filter(f=>variantMapping[f]).length}
               /
-              {Array.from(new Set([...variantFields, ...Object.keys(variantMapping)])).length}
+              {variantFieldList.length}
               eşleşti
             </span>
           </div>
           <div className="space-y-2 max-h-[360px] overflow-y-auto scrollbar-thin">
-            {Array.from(new Set([...variantFields, ...Object.keys(variantMapping)])).map(variantField => (
+            {variantFieldList.map(variantField => (
               <div key={variantField} className="flex items-center gap-3">
                 <div className="w-1/2">
                   <div className="rounded bg-nexa-bg px-2 py-1.5">
@@ -161,7 +166,7 @@ export default function XmlMappingUI({
                     className={`w-full rounded-lg border text-xs px-2 py-1.5 focus:outline-none
                       ${variantMapping[variantField] ? "border-nexa-primary/50 bg-nexa-primary/5 text-nexa-text" : "border-nexa-border bg-nexa-bg text-nexa-text-secondary"}`}
                   >
-                    <option value="">-- otomatik bırak --</option>
+                    <option value="">-- seçin --</option>
                     {VARIANT_TARGET_FIELDS.map(f=>(
                       <option key={f.v} value={f.v}>{f.l}{f.req ? " *" : ""}</option>
                     ))}
@@ -171,7 +176,7 @@ export default function XmlMappingUI({
             ))}
           </div>
           <p className="mt-3 text-[10px] text-nexa-text-secondary">
-            Barkod, SKU, fiyat, stok ve görsel alanlarını buradan sabitleyebilirsin. Özellik / renk / beden gibi kalan alanlar otomatik seçenek olarak işlenir.
+            Özellik / renk / beden gibi alanlar varyant değeri olarak, barkod veya SKU ise varyant kimliği olarak eşleştirilmelidir.
           </p>
         </div>
       )}

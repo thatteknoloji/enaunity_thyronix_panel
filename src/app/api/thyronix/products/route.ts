@@ -82,11 +82,17 @@ export async function GET(req: Request) {
     if (cleanSearch) {
       filters.OR = [
         { name: { contains: cleanSearch } },
+        { description: { contains: cleanSearch } },
+        { brand: { contains: cleanSearch } },
+        { category: { contains: cleanSearch } },
         { barcode: { contains: cleanSearch } },
         { stockCode: { contains: cleanSearch } },
         { modelCode: { contains: cleanSearch } },
-        { brand: { contains: cleanSearch } },
         { externalId: { contains: cleanSearch } },
+        { manufacturer: { contains: cleanSearch } },
+        { variantData: { contains: cleanSearch } },
+        { metadataJson: { contains: cleanSearch } },
+        { source: { name: { contains: cleanSearch } } },
       ];
     }
 

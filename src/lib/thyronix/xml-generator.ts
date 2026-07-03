@@ -4,6 +4,7 @@ interface ThyronixProduct {
   id: string; externalId?: string | null; name: string; description?: string | null; brand?: string | null;
   category?: string | null; barcode?: string | null; stockCode?: string | null;
   modelCode?: string | null; price: number; costPrice?: number | null; stock: number;
+  discountedPrice?: number | null; salePrice?: number | null;
   currency?: string | null; image?: string | null; images?: string | null;
   weight?: number | null; dimensions?: string | null; status?: string | null;
   vatRate?: number | null; deliveryTime?: string | null;
@@ -42,6 +43,7 @@ function getField(product: ThyronixProduct, fieldName: string): unknown {
     category: product.category, barcode: product.barcode, stockCode: product.stockCode,
     externalId: product.externalId,
     modelCode: product.modelCode, price: product.price, costPrice: product.costPrice,
+    discountedPrice: product.discountedPrice, salePrice: product.salePrice,
     stock: product.stock, currency: product.currency, image: product.image,
     images: product.images, weight: product.weight, dimensions: product.dimensions,
     status: product.status, vatRate: product.vatRate, deliveryTime: product.deliveryTime,

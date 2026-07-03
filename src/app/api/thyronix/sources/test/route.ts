@@ -1,22 +1,17 @@
 import { NextResponse } from "next/server";
 import { requireThyronixDealerOrAdmin, thyronixErrorResponse } from "@/lib/thyronix/access";
+import { fetchXmlText } from "@/lib/thyronix/feed-fetch";
+import { buildVariantMappingReadiness } from "@/lib/thyronix/mapping-validation";
 import { getTemplate } from "@/lib/thyronix/templates";
 import { inspectXmlFeed } from "@/lib/thyronix/xml-parser";
 
 export async function POST(req: Request) {
   try {
     await requireThyronixDealerOrAdmin();
-    const { xmlUrl, inputFormat } = await req.json();
+    const { xmlUrl, inputFormat, variantMapping } = await req.json();
     if (!xmlUrl) return NextResponse.json({ success: false, error: "URL gerekli" }, { status: 400 });
 
-    // Fetch XML
-    const res = await fetch(xmlUrl, {
-      headers: { "User-Agent": "THYRONIX Test/1.0", Accept: "text/xml,application/xml,*/*" },
-      signal: AbortSignal.timeout(60000),
-    });
-    if (!res.ok) return NextResponse.json({ success: false, error: `HTTP ${res.status}` }, { status: 400 });
-
-    const xmlText = await res.text();
+    const xmlText = await fetchXmlText(xmlUrl, 60000);
     if (!xmlText || xmlText.length < 10) return NextResponse.json({ success: false, error: "Boş yanıt" }, { status: 400 });
 
     // Get template
@@ -25,6 +20,10 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: false, error: "Geçersiz şablon" }, { status: 400 });
     }
     const inspected = inspectXmlFeed(xmlText, template);
+    const variantReadiness = buildVariantMappingReadiness(
+      inspected.variantFields,
+      variantMapping && typeof variantMapping === "object" ? variantMapping : {},
+    );
 
     // Current template mapping - INVERTED: XML field → THYRONIX field
     const currentMapping: Record<string, string> = {};
@@ -41,6 +40,7 @@ export async function POST(req: Request) {
         detectedFields: inspected.detectedFields,
         variantFields: inspected.variantFields,
         variantSampleValues: inspected.variantSampleValues,
+        variantReadiness,
         sampleValues: inspected.sampleValues,
         currentMapping,
         templateName: template?.name || "Unknown",

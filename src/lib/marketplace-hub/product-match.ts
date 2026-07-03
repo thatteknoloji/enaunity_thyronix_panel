@@ -23,12 +23,50 @@ export type MatchedProduct = {
   brand?: string;
 };
 
+export type MatchedThyronixProduct = {
+  id: string;
+  sourceId: string;
+  sourceName?: string;
+  name: string;
+  image: string;
+  images?: string | null;
+  price: number;
+  discountedPrice?: number | null;
+  costPrice?: number | null;
+  category: string;
+  stockCode: string;
+  modelCode: string;
+  externalId: string;
+  barcode: string;
+  brand?: string;
+};
+
 export type ProductMatchResult = {
   catalogItem: MatchedCatalogItem | null;
   product: MatchedProduct | null;
-  matchedSource: "catalog_barcode" | "catalog_sku" | "catalog_name" | "catalog_brand" | "catalog_category" | "product_barcode" | "product_sku" | "product_fuzzy" | "product_category" | null;
+  thyronixProduct: MatchedThyronixProduct | null;
+  matchedSource:
+    | "catalog_barcode"
+    | "catalog_sku"
+    | "catalog_name"
+    | "catalog_brand"
+    | "catalog_category"
+    | "thyronix_barcode"
+    | "thyronix_stock_code"
+    | "thyronix_model_code"
+    | "thyronix_external_id"
+    | "thyronix_variant"
+    | "thyronix_name"
+    | "thyronix_category"
+    | "product_barcode"
+    | "product_sku"
+    | "product_fuzzy"
+    | "product_category"
+    | null;
   matchScore: number;
 };
+
+const THYRONIX_MANUAL_IMPORT_MATCH_METHOD = "thyronix_manual_admin_import";
 
 function fuzzyMatch(lineName: string, productName: string): number {
   const l = lineName.toLowerCase().replace(/[^a-z0-9ğüşıöç ]/g, " ").replace(/\s+/g, " ").trim();
@@ -70,6 +108,13 @@ function normalizeName(name: string): string {
   return name.toLowerCase().replace(/[^a-z0-9ğüşıöç ]/g, " ").replace(/\s+/g, " ").trim();
 }
 
+function firstImage(value: string | null | undefined) {
+  return String(value || "")
+    .split(/[,\n|]+/g)
+    .map((item) => item.trim())
+    .find(Boolean) || "";
+}
+
 function mapCatalogItem(item: {
   id: string;
   name: string;
@@ -93,6 +138,141 @@ function mapCatalogItem(item: {
   };
 }
 
+function mapThyronixProduct(product: {
+  id: string;
+  sourceId: string;
+  name: string;
+  image: string | null;
+  images: string | null;
+  price: number;
+  discountedPrice: number | null;
+  costPrice: number | null;
+  category: string | null;
+  stockCode: string | null;
+  modelCode: string | null;
+  externalId: string;
+  barcode: string | null;
+  brand: string | null;
+  source?: { name?: string | null } | null;
+}): MatchedThyronixProduct {
+  return {
+    id: product.id,
+    sourceId: product.sourceId,
+    sourceName: product.source?.name || "",
+    name: product.name,
+    image: product.image || firstImage(product.images),
+    images: product.images,
+    price: product.discountedPrice ?? product.price,
+    discountedPrice: product.discountedPrice,
+    costPrice: product.costPrice,
+    category: product.category || "",
+    stockCode: product.stockCode || "",
+    modelCode: product.modelCode || "",
+    externalId: product.externalId,
+    barcode: product.barcode || "",
+    brand: product.brand || "",
+  };
+}
+
+async function matchThyronixProduct(params: {
+  barcode?: string;
+  sku?: string;
+  name?: string;
+  category?: string;
+  dealerId?: string;
+}): Promise<{ product: MatchedThyronixProduct; source: ProductMatchResult["matchedSource"]; score: number } | null> {
+  const barcode = (params.barcode || "").trim();
+  const sku = (params.sku || "").trim();
+  const name = (params.name || "").trim();
+  const detectedCat = params.category || detectCategory(name);
+
+  const baseWhere = {
+    status: "active",
+    source: { status: "active" },
+  };
+
+  const findOne = async (
+    OR: Record<string, unknown>[],
+    source: ProductMatchResult["matchedSource"],
+    score: number,
+  ) => {
+    if (OR.length === 0) return null;
+    const row = await prisma.thyronixProduct.findFirst({
+      where: {
+        ...baseWhere,
+        AND: [
+          ...(params.dealerId ? [{ OR: [{ dealerId: params.dealerId }, { dealerId: null }] }] : []),
+          { OR },
+        ],
+      },
+      include: { source: { select: { name: true } } },
+      orderBy: [{ stock: "desc" }, { updatedAt: "desc" }],
+    });
+    return row ? { product: mapThyronixProduct(row), source, score } : null;
+  };
+
+  if (barcode) {
+    const exact = await findOne(
+      [
+        { barcode },
+        { stockCode: barcode },
+        { modelCode: barcode },
+        { externalId: barcode },
+      ],
+      "thyronix_barcode",
+      92,
+    );
+    if (exact) return exact;
+
+    const variant = await findOne(
+      [{ variantData: { contains: barcode } }, { metadataJson: { contains: barcode } }],
+      "thyronix_variant",
+      82,
+    );
+    if (variant) return variant;
+  }
+
+  if (sku) {
+    const bySku = await findOne(
+      [
+        { stockCode: sku },
+        { modelCode: sku },
+        { barcode: sku },
+        { externalId: sku },
+        { variantData: { contains: sku } },
+        { metadataJson: { contains: sku } },
+      ],
+      "thyronix_stock_code",
+      88,
+    );
+    if (bySku) return bySku;
+  }
+
+  if (name.length >= 4) {
+    const byName = await findOne(
+      [
+        { name: { contains: name.slice(0, 48) } },
+        { description: { contains: name.slice(0, 48) } },
+        { metadataJson: { contains: name.slice(0, 48) } },
+      ],
+      "thyronix_name",
+      68,
+    );
+    if (byName) return byName;
+  }
+
+  if (detectedCat) {
+    const byCategory = await findOne(
+      [{ category: { contains: detectedCat } }],
+      "thyronix_category",
+      52,
+    );
+    if (byCategory) return byCategory;
+  }
+
+  return null;
+}
+
 export async function matchCatalogItem(params: {
   barcode?: string;
   sku?: string;
@@ -111,6 +291,8 @@ export async function matchProductLine(params: {
   brand?: string;
   category?: string;
   matchMethod?: string;
+  dealerId?: string;
+  allowThyronixPool?: boolean;
 }): Promise<ProductMatchResult> {
   const barcode = (params.barcode || "").trim();
   const sku = (params.sku || "").trim();
@@ -120,6 +302,7 @@ export async function matchProductLine(params: {
   const empty: ProductMatchResult = {
     catalogItem: null,
     product: null,
+    thyronixProduct: null,
     matchedSource: null,
     matchScore: 0,
   };
@@ -133,6 +316,7 @@ export async function matchProductLine(params: {
       return {
         catalogItem: mapCatalogItem(byBarcode),
         product: null,
+        thyronixProduct: null,
         matchedSource: "catalog_barcode",
         matchScore: 100,
       };
@@ -148,6 +332,7 @@ export async function matchProductLine(params: {
       return {
         catalogItem: mapCatalogItem(bySku),
         product: null,
+        thyronixProduct: null,
         matchedSource: "catalog_sku",
         matchScore: 95,
       };
@@ -170,6 +355,7 @@ export async function matchProductLine(params: {
       return {
         catalogItem: mapCatalogItem(byName),
         product: null,
+        thyronixProduct: null,
         matchedSource: "catalog_name",
         matchScore: 70,
       };
@@ -185,6 +371,7 @@ export async function matchProductLine(params: {
       return {
         catalogItem: mapCatalogItem(byBrand),
         product: null,
+        thyronixProduct: null,
         matchedSource: "catalog_brand",
         matchScore: 55,
       };
@@ -201,13 +388,38 @@ export async function matchProductLine(params: {
       return {
         catalogItem: mapCatalogItem(byCat),
         product: null,
+        thyronixProduct: null,
         matchedSource: "catalog_category",
         matchScore: 50,
       };
     }
   }
 
-  // 6) Product (ENA catalog) — compatibility fallback
+  // 6) THYRONIX source pool is intentionally outside ENA order/marketplace flows.
+  // Only an explicit admin import bridge may opt into this pool.
+  const canUseThyronixPool =
+    params.allowThyronixPool === true &&
+    params.matchMethod === THYRONIX_MANUAL_IMPORT_MATCH_METHOD;
+  if (canUseThyronixPool) {
+    const thyronix = await matchThyronixProduct({
+      barcode,
+      sku,
+      name,
+      category: params.category,
+      dealerId: params.dealerId,
+    });
+    if (thyronix) {
+      return {
+        catalogItem: null,
+        product: null,
+        thyronixProduct: thyronix.product,
+        matchedSource: thyronix.source,
+        matchScore: thyronix.score,
+      };
+    }
+  }
+
+  // 7) Product (ENA catalog) — compatibility fallback
   const allProducts = await prisma.product.findMany({
     select: { id: true, name: true, image: true, price: true, category: true, sku: true, barcode: true, brand: true },
     take: 500,
@@ -264,7 +476,7 @@ export async function matchProductLine(params: {
   }
 
   if (matchedProduct) {
-    return { catalogItem: null, product: matchedProduct, matchedSource, matchScore: bestScore };
+    return { catalogItem: null, product: matchedProduct, thyronixProduct: null, matchedSource, matchScore: bestScore };
   }
 
   return empty;

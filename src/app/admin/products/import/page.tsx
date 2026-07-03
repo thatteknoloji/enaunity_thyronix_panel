@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { ProductsTabs } from "@/components/admin/ProductsTabs";
 import { toAdminUrl } from "@/lib/auth/admin-access";
 import {
-  Upload, CheckCircle, AlertCircle, ChevronRight, ChevronLeft, Loader2, Download,
+  Upload, CheckCircle, AlertCircle, ChevronRight, ChevronLeft, Loader2, Download, Database, ShieldCheck,
 } from "lucide-react";
 import toast from "react-hot-toast";
 
@@ -53,6 +53,18 @@ interface PreviewData {
   mapping?: FieldMappingState;
 }
 
+interface ThyronixImportSource {
+  id: string;
+  name: string;
+  type: string;
+  inputFormat: string;
+  status: string;
+  productCount: number;
+  lastSync: string | null;
+  tenantScope: string;
+  ownerType: string;
+}
+
 const PRESETS = [
   { id: "auto", label: "Otomatik Algıla", desc: "Sütun başlıklarından format tespit eder" },
   { id: "trendyol_tablo", label: "Trendyol Tablo", desc: "Model Kodu + varyant satırları (veriler_part1 formatı)" },
@@ -93,6 +105,8 @@ export default function BulkImportPage() {
   const [categoryMapping, setCategoryMapping] = useState<Record<string, string>>({});
   const [fieldMapping, setFieldMapping] = useState<FieldMappingState>({});
   const [categories, setCategories] = useState<{ id: string; name: string }[]>([]);
+  const [thyronixSources, setThyronixSources] = useState<ThyronixImportSource[]>([]);
+  const [thyronixSourceId, setThyronixSourceId] = useState("");
   const [commitResult, setCommitResult] = useState<{ created: number; updated: number; skipped: number; errors: string[]; productIds: string[] } | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -100,7 +114,22 @@ export default function BulkImportPage() {
     fetch("/api/admin/categories").then((r) => r.json()).then((d) => {
       if (d.success || d.data) setCategories(d.data || []);
     }).catch(() => {});
+    fetch("/api/admin/products/import/thyronix-sources").then((r) => r.json()).then((d) => {
+      if (d.success) setThyronixSources(d.data || []);
+    }).catch(() => {});
   }, []);
+
+  const applyPreviewData = (data: PreviewData) => {
+    setPreview(data);
+    setFieldMapping(data.mapping || {});
+    const mapping: Record<string, string> = {};
+    for (const cat of data.categoryValues || []) {
+      const match = categories.find((c) => c.name.toLowerCase() === cat.toLowerCase());
+      mapping[cat] = match?.name || cat;
+    }
+    setCategoryMapping(mapping);
+    setStep("preview");
+  };
 
   const handlePreview = async (mappingOverride?: FieldMappingState) => {
     if (!file) return;
@@ -116,17 +145,30 @@ export default function BulkImportPage() {
       const res = await fetch("/api/admin/products/import/preview", { method: "POST", body: fd });
       const data = await res.json();
       if (!data.success) { toast.error(data.error || "Önizleme hatası"); return; }
-      setPreview(data.data);
-      setFieldMapping(data.data.mapping || {});
-      const mapping: Record<string, string> = {};
-      for (const cat of data.data.categoryValues || []) {
-        const match = categories.find((c) => c.name.toLowerCase() === cat.toLowerCase());
-        mapping[cat] = match?.name || cat;
-      }
-      setCategoryMapping(mapping);
-      setStep("preview");
+      applyPreviewData(data.data);
     } catch {
       toast.error("Dosya okunamadı");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleThyronixPreview = async () => {
+    if (!thyronixSourceId) return;
+    setLoading(true);
+    try {
+      const res = await fetch("/api/admin/products/import/thyronix-source-preview", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sourceId: thyronixSourceId }),
+      });
+      const data = await res.json();
+      if (!data.success) { toast.error(data.error || "Thyronix önizleme hatası"); return; }
+      setFile(null);
+      applyPreviewData(data.data);
+      toast.success("Thyronix kaynağı önizlemeye hazırlandı");
+    } catch {
+      toast.error("Thyronix kaynağı okunamadı");
     } finally {
       setLoading(false);
     }
@@ -263,6 +305,46 @@ export default function BulkImportPage() {
             </div>
 	            <Button className="mt-4 w-full" disabled={!file || loading} onClick={async () => { await handlePreview(); }}>
               {loading ? <><Loader2 size={14} className="mr-1 animate-spin" /> Analiz ediliyor...</> : "Önizleme Oluştur"}
+            </Button>
+          </div>
+
+          <div className="rounded-xl border border-blue-100 bg-blue-50/60 p-6 shadow-sm">
+            <div className="mb-4 flex items-start gap-3">
+              <div className="rounded-xl bg-white p-2 text-blue-600 shadow-sm">
+                <Database size={20} />
+              </div>
+              <div>
+                <h2 className="text-sm font-semibold text-gray-900">THYRONIX Kaynağından Manuel İçe Aktar</h2>
+                <p className="mt-1 text-xs text-gray-600">
+                  THYRONIX bağımsız Excel/XML yönetim alanıdır. Admin kaynak seçip önizleme ve son onay vermeden hiçbir ürün ENA kataloğuna yazılmaz.
+                </p>
+              </div>
+            </div>
+            <select
+              className="w-full rounded-lg border border-blue-100 bg-white px-3 py-2 text-sm text-gray-800 focus:outline-none"
+              value={thyronixSourceId}
+              onChange={(e) => setThyronixSourceId(e.target.value)}
+            >
+              <option value="">THYRONIX XML/Excel kaynağı seç</option>
+              {thyronixSources.map((source) => (
+                <option key={source.id} value={source.id}>
+                  {source.name} · {source.productCount.toLocaleString("tr-TR")} ürün · {source.status}
+                </option>
+              ))}
+            </select>
+            <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-xs text-blue-700">
+              <span className="inline-flex items-center gap-1">
+                <ShieldCheck size={13} /> Tek yönlü ve sadece manuel admin aksiyonu ile çalışır.
+              </span>
+              <span>Otomatik senkron, katalog şişirme veya bayi tarafına yansıma yoktur.</span>
+            </div>
+            <Button
+              variant="outline"
+              className="mt-4 w-full border-blue-200 bg-white text-blue-700 hover:bg-blue-50"
+              disabled={!thyronixSourceId || loading}
+              onClick={handleThyronixPreview}
+            >
+              {loading ? <><Loader2 size={14} className="mr-1 animate-spin" /> THYRONIX kaynağı hazırlanıyor...</> : "THYRONIX Kaynağını Önizle"}
             </Button>
           </div>
         </div>

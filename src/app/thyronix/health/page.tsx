@@ -20,7 +20,9 @@ export default function ThyronixHealthPage() {
 
   const s = data || {};
   const items: HealthItem[] = [
+    { label: "Kimlik Eksik", count: s.missingIdentity||0, severity: "error" },
     { label: "Barkod Eksik", count: s.missingBarcode||0, severity: "error" },
+    { label: "KDV Eksik", count: s.missingVat||0, severity: "warning" },
     { label: "Marka Eksik", count: s.missingBrand||0, severity: "info" },
     { label: "Kategori Eksik", count: s.missingCategory||0, severity: "info" },
     { label: "Açıklama Eksik", count: s.missingDescription||0, severity: "warning" },
@@ -28,6 +30,7 @@ export default function ThyronixHealthPage() {
     { label: "Stok Sıfır", count: s.zeroStock||0, severity: "warning" },
     { label: "Negatif Fiyat", count: s.negativePrice||0, severity: "error" },
     { label: "Negatif Stok", count: s.negativeStock||0, severity: "error" },
+    { label: "Feed Sayısı Uyuşmuyor", count: s.feedCountMismatch||0, severity: "warning" },
   ];
   const total = items.reduce((sum,i)=>sum+i.count,0);
   const errors = items.filter(i=>i.severity==="error").reduce((sum,i)=>sum+i.count,0);

@@ -11,8 +11,8 @@ const FIXED_FIELDS = [
   { v:"safetyStock", l:"Güvenlik Stoku" },
 ];
 
-const EXCEL_RULE_FIELDS = [
-  { v:"brandOverride", l:"Excel Marka Değiştir" },
+const TRANSFORM_RULE_FIELDS = [
+  { v:"brandOverride", l:"Marka Değiştir" },
   { v:"namePrefix", l:"Ürün Adı Prefix" },
   { v:"nameSuffix", l:"Ürün Adı Suffix" },
   { v:"nameReplaceFrom", l:"Ad İçeriği Bul" },
@@ -40,7 +40,6 @@ interface Props {
 }
 
 export default function FixedValuesUI({ fixedValues, setFixedValues, mode = "default" }: Props) {
-  const isExcel = mode === "excel";
   return (
     <div className="p-4 rounded-xl bg-nexa-card border border-nexa-border space-y-4">
       <div className="flex items-center gap-2">
@@ -58,14 +57,14 @@ export default function FixedValuesUI({ fixedValues, setFixedValues, mode = "def
           </div>
         ))}
       </div>
-      {isExcel && (
+      {(mode === "default" || mode === "excel") && (
         <div className="rounded-xl border border-nexa-border/70 bg-nexa-bg/40 p-3 space-y-3">
           <div>
-            <h4 className="text-xs font-semibold text-nexa-text">Excel Kuralları</h4>
-            <p className="text-[10px] text-nexa-text-secondary">Yüklemeden önce isim, kod ve fiyat alanlarını tek yerden dönüştür.</p>
+            <h4 className="text-xs font-semibold text-nexa-text">Dönüşüm Kuralları</h4>
+            <p className="text-[10px] text-nexa-text-secondary">Yüklemeden önce isim, kod, KDV ve fiyat alanlarını tek yerden dönüştür.</p>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-            {EXCEL_RULE_FIELDS.map(f=>(
+            {TRANSFORM_RULE_FIELDS.map(f=>(
               <div key={f.v}>
                 <label className="text-[10px] text-nexa-text-secondary font-medium mb-0.5 block">{f.l}</label>
                 <input

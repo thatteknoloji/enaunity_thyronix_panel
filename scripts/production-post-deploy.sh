@@ -24,6 +24,11 @@ echo "=== ENAUNITY Production Post-Deploy ==="
 echo "→ git pull…"
 git pull origin main
 
+if [[ -x "$APP_DIR/backup-db.sh" ]]; then
+  echo "→ pre-deploy db snapshot…"
+  "$APP_DIR/backup-db.sh"
+fi
+
 echo "→ pm2 durdur (build için)…"
 if command -v pm2 >/dev/null 2>&1 && pm2 describe enaunity >/dev/null 2>&1; then
   pm2 stop enaunity || true

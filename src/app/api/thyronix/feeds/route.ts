@@ -10,6 +10,9 @@ import { checkPlanLimit } from "@/lib/thyronix/workspace";
 import { resolveDealerId } from "@/lib/thyronix/workspace";
 import { normalizeTemplateId } from "@/lib/thyronix/templates";
 import { FEED_REFRESH_INTERVALS } from "@/lib/thyronix/commercial";
+import { buildFeedOutputUrls, planFeedChunks } from "@/lib/thyronix/feed-chunk";
+import { loadMergedFeedProducts } from "@/lib/thyronix/feed-output-service";
+import { resolveFeedSourceIds } from "@/lib/thyronix/source-feed-provision";
 
 function normalizeSchedule(value: unknown): 4 | 6 | 12 | 24 {
   const n = Number(value);
@@ -25,7 +28,33 @@ export async function GET() {
       include: { source: { select: { name: true, type: true } } },
       orderBy: { createdAt: "desc" },
     });
-    return NextResponse.json({ success: true, data: feeds });
+    const data = await Promise.all(feeds.map(async (feed) => {
+      try {
+        const sourceIds = await resolveFeedSourceIds(feed as any);
+        const merged = await loadMergedFeedProducts(feed as any, sourceIds);
+        const chunkPlan = planFeedChunks(merged.length);
+        const outputUrls = buildFeedOutputUrls(feed.id, chunkPlan);
+        return {
+          ...feed,
+          liveProductCount: merged.length,
+          countMismatch: merged.length !== feed.productCount,
+          chunkPlan,
+          outputUrls: outputUrls.default,
+          outputParts: outputUrls.parts,
+        };
+      } catch (error) {
+        return {
+          ...feed,
+          liveProductCount: feed.productCount,
+          countMismatch: false,
+          chunkPlan: planFeedChunks(feed.productCount || 0),
+          outputUrls: buildFeedOutputUrls(feed.id, planFeedChunks(feed.productCount || 0)).default,
+          outputParts: buildFeedOutputUrls(feed.id, planFeedChunks(feed.productCount || 0)).parts,
+          liveError: error instanceof Error ? error.message : "Feed sayısı hesaplanamadı",
+        };
+      }
+    }));
+    return NextResponse.json({ success: true, data });
   } catch (e) {
     return thyronixErrorResponse(e);
   }

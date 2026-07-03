@@ -1,7 +1,7 @@
 "use client";
 
-import { Table, Upload, ChevronDown } from "lucide-react";
-import { TARGET_FIELDS } from "./field-options";
+import { CheckCircle2, Table, Upload } from "lucide-react";
+import { TARGET_FIELDS, VARIANT_TARGET_FIELDS } from "./field-options";
 import type { ExcelValidationSummary } from "@/lib/thyronix/excel-parser";
 
 interface Props {
@@ -11,6 +11,9 @@ interface Props {
   headerRow: number; setHeaderRow: (v:number)=>void;
   columns: string[]; previewRows: Record<string,string>[];
   fieldMapping: Record<string,string>; setFieldMapping: (m:Record<string,string>)=>void;
+  variantMapping: Record<string,string>; setVariantMapping: (m:Record<string,string>)=>void;
+  variantFields: string[];
+  variantSamples?: Record<string, string>;
   onUpload: ()=>void; uploading: boolean;
   detectedCount: number;
   validation?: ExcelValidationSummary | null;
@@ -19,12 +22,16 @@ interface Props {
 export default function ExcelMappingUI({
   fileName, setFileName, sheetName, setSheetName, sheets,
   headerRow, setHeaderRow, columns, previewRows,
-  fieldMapping, setFieldMapping, onUpload, uploading, detectedCount, validation,
+  fieldMapping, setFieldMapping, variantMapping, setVariantMapping,
+  variantFields, variantSamples = {}, onUpload, uploading, detectedCount, validation,
 }: Props) {
   const mappedTargets = new Set(Object.values(fieldMapping).filter(Boolean));
   const mappedCount = columns.filter((col) => fieldMapping[col]).length;
   const requiredComplete = mappedTargets.has("name") && mappedTargets.has("price");
   const identityComplete = ["barcode", "stockCode", "modelCode", "externalId"].some((field) => mappedTargets.has(field));
+  const variantFieldList = Array.from(new Set([...variantFields, ...Object.keys(variantMapping)]));
+  const variantRoles = Object.values(variantMapping).filter((role) => role && role !== "variantIgnore");
+  const variantReady = variantFieldList.length === 0 || (variantRoles.includes("variantValue") && (variantRoles.includes("variantBarcode") || variantRoles.includes("variantSku")));
 
   return (
     <div className="space-y-4">
@@ -170,6 +177,51 @@ export default function ExcelMappingUI({
                       ${fieldMapping[col] ? "border-emerald-500/50 bg-emerald-500/5 text-nexa-text" : "border-nexa-border bg-nexa-bg text-nexa-text-secondary"}`}>
                     <option value="">-- seçin --</option>
                     {TARGET_FIELDS.map(f=><option key={f.v} value={f.v}>{f.l}{f.req?" *":""}</option>)}
+                  </select>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {variantFieldList.length > 0 && (
+        <div className="p-4 rounded-xl bg-nexa-card border border-nexa-border">
+          <div className="flex items-center gap-2 mb-3">
+            <CheckCircle2 size={16} className={variantReady ? "text-emerald-400" : "text-amber-400"} />
+            <h3 className="text-sm font-semibold text-nexa-text">Varyant Eşleştirme</h3>
+            <span className={`ml-auto text-[11px] ${variantReady ? "text-emerald-400" : "text-amber-400"}`}>
+              {variantReady ? "Hazır" : "Zorunlu"}
+            </span>
+          </div>
+          <div className="rounded-lg border border-amber-500/20 bg-amber-500/5 px-3 py-2 mb-3">
+            <p className="text-[11px] text-amber-300">
+              Varyant algılandı. En az bir varyant değeri ve varyant barkod/SKU eşleştirilmeden bu kaynak yayına alınamaz.
+            </p>
+          </div>
+          <div className="space-y-2 max-h-[360px] overflow-y-auto scrollbar-thin">
+            {variantFieldList.map(col => (
+              <div key={col} className="flex items-center gap-3">
+                <div className="w-1/2">
+                  <div className="rounded bg-nexa-bg px-2 py-1.5">
+                    <span className="text-xs font-medium text-nexa-text truncate block">{col}</span>
+                    {(variantSamples[col] || previewRows[0]?.[col]) && (
+                      <span className="mt-1 block text-[10px] text-nexa-text-secondary/70 truncate">
+                        Örnek: {String(variantSamples[col] || previewRows[0]?.[col])}
+                      </span>
+                    )}
+                  </div>
+                </div>
+                <span className="text-nexa-text-secondary text-xs">→</span>
+                <div className="w-1/2">
+                  <select
+                    value={variantMapping[col] || ""}
+                    onChange={e=>setVariantMapping({...variantMapping,[col]:e.target.value})}
+                    className={`w-full rounded-lg border text-xs px-2 py-1.5 focus:outline-none
+                      ${variantMapping[col] ? "border-emerald-500/50 bg-emerald-500/5 text-nexa-text" : "border-nexa-border bg-nexa-bg text-nexa-text-secondary"}`}
+                  >
+                    <option value="">-- seçin --</option>
+                    {VARIANT_TARGET_FIELDS.map(f=><option key={f.v} value={f.v}>{f.l}{f.req?" *":""}</option>)}
                   </select>
                 </div>
               </div>

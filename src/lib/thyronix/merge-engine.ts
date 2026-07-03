@@ -1,5 +1,6 @@
 interface ThyronixProduct {
   id: string; name: string; barcode?: string | null; stockCode?: string | null;
+  modelCode?: string | null; externalId?: string | null;
   price: number; stock: number; deliveryTime?: string | null;
   sourceId?: string; mergeSourceIds?: string; mergeSelected?: boolean;
   [key: string]: unknown;
@@ -18,8 +19,15 @@ interface ProductGroup {
 }
 
 function getProductKey(p: ThyronixProduct): string {
-  if (p.barcode) return `barcode:${p.barcode}`;
-  if (p.stockCode) return `stockCode:${p.stockCode}`;
+  const barcode = String(p.barcode || "").trim().toLowerCase();
+  const stockCode = String(p.stockCode || "").trim().toLowerCase();
+  const modelCode = String(p.modelCode || "").trim().toLowerCase();
+  const externalId = String(p.externalId || "").trim().toLowerCase();
+  if (barcode) return `barcode:${barcode}`;
+  if (stockCode && modelCode) return `stock-model:${stockCode}|${modelCode}`;
+  if (stockCode) return `stockCode:${stockCode}`;
+  if (modelCode) return `modelCode:${modelCode}`;
+  if (externalId) return `externalId:${externalId}`;
   return `name:${p.name.toLowerCase().replace(/[^a-z0-9]/g, "")}`;
 }
 

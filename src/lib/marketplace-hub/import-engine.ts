@@ -5,6 +5,7 @@ import { isCoreOrderEngine } from "@/lib/orders/config";
 import { createCoreOrder, findCoreOrderByMarketplace } from "@/lib/orders/core-order-service";
 import { buildOrderMetadata } from "@/lib/orders/config";
 import { isUsableImageUrl, normalizeImageUrl } from "./marketplace-image";
+import { matchProductLine } from "./product-match";
 
 function parseMeta(json: string | null | undefined): Record<string, unknown> {
   try {
@@ -164,23 +165,48 @@ export async function importMarketplaceOrderToFulfillment(params: {
     }
   }
 
-  // Pazaryeri satırları katalog eşleştirmesi olmadan ham olarak kaydedilir
-  const orderItems = payload.items.map((line) => ({
-    productCatalogItemId: null,
-    thyronixProductId: "",
-    sku: line.sku || line.barcode || "",
-    barcode: line.barcode || "",
-    name: line.productName,
-    quantity: line.quantity,
-    salePrice: line.unitPrice,
-    costPrice: Math.round(line.unitPrice * 0.65),
-    sourceType: "MARKETPLACE",
-    metadataJson: JSON.stringify({
-      imageUrl: line.imageUrl || "",
-      rawProductName: line.productName,
-      barcode: line.barcode || "",
-      marketplace: marketplace,
-    }),
+  const orderItems = await Promise.all(payload.items.map(async (line) => {
+    const match = await matchProductLine({
+      barcode: line.barcode,
+      sku: line.sku || line.barcode,
+      name: line.productName,
+      dealerId,
+    });
+    const catalog = match.catalogItem;
+    const product = match.product;
+    const matchedName = catalog?.name || product?.name || line.productName;
+    const matchedSku = catalog?.sku || product?.sku || line.sku || line.barcode || "";
+    const matchedBarcode = catalog?.barcode || product?.barcode || line.barcode || "";
+    const matchedCost = catalog
+      ? catalog.price || Math.round(line.unitPrice * 0.65)
+      : Math.round(line.unitPrice * 0.65);
+
+    return {
+      productCatalogItemId: catalog?.id || null,
+      productId: product?.id || null,
+      thyronixProductId: "",
+      sku: matchedSku,
+      barcode: matchedBarcode,
+      name: matchedName,
+      quantity: line.quantity,
+      salePrice: line.unitPrice,
+      costPrice: matchedCost,
+      sourceType: "MARKETPLACE",
+      metadataJson: JSON.stringify({
+        imageUrl: line.imageUrl || product?.image || "",
+        rawProductName: line.productName,
+        barcode: line.barcode || "",
+        sku: line.sku || "",
+        marketplace,
+        matchSource: match.matchedSource,
+        matchScore: match.matchScore,
+        productCatalogItemId: catalog?.id || "",
+        thyronixProductId: "",
+        thyronixSourceId: "",
+        thyronixSourceName: "",
+        enaProductId: product?.id || "",
+      }),
+    };
   }));
 
   const saleTotal = orderItems.reduce((s, i) => s + i.salePrice * i.quantity, 0);
@@ -219,7 +245,7 @@ export async function importMarketplaceOrderToFulfillment(params: {
       serviceCost: costs.serviceCost,
       autoAccounting: true,
       fulfillmentStatus: "NEW",
-      status: "processing",
+      status: "waiting_payment",
     });
     order = result.order;
     duplicate = result.duplicate;
@@ -251,6 +277,8 @@ export async function importMarketplaceOrderToFulfillment(params: {
       marketplaceOrderId,
       sourceType: HUB_MARKETPLACE_SOURCE,
       items: orderItems.map((i) => ({
+        productId: i.productCatalogItemId || i.productId,
+        thyronixProductId: i.thyronixProductId,
         name: i.name,
         barcode: i.barcode,
         sku: i.sku,

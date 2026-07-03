@@ -14,6 +14,12 @@ import CsvMappingUI from "./mappings/csv-mapping";
 import ApiMappingUI from "./mappings/api-mapping";
 import FixedValuesUI from "./mappings/fixed-values";
 import type { ExcelValidationSummary } from "@/lib/thyronix/excel-parser";
+import {
+  buildVariantMappingReadiness,
+  getMissingRequiredMappings,
+  inferVariantFieldsFromColumns,
+  mappingErrorLabel,
+} from "@/lib/thyronix/mapping-validation";
 
 function StatusBadge({ status }: { status: string }) {
   const map: Record<string, { bg: string; text: string; dot: string; label: string }> = {
@@ -62,6 +68,8 @@ interface Source {
     mappedVariantCount: number;
     requiredReady: boolean;
     identityReady: boolean;
+    variantReady: boolean;
+    variantMissing: string[];
     lastTestedAt: string | null;
     lastTestCount: number | null;
     lastDetectedFieldCount: number | null;
@@ -80,32 +88,6 @@ type MappingValidationSummary = {
   missingIdentity: number;
   invalidSamples?: Array<{ row: number; name: string; errors: string[] }>;
 };
-
-const REQUIRED_TARGETS = ["name", "price"];
-const IDENTITY_TARGETS = ["barcode", "stockCode", "modelCode", "externalId"];
-
-function getMappedTargets(mapping: Record<string, string>) {
-  return new Set(Object.values(mapping).filter(Boolean));
-}
-
-function getMissingRequiredMappings(mapping: Record<string, string>) {
-  const mappedTargets = getMappedTargets(mapping);
-  const missing: string[] = [];
-  for (const field of REQUIRED_TARGETS) {
-    if (!mappedTargets.has(field)) missing.push(field);
-  }
-  if (!IDENTITY_TARGETS.some((field) => mappedTargets.has(field))) {
-    missing.push("identity");
-  }
-  return missing;
-}
-
-function mappingErrorLabel(key: string) {
-  if (key === "name") return "Ürün adı";
-  if (key === "price") return "Fiyat";
-  if (key === "identity") return "Kimlik alanı (barkod / stok kodu / model kodu / harici ID)";
-  return key;
-}
 
 function MappingSummaryBadge({ summary }: { summary?: Source["mappingSummary"] }) {
   if (!summary) return null;
@@ -130,7 +112,7 @@ export default function ThyronixSources() {
   const [search, setSearch] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [editing, setEditing] = useState<Source | null>(null);
-  const [form, setForm] = useState({ name: "", xmlUrl: "", type: "xml", interval: 60, inputFormat: "custom_xml" });
+  const [form, setForm] = useState({ name: "", xmlUrl: "", type: "xml", interval: 720, inputFormat: "custom_xml" });
   const [syncing, setSyncing] = useState<string | null>(null);
   const [fieldMapping, setFieldMapping] = useState<Record<string,string>>({});
   const [variantMapping, setVariantMapping] = useState<Record<string,string>>({});
@@ -173,13 +155,10 @@ export default function ThyronixSources() {
   const [apiCount, setApiCount] = useState(0);
   const [lastTestMeta, setLastTestMeta] = useState<Record<string, string>>({});
 
-  const THYRONIX_FIELDS = ["name","description","brand","category","subcategory","barcode","stockCode","modelCode","externalId","price","costPrice","salePrice","stock","currency","image","images","weight","dimensions","vatRate","deliveryTime","warranty","shippingCost","productUrl","status"];
-  const VARIANT_FIELDS = ["variantGroup","variantValue","variantBarcode","variantPrice","variantStock","variantImage"];
-
   const testSource = async () => {
     if (!form.xmlUrl) return toast.error("Önce XML URL girin");
     setTesting(true);
-    const res = await fetch("/api/thyronix/sources/test", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({xmlUrl:form.xmlUrl, inputFormat:form.inputFormat}) });
+    const res = await fetch("/api/thyronix/sources/test", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({xmlUrl:form.xmlUrl, inputFormat:form.inputFormat, variantMapping}) });
     const d = await res.json();
     if (d.success) {
       setDetectedFields(d.data.detectedFields);
@@ -215,6 +194,7 @@ export default function ThyronixSources() {
           sheetName: excelSheet || undefined,
           headerRow: excelHeaderRow,
           fieldMapping,
+          variantMapping,
           fixedValues,
         }),
       });
@@ -224,6 +204,9 @@ export default function ThyronixSources() {
         setExcelSheet(d.data.selectedSheet||"");
         setExcelColumns(d.data.columns||[]);
         setExcelPreview(d.data.previewRows||[]);
+        const nextVariantFields = d.data.variantFields || inferVariantFieldsFromColumns(d.data.columns || []);
+        setVariantFields(nextVariantFields);
+        setVariantSamples(d.data.variantSampleValues || {});
         setTestCount(d.data.totalRows||0);
         setExcelValidation(d.data.validation || null);
         setLastTestMeta({
@@ -231,7 +214,7 @@ export default function ThyronixSources() {
           _lastTestedAt: new Date().toISOString(),
           _lastTestCount: String(d.data.totalRows || 0),
           _lastDetectedFieldCount: String((d.data.columns || []).length),
-          _lastVariantFieldCount: "0",
+          _lastVariantFieldCount: String(nextVariantFields.length),
           _lastValidRows: String(d.data.validation?.validRows || 0),
           _lastInvalidRows: String(d.data.validation?.invalidRows || 0),
         });
@@ -296,7 +279,7 @@ export default function ThyronixSources() {
 
   const openNew = () => {
     setEditing(null);
-    setForm({ name: "", xmlUrl: "", type: "xml", interval: 60, inputFormat: "custom_xml" });
+    setForm({ name: "", xmlUrl: "", type: "xml", interval: 720, inputFormat: "custom_xml" });
     setFieldMapping({});
     setVariantMapping({});
     setFixedValues({});
@@ -361,6 +344,18 @@ export default function ThyronixSources() {
   };
 
   const handleSave = async () => {
+    if (form.type === "xml") {
+      if (!editing && detectedFields.length === 0) {
+        toast.error("XML kaynağını kaydetmeden önce test et");
+        return;
+      }
+      const missing = getMissingRequiredMappings(fieldMapping);
+      if (missing.length > 0) {
+        toast.error(`Eksik eşleştirme: ${missing.map(mappingErrorLabel).join(", ")}`);
+        return;
+      }
+    }
+
     if (form.type === "excel") {
       if (excelColumns.length === 0) {
         toast.error("Excel kaynağını kaydetmeden önce dosyayı test et");
@@ -371,6 +366,12 @@ export default function ThyronixSources() {
         toast.error(`Eksik eşleştirme: ${missing.map(mappingErrorLabel).join(", ")}`);
         return;
       }
+    }
+
+    const variantReadiness = buildVariantMappingReadiness(variantFields, variantMapping);
+    if ((form.type === "xml" || form.type === "excel") && variantReadiness.detected && !variantReadiness.ready) {
+      toast.error(`Varyant eşleştirmesi eksik: ${variantReadiness.missing.map(mappingErrorLabel).join(", ")}`);
+      return;
     }
 
     if (form.type === "csv") {
@@ -395,6 +396,9 @@ export default function ThyronixSources() {
       _mappedVariantCount: String(Object.keys(variantMapping).filter((key) => variantMapping[key] && variantMapping[key] !== "variantIgnore").length),
       _requiredMappingReady: String(!missingMappings.includes("name") && !missingMappings.includes("price")),
       _identityMappingReady: String(!missingMappings.includes("identity")),
+      _variantMappingReady: String(variantReadiness.ready),
+      _variantMissing: variantReadiness.missing.join("|"),
+      _variantFields: variantFields.join("|"),
       ...(form.type === "excel" ? { _sheetName: excelSheet, _headerRow: String(excelHeaderRow) } : {}),
       ...(form.type === "csv"
         ? {
@@ -565,6 +569,11 @@ export default function ThyronixSources() {
                             )}
                             <span>{s.mappingSummary.requiredReady ? "Zorunlu hazır" : "Zorunlu eksik"}</span>
                             <span>{s.mappingSummary.identityReady ? "Kimlik hazır" : "Kimlik eksik"}</span>
+                            {s.mappingSummary.lastVariantFieldCount && s.mappingSummary.lastVariantFieldCount > 0 && (
+                              <span className={s.mappingSummary.variantReady ? "text-nexa-success" : "text-nexa-warning"}>
+                                {s.mappingSummary.variantReady ? "Varyant hazır" : "Varyant eksik"}
+                              </span>
+                            )}
                             {typeof s.mappingSummary.lastTestCount === "number" && s.mappingSummary.lastTestCount > 0 && (
                               <span>Son test: {s.mappingSummary.lastTestCount.toLocaleString("tr-TR")} kayıt</span>
                             )}
@@ -722,6 +731,9 @@ export default function ThyronixSources() {
                   headerRow={excelHeaderRow} setHeaderRow={setExcelHeaderRow}
                   columns={excelColumns} previewRows={excelPreview}
                   fieldMapping={fieldMapping} setFieldMapping={setFieldMapping}
+                  variantMapping={variantMapping} setVariantMapping={setVariantMapping}
+                  variantFields={variantFields}
+                  variantSamples={variantSamples}
                   onUpload={testExcel} uploading={testing}
                   detectedCount={excelPreview.length}
                   validation={excelValidation}

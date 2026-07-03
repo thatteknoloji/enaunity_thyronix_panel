@@ -175,7 +175,7 @@ export default function MarketplaceHubPage() {
               )}
 
               {tab === "products" && (
-                <p className="text-sm text-gray-500">Ürün eşleme Hazır Ürün Deposu ve THYRONIX altyapısı üzerinden yapılır. Sipariş içe aktarımında barkod/SKU ile otomatik eşleşir.</p>
+                <p className="text-sm text-gray-500">Ürün eşleme ENA ana ürünleri ve Hazır Ürün Deposu üzerinden yapılır. Thyronix ürünleri otomatik eşleşmez; sadece admin ayrıca ENA&apos;ya manuel import ederse ENA kataloğu içinde kullanılabilir.</p>
               )}
 
               {tab === "sync-logs" && (

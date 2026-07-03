@@ -1,5 +1,6 @@
 import * as XLSX from "xlsx";
 import { buildSourceMetadataJson } from "./source-metadata";
+import { parseThyronixNumber, roundToStep } from "./number";
 
 export interface ExcelParseResult {
   sheets: string[];
@@ -24,11 +25,21 @@ export interface ExcelProductRow {
   price: number;
   discountedPrice?: number;
   salePrice?: number;
+  costPrice?: number;
   stock: number;
   currency?: string;
   description?: string;
+  image?: string;
   images?: string;
+  weight?: number;
+  dimensions?: string;
   vatRate?: number;
+  deliveryTime?: string;
+  manufacturer?: string;
+  warranty?: string;
+  shippingCost?: number;
+  productUrl?: string;
+  variantData?: string;
   status?: string;
   raw: Record<string, any>;
   metadataJson?: string;
@@ -46,33 +57,7 @@ export interface ExcelValidationSummary {
 }
 
 function normalizeNumber(val: any): number | null {
-  if (val === null || val === undefined || val === "") return null;
-  if (typeof val === "number" && !isNaN(val)) return val;
-
-  let s = String(val).trim();
-  // Remove currency symbols and trailing text
-  s = s.replace(/[₺$€£TL\s]/gi, "").replace(/"|'/g, "");
-  // Turkish format: "1.299,90" → "1299.90"
-  if (s.includes(",") && s.includes(".")) {
-    // If both exist: check which is decimal
-    const lastDot = s.lastIndexOf(".");
-    const lastComma = s.lastIndexOf(",");
-    if (lastComma > lastDot) {
-      // Comma is decimal: 1.299,90 → remove dots, replace comma
-      s = s.replace(/\./g, "").replace(",", ".");
-    } else {
-      // Dot is decimal: 1,299.90 → remove commas
-      s = s.replace(/,/g, "");
-    }
-  } else if (s.includes(",")) {
-    // Only comma: could be "1299,90" or "1,299"
-    const after = s.split(",")[1] || "";
-    if (after.length <= 2) s = s.replace(",", "."); // decimal
-    else s = s.replace(/,/g, ""); // thousands
-  }
-
-  const n = parseFloat(s);
-  return isNaN(n) ? null : n;
+  return parseThyronixNumber(val);
 }
 
 function normalizeStock(val: any): { value: number; error?: string } {
@@ -119,12 +104,6 @@ function applyReplacement(value: string | undefined, from?: string, to?: string)
   const needle = normalizeText(from);
   if (!current || !needle) return current || undefined;
   return current.split(needle).join(normalizeText(to));
-}
-
-function roundToStep(value: number, step?: number): number {
-  const normalizedStep = typeof step === "number" && step > 0 ? step : 0;
-  if (!normalizedStep) return value;
-  return Math.round(value / normalizedStep) * normalizedStep;
 }
 
 function normalizeExcelTransformSettings(fixedValues: Record<string, string>) {
@@ -243,6 +222,7 @@ export function mapExcelToProducts(
   rows: Record<string, any>[],
   fieldMapping: Record<string, string>,
   fixedValues: Record<string, string>,
+  variantMapping: Record<string, string> = {},
 ): ExcelProductRow[] {
   // Build reverse map: canonicalField → excelColumn
   const reverseMap: Record<string, string> = {};
@@ -255,6 +235,10 @@ export function mapExcelToProducts(
 
     const getVal = (field: string): string => {
       const col = reverseMap[field];
+      return col ? String(row[col] ?? "") : "";
+    };
+    const getVariantVal = (role: string): string => {
+      const col = Object.entries(variantMapping).find(([, mappedRole]) => mappedRole === role)?.[0];
       return col ? String(row[col] ?? "") : "";
     };
 
@@ -270,12 +254,38 @@ export function mapExcelToProducts(
 
     // Identity fields
       const barcode = getVal("barcode") || undefined;
-      const stockCode = getVal("stockCode") || getVal("stockCode") || undefined;
+      const stockCode = getVal("stockCode") || undefined;
       const modelCode = getVal("modelCode") || undefined;
-      const hasIdentity = barcode || stockCode || modelCode;
-    if (!hasIdentity) errors.push("Kimlik alanı eksik (barkod/stok kodu/model kodu)");
+      const hasIdentity = barcode || stockCode || modelCode || externalId;
+    if (!hasIdentity) errors.push("Kimlik alanı eksik (barkod/stok kodu/model kodu/harici ID)");
 
     const discountedPrice = normalizeFieldValue(getVal("discountedPrice") || getVal("salePrice")) || undefined;
+    const costPrice = normalizeNumber(getVal("costPrice")) || undefined;
+    const shippingCost = normalizeNumber(getVal("shippingCost")) || undefined;
+
+    const variantOptions: Array<{ group: string; value: string }> = [];
+    const explicitVariantGroup = getVariantVal("variantGroup");
+    for (const [column, role] of Object.entries(variantMapping)) {
+      if (role !== "variantValue") continue;
+      const value = normalizeText(row[column]);
+      if (!value) continue;
+      variantOptions.push({ group: explicitVariantGroup || column, value });
+    }
+    const variantBarcode = getVariantVal("variantBarcode") || barcode;
+    const variantSku = getVariantVal("variantSku") || stockCode || modelCode;
+    const variantPrice = normalizeNumber(getVariantVal("variantPrice")) ?? price ?? undefined;
+    const variantStock = normalizeStock(getVariantVal("variantStock")).value || stockResult.value;
+    const variantImage = getVariantVal("variantImage") || undefined;
+    const variantData = variantOptions.length > 0
+      ? JSON.stringify([{
+          barcode: variantBarcode || undefined,
+          sku: variantSku || undefined,
+          price: variantPrice,
+          stock: variantStock,
+          image: variantImage,
+          options: variantOptions,
+        }])
+      : undefined;
 
     const product: ExcelProductRow = {
       rowIndex: idx + 1,
@@ -289,11 +299,21 @@ export function mapExcelToProducts(
       price: price || 0,
       discountedPrice,
       salePrice: normalizeNumber(getVal("salePrice")) || undefined,
+      costPrice,
       stock: stockResult.value,
       currency: getVal("currency") || fixedValues.currency || "TRY",
       description: getVal("description") || undefined,
+      image: getVal("image") || undefined,
       images: getVal("images") || undefined,
+      weight: normalizeNumber(getVal("weight")) || undefined,
+      dimensions: getVal("dimensions") || undefined,
       vatRate: normalizeNumber(getVal("vatRate")) || undefined,
+      deliveryTime: getVal("deliveryTime") || undefined,
+      manufacturer: getVal("manufacturer") || undefined,
+      warranty: getVal("warranty") || undefined,
+      shippingCost,
+      productUrl: getVal("productUrl") || undefined,
+      variantData,
       status: getVal("status") || fixedValues.status || "active",
       raw: row,
       metadataJson: buildSourceMetadataJson({

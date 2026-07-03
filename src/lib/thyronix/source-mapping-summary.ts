@@ -1,5 +1,7 @@
-const REQUIRED_TARGETS = ["name", "price"] as const;
-const IDENTITY_TARGETS = ["barcode", "stockCode", "modelCode", "externalId"] as const;
+import {
+  buildVariantMappingReadiness,
+  getMissingRequiredMappings,
+} from "./mapping-validation";
 
 function parseJsonRecord(value: string | null | undefined): Record<string, any> {
   if (!value) return {};
@@ -32,22 +34,30 @@ export function buildSourceMappingSummary(source: {
   const variantMapping = parseJsonRecord(source.variantMapping);
   const fixedValues = parseJsonRecord(source.fixedValues);
 
-  const mappedTargets = new Set(Object.values(fieldMapping).filter(Boolean).map(String));
   const mappedFieldCount = Object.keys(fieldMapping).filter((key) => fieldMapping[key]).length;
   const mappedVariantCount = Object.keys(variantMapping).filter((key) => variantMapping[key] && variantMapping[key] !== "variantIgnore").length;
-  const requiredReady = REQUIRED_TARGETS.every((field) => mappedTargets.has(field));
-  const identityReady = IDENTITY_TARGETS.some((field) => mappedTargets.has(field));
+  const missingMappings = getMissingRequiredMappings(fieldMapping);
+  const requiredReady = !missingMappings.includes("name") && !missingMappings.includes("price");
+  const identityReady = !missingMappings.includes("identity");
   const lastTestedAt = String(fixedValues._lastTestedAt || "");
   const lastTestCount = toNumber(fixedValues._lastTestCount);
   const lastDetectedFieldCount = toNumber(fixedValues._lastDetectedFieldCount);
   const lastVariantFieldCount = toNumber(fixedValues._lastVariantFieldCount);
   const lastValidRows = toNumber(fixedValues._lastValidRows);
   const lastInvalidRows = toNumber(fixedValues._lastInvalidRows);
+  const variantFields = String(fixedValues._variantFields || "")
+    .split("|")
+    .map((item) => item.trim())
+    .filter(Boolean);
+  const variantReadiness = buildVariantMappingReadiness(
+    lastVariantFieldCount && lastVariantFieldCount > 0 ? variantFields.length ? variantFields : ["__detected__"] : [],
+    variantMapping,
+  );
   const tested = Boolean(lastTestedAt);
   const syncHealthy = !!source.lastSync && !source.errorLog;
 
   let readiness: "ready" | "partial" | "needs_attention" = "needs_attention";
-  if (requiredReady && identityReady && tested) readiness = "ready";
+  if (requiredReady && identityReady && tested && variantReadiness.ready) readiness = "ready";
   else if (mappedFieldCount > 0 || tested || syncHealthy) readiness = "partial";
 
   if (source.type === "xml" && mappedFieldCount === 0 && tested) {
@@ -62,6 +72,8 @@ export function buildSourceMappingSummary(source: {
     mappedVariantCount,
     requiredReady,
     identityReady,
+    variantReady: variantReadiness.ready,
+    variantMissing: variantReadiness.missing,
     lastTestedAt: lastTestedAt || null,
     lastTestCount,
     lastDetectedFieldCount,

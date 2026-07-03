@@ -15,6 +15,11 @@ elif [[ -f .env.local ]]; then
   set -a; source .env.local; set +a
 fi
 
+if [[ -x "$APP_DIR/backup-db.sh" ]]; then
+  echo "→ pre-deploy db snapshot…"
+  "$APP_DIR/backup-db.sh"
+fi
+
 pm2 stop enaunity 2>/dev/null || true
 npm install
 npx prisma generate

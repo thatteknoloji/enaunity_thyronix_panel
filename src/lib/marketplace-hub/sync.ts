@@ -112,6 +112,10 @@ export async function syncConnection(connectionId: string) {
                   total: l.unitPrice * l.quantity,
                   productSku: l.sku,
                   productImage: l.imageUrl || "",
+                  matchedProductId: l.matchedProductId || "",
+                  catalogItemId: l.catalogItemId || "",
+                  thyronixProductId: l.thyronixProductId || "",
+                  originalProductName: l.matchedProductName ? l.productName : "",
                 })),
               },
             },
@@ -130,10 +134,16 @@ export async function syncConnection(connectionId: string) {
                 ],
               },
             });
-            if (mpItem && line.imageUrl && !mpItem.productImage) {
+            if (mpItem && (line.imageUrl || line.matchedProductId || line.catalogItemId || line.thyronixProductId)) {
               await prisma.marketplaceOrderItem.update({
                 where: { id: mpItem.id },
-                data: { productImage: line.imageUrl },
+                data: {
+                  ...(line.imageUrl && !mpItem.productImage ? { productImage: line.imageUrl } : {}),
+                  ...(line.matchedProductId && !mpItem.matchedProductId ? { matchedProductId: line.matchedProductId } : {}),
+                  ...(line.catalogItemId && !mpItem.catalogItemId ? { catalogItemId: line.catalogItemId } : {}),
+                  ...(line.thyronixProductId && !mpItem.thyronixProductId ? { thyronixProductId: line.thyronixProductId } : {}),
+                  ...(line.matchedProductName && !mpItem.originalProductName ? { originalProductName: line.productName } : {}),
+                },
               });
             }
           }

@@ -41,7 +41,7 @@ export async function POST(req: Request) {
         fieldMapping: body.fieldMapping || null,
         variantMapping: body.variantMapping || null,
         fixedValues: body.fixedValues || null,
-        interval: body.interval || 60,
+        interval: body.interval || 720,
         status: body.status || "active",
         dealerId: owner.dealerId,
         tenantScope: owner.tenantScope,

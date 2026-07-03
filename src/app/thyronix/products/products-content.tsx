@@ -7,9 +7,10 @@ import { formatPrice } from "@/lib/utils";
 import toast from "react-hot-toast";
 
 interface ThyronixProduct {
-  id: string; name: string; barcode?: string; stockCode?: string;
+  id: string; name: string; barcode?: string; stockCode?: string; modelCode?: string;
+  externalId?: string; sourceId?: string;
   brand?: string; category?: string; price: number; stock: number;
-  status: string; images?: string; createdAt: string;
+  status: string; images?: string; description?: string; variantData?: string; createdAt: string;
   source?: { name: string };
 }
 
@@ -45,12 +46,16 @@ export default function ThyronixProductsPage() {
   const [showFilters, setShowFilters] = useState(false);
   const [fSource, setFSource] = useState("");
   const [fCategory, setFCategory] = useState("");
+  const [fBrand, setFBrand] = useState("");
   const [fBarcode, setFBarcode] = useState("");
+  const [fStockCode, setFStockCode] = useState("");
+  const [fModelCode, setFModelCode] = useState("");
+  const [fExternalId, setFExternalId] = useState("");
   const [fStatus, setFStatus] = useState("");
   const [fPriceMin, setFPriceMin] = useState("");
   const [fPriceMax, setFPriceMax] = useState("");
   const [sources, setSources] = useState<{id:string;name:string}[]>([]);
-  const hasFilters = fSource || fCategory || fBarcode || fStatus || fPriceMin || fPriceMax;
+  const hasFilters = fSource || fCategory || fBrand || fBarcode || fStockCode || fModelCode || fExternalId || fStatus || fPriceMin || fPriceMax;
 
   // Bulk
   const [selected, setSelected] = useState<Set<string>>(new Set());
@@ -94,7 +99,11 @@ export default function ThyronixProductsPage() {
     setSearchInput(nextSearch);
     setFSource(nextSource);
     setFCategory(nextCategory);
+    setFBrand(searchParams.get("brand") || "");
     setFBarcode(nextBarcode);
+    setFStockCode(nextStockCode);
+    setFModelCode(nextModelCode);
+    setFExternalId(nextExternalId);
     setFStatus(nextStatus);
     setFPriceMin(nextPriceMin);
     setFPriceMax(nextPriceMax);
@@ -122,7 +131,11 @@ export default function ThyronixProductsPage() {
     if (search) params.set("search", search);
     if (fSource) params.set("sourceId", fSource);
     if (fCategory) params.set("category", fCategory);
+    if (fBrand) params.set("brand", fBrand);
     if (fBarcode) params.set("barcode", fBarcode);
+    if (fStockCode) params.set("stockCode", fStockCode);
+    if (fModelCode) params.set("modelCode", fModelCode);
+    if (fExternalId) params.set("externalId", fExternalId);
     if (fStatus) params.set("status", fStatus);
     if (fPriceMin) params.set("priceMin", fPriceMin);
     if (fPriceMax) params.set("priceMax", fPriceMax);
@@ -134,7 +147,7 @@ export default function ThyronixProductsPage() {
       });
   };
 
-  useEffect(() => { fetchProducts(); }, [page, search, fSource, fCategory, fBarcode, fStatus, fPriceMin, fPriceMax]);
+  useEffect(() => { fetchProducts(); }, [page, search, fSource, fCategory, fBrand, fBarcode, fStockCode, fModelCode, fExternalId, fStatus, fPriceMin, fPriceMax]);
   useEffect(() => { fetch("/api/thyronix/sources").then(r=>r.json()).then(d=>{if(d.success)setSources(d.data||[])}); }, []);
 
   useEffect(() => {
@@ -147,7 +160,11 @@ export default function ThyronixProductsPage() {
     search,
     sourceId: fSource,
     category: fCategory,
+    brand: fBrand,
     barcode: fBarcode,
+    stockCode: fStockCode,
+    modelCode: fModelCode,
+    externalId: fExternalId,
     status: fStatus,
     priceMin: fPriceMin,
     priceMax: fPriceMax,
@@ -351,20 +368,20 @@ export default function ThyronixProductsPage() {
           <div className="relative">
             <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-nexa-text-secondary" />
             <input value={searchInput} onChange={e => setSearchInput(e.target.value)}
-              placeholder="İsim, barkod, marka ara..."
+              placeholder="Ürün adı, barkod, model kodu, stok kodu, marka, kaynak ara..."
               className="w-64 rounded-lg border border-nexa-border bg-nexa-card px-9 py-2 text-sm text-nexa-text focus:outline-none focus:border-nexa-primary/50" />
             <div className="text-[9px] text-nexa-text-secondary/40 mt-0.5">💡 brand:nike stock&gt;5 price&lt;1000 category:x</div>
           </div>
           <button type="submit" className="px-4 py-2 bg-nexa-primary text-white text-sm rounded-lg hover:bg-blue-600">Ara</button>
           {search && <button type="button" onClick={() => { setSearch(""); setSearchInput(""); setPage(1); setSelected(new Set()); }} className="px-3 py-2 text-sm text-nexa-text-secondary hover:text-nexa-text">Temizle</button>}
           <button onClick={() => setShowFilters(!showFilters)} className={`px-3 py-2 text-sm rounded-lg border transition-colors ${hasFilters ? "border-nexa-primary/30 bg-nexa-primary/5 text-nexa-primary" : "border-nexa-border text-nexa-text-secondary hover:text-nexa-text"}`}>
-            Filtrele {hasFilters && `(${[fSource,fCategory,fBarcode,fStatus,fPriceMin,fPriceMax].filter(Boolean).length})`}</button>
+            Filtrele {hasFilters && `(${[fSource,fCategory,fBrand,fBarcode,fStockCode,fModelCode,fExternalId,fStatus,fPriceMin,fPriceMax].filter(Boolean).length})`}</button>
         </form>
       </div>
 
       {/* Filter Bar */}
       {showFilters && (
-        <div className="rounded-xl border border-nexa-border bg-nexa-card p-4 grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div className="rounded-xl border border-nexa-border bg-nexa-card p-4 grid grid-cols-1 md:grid-cols-3 xl:grid-cols-5 gap-3">
           <div>
             <label className="block text-[10px] font-semibold text-nexa-text-secondary uppercase mb-1">Kaynak</label>
             <select value={fSource} onChange={e => { setFSource(e.target.value); setPage(1); }} className="w-full rounded border border-nexa-border bg-nexa-bg/50 px-2 py-1.5 text-xs text-nexa-text focus:outline-none">
@@ -377,8 +394,24 @@ export default function ThyronixProductsPage() {
             <input value={fCategory} onChange={e => { setFCategory(e.target.value); setPage(1); }} placeholder="örn: Kupa" className="w-full rounded border border-nexa-border bg-nexa-bg/50 px-2 py-1.5 text-xs text-nexa-text focus:outline-none"/>
           </div>
           <div>
+            <label className="block text-[10px] font-semibold text-nexa-text-secondary uppercase mb-1">Marka</label>
+            <input value={fBrand} onChange={e => { setFBrand(e.target.value); setPage(1); }} placeholder="örn: Esra'nın Dünyası" className="w-full rounded border border-nexa-border bg-nexa-bg/50 px-2 py-1.5 text-xs text-nexa-text focus:outline-none"/>
+          </div>
+          <div>
             <label className="block text-[10px] font-semibold text-nexa-text-secondary uppercase mb-1">Barkod</label>
             <input value={fBarcode} onChange={e => { setFBarcode(e.target.value); setPage(1); }} placeholder="örn: 8683..." className="w-full rounded border border-nexa-border bg-nexa-bg/50 px-2 py-1.5 text-xs text-nexa-text font-mono focus:outline-none"/>
+          </div>
+          <div>
+            <label className="block text-[10px] font-semibold text-nexa-text-secondary uppercase mb-1">Stok Kodu</label>
+            <input value={fStockCode} onChange={e => { setFStockCode(e.target.value); setPage(1); }} placeholder="örn: STK-001" className="w-full rounded border border-nexa-border bg-nexa-bg/50 px-2 py-1.5 text-xs text-nexa-text font-mono focus:outline-none"/>
+          </div>
+          <div>
+            <label className="block text-[10px] font-semibold text-nexa-text-secondary uppercase mb-1">Model Kodu</label>
+            <input value={fModelCode} onChange={e => { setFModelCode(e.target.value); setPage(1); }} placeholder="örn: NNTY5141697-1457" className="w-full rounded border border-nexa-border bg-nexa-bg/50 px-2 py-1.5 text-xs text-nexa-text font-mono focus:outline-none"/>
+          </div>
+          <div>
+            <label className="block text-[10px] font-semibold text-nexa-text-secondary uppercase mb-1">Harici Kod</label>
+            <input value={fExternalId} onChange={e => { setFExternalId(e.target.value); setPage(1); }} placeholder="Kaynak ürün kodu" className="w-full rounded border border-nexa-border bg-nexa-bg/50 px-2 py-1.5 text-xs text-nexa-text font-mono focus:outline-none"/>
           </div>
           <div>
             <label className="block text-[10px] font-semibold text-nexa-text-secondary uppercase mb-1">Durum</label>
@@ -396,7 +429,7 @@ export default function ThyronixProductsPage() {
             <label className="block text-[10px] font-semibold text-nexa-text-secondary uppercase mb-1">Max Fiyat</label>
             <input type="number" value={fPriceMax} onChange={e => { setFPriceMax(e.target.value); setPage(1); }} placeholder="₺9999" className="w-full rounded border border-nexa-border bg-nexa-bg/50 px-2 py-1.5 text-xs text-nexa-text focus:outline-none"/>
           </div>
-          {hasFilters && <div className="col-span-full"><button onClick={() => { setFSource(""); setFCategory(""); setFBarcode(""); setFStatus(""); setFPriceMin(""); setFPriceMax(""); setPage(1); }} className="text-[10px] text-nexa-danger hover:underline">Filtreleri Temizle</button></div>}
+          {hasFilters && <div className="col-span-full"><button onClick={() => { setFSource(""); setFCategory(""); setFBrand(""); setFBarcode(""); setFStockCode(""); setFModelCode(""); setFExternalId(""); setFStatus(""); setFPriceMin(""); setFPriceMax(""); setPage(1); }} className="text-[10px] text-nexa-danger hover:underline">Filtreleri Temizle</button></div>}
         </div>
       )}
 
@@ -556,7 +589,11 @@ export default function ThyronixProductsPage() {
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-2.5 min-w-0">
                       {p.images ? <img src={p.images} alt="" className="h-8 w-8 rounded object-cover shrink-0" onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} /> : <div className="h-8 w-8 rounded bg-nexa-primary/10 flex items-center justify-center shrink-0"><Package size={14} className="text-nexa-primary" /></div>}
-                      <div className="min-w-0"><p className="font-medium text-nexa-text truncate text-sm max-w-[250px]">{p.name}</p><p className="text-[10px] text-nexa-text-secondary font-mono truncate">{p.stockCode || p.barcode}</p></div>
+                      <div className="min-w-0">
+                        <p className="font-medium text-nexa-text truncate text-sm max-w-[250px]">{p.name}</p>
+                        <p className="text-[10px] text-nexa-text-secondary font-mono truncate">{p.modelCode || p.stockCode || p.barcode || p.externalId || "—"}</p>
+                        <p className="text-[10px] text-nexa-text-secondary truncate">Kaynak: {p.source?.name || "—"}</p>
+                      </div>
                     </div>
                   </td>
                   <td className="px-4 py-3 hidden md:table-cell text-nexa-text-secondary text-xs">{p.brand || "—"}</td>
@@ -584,7 +621,7 @@ export default function ThyronixProductsPage() {
               <img src={detailProduct.images || "/placeholder.svg"} alt="" className="w-10 h-10 rounded-lg object-cover shrink-0" onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />
               <div className="flex-1 min-w-0">
                 <h2 className="font-bold text-nexa-text text-sm leading-tight truncate">{detailProduct.name}</h2>
-                <p className="text-[10px] text-nexa-text-secondary">{detailProduct.source?.name || "—"} · {detailProduct.barcode || "—"}</p>
+                <p className="text-[10px] text-nexa-text-secondary">{detailProduct.source?.name || "—"} · {detailProduct.modelCode || detailProduct.stockCode || detailProduct.barcode || detailProduct.externalId || "—"}</p>
               </div>
               <button onClick={() => { setDetailOpen(false); setDetailTab("overview"); }} className="text-nexa-text-secondary hover:text-nexa-text p-1">✕</button>
             </div>
@@ -604,8 +641,11 @@ export default function ThyronixProductsPage() {
                   <div><span className="text-nexa-text-secondary text-xs">Kategori</span><p className="text-nexa-text">{detailProduct.category||"—"}</p></div>
                   <div><span className="text-nexa-text-secondary text-xs">Barkod</span><p className="text-nexa-text font-mono text-xs">{detailProduct.barcode||"—"}</p></div>
                   <div><span className="text-nexa-text-secondary text-xs">Stok Kodu</span><p className="text-nexa-text font-mono text-xs">{detailProduct.stockCode||"—"}</p></div>
+                  <div><span className="text-nexa-text-secondary text-xs">Model Kodu</span><p className="text-nexa-text font-mono text-xs">{detailProduct.modelCode||"—"}</p></div>
+                  <div><span className="text-nexa-text-secondary text-xs">Harici Kod</span><p className="text-nexa-text font-mono text-xs">{detailProduct.externalId||"—"}</p></div>
                   <div><span className="text-nexa-text-secondary text-xs">Durum</span><span className={`text-xs px-1.5 py-0.5 rounded ml-1 ${detailProduct.status==="active"?"bg-nexa-success/10 text-nexa-success":"bg-nexa-warning/10 text-nexa-warning"}`}>{detailProduct.status}</span></div>
                   <div><span className="text-nexa-text-secondary text-xs">Kaynak</span><p className="text-nexa-text">{detailProduct.source?.name||"—"}</p></div>
+                  <div><span className="text-nexa-text-secondary text-xs">Kaynak ID</span><p className="text-nexa-text font-mono text-xs">{detailProduct.sourceId||"—"}</p></div>
                   <div><span className="text-nexa-text-secondary text-xs">Tarih</span><p className="text-nexa-text text-xs">{new Date(detailProduct.createdAt).toLocaleString("tr-TR")}</p></div>
                 </div>
               )}
@@ -666,6 +706,10 @@ export default function ThyronixProductsPage() {
                         ["Marka", detailProduct.brand||"—", detailProduct.brand||"—"],
                         ["Kategori", detailProduct.category||"—", detailProduct.category||"—"],
                         ["Barkod", detailProduct.barcode||"—", detailProduct.barcode||"—"],
+                        ["Stok Kodu", detailProduct.stockCode||"—", detailProduct.stockCode||"—"],
+                        ["Model Kodu", detailProduct.modelCode||"—", detailProduct.modelCode||"—"],
+                        ["Harici Kod", detailProduct.externalId||"—", detailProduct.externalId||"—"],
+                        ["Kaynak", detailProduct.source?.name||"—", detailProduct.source?.name||"—"],
                       ].map(([label, src, pub],i)=>(
                         <tr key={i}><td className="px-3 py-1.5 text-nexa-text-secondary">{label}</td><td className="px-3 py-1.5 text-nexa-text">{src}</td><td className={`px-3 py-1.5 ${src!==pub?"text-nexa-warning font-bold":"text-nexa-text"}`}>{pub}{src!==pub?" ✦":""}</td></tr>
                       ))}

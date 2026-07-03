@@ -7,6 +7,7 @@ import {
   normalizeImageUrl,
   resolveMarketplaceItemImageUrl,
 } from "./marketplace-image";
+import { matchProductLine, type ProductMatchResult } from "./product-match";
 
 export {
   isUsableImageUrl,
@@ -63,7 +64,9 @@ async function fetchTrendyolProductImage(tyConn: TyConn, code: string): Promise<
 export async function resolveMarketplaceLineImage(
   line: { productName: string; barcode?: string; sku?: string; imageUrl?: string },
   catalog: CatalogRow[],
-  tyConn?: TyConn
+  dealerId: string,
+  tyConn?: TyConn,
+  match?: ProductMatchResult
 ): Promise<string> {
   const fromLine = normalizeImageUrl(line.imageUrl);
   if (isUsableImageUrl(fromLine)) return fromLine;
@@ -74,6 +77,15 @@ export async function resolveMarketplaceLineImage(
     const catalogImg = normalizeImageUrl(matched?.image);
     if (isUsableImageUrl(catalogImg)) return catalogImg;
   }
+
+  const matched = match || await matchProductLine({
+    barcode: line.barcode,
+    sku: line.sku || line.barcode,
+    name: line.productName,
+    dealerId,
+  });
+  const productImg = normalizeImageUrl(matched.product?.image);
+  if (isUsableImageUrl(productImg)) return productImg;
 
   if (tyConn && code) {
     const tyImg = await fetchTrendyolProductImage(tyConn, code);
@@ -98,8 +110,23 @@ export async function enrichMarketplaceLines(
   const catalog = await loadDealerCatalogProducts(dealerId);
   const enriched = [];
   for (const line of lines) {
-    const imageUrl = await resolveMarketplaceLineImage(line, catalog, tyConn);
-    enriched.push({ ...line, imageUrl });
+    const match = await matchProductLine({
+      barcode: line.barcode,
+      sku: line.sku || line.barcode,
+      name: line.productName,
+      dealerId,
+    });
+    const imageUrl = await resolveMarketplaceLineImage(line, catalog, dealerId, tyConn, match);
+    enriched.push({
+      ...line,
+      imageUrl,
+      matchedProductId: match.product?.id || "",
+      catalogItemId: match.catalogItem?.id || "",
+      thyronixProductId: "",
+      matchedSource: match.matchedSource || "",
+      matchScore: match.matchScore,
+      matchedProductName: match.catalogItem?.name || match.product?.name || "",
+    });
   }
   return enriched;
 }
