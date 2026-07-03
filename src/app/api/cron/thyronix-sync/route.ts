@@ -79,7 +79,7 @@ export async function GET(req: Request) {
     }
 
     const sourceLimit = clampInt(url.searchParams.get("sourceLimit"), 2, 1, 5);
-    const feedLimit = clampInt(url.searchParams.get("feedLimit"), 1, 0, 3);
+    const feedLimit = clampInt(url.searchParams.get("feedLimit"), 0, 0, 3);
     const fetchTimeoutMs = clampInt(url.searchParams.get("fetchTimeoutMs"), 60000, 10000, 180000);
     const now = new Date();
     const sourceSync = await syncDueThyronixSources({
