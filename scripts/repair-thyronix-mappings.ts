@@ -81,7 +81,7 @@ async function repairSource(source: Awaited<ReturnType<typeof prisma.thyronixSou
   }
 
   try {
-    const xmlText = await fetchXmlText(feedUrl, 60000);
+    const xmlText = await fetchXmlText(feedUrl, 180000);
     const inspected = inspectXmlFeed(xmlText, template);
     const currentProductMapping = parseJsonRecord(source.fieldMapping);
     const currentVariantMapping = parseJsonRecord(source.variantMapping);
