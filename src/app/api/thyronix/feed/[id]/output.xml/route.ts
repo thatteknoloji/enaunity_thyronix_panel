@@ -54,6 +54,12 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
 
     const xml = generateFeedXml(productsWithVariants as never, template);
     await writeFeedXmlCache(feed.id, partMeta.part, xml);
+    await prisma.thyronixFeed
+      .update({
+        where: { id: feed.id },
+        data: { productCount: plan.totalProducts, lastPublished: new Date(), status: "active" },
+      })
+      .catch(() => null);
 
     return new Response(xml, {
       headers: {

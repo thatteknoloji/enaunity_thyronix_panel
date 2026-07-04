@@ -31,7 +31,7 @@ export async function isFeedXmlCacheFresh(feedId: string, part: number, publishe
   const filePath = getFeedXmlCachePath(feedId, part);
   try {
     const stat = await fs.stat(filePath);
-    if (!publishedAt) return true;
+    if (!publishedAt) return false;
     return stat.mtimeMs >= publishedAt.getTime();
   } catch {
     return false;

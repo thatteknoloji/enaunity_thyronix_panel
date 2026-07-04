@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { parseExcel, mapExcelToProducts, type ExcelProductRow, type ExcelValidationSummary } from "@/lib/thyronix/excel-parser";
 import { requireThyronixDealerOrAdmin } from "@/lib/thyronix/access";
 import { buildVariantMappingReadiness, inferVariantFieldsFromColumns } from "@/lib/thyronix/mapping-validation";
+import { buildSuggestedProductMapping, buildSuggestedVariantMapping } from "@/lib/thyronix/field-aliases";
 
 function parseJsonRecord(value: unknown): Record<string, string> {
   if (!value) return {};
@@ -104,8 +105,12 @@ export async function POST(req: Request) {
 
     const result = parseExcel(buffer, sheetName, headerRow);
     const variantFields = inferVariantFieldsFromColumns(result.columns);
-    const mappedRows: ExcelProductRow[] = Object.keys(fieldMapping).length > 0
-      ? mapExcelToProducts(result.allRows, fieldMapping, fixedValues, variantMapping)
+    const suggestedMapping = buildSuggestedProductMapping(result.columns);
+    const suggestedVariantMapping = buildSuggestedVariantMapping(result.columns);
+    const effectiveFieldMapping = { ...suggestedMapping, ...fieldMapping };
+    const effectiveVariantMapping = { ...suggestedVariantMapping, ...variantMapping };
+    const mappedRows: ExcelProductRow[] = Object.keys(effectiveFieldMapping).length > 0
+      ? mapExcelToProducts(result.allRows, effectiveFieldMapping, fixedValues, effectiveVariantMapping)
       : result.allRows.map((row, idx) => {
           const hasName = result.columns.some(c => String(row[c] || "").trim().length > 1);
           const hasPrice = result.columns.some(c => {
@@ -125,7 +130,7 @@ export async function POST(req: Request) {
         }) as ExcelProductRow[];
 
     const validation = buildValidationSummary(mappedRows);
-    const variantReadiness = buildVariantMappingReadiness(variantFields, variantMapping);
+    const variantReadiness = buildVariantMappingReadiness(variantFields, effectiveVariantMapping);
 
     return NextResponse.json({
       success: true,
@@ -143,6 +148,8 @@ export async function POST(req: Request) {
         errors: result.errors,
         validation,
         variantReadiness,
+        suggestedMapping,
+        suggestedVariantMapping,
         mappingAware: Object.keys(fieldMapping).length > 0,
       },
     });

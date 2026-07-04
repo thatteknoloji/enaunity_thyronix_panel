@@ -1,4 +1,5 @@
 import { prisma } from "../src/lib/db";
+import { loadMergedFeedProducts } from "../src/lib/thyronix/feed-output-service";
 import { planFeedChunks } from "../src/lib/thyronix/feed-chunk";
 import { resolveFeedSourceIds } from "../src/lib/thyronix/source-feed-provision";
 
@@ -112,12 +113,68 @@ async function main() {
     take: 50,
   });
 
+  const sourceQualityRows = await prisma.thyronixSource.findMany({
+    select: {
+      id: true,
+      name: true,
+      type: true,
+      status: true,
+      inputFormat: true,
+      productCount: true,
+      errorLog: true,
+      _count: { select: { products: true } },
+    },
+    orderBy: { updatedAt: "desc" },
+    take: 100,
+  });
+
+  const sourceQuality = [];
+  for (const source of sourceQualityRows) {
+    const where = { sourceId: source.id };
+    const [missingVatCount, invalidPriceCount, missingIdentityCount, variantCount] = await Promise.all([
+      prisma.thyronixProduct.count({ where: { ...where, vatRate: null } }),
+      prisma.thyronixProduct.count({ where: { ...where, price: { lte: 0 } } }),
+      prisma.thyronixProduct.count({
+        where: {
+          ...where,
+          AND: [
+            { OR: [{ barcode: null }, { barcode: "" }] },
+            { OR: [{ stockCode: null }, { stockCode: "" }] },
+            { OR: [{ modelCode: null }, { modelCode: "" }] },
+            { OR: [{ externalId: "" }] },
+          ],
+        },
+      }),
+      prisma.thyronixProduct.count({ where: { ...where, NOT: { variantData: null } } }),
+    ]);
+    sourceQuality.push({
+      id: source.id,
+      name: source.name,
+      type: source.type,
+      inputFormat: source.inputFormat,
+      status: source.status,
+      storedProductCount: source.productCount,
+      dbProductCount: source._count.products,
+      missingVatCount,
+      invalidPriceCount,
+      missingIdentityCount,
+      variantCount,
+      errorLog: source.errorLog,
+    });
+    if (source.productCount !== source._count.products) {
+      addIssue({
+        code: "source_count_mismatch",
+        severity: "warning",
+        message: `${source.name} kaynak kayıt sayısı DB ürün sayısından farklı: stored=${source.productCount}, db=${source._count.products}.`,
+      });
+    }
+  }
+
   const feedPlans = [];
   for (const feed of feeds) {
     const sourceIds = await resolveFeedSourceIds(feed as any);
-    const total = sourceIds.length
-      ? await prisma.thyronixProduct.count({ where: { sourceId: { in: sourceIds } } })
-      : 0;
+    const mergedProducts = sourceIds.length ? await loadMergedFeedProducts(feed as any, sourceIds) : [];
+    const total = mergedProducts.length;
     const plan = planFeedChunks(total);
     feedPlans.push({
       id: feed.id,
@@ -149,6 +206,7 @@ async function main() {
       activeFeedCount,
       variantRowsChecked: variantRows.length,
     },
+    sourceQuality,
     feedPlans,
     issues,
   };

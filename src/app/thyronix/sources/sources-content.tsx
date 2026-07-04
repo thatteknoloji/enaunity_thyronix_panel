@@ -165,6 +165,9 @@ export default function ThyronixSources() {
       setVariantFields(d.data.variantFields || []);
       setTestResult(d.data);
       setFieldMapping(d.data.currentMapping || {});
+      if (d.data.suggestedVariantMapping) {
+        setVariantMapping((current) => ({ ...d.data.suggestedVariantMapping, ...current }));
+      }
       setFieldSamples(d.data.sampleValues || {});
       setVariantSamples(d.data.variantSampleValues || {});
       setLastTestMeta({
@@ -207,6 +210,12 @@ export default function ThyronixSources() {
         const nextVariantFields = d.data.variantFields || inferVariantFieldsFromColumns(d.data.columns || []);
         setVariantFields(nextVariantFields);
         setVariantSamples(d.data.variantSampleValues || {});
+        if (d.data.suggestedMapping) {
+          setFieldMapping((current) => ({ ...d.data.suggestedMapping, ...current }));
+        }
+        if (d.data.suggestedVariantMapping) {
+          setVariantMapping((current) => ({ ...d.data.suggestedVariantMapping, ...current }));
+        }
         setTestCount(d.data.totalRows||0);
         setExcelValidation(d.data.validation || null);
         setLastTestMeta({

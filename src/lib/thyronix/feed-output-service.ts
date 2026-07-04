@@ -194,7 +194,7 @@ export async function resolveFeedChunkSlice(
 ): Promise<{
   products: Record<string, unknown>[];
   plan: FeedChunkPlan;
-  partMeta: { part: number; offset: number; limit: number };
+  partMeta: { part: number; offset: number; limit: number; productCount: number };
 }> {
   const merged = await loadMergedFeedProducts(feed, sourceIds);
   const plan = planFeedChunks(merged.length);
@@ -205,16 +205,16 @@ export async function resolveFeedChunkSlice(
   return {
     products,
     plan,
-    partMeta: { part: chunk.part, offset: chunk.offset, limit: chunk.limit },
+    partMeta: { part: chunk.part, offset: chunk.offset, limit: chunk.limit, productCount: products.length },
   };
 }
 
-export function feedOutputHeaders(plan: FeedChunkPlan, partMeta: { part: number; offset: number; limit: number }) {
+export function feedOutputHeaders(plan: FeedChunkPlan, partMeta: { part: number; offset: number; limit: number; productCount?: number }) {
   return {
     "X-Feed-Total-Products": String(plan.totalProducts),
     "X-Feed-Part": String(partMeta.part),
     "X-Feed-Total-Parts": String(plan.partCount),
-    "X-Feed-Part-Products": String(partMeta.limit),
+    "X-Feed-Part-Products": String(partMeta.productCount ?? partMeta.limit),
     "X-Feed-Max-Per-File": String(FEED_MAX_PRODUCTS_PER_FILE),
   };
 }

@@ -1,5 +1,6 @@
 import { XMLParser } from "fast-xml-parser";
 import type { FeedTemplate } from "./templates";
+import { guessProductField } from "./field-aliases";
 import { buildSourceMetadataJson, safeJsonStringify } from "./source-metadata";
 import { parseThyronixNumber } from "./number";
 
@@ -40,6 +41,18 @@ function parseNumber(val: unknown): number | undefined {
   return parseThyronixNumber(val) ?? undefined;
 }
 
+function pickNestedNumber(value: unknown, keys: string[]): unknown {
+  if (!value || typeof value !== "object") return value;
+  const record = value as Record<string, unknown>;
+  for (const key of keys) {
+    if (record[key] !== undefined) return record[key];
+  }
+  const text = record["#text"];
+  if (text !== undefined) return text;
+  const firstScalar = Object.values(record).find((item) => item !== null && item !== undefined && typeof item !== "object");
+  return firstScalar ?? value;
+}
+
 function pickString(...values: unknown[]): string | undefined {
   for (const value of values) {
     if (value === null || value === undefined) continue;
@@ -56,6 +69,13 @@ function extractText(value: unknown): string {
     return text === null || text === undefined ? "" : String(text).trim();
   }
   return String(value).trim();
+}
+
+function pickAliasedItemValue(item: Record<string, unknown>, targetField: string): unknown {
+  for (const [key, value] of Object.entries(item)) {
+    if (guessProductField(key) === targetField) return value;
+  }
+  return undefined;
 }
 
 function resolveVariantFieldKey(variant: Record<string, unknown>, rawField: string): string | undefined {
@@ -265,13 +285,16 @@ export function parseXmlToProducts(
       if (numFields.includes(internalField)) {
         if (typeof value === "object" && value !== null) {
           if (internalField === "price" || internalField === "discountedPrice" || internalField === "salePrice" || internalField === "costPrice") {
-            const nested = value as Record<string, unknown>;
-            value =
-              nested.bayi_fiyati ?? nested.son_kullanici ?? nested.SatisFiyati ??
-              nested.price ?? nested.fiyat ?? nested["#text"];
+            value = pickNestedNumber(value, [
+              "bayi_fiyati", "son_kullanici", "SatisFiyati", "satisFiyati", "sitePrice",
+              "listPrice", "price", "Price", "fiyat", "Fiyat",
+            ]);
           } else if (internalField === "stock") {
-            const nested = value as Record<string, unknown>;
-            value = nested.miktar ?? nested.quantity ?? nested.stok ?? nested["#text"];
+            value = pickNestedNumber(value, ["miktar", "Miktar", "quantity", "Quantity", "stok", "Stok", "stock", "Stock"]);
+          } else if (internalField === "vatRate") {
+            value = pickNestedNumber(value, ["kdv", "KDV", "Kdv", "kdvOrani", "KdvOrani", "tax", "Tax", "vat", "Vat", "rate", "Rate"]);
+          } else {
+            value = pickNestedNumber(value, []);
           }
         }
         const n = parseNumber(value);
@@ -286,10 +309,10 @@ export function parseXmlToProducts(
     if (!product.price) {
       const p =
         item.price ?? item.sitePrice ?? item.SatisFiyati ?? item.Price ??
-        item.urun_fiyat_bayi_ozel ?? item.urun_fiyat;
+        item.urun_fiyat_bayi_ozel ?? item.urun_fiyat ?? pickAliasedItemValue(item, "price");
       const fiyat = item.fiyat;
       const fromFiyat = fiyat && typeof fiyat === "object"
-        ? (fiyat as Record<string, unknown>).bayi_fiyati ?? (fiyat as Record<string, unknown>).son_kullanici
+        ? pickNestedNumber(fiyat, ["bayi_fiyati", "son_kullanici", "SatisFiyati", "price", "fiyat"])
         : fiyat;
       product.price = parseNumber(p ?? fromFiyat) ?? product.price;
     }
@@ -297,7 +320,7 @@ export function parseXmlToProducts(
       product.vatRate = parseNumber(
         item.kdv ?? item.KDV ?? item.Kdv ?? item.kdvOrani ?? item.KdvOrani ??
         item.KDVOrani ?? item.vat ?? item.Vat ?? item.vatRate ?? item.VatRate ??
-        item.tax_rate ?? item.TaxRate ?? item.taxRate
+        item.tax_rate ?? item.TaxRate ?? item.taxRate ?? pickAliasedItemValue(item, "vatRate")
       );
     }
     if (product.stock === undefined) {
@@ -306,22 +329,22 @@ export function parseXmlToProducts(
     }
     if (!product.name) {
       product.name =
-        String(item.adi ?? item.ProductName ?? item.UrunAdi ?? item.urun_ad ?? item.name ?? "").trim() ||
+        String(item.adi ?? item.ProductName ?? item.UrunAdi ?? item.urun_ad ?? item.name ?? pickAliasedItemValue(item, "name") ?? "").trim() ||
         undefined;
     }
     if (!product.barcode && !product.stockCode) {
       product.barcode =
-        String(item.barcode ?? item.barcod ?? item.Barkod ?? item.ozel_barkod_kodu ?? "").trim() || undefined;
+        String(item.barcode ?? item.barcod ?? item.Barkod ?? item.ozel_barkod_kodu ?? pickAliasedItemValue(item, "barcode") ?? "").trim() || undefined;
       product.stockCode =
-        String(item.stok_kodu ?? item.ProductCode ?? item.StokKodu ?? item.ozel_urun_kodu ?? "").trim() ||
+        String(item.stok_kodu ?? item.ProductCode ?? item.StokKodu ?? item.ozel_urun_kodu ?? pickAliasedItemValue(item, "stockCode") ?? "").trim() ||
         undefined;
     }
     if (!product.brand) {
-      product.brand = String(item.urun_marka_ad ?? item.marka ?? "").trim() || undefined;
+      product.brand = String(item.urun_marka_ad ?? item.marka ?? pickAliasedItemValue(item, "brand") ?? "").trim() || undefined;
     }
     if (!product.category) {
       product.category =
-        String(item.urun_kategori_path ?? item.urun_kategori_ad ?? item.kategori ?? "").trim() || undefined;
+        String(item.urun_kategori_path ?? item.urun_kategori_ad ?? item.kategori ?? pickAliasedItemValue(item, "category") ?? "").trim() || undefined;
     }
     if (!product.image) {
       product.image =

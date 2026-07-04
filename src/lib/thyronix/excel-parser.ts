@@ -246,7 +246,10 @@ export function mapExcelToProducts(
     if (!productName) errors.push("Ürün adı eksik");
     const externalId = getVal("externalId") || undefined;
 
-    const price = normalizeNumber(getVal("price"));
+    const salePriceValue = normalizeNumber(getVal("salePrice"));
+    const discountedPriceValue = normalizeFieldValue(getVal("discountedPrice"));
+    const costPriceValue = normalizeNumber(getVal("costPrice"));
+    const price = normalizeNumber(getVal("price")) ?? salePriceValue ?? discountedPriceValue ?? costPriceValue;
     if (price === null || price <= 0) errors.push("Geçersiz fiyat");
 
       const stockResult = normalizeStock(getVal("stock"));
@@ -259,8 +262,8 @@ export function mapExcelToProducts(
       const hasIdentity = barcode || stockCode || modelCode || externalId;
     if (!hasIdentity) errors.push("Kimlik alanı eksik (barkod/stok kodu/model kodu/harici ID)");
 
-    const discountedPrice = normalizeFieldValue(getVal("discountedPrice") || getVal("salePrice")) || undefined;
-    const costPrice = normalizeNumber(getVal("costPrice")) || undefined;
+    const discountedPrice = discountedPriceValue ?? salePriceValue ?? undefined;
+    const costPrice = costPriceValue ?? undefined;
     const shippingCost = normalizeNumber(getVal("shippingCost")) || undefined;
 
     const variantOptions: Array<{ group: string; value: string }> = [];
@@ -298,7 +301,7 @@ export function mapExcelToProducts(
       category: getVal("category") || fixedValues.category || undefined,
       price: price || 0,
       discountedPrice,
-      salePrice: normalizeNumber(getVal("salePrice")) || undefined,
+      salePrice: salePriceValue ?? undefined,
       costPrice,
       stock: stockResult.value,
       currency: getVal("currency") || fixedValues.currency || "TRY",

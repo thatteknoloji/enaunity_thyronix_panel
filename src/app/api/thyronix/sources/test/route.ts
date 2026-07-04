@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { requireThyronixDealerOrAdmin, thyronixErrorResponse } from "@/lib/thyronix/access";
+import { buildSuggestedProductMapping, buildSuggestedVariantMapping } from "@/lib/thyronix/field-aliases";
 import { fetchXmlText } from "@/lib/thyronix/feed-fetch";
 import { buildVariantMappingReadiness } from "@/lib/thyronix/mapping-validation";
 import { getTemplate } from "@/lib/thyronix/templates";
@@ -32,6 +33,8 @@ export async function POST(req: Request) {
         if (xmlField) currentMapping[xmlField] = thyronixField;
       }
     }
+    const suggestedMapping = { ...buildSuggestedProductMapping(inspected.detectedFields), ...currentMapping };
+    const suggestedVariantMapping = buildSuggestedVariantMapping(inspected.variantFields);
 
     return NextResponse.json({
       success: true,
@@ -42,7 +45,9 @@ export async function POST(req: Request) {
         variantSampleValues: inspected.variantSampleValues,
         variantReadiness,
         sampleValues: inspected.sampleValues,
-        currentMapping,
+        currentMapping: suggestedMapping,
+        suggestedMapping,
+        suggestedVariantMapping,
         templateName: template?.name || "Unknown",
       },
     });
