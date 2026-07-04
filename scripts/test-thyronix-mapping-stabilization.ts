@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { buildSuggestedProductMapping, buildSuggestedVariantMapping } from "../src/lib/thyronix/field-aliases";
 import { productToThyronixRow, parseFixedValues } from "../src/lib/thyronix/feed-fetch";
+import { buildVariantMappingReadiness } from "../src/lib/thyronix/mapping-validation";
 import { getTemplate } from "../src/lib/thyronix/templates";
 import { inspectXmlFeed, parseXmlToProducts } from "../src/lib/thyronix/xml-parser";
 
@@ -94,6 +95,12 @@ const ticimaxTemplate = {
 const ticimaxInspected = inspectXmlFeed(ticimaxXml, ticimaxTemplate);
 assert(ticimaxInspected.variantFields.includes("SatisFiyati"));
 assert(ticimaxInspected.variantFields.includes("KdvOrani"));
+const ticimaxSuggestedVariantMapping = buildSuggestedVariantMapping(ticimaxInspected.variantFields);
+const ticimaxVariantReadiness = buildVariantMappingReadiness(
+  ticimaxInspected.variantFields,
+  ticimaxSuggestedVariantMapping,
+);
+assert.equal(ticimaxVariantReadiness.ready, true);
 const ticimaxProducts = parseXmlToProducts(ticimaxXml, ticimaxTemplate);
 assert.equal(ticimaxProducts.length, 1);
 assert.equal(ticimaxProducts[0].price, 999.9);

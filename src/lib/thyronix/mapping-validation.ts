@@ -2,6 +2,7 @@ export const REQUIRED_PRODUCT_TARGETS = ["name", "price"] as const;
 export const IDENTITY_TARGETS = ["barcode", "stockCode", "modelCode", "externalId"] as const;
 
 const VARIANT_HINT_RE = /(varyant|variant|renk|color|colour|beden|size|ebat|olcu|ölçü|desen|pattern|numara|option|attribute|secenek|seçenek)/i;
+const AUTO_VARIANT_VALUE_RE = /(eksecenekozellik|ozellik|özellik|option|attribute)/i;
 
 export type VariantReadiness = {
   detected: boolean;
@@ -52,7 +53,8 @@ export function buildVariantMappingReadiness(
     return { detected: false, ready: true, mappedCount, missing };
   }
 
-  if (!roles.includes("variantValue")) {
+  const hasAutoVariantValue = variantFields.some((field) => AUTO_VARIANT_VALUE_RE.test(field));
+  if (!roles.includes("variantValue") && !hasAutoVariantValue) {
     missing.push("variantValue");
   }
   if (!roles.includes("variantBarcode") && !roles.includes("variantSku")) {
