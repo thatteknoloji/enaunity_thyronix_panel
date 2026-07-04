@@ -58,6 +58,7 @@ backups/
 
 # Misc cache
 node_modules/.cache/
+.pnpm-store/
 *.tsbuildinfo
 
 # Capacitor Android build artifacts
@@ -67,3 +68,9 @@ mobile/linkslash/android/local.properties
 mobile/linkslash/android/keystore.properties
 mobile/linkslash/*.keystore
 .analysis/
+
+# Local recovery/audit artifacts with potentially sensitive customer data
+data/analysis-imports/
+docs/recovery/
+scripts/recover-orphan-member-applications.ts
+scripts/recover-thyronix-feed-center.ts
