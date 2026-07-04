@@ -695,5 +695,7 @@ export function parseXmlToProducts(
     }
 
     return product;
-  });
+  }).filter((product) =>
+    Boolean(product.name || product.barcode || product.stockCode || product.modelCode || product.externalId)
+  );
 }

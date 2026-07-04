@@ -131,6 +131,13 @@ assert.equal(bezosProducts[0].price, 1229.14);
 assert.equal(bezosProducts[0].costPrice, 850);
 assert.equal(bezosProducts[0].vatRate, 20);
 
+const blankProducts = parseXmlToProducts(
+  `<?xml version="1.0" encoding="UTF-8"?><products><product></product><product><name>Geçerli</name><price>10</price><barcode>BAR-1</barcode></product></products>`,
+  template,
+);
+assert.equal(blankProducts.length, 1);
+assert.equal(blankProducts[0].barcode, "BAR-1");
+
 const excelColumns = [
   "Ürün Adı",
   "Barkod",
