@@ -4,7 +4,7 @@ export const PRODUCT_FIELD_ALIASES: Record<string, string[]> = {
   brand: ["brand", "brandname", "marka", "urunmarka", "urun_marka_ad", "manufacturerbrand"],
   category: ["category", "categoryname", "kategori", "kategoriadi", "kategori_ad", "urun_kategori_ad", "top_category", "main_category"],
   subcategory: ["subcategory", "sub_category", "altkategori", "alt kategori", "categories", "kategori_tree"],
-  externalId: ["externalid", "external_id", "id", "productid", "product_id", "urunid", "urun_id"],
+  externalId: ["externalid", "external_id", "id", "productid", "product_id", "urunid", "urun_id", "urunkartiid", "urun_karti_id", "varyasyonid"],
   barcode: ["barcode", "barcod", "barkod", "barkodu", "ean", "gtin", "ozelbarkodkodu", "ozel_barkod_kodu"],
   stockCode: ["stockcode", "stock_code", "stokcode", "stokkodu", "stok_kodu", "sku", "merchantsku", "productcode", "product_code", "urun_kodu", "ozel_urun_kodu"],
   modelCode: ["modelcode", "model_code", "modelkodu", "model_kodu", "model", "productmainid", "product_main_id", "specCode1"],

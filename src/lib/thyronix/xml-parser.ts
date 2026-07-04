@@ -78,6 +78,44 @@ function pickAliasedItemValue(item: Record<string, unknown>, targetField: string
   return undefined;
 }
 
+function pickPositiveNumber(...values: unknown[]): number | undefined {
+  for (const value of values) {
+    const parsed = parseNumber(value);
+    if (parsed !== undefined && parsed > 0) return parsed;
+  }
+  return undefined;
+}
+
+function getNestedRecord(value: unknown, key: string): unknown {
+  if (!value || typeof value !== "object") return undefined;
+  return (value as Record<string, unknown>)[key];
+}
+
+function normalizeArray(value: unknown): Record<string, unknown>[] {
+  const rawItems = Array.isArray(value) ? value : value ? [value] : [];
+  return rawItems.filter((item): item is Record<string, unknown> => Boolean(item) && typeof item === "object");
+}
+
+function getOptionItems(item: Record<string, unknown>): Record<string, unknown>[] {
+  const container =
+    item.UrunSecenek ??
+    item.urunSecenek ??
+    item.urun_secenek ??
+    item.options ??
+    item.Options ??
+    item.variants ??
+    item.Variants;
+  if (!container || typeof container !== "object") return [];
+  const nested =
+    getNestedRecord(container, "Secenek") ??
+    getNestedRecord(container, "secenek") ??
+    getNestedRecord(container, "Option") ??
+    getNestedRecord(container, "option") ??
+    getNestedRecord(container, "Variant") ??
+    getNestedRecord(container, "variant");
+  return normalizeArray(nested ?? container);
+}
+
 function resolveVariantFieldKey(variant: Record<string, unknown>, rawField: string): string | undefined {
   if (rawField in variant) return rawField;
   const lower = rawField.toLowerCase();
@@ -143,6 +181,10 @@ export function inspectXmlFeed(xml: string, template: FeedTemplate): XmlInspecti
     "varyant",
     "Variants",
     "Variant",
+    "UrunSecenek",
+    "urunSecenek",
+    "Secenek",
+    "secenek",
     "VARIANTS",
     "variaciones",
     "variations",
@@ -156,6 +198,10 @@ export function inspectXmlFeed(xml: string, template: FeedTemplate): XmlInspecti
     "Varyant",
     "variation",
     "Variation",
+    "Secenek",
+    "secenek",
+    "Option",
+    "option",
   ].filter(Boolean) as string[]);
 
   for (let i = 0; i < Math.min(5, items.length); i++) {
@@ -254,6 +300,8 @@ export function parseXmlToProducts(
 
   return items.map((item: any, idx: number) => {
     const product: ThyronixProductInput = {};
+    const optionItems = getOptionItems(item);
+    const firstOption = optionItems[0];
 
     // Map fields from XML to internal
     for (const [xmlTag, internalField] of Object.entries(reverseMap)) {
@@ -306,7 +354,7 @@ export function parseXmlToProducts(
       }
     }
 
-    if (!product.price) {
+    if (!product.price || product.price <= 0) {
       const p =
         item.price ?? item.sitePrice ?? item.SatisFiyati ?? item.Price ??
         item.urun_fiyat_bayi_ozel ?? item.urun_fiyat ?? pickAliasedItemValue(item, "price");
@@ -314,29 +362,87 @@ export function parseXmlToProducts(
       const fromFiyat = fiyat && typeof fiyat === "object"
         ? pickNestedNumber(fiyat, ["bayi_fiyati", "son_kullanici", "SatisFiyati", "price", "fiyat"])
         : fiyat;
-      product.price = parseNumber(p ?? fromFiyat) ?? product.price;
+      product.price =
+        pickPositiveNumber(
+          p,
+          fromFiyat,
+          item.salePrice,
+          item.sale_price,
+          item.satis_fiyati,
+          item.alis_fiyat,
+          item.AlisFiyati,
+          firstOption?.IndirimliFiyat,
+          firstOption?.indirimliFiyat,
+          firstOption?.SatisFiyati,
+          firstOption?.satisFiyati,
+          firstOption?.Fiyat,
+          firstOption?.fiyat,
+          firstOption?.AlisFiyati,
+          firstOption?.alisFiyati,
+        ) ?? product.price;
+    }
+    if (product.discountedPrice === undefined) {
+      product.discountedPrice = pickPositiveNumber(firstOption?.IndirimliFiyat, firstOption?.indirimliFiyat);
+    }
+    if (product.costPrice === undefined) {
+      product.costPrice = pickPositiveNumber(
+        item.alis_fiyat,
+        item.AlisFiyati,
+        firstOption?.AlisFiyati,
+        firstOption?.alisFiyati,
+      );
     }
     if (product.vatRate === undefined) {
       product.vatRate = parseNumber(
         item.kdv ?? item.KDV ?? item.Kdv ?? item.kdvOrani ?? item.KdvOrani ??
         item.KDVOrani ?? item.vat ?? item.Vat ?? item.vatRate ?? item.VatRate ??
-        item.tax_rate ?? item.TaxRate ?? item.taxRate ?? pickAliasedItemValue(item, "vatRate")
+        item.tax_rate ?? item.TaxRate ?? item.taxRate ??
+        firstOption?.KdvOrani ?? firstOption?.kdvOrani ?? firstOption?.KDV ?? firstOption?.kdv ??
+        pickAliasedItemValue(item, "vatRate")
       );
     }
     if (product.stock === undefined) {
+      const optionStock = optionItems.reduce(
+        (sum, option) =>
+          sum +
+          (parseNumber(
+            option.StokAdedi ?? option.stokAdedi ?? option.stok_adedi ?? option.stock ?? option.Stock ?? option.quantity ?? option.miktar,
+          ) ?? 0),
+        0,
+      );
       product.stock =
-        parseNumber(item.quantity ?? item.miktar ?? item.StokAdedi ?? item.stok ?? item.urun_stok) ?? 0;
+        parseNumber(item.quantity ?? item.miktar ?? item.StokAdedi ?? item.stok ?? item.urun_stok) ?? optionStock;
     }
     if (!product.name) {
       product.name =
         String(item.adi ?? item.ProductName ?? item.UrunAdi ?? item.urun_ad ?? item.name ?? pickAliasedItemValue(item, "name") ?? "").trim() ||
         undefined;
     }
-    if (!product.barcode && !product.stockCode) {
+    if (!product.barcode) {
       product.barcode =
-        String(item.barcode ?? item.barcod ?? item.Barkod ?? item.ozel_barkod_kodu ?? pickAliasedItemValue(item, "barcode") ?? "").trim() || undefined;
+        String(
+          item.barcode ??
+            item.barcod ??
+            item.Barkod ??
+            item.ozel_barkod_kodu ??
+            firstOption?.Barkod ??
+            firstOption?.barkod ??
+            pickAliasedItemValue(item, "barcode") ??
+            "",
+        ).trim() || undefined;
+    }
+    if (!product.stockCode) {
       product.stockCode =
-        String(item.stok_kodu ?? item.ProductCode ?? item.StokKodu ?? item.ozel_urun_kodu ?? pickAliasedItemValue(item, "stockCode") ?? "").trim() ||
+        String(
+          item.stok_kodu ??
+            item.ProductCode ??
+            item.StokKodu ??
+            item.ozel_urun_kodu ??
+            firstOption?.StokKodu ??
+            firstOption?.stokKodu ??
+            pickAliasedItemValue(item, "stockCode") ??
+            "",
+        ).trim() ||
         undefined;
     }
     if (!product.brand) {
@@ -365,6 +471,10 @@ export function parseXmlToProducts(
           item.ID,
           item.urun_id,
           item.product_id,
+          item.UrunKartiID,
+          item.urunKartiId,
+          item.VaryasyonID,
+          pickAliasedItemValue(item, "externalId"),
         ) || undefined;
     }
 
@@ -377,6 +487,9 @@ export function parseXmlToProducts(
       "varyantlar",
       "variations",
       "VARIANTS",
+      "UrunSecenek",
+      "urunSecenek",
+      "urun_secenek",
       "variant",
       "Variant",
     ].find((key) => key && item[key]);
@@ -387,7 +500,7 @@ export function parseXmlToProducts(
         template.variantItemElement ||
         (typeof variantsContainer === "object" && variantsContainer
           ? Object.keys(variantsContainer).find((key) =>
-              ["variant", "Variant", "varyant", "Varyant", "variation", "Variation"].includes(key) ||
+              ["variant", "Variant", "varyant", "Varyant", "variation", "Variation", "Secenek", "secenek", "Option", "option"].includes(key) ||
               Array.isArray((variantsContainer as Record<string, unknown>)[key])
             )
           : undefined) ||
@@ -399,9 +512,21 @@ export function parseXmlToProducts(
           : (Array.isArray(variantsContainer) ? variantsContainer : [variantsContainer]).filter(Boolean));
 
       product.variants = variantItems.map((vi: any) => {
-        let variantBarcode = vi.barcode || vi.Barcode || vi.BARKOD;
-        let variantSku = vi.sku || vi.Sku || vi.SKU;
-        let variantPrice = parseNumber(vi.price || vi.Price || vi.satilacakFiyat || vi.SatisFiyati || vi.fiyat);
+        let variantBarcode = vi.barcode || vi.Barcode || vi.BARKOD || vi.Barkod || vi.barkod;
+        let variantSku = vi.sku || vi.Sku || vi.SKU || vi.StokKodu || vi.stokKodu || vi.stok_kodu;
+        let variantPrice = pickPositiveNumber(
+          vi.IndirimliFiyat,
+          vi.indirimliFiyat,
+          vi.price,
+          vi.Price,
+          vi.satilacakFiyat,
+          vi.SatisFiyati,
+          vi.satisFiyati,
+          vi.fiyat,
+          vi.Fiyat,
+          vi.AlisFiyati,
+          vi.alisFiyati,
+        );
         let variantStock = parseNumber(vi.stock || vi.Stock || vi.stok || vi.quantity || vi.StokAdedi || vi.miktar || vi.Miktar) ?? 0;
         let variantImage = vi.image || vi.Image || vi.Resim || vi.resim;
         const variantOpts: Array<{ group: string; value: string }> = [];
@@ -409,10 +534,11 @@ export function parseXmlToProducts(
         let mappedVariantValue = "";
         const consumedKeys = new Set<string>([
           "barcode", "Barcode", "BARKOD", "Barkod",
-          "sku", "Sku", "SKU",
-          "price", "Price", "satilacakFiyat", "SatisFiyati", "fiyat",
+          "sku", "Sku", "SKU", "StokKodu", "stokKodu", "stok_kodu",
+          "price", "Price", "satilacakFiyat", "SatisFiyati", "satisFiyati", "fiyat", "Fiyat", "IndirimliFiyat", "indirimliFiyat", "AlisFiyati", "alisFiyati",
           "stock", "Stock", "stok", "quantity", "StokAdedi", "miktar", "Miktar",
           "image", "Image", "Resim", "resim",
+          "KdvOrani", "kdvOrani", "KDV", "kdv", "ParaBirimi", "ParaBirimiKodu", "Desi",
         ]);
 
         if (variantFieldMap && typeof variantFieldMap === "object") {
@@ -432,7 +558,7 @@ export function parseXmlToProducts(
                 variantSku = rawValue;
                 break;
               case "variantPrice":
-                variantPrice = parseNumber(rawValue) ?? variantPrice;
+                variantPrice = pickPositiveNumber(rawValue) ?? variantPrice;
                 break;
               case "variantStock":
                 variantStock = parseNumber(rawValue) ?? variantStock;
@@ -494,6 +620,19 @@ export function parseXmlToProducts(
           }
         }
 
+        // Ticimax-style: <EkSecenekOzellik><Ozellik Tanim="Renk" Deger="Siyah"/></EkSecenekOzellik>
+        if (variantOpts.length === 0 && vi.EkSecenekOzellik && typeof vi.EkSecenekOzellik === "object") {
+          const ozellik = (vi.EkSecenekOzellik as Record<string, unknown>).Ozellik;
+          const ozellikItems = Array.isArray(ozellik) ? ozellik : ozellik ? [ozellik] : [];
+          for (const opt of ozellikItems) {
+            if (!opt || typeof opt !== "object") continue;
+            const record = opt as Record<string, unknown>;
+            const group = extractText(record["@_Tanim"] ?? record.Tanim ?? record.name ?? record["@_name"]);
+            const value = extractText(record["@_Deger"] ?? record.Deger ?? record.value ?? record["@_value"] ?? record["#text"]);
+            if (group && value) variantOpts.push({ group, value });
+          }
+        }
+
         // Check for spec-style: <spec name="Renk" value="Siyah"/> or <specName>Renk</specName><specValue>Siyah</specValue>
         if (variantOpts.length === 0) {
           // Try specCode, specName, etc
@@ -529,6 +668,9 @@ export function parseXmlToProducts(
     }
 
     const rawVariants = Array.isArray(product.variants) ? product.variants : [];
+    if ((!product.price || product.price <= 0) && rawVariants.length > 0) {
+      product.price = pickPositiveNumber(...rawVariants.map((variant) => variant.price)) ?? product.price;
+    }
     product.variantData = rawVariants.length > 0 ? safeJsonStringify(rawVariants, "[]") : undefined;
     product.metadataJson = buildSourceMetadataJson({
       sourceType: "xml",
