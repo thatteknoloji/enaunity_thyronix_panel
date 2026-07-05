@@ -4,6 +4,7 @@ import { requireAdmin } from "@/lib/auth";
 import { detectPreset, getPresetMapping, mergeMapping } from "@/lib/products/marketplace-import/presets";
 import { parseRowsFromBuffer, parseCsvText } from "@/lib/products/marketplace-import/parser";
 import { groupByModelCode, extractCategoryValues } from "@/lib/products/marketplace-import/grouper";
+import { applyImportIdentityGeneration } from "@/lib/products/marketplace-import/identity-generation";
 import { savePreview } from "@/lib/products/marketplace-import/preview-store";
 import type { FieldMapping, ImportPresetId } from "@/lib/products/marketplace-import/types";
 
@@ -14,6 +15,7 @@ export async function POST(req: Request) {
     const file = formData.get("file") as File | null;
     const presetParam = (formData.get("preset") as string) || "auto";
     const mappingJson = formData.get("mapping") as string | null;
+    const identityGenerationJson = formData.get("identityGeneration") as string | null;
 
     if (!file) {
       return NextResponse.json({ success: false, error: "Dosya gerekli" }, { status: 400 });
@@ -26,6 +28,10 @@ export async function POST(req: Request) {
     let overrides: Partial<FieldMapping> = {};
     if (mappingJson) {
       try { overrides = JSON.parse(mappingJson); } catch { /* ignore */ }
+    }
+    let identityGeneration = {};
+    if (identityGenerationJson) {
+      try { identityGeneration = JSON.parse(identityGenerationJson); } catch { /* ignore */ }
     }
 
     let rows;
@@ -57,6 +63,7 @@ export async function POST(req: Request) {
       parseErrors = result.errors;
     }
 
+    rows = applyImportIdentityGeneration(rows, identityGeneration);
     const { groups, ungroupedRows } = groupByModelCode(rows);
     const categoryValues = extractCategoryValues(groups);
 

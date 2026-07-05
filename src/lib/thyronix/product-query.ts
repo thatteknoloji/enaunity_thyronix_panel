@@ -10,6 +10,7 @@ export type ThyronixProductFilters = {
   barcode?: string;
   stockCode?: string;
   modelCode?: string;
+  externalId?: string;
   brand?: string;
   priceMin?: string;
   priceMax?: string;
@@ -71,6 +72,7 @@ export async function buildThyronixProductWhere(
   if (input.barcode) filters.barcode = { contains: input.barcode };
   if (input.stockCode) filters.stockCode = { contains: input.stockCode };
   if (input.modelCode) filters.modelCode = { contains: input.modelCode };
+  if (input.externalId) filters.externalId = { contains: input.externalId };
   if (input.brand) filters.brand = { contains: input.brand };
   if (input.priceMin) filters.price = { ...(filters.price as object), gte: parseFloat(input.priceMin) };
   if (input.priceMax) filters.price = { ...(filters.price as object), lte: parseFloat(input.priceMax) };

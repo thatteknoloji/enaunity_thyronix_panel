@@ -12,6 +12,12 @@ export const TRENDYOL_TABLO_MAPPING: FieldMapping = {
   price: "Trendyol Satış Fiyatı",
   stock: "Ürün Stok Adedi",
   image: "Görsel 1",
+  seoTitle: "SEO Başlık",
+  seoDescription: "SEO Açıklama",
+  seoKeywords: "SEO Anahtar Kelimeler",
+  geoTargets: "GEO Hedefler",
+  aeoAnswerSummary: "AEO Özet",
+  aeoFaq: "AEO SSS",
   images: ["Görsel 1", "Görsel 2", "Görsel 3", "Görsel 4", "Görsel 5", "Görsel 6", "Görsel 7", "Görsel 8"],
   variantAxes: {
     "Boyut/Ebat": "Boyut/Ebat",
@@ -38,6 +44,12 @@ export const GENERIC_MAPPING: FieldMapping = {
   price: "price",
   stock: "stock",
   image: "image",
+  seoTitle: "seoTitle",
+  seoDescription: "seoDescription",
+  seoKeywords: "seoKeywords",
+  geoTargets: "geoTargets",
+  aeoAnswerSummary: "aeoAnswerSummary",
+  aeoFaq: "aeoFaq",
 };
 
 export function getPresetMapping(preset: ImportPresetId): FieldMapping {

@@ -3,6 +3,7 @@ import { prisma } from "@/lib/db";
 import { requireThyronixDealerOrAdmin, thyronixErrorResponse, withTenantFilter } from "@/lib/thyronix/access";
 import { countActiveSourceProducts } from "@/lib/thyronix/feed-output-service";
 import { resolveFeedSourceIds } from "@/lib/thyronix/source-feed-provision";
+import { getThyronixSourceQualitySummaries } from "@/lib/thyronix/source-quality";
 
 export async function GET() {
   try {
@@ -47,6 +48,11 @@ export async function GET() {
       const actual = await countActiveSourceProducts(sourceIds);
       if (actual !== feed.productCount) feedCountMismatch++;
     }
+    const qualitySummaries = await getThyronixSourceQualitySummaries(user);
+    const sourceWarnings = Array.from(qualitySummaries.values())
+      .filter((summary) => summary.warnings.length > 0)
+      .sort((a, b) => (b.invalidPriceCount + b.missingVatCount) - (a.invalidPriceCount + a.missingVatCount))
+      .slice(0, 12);
 
     return NextResponse.json({
       success: true,
@@ -54,6 +60,7 @@ export async function GET() {
         missingBarcode, missingBrand, missingCategory, missingDescription,
         missingIdentity, missingVat, feedCountMismatch,
         zeroPrice, zeroStock, negativePrice, negativeStock, totalActive, totalAll,
+        sourceWarnings,
       },
     });
   } catch (e) {

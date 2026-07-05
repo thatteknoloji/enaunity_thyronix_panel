@@ -4,6 +4,14 @@ import { useEffect, useState } from "react";
 import { Heart, Check, AlertTriangle, XCircle } from "lucide-react";
 
 interface HealthItem { label: string; count: number; severity: "error"|"warning"|"info"; }
+type SourceWarning = {
+  sourceId: string;
+  sourceName: string;
+  missingVatCount: number;
+  invalidPriceCount: number;
+  productCount: number;
+  warnings: string[];
+};
 
 export default function ThyronixHealthPage() {
   const [data, setData] = useState<any>(null);
@@ -35,6 +43,7 @@ export default function ThyronixHealthPage() {
   const total = items.reduce((sum,i)=>sum+i.count,0);
   const errors = items.filter(i=>i.severity==="error").reduce((sum,i)=>sum+i.count,0);
   const warnings = items.filter(i=>i.severity==="warning").reduce((sum,i)=>sum+i.count,0);
+  const sourceWarnings = (s.sourceWarnings || []) as SourceWarning[];
   const sevColors: Record<string,string> = { error:"text-nexa-danger bg-nexa-danger/10", warning:"text-nexa-warning bg-nexa-warning/10", info:"text-nexa-text-secondary bg-nexa-bg/50" };
 
   return (
@@ -46,6 +55,37 @@ export default function ThyronixHealthPage() {
         <div className="rounded-xl border border-nexa-danger/30 bg-nexa-card p-4"><p className="text-2xl font-bold text-nexa-danger">{errors}</p><p className="text-xs text-nexa-text-secondary mt-1">Kritik Hata</p></div>
         <div className="rounded-xl border border-nexa-warning/30 bg-nexa-card p-4"><p className="text-2xl font-bold text-nexa-warning">{warnings}</p><p className="text-xs text-nexa-text-secondary mt-1">Uyarı</p></div>
       </div>
+
+      {sourceWarnings.length > 0 && (
+        <div className="rounded-xl border border-nexa-warning/30 bg-nexa-warning/5 p-4">
+          <div className="flex items-start gap-3">
+            <div className="mt-0.5 rounded-lg bg-nexa-warning/10 p-2 text-nexa-warning">
+              <AlertTriangle size={18} />
+            </div>
+            <div className="min-w-0 flex-1">
+              <h2 className="text-sm font-semibold text-nexa-text">Kaynak veri uyarıları</h2>
+              <p className="mt-1 text-xs text-nexa-text-secondary">
+                Aşağıdaki kaynak XML/feeds içinde KDV veya fiyat alanı boş/0 geliyor. Sistem veriyi uydurmaz; kaynaktan ne geliyorsa onu gösterir.
+              </p>
+              <div className="mt-3 grid gap-2 md:grid-cols-2">
+                {sourceWarnings.map((source) => (
+                  <div key={source.sourceId} className="rounded-lg border border-nexa-warning/20 bg-nexa-card/70 p-3">
+                    <div className="flex items-center justify-between gap-3">
+                      <p className="truncate text-sm font-medium text-nexa-text">{source.sourceName}</p>
+                      <span className="shrink-0 text-[10px] text-nexa-text-secondary">{source.productCount.toLocaleString("tr-TR")} ürün</span>
+                    </div>
+                    <div className="mt-2 space-y-1">
+                      {source.warnings.map((warning) => (
+                        <p key={warning} className="text-xs text-nexa-warning">{warning}</p>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="rounded-xl border border-nexa-border bg-nexa-card overflow-hidden">
         <table className="w-full text-sm">

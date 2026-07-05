@@ -55,6 +55,30 @@ function optionsKey(opts: { group: string; value: string }[]): string {
   );
 }
 
+function parseDelimitedList(value: string) {
+  return String(value || "")
+    .split(/[\n,;]+/)
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
+function parseAeoFaq(value: string) {
+  const raw = String(value || "").trim();
+  if (!raw) return [];
+  try {
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return raw
+      .split(/\r?\n/)
+      .map((line) => {
+        const [question, ...answerParts] = line.split("|");
+        return { question: question?.trim() || "", answer: answerParts.join("|").trim() };
+      })
+      .filter((item) => item.question || item.answer);
+  }
+}
+
 async function upsertVariant(
   productId: string,
   row: GroupedProduct["rows"][0],
@@ -73,16 +97,17 @@ async function upsertVariant(
     }
   }
 
-  // Find by SKU first, then barcode within product
-  let variant = row.sku
-    ? await prisma.variant.findFirst({ where: { productId, sku: row.sku } })
-    : null;
-  if (!variant && row.barcode) {
-    variant = await prisma.variant.findFirst({ where: { productId, barcode: row.barcode } });
-  }
-  if (!variant && row.variantOptions.length) {
+  // Find by options first so imports may intentionally keep the same SKU across variants.
+  let variant = null;
+  if (row.variantOptions.length) {
     const all = await prisma.variant.findMany({ where: { productId } });
     variant = all.find((v) => optionsKey(JSON.parse(v.options || "[]")) === optionsKey(row.variantOptions)) || null;
+  }
+  if (!variant && row.sku) {
+    variant = await prisma.variant.findFirst({ where: { productId, sku: row.sku } });
+  }
+  if (!variant && row.barcode) {
+    variant = await prisma.variant.findFirst({ where: { productId, barcode: row.barcode } });
   }
 
   const data = {
@@ -135,6 +160,12 @@ export async function processImportGroups(
       image: group.image || "/placeholder.svg",
       images: imagesJson,
       sku: group.modelCode,
+      seoTitle: group.seoTitle || group.name,
+      seoDescription: group.seoDescription || group.description || group.name,
+      seoKeywords: parseDelimitedList(group.seoKeywords).join(", "),
+      geoTargetsJson: JSON.stringify(parseDelimitedList(group.geoTargets)),
+      aeoAnswerSummary: group.aeoAnswerSummary || group.description || group.name,
+      aeoFaqJson: JSON.stringify(parseAeoFaq(group.aeoFaq)),
     };
 
     if (product) {

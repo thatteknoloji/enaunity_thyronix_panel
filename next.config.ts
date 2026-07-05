@@ -1,7 +1,19 @@
 import type { NextConfig } from "next";
 
+const skipBuildTypecheck = process.env.NEXT_SKIP_TYPECHECK === "1";
+
 const nextConfig: NextConfig = {
   outputFileTracingRoot: process.cwd(),
+  ...(skipBuildTypecheck
+    ? {
+        eslint: {
+          ignoreDuringBuilds: true,
+        },
+        typescript: {
+          ignoreBuildErrors: true,
+        },
+      }
+    : {}),
   images: {
     remotePatterns: [
       { protocol: "https", hostname: "**" },

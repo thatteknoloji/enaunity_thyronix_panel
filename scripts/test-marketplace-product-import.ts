@@ -35,8 +35,8 @@ function assert(cond: boolean, msg: string) {
 console.log("=== groupByModelCode ===");
 
 const rows = [
-  row({ rowIndex: 2, modelCode: "taso_999_T", sku: "SKU-A", barcode: "111", name: "Cam Tablo 25x35", description: "Kısa açıklama", variantOptions: [{ group: "Boyut/Ebat", value: "25x35" }] }),
-  row({ rowIndex: 3, modelCode: "taso_999_T", sku: "SKU-B", barcode: "222", name: "Cam Tablo 25x35", description: "Uzun açıklama metni burada", variantOptions: [{ group: "Boyut/Ebat", value: "35x50" }] }),
+  row({ rowIndex: 2, modelCode: "taso_999_T", sku: "SKU-A", barcode: "111", name: "Cam Tablo 25x35", description: "Kısa açıklama", seoTitle: "Cam Tablo SEO", geoTargets: "Türkiye", aeoAnswerSummary: "Kısa AEO", variantOptions: [{ group: "Boyut/Ebat", value: "25x35" }] }),
+  row({ rowIndex: 3, modelCode: "taso_999_T", sku: "SKU-B", barcode: "222", name: "Cam Tablo 25x35", description: "Uzun açıklama metni burada", aeoAnswerSummary: "En uzun ve en açıklayıcı AEO cevabı burada", variantOptions: [{ group: "Boyut/Ebat", value: "35x50" }] }),
   row({ rowIndex: 4, modelCode: "taso_999_T", sku: "SKU-C", barcode: "333", name: "Cam Tablo Farklı İsim", description: "Orta", variantOptions: [{ group: "Renk", value: "Siyah" }] }),
   row({ rowIndex: 5, modelCode: "other_model", sku: "SKU-D", barcode: "444", name: "Başka Ürün", description: "Desc" }),
 ];
@@ -50,6 +50,9 @@ const taso = groups.find((g) => g.modelCode === "taso_999_T")!;
 assert(!!taso, "taso_999_T group exists");
 assert(taso.name === "Cam Tablo 25x35", "parent title = most frequent name");
 assert(taso.description === "Uzun açıklama metni burada", "parent description = longest");
+assert(taso.seoTitle === "Cam Tablo SEO", "parent SEO title is preserved");
+assert(taso.geoTargets === "Türkiye", "parent GEO targets are preserved");
+assert(taso.aeoAnswerSummary === "En uzun ve en açıklayıcı AEO cevabı burada", "parent AEO summary = longest");
 assert(taso.stock === 15, "parent stock = sum of variants (5*3)");
 assert(taso.price === 100, "parent price = min variant price");
 

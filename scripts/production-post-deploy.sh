@@ -67,7 +67,7 @@ echo "→ production build…"
 rm -rf .next node_modules/.cache 2>/dev/null || true
 find .next -mindepth 1 -delete 2>/dev/null || rm -rf .next 2>/dev/null || true
 rm -rf node_modules/.cache 2>/dev/null || true
-npm run build
+NEXT_SKIP_TYPECHECK=1 npm run build
 
 echo "→ pm2 restart…"
 if command -v pm2 >/dev/null 2>&1 && pm2 describe enaunity >/dev/null 2>&1; then

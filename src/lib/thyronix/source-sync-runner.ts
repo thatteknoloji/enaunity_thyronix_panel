@@ -13,9 +13,10 @@ import { parseCsvToProducts } from "./csv-parser";
 import { loadMergedFeedProducts } from "./feed-output-service";
 import { resolveFeedSourceIds } from "./source-feed-provision";
 import {
-  buildVariantMappingReadiness,
   getMissingRequiredMappings,
   mappingErrorLabel,
+  parseMappingRecord,
+  validateSourceMappingConfig,
 } from "./mapping-validation";
 
 export type ThyronixSourceSyncResult = {
@@ -104,39 +105,22 @@ async function refreshDealerFeedTotals(dealerId: string | null) {
   }
 }
 
-function parseJsonRecord(value: string | null | undefined): Record<string, string> {
-  try {
-    const parsed = JSON.parse(value || "{}");
-    return parsed && typeof parsed === "object" ? parsed as Record<string, string> : {};
-  } catch {
-    return {};
-  }
-}
-
 function assertSourceMappingReady(
   sourceType: string,
   fieldMapping: Record<string, string>,
   variantMapping: Record<string, string>,
   fixedValues: Record<string, string>,
+  templateFieldMap?: Record<string, string | undefined>,
 ) {
-  if (sourceType === "excel") {
-    const missing = getMissingRequiredMappings(fieldMapping);
-    if (missing.length > 0) {
-      throw new Error(`Eksik eşleştirme: ${missing.map(mappingErrorLabel).join(", ")}`);
-    }
-  }
-
-  const lastVariantCount = Number(fixedValues._lastVariantFieldCount || 0);
-  const storedVariantFields = String(fixedValues._variantFields || "")
-    .split("|")
-    .map((item) => item.trim())
-    .filter(Boolean);
-  const readiness = buildVariantMappingReadiness(
-    lastVariantCount > 0 ? storedVariantFields.length ? storedVariantFields : ["__detected__"] : [],
+  const validation = validateSourceMappingConfig({
+    sourceType,
+    fieldMapping,
     variantMapping,
-  );
-  if (readiness.detected && !readiness.ready) {
-    throw new Error(`Varyant eşleştirmesi eksik: ${readiness.missing.map(mappingErrorLabel).join(", ")}`);
+    fixedValues,
+    templateFieldMap,
+  });
+  if (!validation.ready) {
+    throw new Error(validation.errors.join(" · "));
   }
 }
 
@@ -159,10 +143,11 @@ export async function syncThyronixSourceById(
   const startTime = Date.now();
   const sourceType = (source as any).type || "xml";
   const url = (source as any).xmlUrl || source.xmlUrl;
-  const customFieldMap = parseJsonRecord((source as any).fieldMapping);
-  const variantFieldMap = parseJsonRecord((source as any).variantMapping);
+  const customFieldMap = parseMappingRecord((source as any).fieldMapping);
+  const variantFieldMap = parseMappingRecord((source as any).variantMapping);
   const fixedValues = parseFixedValues((source as any).fixedValues);
-  assertSourceMappingReady(sourceType, customFieldMap, variantFieldMap, fixedValues);
+  const templateForValidation = sourceType === "xml" ? getTemplate((source as any).inputFormat || "custom_xml") : null;
+  assertSourceMappingReady(sourceType, customFieldMap, variantFieldMap, fixedValues, templateForValidation?.fieldMap as any);
 
   if (shouldSnapshot) await preSnapshot(source.id, source.name);
 

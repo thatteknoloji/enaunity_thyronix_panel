@@ -6,7 +6,16 @@ import { Button } from "@/components/ui/button";
 import { ProductsTabs } from "@/components/admin/ProductsTabs";
 import { toAdminUrl } from "@/lib/auth/admin-access";
 import {
-  Upload, CheckCircle, AlertCircle, ChevronRight, ChevronLeft, Loader2, Download, Database, ShieldCheck,
+  Upload,
+  CheckCircle,
+  AlertCircle,
+  ChevronRight,
+  ChevronLeft,
+  Loader2,
+  Download,
+  Database,
+  ShieldCheck,
+  Sparkles,
 } from "lucide-react";
 import toast from "react-hot-toast";
 
@@ -23,6 +32,12 @@ type FieldMappingState = {
   price?: string;
   stock?: string;
   image?: string;
+  seoTitle?: string;
+  seoDescription?: string;
+  seoKeywords?: string;
+  geoTargets?: string;
+  aeoAnswerSummary?: string;
+  aeoFaq?: string;
 };
 
 interface PreviewGroup {
@@ -83,6 +98,12 @@ const MAPPING_FIELDS: Array<{ key: keyof FieldMappingState; label: string }> = [
   { key: "price", label: "Fiyat" },
   { key: "stock", label: "Stok" },
   { key: "image", label: "Görsel" },
+  { key: "seoTitle", label: "SEO Başlık" },
+  { key: "seoDescription", label: "SEO Açıklama" },
+  { key: "seoKeywords", label: "SEO Anahtar Kelime" },
+  { key: "geoTargets", label: "GEO Hedefler" },
+  { key: "aeoAnswerSummary", label: "AEO Cevap Özeti" },
+  { key: "aeoFaq", label: "AEO SSS" },
 ];
 
 function downloadTextReport(filename: string, lines: string[]) {
@@ -107,6 +128,15 @@ export default function BulkImportPage() {
   const [categories, setCategories] = useState<{ id: string; name: string }[]>([]);
   const [thyronixSources, setThyronixSources] = useState<ThyronixImportSource[]>([]);
   const [thyronixSourceId, setThyronixSourceId] = useState("");
+  const [identityGeneration, setIdentityGeneration] = useState({
+    enabled: true,
+    fillOnlyEmpty: true,
+    generateVariantBarcode: true,
+    variantSkuMode: "unique" as "unique" | "same_as_product",
+    skuPrefix: "",
+    barcodePrefix: "29",
+    autoSeo: true,
+  });
   const [commitResult, setCommitResult] = useState<{ created: number; updated: number; skipped: number; errors: string[]; productIds: string[] } | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -141,6 +171,7 @@ export default function BulkImportPage() {
     if (Object.values(mappingPayload).some(Boolean)) {
       fd.append("mapping", JSON.stringify(mappingPayload));
     }
+    fd.append("identityGeneration", JSON.stringify(identityGeneration));
     try {
       const res = await fetch("/api/admin/products/import/preview", { method: "POST", body: fd });
       const data = await res.json();
@@ -160,7 +191,7 @@ export default function BulkImportPage() {
       const res = await fetch("/api/admin/products/import/thyronix-source-preview", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ sourceId: thyronixSourceId }),
+        body: JSON.stringify({ sourceId: thyronixSourceId, identityGeneration }),
       });
       const data = await res.json();
       if (!data.success) { toast.error(data.error || "Thyronix önizleme hatası"); return; }
@@ -306,6 +337,94 @@ export default function BulkImportPage() {
 	            <Button className="mt-4 w-full" disabled={!file || loading} onClick={async () => { await handlePreview(); }}>
               {loading ? <><Loader2 size={14} className="mr-1 animate-spin" /> Analiz ediliyor...</> : "Önizleme Oluştur"}
             </Button>
+          </div>
+
+          <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+            <div className="mb-4 flex items-start gap-3">
+              <div className="rounded-xl bg-gray-50 p-2 text-gray-700">
+                <Sparkles size={20} />
+              </div>
+              <div>
+                <h2 className="text-sm font-semibold text-gray-900">Kod ve SEO Otomasyonu</h2>
+                <p className="mt-1 text-xs leading-5 text-gray-500">
+                  Excel/XML içinde eksik barkod, stok kodu veya SEO/AEO alanları varsa önizleme sırasında güvenli şekilde tamamlanır.
+                </p>
+              </div>
+            </div>
+            <div className="grid gap-3 md:grid-cols-2">
+              <label className="flex items-center gap-2 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-xs font-semibold text-gray-700">
+                <input
+                  type="checkbox"
+                  className="rounded border-gray-300"
+                  checked={identityGeneration.enabled}
+                  onChange={(event) => setIdentityGeneration((current) => ({ ...current, enabled: event.target.checked }))}
+                />
+                Eksik barkod/SKU üret
+              </label>
+              <label className="flex items-center gap-2 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-xs font-semibold text-gray-700">
+                <input
+                  type="checkbox"
+                  className="rounded border-gray-300"
+                  checked={identityGeneration.fillOnlyEmpty}
+                  onChange={(event) => setIdentityGeneration((current) => ({ ...current, fillOnlyEmpty: event.target.checked }))}
+                />
+                Sadece boş alanları doldur
+              </label>
+              <label className="flex items-center gap-2 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-xs font-semibold text-gray-700">
+                <input
+                  type="checkbox"
+                  className="rounded border-gray-300"
+                  checked={identityGeneration.generateVariantBarcode}
+                  onChange={(event) => setIdentityGeneration((current) => ({ ...current, generateVariantBarcode: event.target.checked }))}
+                />
+                Her varyanta farklı barkod üret
+              </label>
+              <label className="flex items-center gap-2 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-xs font-semibold text-gray-700">
+                <input
+                  type="checkbox"
+                  className="rounded border-gray-300"
+                  checked={identityGeneration.autoSeo}
+                  onChange={(event) => setIdentityGeneration((current) => ({ ...current, autoSeo: event.target.checked }))}
+                />
+                SEO / GEO / AEO taslağı üret
+              </label>
+              <div>
+                <label className="mb-1 block text-[11px] font-semibold uppercase text-gray-500">Varyant Stok Kodu</label>
+                <select
+                  className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none"
+                  value={identityGeneration.variantSkuMode}
+                  onChange={(event) =>
+                    setIdentityGeneration((current) => ({
+                      ...current,
+                      variantSkuMode: event.target.value as "unique" | "same_as_product",
+                    }))
+                  }
+                >
+                  <option value="unique">Her varyanta farklı stok kodu</option>
+                  <option value="same_as_product">Parent ürün stok kodu ile aynı</option>
+                </select>
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="mb-1 block text-[11px] font-semibold uppercase text-gray-500">SKU Prefix</label>
+                  <input
+                    className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none"
+                    value={identityGeneration.skuPrefix}
+                    onChange={(event) => setIdentityGeneration((current) => ({ ...current, skuPrefix: event.target.value }))}
+                    placeholder="Boşsa model kodu"
+                  />
+                </div>
+                <div>
+                  <label className="mb-1 block text-[11px] font-semibold uppercase text-gray-500">Barkod Prefix</label>
+                  <input
+                    className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none"
+                    value={identityGeneration.barcodePrefix}
+                    onChange={(event) => setIdentityGeneration((current) => ({ ...current, barcodePrefix: event.target.value }))}
+                    placeholder="29"
+                  />
+                </div>
+              </div>
+            </div>
           </div>
 
           <div className="rounded-xl border border-blue-100 bg-blue-50/60 p-6 shadow-sm">

@@ -15,6 +15,7 @@ export async function GET(req: Request) {
     const barcode = searchParams.get("barcode") || "";
     const stockCode = searchParams.get("stockCode") || "";
     const modelCode = searchParams.get("modelCode") || "";
+    const externalId = searchParams.get("externalId") || "";
     const brand = searchParams.get("brand") || "";
     const priceMin = searchParams.get("priceMin") || "";
     const priceMax = searchParams.get("priceMax") || "";
@@ -74,6 +75,7 @@ export async function GET(req: Request) {
     if (barcode) filters.barcode = { contains: barcode };
     if (stockCode) filters.stockCode = { contains: stockCode };
     if (modelCode) filters.modelCode = { contains: modelCode };
+    if (externalId) filters.externalId = { contains: externalId };
     if (brand) filters.brand = { contains: brand };
     if (priceMin) filters.price = { ...filters.price, gte: parseFloat(priceMin) };
     if (priceMax) filters.price = { ...filters.price, lte: parseFloat(priceMax) };

@@ -5,12 +5,12 @@ import { createThyronixSourceImportPreview } from "@/lib/products/marketplace-im
 export async function POST(req: Request) {
   try {
     await requireAdmin();
-    const { sourceId } = await req.json();
+    const { sourceId, identityGeneration } = await req.json();
     if (!sourceId) {
       return NextResponse.json({ success: false, error: "sourceId gerekli" }, { status: 400 });
     }
 
-    const preview = await createThyronixSourceImportPreview(sourceId);
+    const preview = await createThyronixSourceImportPreview(sourceId, identityGeneration);
     return NextResponse.json({
       success: true,
       data: {

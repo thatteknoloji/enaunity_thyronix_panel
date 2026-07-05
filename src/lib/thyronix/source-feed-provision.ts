@@ -62,9 +62,20 @@ export async function ensureSourceFeedsForSources(sources: ThyronixSourceFeedSee
 }
 
 export async function resolveFeedSourceIds(feed: { sourceId?: string | null; dealerId?: string | null }): Promise<string[]> {
-  if (feed.sourceId) return [feed.sourceId];
+  if (feed.sourceId) {
+    const source = await prisma.thyronixSource.findFirst({
+      where: {
+        id: feed.sourceId,
+        status: "active",
+        ...(feed.dealerId ? { dealerId: feed.dealerId } : {}),
+      },
+      select: { id: true },
+    });
+    return source ? [source.id] : [];
+  }
   const sources = await prisma.thyronixSource.findMany({
     where: {
+      status: "active",
       ...(feed.dealerId ? { dealerId: feed.dealerId } : {}),
     },
     select: { id: true },

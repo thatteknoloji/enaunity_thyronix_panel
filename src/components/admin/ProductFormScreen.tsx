@@ -8,8 +8,10 @@ import {
   ArrowLeft,
   ArrowRightLeft,
   Barcode,
+  Bot,
   CheckCircle2,
   Download,
+  Globe2,
   Hash,
   KeyRound,
   Layers,
@@ -19,6 +21,7 @@ import {
   Plus,
   Save,
   ShieldAlert,
+  Sparkles,
   Trash2,
   Upload,
   Wand2,
@@ -45,6 +48,10 @@ import {
   PRODUCT_TYPES,
   digitalModeLabel,
 } from "@/lib/products/digital-delivery";
+import {
+  buildVariantIdentityCodes,
+  normalizeCodeSegment,
+} from "@/lib/products/product-identity-generation";
 
 type Mode = "create" | "edit";
 
@@ -84,6 +91,36 @@ function genSKU(category: string, name: string) {
 
 function genBarcode() {
   return `2${Date.now().toString().slice(-11)}`;
+}
+
+function parseJsonList(value: unknown) {
+  if (Array.isArray(value)) return value.map(String).filter(Boolean);
+  if (typeof value !== "string") return [];
+  try {
+    const parsed = JSON.parse(value || "[]");
+    return Array.isArray(parsed) ? parsed.map(String).filter(Boolean) : [];
+  } catch {
+    return [];
+  }
+}
+
+function parseFaqLines(value: unknown) {
+  if (typeof value !== "string") return "";
+  try {
+    const parsed = JSON.parse(value || "[]");
+    if (!Array.isArray(parsed)) return "";
+    return parsed
+      .map((item) => {
+        const record = (item ?? {}) as Record<string, unknown>;
+        const question = String(record.question || "").trim();
+        const answer = String(record.answer || "").trim();
+        return question || answer ? `${question} | ${answer}` : "";
+      })
+      .filter(Boolean)
+      .join("\n");
+  } catch {
+    return "";
+  }
 }
 
 function cartesianProduct<T>(arrays: T[][]): T[][] {
@@ -207,6 +244,21 @@ export function ProductFormScreen({
     digitalLicenseTemplate: "",
     digitalLicensePoolBulk: "",
     digitalRequiresApproval: false,
+    seoTitle: "",
+    seoDescription: "",
+    seoKeywords: "",
+    seoCanonicalUrl: "",
+    geoTargets: "",
+    aeoAnswerSummary: "",
+    aeoFaq: "",
+  });
+  const [identityGeneration, setIdentityGeneration] = useState({
+    enabled: true,
+    fillOnlyEmpty: true,
+    generateVariantBarcode: true,
+    variantSkuMode: "unique" as "unique" | "same_as_product",
+    skuPrefix: "",
+    barcodePrefix: "29",
   });
   const [imagesJson, setImagesJson] = useState("[]");
   const [specs, setSpecs] = useState<Array<{ key: string; value: string }>>([]);
@@ -276,6 +328,13 @@ export function ProductFormScreen({
           digitalLicenseTemplate: product.digitalLicenseTemplate || "",
           digitalLicensePoolBulk: product.digitalLicensePoolBulk || "",
           digitalRequiresApproval: Boolean(product.digitalRequiresApproval),
+          seoTitle: product.seoTitle || "",
+          seoDescription: product.seoDescription || "",
+          seoKeywords: product.seoKeywords || "",
+          seoCanonicalUrl: product.seoCanonicalUrl || "",
+          geoTargets: parseJsonList(product.geoTargetsJson).join(", "),
+          aeoAnswerSummary: product.aeoAnswerSummary || "",
+          aeoFaq: parseFaqLines(product.aeoFaqJson),
         });
         setImagesJson(product.images || "[]");
         try {
@@ -466,6 +525,51 @@ export function ProductFormScreen({
     toast.success(`${nextVariants.length} varyant hazırlandı.`);
   };
 
+  const applyVariantIdentityGeneration = () => {
+    if (variants.length === 0) {
+      toast.error("Önce varyant kombinasyonu oluştur.");
+      return;
+    }
+    const generated = buildVariantIdentityCodes({
+      baseSku: identityGeneration.skuPrefix || form.sku || form.modelCode || form.name,
+      baseModelCode: form.modelCode,
+      productName: form.name,
+      variants,
+      settings: identityGeneration,
+    });
+    setVariants((current) =>
+      current.map((variant, index) => ({
+        ...variant,
+        sku: generated[index]?.sku || variant.sku,
+        barcode: generated[index]?.barcode || variant.barcode,
+      })),
+    );
+    toast.success(`${variants.length} varyant için kodlar hazırlandı.`);
+  };
+
+  const fillSeoGeoAeoDefaults = () => {
+    const titleBase = form.name || form.modelCode || "Ürün";
+    const categoryPart = [form.category, form.subcategory].filter(Boolean).join(" / ");
+    setForm((current) => ({
+      ...current,
+      seoTitle: current.seoTitle || `${titleBase}${form.brand ? ` | ${form.brand}` : ""}`,
+      seoDescription:
+        current.seoDescription ||
+        (form.description || presentation.shortDescription || `${titleBase} ürününü ENA Unity B2B kataloğunda inceleyin.`).slice(0, 165),
+      seoKeywords:
+        current.seoKeywords ||
+        [form.brand, form.category, form.subcategory, form.modelCode, form.sku].filter(Boolean).join(", "),
+      geoTargets: current.geoTargets || categoryPart,
+      aeoAnswerSummary:
+        current.aeoAnswerSummary ||
+        (form.description || `${titleBase}, ${categoryPart || "B2B katalog"} ihtiyacı için hazırlanmış ENA ürünüdür.`),
+      aeoFaq:
+        current.aeoFaq ||
+        `Bu ürün hangi kategoriye ait? | ${categoryPart || "Genel katalog"}\nStok kodu nedir? | ${form.sku || form.modelCode || "Ürün kaydında belirtilir."}`,
+    }));
+    toast.success("SEO / GEO / AEO taslakları dolduruldu.");
+  };
+
   const addSpec = () => setSpecs((current) => [...current, { key: "", value: "" }]);
   const removeSpec = (index: number) => setSpecs((current) => current.filter((_, currentIndex) => currentIndex !== index));
 
@@ -522,6 +626,15 @@ export function ProductFormScreen({
           digitalLicenseTemplate: form.digitalLicenseTemplate,
           digitalLicensePoolBulk: form.digitalLicensePoolBulk,
           digitalRequiresApproval: form.digitalRequiresApproval,
+          seoTitle: form.seoTitle,
+          seoDescription: form.seoDescription,
+          seoKeywords: form.seoKeywords,
+          seoCanonicalUrl: form.seoCanonicalUrl,
+          geoTargets: form.geoTargets,
+          aeoAnswerSummary: form.aeoAnswerSummary,
+          aeoFaq: form.aeoFaq,
+          identityGeneration,
+          allowDuplicateVariantSku: identityGeneration.variantSkuMode === "same_as_product",
           specs,
           images: imagesJson,
           campaignIds: merchandising.campaignIds,
@@ -1042,6 +1155,89 @@ export function ProductFormScreen({
           category={form.category}
         />
 
+        <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+          <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <h2 className="flex items-center gap-2 text-sm font-semibold text-gray-700">
+                <Globe2 size={16} /> SEO / GEO / AEO
+              </h2>
+              <p className="mt-1 text-xs leading-5 text-gray-400">
+                Arama motoru, lokasyon/segment içeriği ve cevap motorları için ürün özel ayarları.
+              </p>
+            </div>
+            <Button type="button" variant="outline" className="gap-2" onClick={fillSeoGeoAeoDefaults}>
+              <Bot size={14} /> Taslak Doldur
+            </Button>
+          </div>
+          <div className="grid gap-4 md:grid-cols-2">
+            <div>
+              <label className="mb-1 block text-xs font-semibold uppercase text-gray-600">SEO Başlık</label>
+              <input
+                className={inputClassName}
+                value={form.seoTitle}
+                onChange={(event) => updateForm("seoTitle", event.target.value)}
+                placeholder="Arama sonucunda görünecek başlık"
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-semibold uppercase text-gray-600">Canonical URL</label>
+              <input
+                className={inputClassName}
+                value={form.seoCanonicalUrl}
+                onChange={(event) => updateForm("seoCanonicalUrl", event.target.value)}
+                placeholder="Opsiyonel canonical link"
+              />
+            </div>
+            <div className="md:col-span-2">
+              <label className="mb-1 block text-xs font-semibold uppercase text-gray-600">SEO Açıklama</label>
+              <textarea
+                className={`${inputClassName} min-h-[90px]`}
+                value={form.seoDescription}
+                onChange={(event) => updateForm("seoDescription", event.target.value)}
+                maxLength={180}
+                placeholder="Arama sonucunda çıkacak kısa açıklama"
+              />
+              <p className="mt-1 text-right text-[11px] text-gray-400">{form.seoDescription.length}/180</p>
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-semibold uppercase text-gray-600">SEO Anahtar Kelimeler</label>
+              <input
+                className={inputClassName}
+                value={form.seoKeywords}
+                onChange={(event) => updateForm("seoKeywords", event.target.value)}
+                placeholder="cam tablo, dekorasyon, ..."
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-semibold uppercase text-gray-600">GEO Hedefler</label>
+              <input
+                className={inputClassName}
+                value={form.geoTargets}
+                onChange={(event) => updateForm("geoTargets", event.target.value)}
+                placeholder="Türkiye, İstanbul, B2B bayi, ..."
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-semibold uppercase text-gray-600">AEO Cevap Özeti</label>
+              <textarea
+                className={`${inputClassName} min-h-[110px]`}
+                value={form.aeoAnswerSummary}
+                onChange={(event) => updateForm("aeoAnswerSummary", event.target.value)}
+                placeholder="Yapay zeka cevap motorları için kısa, net ürün cevabı"
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-semibold uppercase text-gray-600">AEO SSS</label>
+              <textarea
+                className={`${inputClassName} min-h-[110px]`}
+                value={form.aeoFaq}
+                onChange={(event) => updateForm("aeoFaq", event.target.value)}
+                placeholder={"Soru | Cevap\nBu ürün nerede kullanılır? | ..."}
+              />
+            </div>
+          </div>
+        </div>
+
         <ProductImagesField
           image={form.image}
           imagesJson={imagesJson}
@@ -1097,6 +1293,85 @@ export function ProductFormScreen({
                 >
                   <Barcode size={14} />
                 </button>
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-5 rounded-xl border border-gray-200 bg-gray-50 p-4">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+              <div>
+                <h3 className="flex items-center gap-2 text-sm font-semibold text-gray-800">
+                  <Sparkles size={15} /> Varyant Kimlik Otomasyonu
+                </h3>
+                <p className="mt-1 text-xs leading-5 text-gray-500">
+                  Varyantlara benzersiz barkod üretir; stok kodunu istersen parent ürünle aynı, istersen varyanta özel tutar.
+                </p>
+              </div>
+              <Button type="button" variant="outline" className="gap-2 bg-white" onClick={applyVariantIdentityGeneration}>
+                <Wand2 size={14} /> Boş Kodları Doldur
+              </Button>
+            </div>
+            <div className="mt-4 grid gap-3 md:grid-cols-2">
+              <label className="flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs font-semibold text-gray-700">
+                <input
+                  type="checkbox"
+                  className="rounded border-gray-300"
+                  checked={identityGeneration.enabled}
+                  onChange={(event) => setIdentityGeneration((current) => ({ ...current, enabled: event.target.checked }))}
+                />
+                Otomatik kimlik üretimi açık
+              </label>
+              <label className="flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs font-semibold text-gray-700">
+                <input
+                  type="checkbox"
+                  className="rounded border-gray-300"
+                  checked={identityGeneration.fillOnlyEmpty}
+                  onChange={(event) => setIdentityGeneration((current) => ({ ...current, fillOnlyEmpty: event.target.checked }))}
+                />
+                Sadece boş kodları doldur
+              </label>
+              <label className="flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs font-semibold text-gray-700">
+                <input
+                  type="checkbox"
+                  className="rounded border-gray-300"
+                  checked={identityGeneration.generateVariantBarcode}
+                  onChange={(event) => setIdentityGeneration((current) => ({ ...current, generateVariantBarcode: event.target.checked }))}
+                />
+                Her varyanta farklı barkod üret
+              </label>
+              <div>
+                <label className="mb-1 block text-xs font-semibold uppercase text-gray-500">Varyant Stok Kodu</label>
+                <select
+                  className={inputClassName}
+                  value={identityGeneration.variantSkuMode}
+                  onChange={(event) =>
+                    setIdentityGeneration((current) => ({
+                      ...current,
+                      variantSkuMode: event.target.value as "unique" | "same_as_product",
+                    }))
+                  }
+                >
+                  <option value="unique">Her varyanta farklı stok kodu</option>
+                  <option value="same_as_product">Parent ürün stok kodu ile aynı</option>
+                </select>
+              </div>
+              <div>
+                <label className="mb-1 block text-xs font-semibold uppercase text-gray-500">SKU Prefix</label>
+                <input
+                  className={inputClassName}
+                  value={identityGeneration.skuPrefix}
+                  onChange={(event) => setIdentityGeneration((current) => ({ ...current, skuPrefix: event.target.value }))}
+                  placeholder={form.sku || form.modelCode || normalizeCodeSegment(form.name) || "AUTO"}
+                />
+              </div>
+              <div>
+                <label className="mb-1 block text-xs font-semibold uppercase text-gray-500">Barkod Prefix</label>
+                <input
+                  className={inputClassName}
+                  value={identityGeneration.barcodePrefix}
+                  onChange={(event) => setIdentityGeneration((current) => ({ ...current, barcodePrefix: event.target.value }))}
+                  placeholder="29"
+                />
               </div>
             </div>
           </div>

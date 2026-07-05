@@ -1,8 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { resolveFeedSourceIds } from "@/lib/thyronix/source-feed-provision";
-import { loadMergedFeedProducts } from "@/lib/thyronix/feed-output-service";
 import { syncDueThyronixSources } from "@/lib/thyronix/source-sync-runner";
+import { warmFeedXmlCache } from "@/lib/thyronix/feed-cache-warm";
 
 export const dynamic = "force-dynamic";
 
@@ -31,21 +30,17 @@ async function refreshDueFeeds(now: Date, limit: number) {
 
     const start = Date.now();
     try {
-      const sourceIds = await resolveFeedSourceIds(feed as any);
-      const merged = await loadMergedFeedProducts(feed as any, sourceIds);
-      const totalProducts = merged.length;
-
-      await prisma.thyronixFeed.update({
-        where: { id: feed.id },
-        data: { productCount: totalProducts, lastPublished: now } as any,
-      });
+      const warmed = await warmFeedXmlCache(feed.id);
+      const totalProducts = warmed.productCount;
 
       await prisma.thyronixSyncLog.create({
         data: {
           type: "feed-refresh",
           referenceId: feed.id,
           status: "success",
-          message: `Zamanlanmış feed güncellemesi: ${totalProducts} ürün`,
+          message: warmed.plan.needsSplit
+            ? `Zamanlanmış feed güncellemesi: ${totalProducts} ürün, ${warmed.plan.partCount} parça`
+            : `Zamanlanmış feed güncellemesi: ${totalProducts} ürün`,
           productCount: totalProducts,
           duration: Date.now() - start,
         },
@@ -79,7 +74,7 @@ export async function GET(req: Request) {
     }
 
     const sourceLimit = clampInt(url.searchParams.get("sourceLimit"), 2, 1, 5);
-    const feedLimit = clampInt(url.searchParams.get("feedLimit"), 0, 0, 3);
+    const feedLimit = clampInt(url.searchParams.get("feedLimit"), 3, 0, 3);
     const fetchTimeoutMs = clampInt(url.searchParams.get("fetchTimeoutMs"), 60000, 10000, 180000);
     const now = new Date();
     const sourceSync = await syncDueThyronixSources({

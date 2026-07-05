@@ -11,6 +11,12 @@ export interface FieldMapping {
   price?: string;
   stock?: string;
   image?: string;
+  seoTitle?: string;
+  seoDescription?: string;
+  seoKeywords?: string;
+  geoTargets?: string;
+  aeoAnswerSummary?: string;
+  aeoFaq?: string;
   images?: string[];
   /** Variant axis columns → group name */
   variantAxes?: Record<string, string>;
@@ -29,6 +35,12 @@ export interface ParsedImportRow {
   stock: number;
   image: string;
   images: string[];
+  seoTitle?: string;
+  seoDescription?: string;
+  seoKeywords?: string;
+  geoTargets?: string;
+  aeoAnswerSummary?: string;
+  aeoFaq?: string;
   variantOptions: { group: string; value: string }[];
   raw: Record<string, unknown>;
   errors: string[];
@@ -45,6 +57,12 @@ export interface GroupedProduct {
   category: string;
   image: string;
   images: string[];
+  seoTitle: string;
+  seoDescription: string;
+  seoKeywords: string;
+  geoTargets: string;
+  aeoAnswerSummary: string;
+  aeoFaq: string;
   /** Base price = min variant price */
   price: number;
   /** Total stock across variants */
@@ -66,6 +84,16 @@ export interface ImportPreviewResult {
 
 export interface CategoryMapping {
   [sourceCategory: string]: string;
+}
+
+export interface ImportIdentityGenerationSettings {
+  enabled?: boolean;
+  fillOnlyEmpty?: boolean;
+  generateVariantBarcode?: boolean;
+  variantSkuMode?: "unique" | "same_as_product";
+  skuPrefix?: string;
+  barcodePrefix?: string;
+  autoSeo?: boolean;
 }
 
 export interface ImportCommitResult {

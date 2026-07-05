@@ -96,6 +96,7 @@ const ticimaxInspected = inspectXmlFeed(ticimaxXml, ticimaxTemplate);
 assert(ticimaxInspected.variantFields.includes("SatisFiyati"));
 assert(ticimaxInspected.variantFields.includes("KdvOrani"));
 const ticimaxSuggestedVariantMapping = buildSuggestedVariantMapping(ticimaxInspected.variantFields);
+assert.equal(ticimaxSuggestedVariantMapping.EkSecenekOzellik, "variantValue");
 const ticimaxVariantReadiness = buildVariantMappingReadiness(
   ticimaxInspected.variantFields,
   ticimaxSuggestedVariantMapping,

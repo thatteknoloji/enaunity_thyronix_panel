@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import {
   Link2, Plus, Trash2, Pencil, RefreshCw, ExternalLink,
-  Play, Pause, Search, Globe, FileJson, FileText, Download, Table
+  Play, Pause, Search, Globe, FileJson, FileText, Download, Table, AlertTriangle
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { getTemplatesByGroup } from "@/lib/thyronix/templates";
@@ -78,6 +78,12 @@ interface Source {
     lastInvalidRows: number | null;
     hasError: boolean;
   };
+  qualitySummary?: {
+    missingVatCount: number;
+    invalidPriceCount: number;
+    productCount: number;
+    warnings: string[];
+  } | null;
 }
 
 type MappingValidationSummary = {
@@ -164,6 +170,7 @@ export default function ThyronixSources() {
       setDetectedFields(d.data.detectedFields);
       setVariantFields(d.data.variantFields || []);
       setTestResult(d.data);
+      setTestCount(d.data.totalItems || 0);
       setFieldMapping(d.data.currentMapping || {});
       if (d.data.suggestedVariantMapping) {
         setVariantMapping((current) => ({ ...d.data.suggestedVariantMapping, ...current }));
@@ -423,7 +430,13 @@ export default function ThyronixSources() {
       variantMapping: JSON.stringify(variantMapping),
       fixedValues: JSON.stringify(persistedFixedValues),
     };
-    await fetch(url, { method, headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+    const saveRes = await fetch(url, { method, headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+    const saveData = await saveRes.json().catch(() => null);
+    if (!saveRes.ok || saveData?.success === false) {
+      toast.error(saveData?.error || "Kaynak kaydedilemedi");
+      return;
+    }
+    toast.success(editing ? "Kaynak güncellendi" : "Kaynak eklendi");
     setShowModal(false);
     fetchSources();
   };
@@ -591,6 +604,16 @@ export default function ThyronixSources() {
                             )}
                           </div>
                         )}
+                        {s.qualitySummary?.warnings?.length ? (
+                          <div className="mt-2 space-y-1 rounded-lg border border-nexa-warning/20 bg-nexa-warning/5 px-2.5 py-2">
+                            {s.qualitySummary.warnings.map((warning) => (
+                              <p key={warning} className="flex items-start gap-1.5 text-[10px] leading-relaxed text-nexa-warning">
+                                <AlertTriangle size={11} className="mt-0.5 shrink-0" />
+                                <span>{warning}</span>
+                              </p>
+                            ))}
+                          </div>
+                        ) : null}
                       </div>
                     </div>
                   </td>

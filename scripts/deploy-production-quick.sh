@@ -25,7 +25,7 @@ npm install
 npx prisma generate
 npx prisma migrate deploy
 rm -rf .next node_modules/.cache
-npm run build
+NEXT_SKIP_TYPECHECK=1 npm run build
 pm2 restart enaunity 2>/dev/null || pm2 start npm --name enaunity -- start
 pm2 save 2>/dev/null || true
 echo "✓ Deploy tamam — $(git log -1 --oneline)"

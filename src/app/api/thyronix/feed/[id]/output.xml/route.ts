@@ -52,12 +52,13 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
       variants: parseVariantData((p as { variantData?: string | null }).variantData),
     }));
 
+    const generatedAt = new Date();
     const xml = generateFeedXml(productsWithVariants as never, template);
     await writeFeedXmlCache(feed.id, partMeta.part, xml);
     await prisma.thyronixFeed
       .update({
         where: { id: feed.id },
-        data: { productCount: plan.totalProducts, lastPublished: new Date(), status: "active" },
+        data: { productCount: plan.totalProducts, lastPublished: generatedAt, status: "active" },
       })
       .catch(() => null);
 

@@ -6,6 +6,10 @@ import {
   normalizeDigitalDeliveryMode,
   normalizeProductType,
 } from "@/lib/products/digital-delivery";
+import {
+  buildVariantIdentityCodes,
+  type ProductIdentityGenerationSettings,
+} from "@/lib/products/product-identity-generation";
 
 type DbClient = typeof prisma | Prisma.TransactionClient;
 
@@ -64,9 +68,17 @@ export interface NormalizedAdminProductPayload {
   badgeText: string;
   highlightsJson: string;
   trustBadgesJson: string;
+  seoTitle: string;
+  seoDescription: string;
+  seoKeywords: string;
+  seoCanonicalUrl: string;
+  geoTargetsJson: string;
+  aeoAnswerSummary: string;
+  aeoFaqJson: string;
   campaignIds: string[];
   variantGroups: AdminVariantGroupInput[];
   variants: AdminVariantInput[];
+  allowDuplicateVariantSku: boolean;
 }
 
 export interface DuplicateConflict {
@@ -127,6 +139,36 @@ function parseJsonArray(value: unknown) {
   } catch {
     return [];
   }
+}
+
+function parseDelimitedList(value: unknown) {
+  if (Array.isArray(value)) return value.map((item) => text(item)).filter(Boolean);
+  return text(value)
+    .split(/[\n,;]+/)
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
+function parseAeoFaq(value: unknown) {
+  if (Array.isArray(value)) return value;
+  const raw = text(value);
+  if (!raw) return [];
+  try {
+    const parsed = JSON.parse(raw);
+    if (Array.isArray(parsed)) return parsed;
+  } catch {
+    /* fallback to line parser */
+  }
+  return raw
+    .split(/\r?\n/)
+    .map((line) => {
+      const [question, ...answerParts] = line.split("|");
+      return {
+        question: text(question),
+        answer: text(answerParts.join("|")),
+      };
+    })
+    .filter((item) => item.question || item.answer);
 }
 
 function normalizeImages(image: unknown, images: unknown) {
@@ -194,6 +236,37 @@ function normalizeVariants(raw: unknown): AdminVariantInput[] {
     .filter((variant) => variant.sku || variant.barcode || variant.options !== "[]");
 }
 
+function normalizeIdentityGeneration(raw: Record<string, unknown>): ProductIdentityGenerationSettings {
+  const source = (raw.identityGeneration || {}) as Record<string, unknown>;
+  return {
+    enabled: boolValue(source.enabled, true),
+    fillOnlyEmpty: boolValue(source.fillOnlyEmpty, true),
+    generateVariantBarcode: boolValue(source.generateVariantBarcode, true),
+    variantSkuMode: source.variantSkuMode === "same_as_product" ? "same_as_product" : "unique",
+    skuPrefix: text(source.skuPrefix),
+    barcodePrefix: text(source.barcodePrefix),
+  };
+}
+
+function applyVariantIdentityGeneration(
+  payload: Pick<NormalizedAdminProductPayload, "sku" | "modelCode" | "name" | "variants">,
+  settings: ProductIdentityGenerationSettings,
+) {
+  if (!settings.enabled || payload.variants.length === 0) return;
+  const generated = buildVariantIdentityCodes({
+    baseSku: settings.skuPrefix || payload.sku,
+    baseModelCode: payload.modelCode,
+    productName: payload.name,
+    variants: payload.variants,
+    settings,
+  });
+  payload.variants = payload.variants.map((variant, index) => ({
+    ...variant,
+    sku: generated[index]?.sku || variant.sku,
+    barcode: generated[index]?.barcode || variant.barcode,
+  }));
+}
+
 export function validateAdminProductPayload(raw: Record<string, unknown>) {
   const errors: string[] = [];
   const gallery = normalizeImages(raw.image, raw.images);
@@ -206,6 +279,8 @@ export function validateAdminProductPayload(raw: Record<string, unknown>) {
   );
   const variantGroups = normalizeVariantGroups(raw.variantGroups);
   const variants = normalizeVariants(raw.variants);
+  const identityGeneration = normalizeIdentityGeneration(raw);
+  const allowDuplicateVariantSku = boolValue(raw.allowDuplicateVariantSku) || identityGeneration.variantSkuMode === "same_as_product";
   const specs = parseJsonArray(raw.specs)
     .map((item) => {
       const source = (item ?? {}) as Record<string, unknown>;
@@ -256,10 +331,20 @@ export function validateAdminProductPayload(raw: Record<string, unknown>) {
     badgeText: text(raw.badgeText),
     highlightsJson: JSON.stringify(parseJsonArray(raw.highlightsJson ?? raw.highlights).filter(Boolean)),
     trustBadgesJson: JSON.stringify(parseJsonArray(raw.trustBadgesJson ?? raw.trustBadges).filter(Boolean)),
+    seoTitle: text(raw.seoTitle),
+    seoDescription: text(raw.seoDescription),
+    seoKeywords: parseDelimitedList(raw.seoKeywords).join(", "),
+    seoCanonicalUrl: text(raw.seoCanonicalUrl),
+    geoTargetsJson: JSON.stringify(parseDelimitedList(raw.geoTargets ?? raw.geoTargetsJson)),
+    aeoAnswerSummary: text(raw.aeoAnswerSummary),
+    aeoFaqJson: JSON.stringify(parseAeoFaq(raw.aeoFaq ?? raw.aeoFaqJson)),
     campaignIds,
     variantGroups,
     variants,
+    allowDuplicateVariantSku,
   };
+
+  applyVariantIdentityGeneration(payload, identityGeneration);
 
   if (!payload.name) errors.push("Ürün adı zorunlu.");
   if (!payload.category) errors.push("Kategori seçimi zorunlu.");
@@ -327,7 +412,9 @@ export function validateAdminProductPayload(raw: Record<string, unknown>) {
     if (variant.price < 0 || variant.stock < 0) {
       errors.push(`Varyant ${index + 1} için fiyat ve stok negatif olamaz.`);
     }
-    trackValue("sku", variant.sku, `Varyant ${index + 1} SKU`);
+    if (!payload.allowDuplicateVariantSku) {
+      trackValue("sku", variant.sku, `Varyant ${index + 1} SKU`);
+    }
     trackValue("barcode", variant.barcode, `Varyant ${index + 1} barkod`);
   });
 
@@ -563,6 +650,13 @@ export async function saveAdminProductGraph(
       badgeText: payload.badgeText,
       highlightsJson: payload.highlightsJson,
       trustBadgesJson: payload.trustBadgesJson,
+      seoTitle: payload.seoTitle,
+      seoDescription: payload.seoDescription,
+      seoKeywords: payload.seoKeywords,
+      seoCanonicalUrl: payload.seoCanonicalUrl,
+      geoTargetsJson: payload.geoTargetsJson,
+      aeoAnswerSummary: payload.aeoAnswerSummary,
+      aeoFaqJson: payload.aeoFaqJson,
       backorderable: payload.backorderable,
       eta: payload.eta,
       vatRate: payload.vatRate,

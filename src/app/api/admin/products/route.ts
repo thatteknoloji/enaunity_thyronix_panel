@@ -27,7 +27,23 @@ export async function GET(req: Request) {
     if (search) {
       const pattern = `%${search}%`;
       conditions.push(
-        Prisma.sql`("name" LIKE ${pattern} OR "sku" LIKE ${pattern} OR "barcode" LIKE ${pattern} OR "brand" LIKE ${pattern} OR "tags" LIKE ${pattern})`
+        Prisma.sql`(
+          "name" LIKE ${pattern}
+          OR "sku" LIKE ${pattern}
+          OR "barcode" LIKE ${pattern}
+          OR "modelCode" LIKE ${pattern}
+          OR "brand" LIKE ${pattern}
+          OR "category" LIKE ${pattern}
+          OR "subcategory" LIKE ${pattern}
+          OR "tags" LIKE ${pattern}
+          OR "seoTitle" LIKE ${pattern}
+          OR "seoKeywords" LIKE ${pattern}
+          OR EXISTS (
+            SELECT 1 FROM "Variant" v
+            WHERE v."productId" = "Product"."id"
+              AND (v."sku" LIKE ${pattern} OR v."barcode" LIKE ${pattern})
+          )
+        )`
       );
     }
     if (category) {

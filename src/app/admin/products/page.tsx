@@ -8,14 +8,123 @@ import { formatPrice, productUrl } from "@/lib/utils";
 import { toAdminUrl } from "@/lib/auth/admin-access";
 import { ProductsTabs } from "@/components/admin/ProductsTabs";
 import { ProductEngineShell } from "@/components/product-engine/ProductEngineShell";
-import { Plus, Trash2, Search, Upload, FileDown, Barcode, Hash, DollarSign, Tag, AlignLeft, FolderOpen, Percent, X, Check, Pencil, Filter, XCircle, Eye, LayoutGrid, Megaphone, Layers, ArrowRight } from "lucide-react";
+import {
+  AlignLeft,
+  ArrowRight,
+  Barcode,
+  Check,
+  DollarSign,
+  Eye,
+  FileDown,
+  FileText,
+  Filter,
+  FolderOpen,
+  Globe2,
+  Hash,
+  Layers,
+  LayoutGrid,
+  Loader2,
+  Megaphone,
+  Pencil,
+  Percent,
+  Plus,
+  Search,
+  Sparkles,
+  Tag,
+  Trash2,
+  Upload,
+  X,
+  XCircle,
+} from "lucide-react";
 import toast from "react-hot-toast";
 import { VARIANT_DISPLAY_LABELS, VARIANT_DISPLAY_MODES } from "@/lib/products/variant-display";
 
-interface Product { id:string; name:string; slug?:string; category:string; price:number; stock:number; sku:string; barcode:string; createdAt:string; minStockLevel:number; maxStockLevel:number; brand:string; tags:string; image?:string; description?:string; _count?:{variants:number}; }
+interface Product {
+  id:string;
+  name:string;
+  slug?:string;
+  productType?: string;
+  category:string;
+  subcategory?: string;
+  price:number;
+  stock:number;
+  sku:string;
+  barcode:string;
+  modelCode?: string;
+  createdAt:string;
+  minStockLevel:number;
+  maxStockLevel:number;
+  brand:string;
+  tags:string;
+  image?:string;
+  description?:string;
+  shortDescription?: string;
+  seoTitle?: string;
+  seoDescription?: string;
+  seoKeywords?: string;
+  seoCanonicalUrl?: string;
+  geoTargetsJson?: string;
+  aeoAnswerSummary?: string;
+  aeoFaqJson?: string;
+  digitalDeliveryMode?: string;
+  digitalAssetName?: string;
+  digitalLicensePoolSummary?: { total: number; available: number; assigned: number; archived: number };
+  _count?:{variants:number};
+}
 interface Category { id:string; name:string; parentId?:string|null; }
 interface CampaignRow { id: string; name: string; active: boolean; }
 interface PaginationState { page: number; limit: number; total: number; totalPages: number; }
+interface DetailVariant {
+  id: string;
+  sku: string;
+  barcode: string;
+  price: number;
+  stock: number;
+  options: string;
+  active: boolean;
+}
+
+function parseJsonList(value?: string) {
+  if (!value) return [];
+  try {
+    const parsed = JSON.parse(value);
+    return Array.isArray(parsed) ? parsed.map(String).filter(Boolean) : [];
+  } catch {
+    return [];
+  }
+}
+
+function parseVariantOptions(value: string) {
+  try {
+    const parsed = JSON.parse(value || "[]");
+    return Array.isArray(parsed)
+      ? parsed
+          .map((item) => {
+            const source = (item ?? {}) as Record<string, unknown>;
+            const group = String(source.group || "").trim();
+            const optionValue = String(source.value || "").trim();
+            return group && optionValue ? `${group}: ${optionValue}` : "";
+          })
+          .filter(Boolean)
+          .join(" · ")
+      : "";
+  } catch {
+    return "";
+  }
+}
+
+function seoReadiness(product: Product) {
+  const score = [
+    product.seoTitle,
+    product.seoDescription,
+    product.seoKeywords,
+    product.aeoAnswerSummary,
+    product.geoTargetsJson && product.geoTargetsJson !== "[]",
+  ].filter(Boolean).length;
+  if (score >= 4) return { label: "SEO hazır", className: "bg-emerald-50 text-emerald-700 border-emerald-100" };
+  if (score >= 2) return { label: "SEO eksik", className: "bg-amber-50 text-amber-700 border-amber-100" };
+  return { label: "SEO yok", className: "bg-gray-50 text-gray-500 border-gray-100" };
+}
 
 export default function AdminProductsPage() {
   const [viewMode, setViewMode] = useState<"engine" | "b2b">("b2b");
@@ -42,6 +151,8 @@ export default function AdminProductsPage() {
   const [bulkCampaignId, setBulkCampaignId] = useState("");
   const [bulkLoading, setBulkLoading] = useState(false);
   const [detailProduct, setDetailProduct] = useState<Product|null>(null);
+  const [detailVariants, setDetailVariants] = useState<DetailVariant[]>([]);
+  const [detailLoading, setDetailLoading] = useState(false);
   const [detailOpen, setDetailOpen] = useState(false);
   const [variantBulkAction, setVariantBulkAction] = useState("");
   const [variantBulkGroup, setVariantBulkGroup] = useState("");
@@ -116,6 +227,29 @@ export default function AdminProductsPage() {
       return;
     }
     fetchProducts(); toast.success("Silindi");
+  };
+
+  const openDetail = async (product: Product) => {
+    setDetailProduct(product);
+    setDetailVariants([]);
+    setDetailOpen(true);
+    setDetailLoading(true);
+    try {
+      const [productRes, variantRes] = await Promise.all([
+        fetch(`/api/admin/products/${product.id}`).then((response) => response.json()),
+        fetch(`/api/admin/variants?productId=${product.id}`).then((response) => response.json()).catch(() => ({ success: false })),
+      ]);
+      if (productRes.success) {
+        setDetailProduct(productRes.data);
+      }
+      if (variantRes.success) {
+        setDetailVariants(Array.isArray(variantRes.data?.combinations) ? variantRes.data.combinations : []);
+      }
+    } catch {
+      toast.error("Ürün detayı yüklenemedi");
+    } finally {
+      setDetailLoading(false);
+    }
   };
 
   const toggleSelect = (id: string) => {
@@ -306,7 +440,7 @@ export default function AdminProductsPage() {
 
       {showFilters && (
         <div className="mb-4 grid grid-cols-2 gap-3 rounded-xl border border-gray-200 bg-white p-4 shadow-sm md:grid-cols-5">
-          <div><label className="mb-1 block text-[10px] font-semibold uppercase text-gray-500">Ara (isim/SKU/barkod/marka)</label><div className="relative"><Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400"/><input className="w-full rounded border border-gray-200 py-1.5 pl-8 pr-2 text-xs focus:border-gray-400 focus:outline-none" value={search} onChange={e=>setSearch(e.target.value)} placeholder="Ara..."/></div></div>
+          <div><label className="mb-1 block text-[10px] font-semibold uppercase text-gray-500">Ara (isim/SKU/barkod/model/varyant)</label><div className="relative"><Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400"/><input className="w-full rounded border border-gray-200 py-1.5 pl-8 pr-2 text-xs focus:border-gray-400 focus:outline-none" value={search} onChange={e=>setSearch(e.target.value)} placeholder="Ad, barkod, model kodu, varyant SKU..."/></div></div>
           <div><label className="mb-1 block text-[10px] font-semibold uppercase text-gray-500">Kategori</label><select className="w-full rounded border border-gray-200 px-2 py-1.5 text-xs focus:outline-none" value={filterCat} onChange={e=>setFilterCat(e.target.value)}><option value="">Tümü</option>{categories.filter(c=>!c.parentId).map(c=><option key={c.id} value={c.name}>{c.name}</option>)}</select></div>
           <div><label className="mb-1 block text-[10px] font-semibold uppercase text-gray-500">Stok</label><select className="w-full rounded border border-gray-200 px-2 py-1.5 text-xs focus:outline-none" value={filterStock} onChange={e=>setFilterStock(e.target.value)}><option value="">Tümü</option><option value="ok">Stok Yeterli</option><option value="low">Kritik Stok</option><option value="out">Stokta Yok</option></select></div>
           <div><label className="mb-1 block text-[10px] font-semibold uppercase text-gray-500">Min Fiyat</label><input type="number" className="w-full rounded border border-gray-200 px-2 py-1.5 text-xs focus:outline-none" value={filterPriceMin} onChange={e=>setFilterPriceMin(e.target.value)} placeholder="0"/></div>
@@ -419,11 +553,13 @@ export default function AdminProductsPage() {
           <tbody className="divide-y divide-gray-100">
             {loading?<tr><td colSpan={8} className="px-5 py-12 text-center text-gray-400">Yükleniyor...</td></tr>:
             paginated.length===0?<tr><td colSpan={8} className="px-5 py-12 text-center text-gray-400">{hasFilters?"Filtrelere uygun ürün bulunamadı":"Henüz ürün eklenmemiş"}</td></tr>:
-            paginated.map(p=>(
+            paginated.map(p=>{
+              const seoBadge = seoReadiness(p);
+              return (
               <tr key={p.id} className={`transition-colors hover:bg-gray-50/50 ${selected.has(p.id)?"bg-blue-50/50":""}`}>
                 <td className="px-3"><input type="checkbox" checked={selected.has(p.id)} onChange={()=>toggleSelect(p.id)} className="h-4 w-4 rounded"/></td>
-                <td className="px-3 py-3"><div className="flex items-center gap-2.5"><div className="shrink-0">{p.image?<img src={p.image} alt="" className="relative h-10 w-10 cursor-pointer rounded-lg border border-gray-100 object-cover transition-all duration-200 hover:z-50 hover:scale-[4] hover:rounded-lg hover:shadow-2xl" onError={e=>{(e.target as HTMLImageElement).style.display='none'}}/>:<div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gray-100 text-xs text-gray-400">{p.name.charAt(0)}</div>}</div><div className="min-w-0"><p className="truncate text-sm font-medium text-gray-900">{p.name}</p><p className="text-[10px] text-gray-400">{p.brand||"-"} · #{p.id.slice(0,8)}</p></div></div></td>
-                <td className="hidden px-3 py-3 md:table-cell"><p className="font-mono text-xs text-gray-500">{p.sku||"——"}</p><p className="font-mono text-xs text-gray-400">{p.barcode||"——"}</p></td>
+                <td className="px-3 py-3"><div className="flex items-center gap-2.5"><div className="shrink-0">{p.image?<img src={p.image} alt="" className="relative h-10 w-10 cursor-pointer rounded-lg border border-gray-100 object-cover transition-all duration-200 hover:z-50 hover:scale-[4] hover:rounded-lg hover:shadow-2xl" onError={e=>{(e.target as HTMLImageElement).style.display='none'}}/>:<div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gray-100 text-xs text-gray-400">{p.name.charAt(0)}</div>}</div><div className="min-w-0"><p className="truncate text-sm font-medium text-gray-900">{p.name}</p><p className="text-[10px] text-gray-400">{p.brand||"-"} · #{p.id.slice(0,8)}</p><div className="mt-1 flex flex-wrap gap-1"><span className={`rounded-full border px-1.5 py-0.5 text-[10px] ${seoBadge.className}`}>{seoBadge.label}</span>{p.productType === "digital" && <span className="rounded-full border border-indigo-100 bg-indigo-50 px-1.5 py-0.5 text-[10px] text-indigo-700">Dijital</span>}</div></div></div></td>
+                <td className="hidden px-3 py-3 md:table-cell"><p className="font-mono text-xs text-gray-500">{p.sku||"——"}</p><p className="font-mono text-xs text-gray-400">{p.barcode||"——"}</p><p className="font-mono text-[10px] text-gray-400">Model: {p.modelCode||"——"}</p></td>
                 <td className="hidden px-3 py-3 sm:table-cell"><span className="rounded bg-purple-50 px-2 py-0.5 text-xs text-purple-700">{p.category}</span></td>
                 <td className="hidden px-3 py-3 sm:table-cell"><span className={`rounded px-2 py-0.5 font-mono text-xs ${(p._count?.variants||0)>0?'bg-blue-50 text-blue-700':'bg-gray-50 text-gray-400'}`}>{p._count?.variants||0}</span></td>
                 <td className="px-3 py-3 text-sm font-medium text-gray-900">{formatPrice(p.price)}</td>
@@ -434,13 +570,14 @@ export default function AdminProductsPage() {
                 <td className="px-3 py-3 text-right">
                   <div className="flex min-w-[220px] flex-nowrap justify-end gap-1.5">
                     <a href={productUrl(p)} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 rounded-md border border-emerald-200 bg-emerald-50 px-2.5 py-1.5 text-xs font-medium whitespace-nowrap text-emerald-700 hover:bg-emerald-100"><Eye size={13} /> Sitede</a>
-                    <button type="button" onClick={() => { setDetailProduct(p); setDetailOpen(true); }} className="inline-flex items-center gap-1 rounded-md border border-blue-200 bg-blue-50 px-2.5 py-1.5 text-xs font-medium whitespace-nowrap text-blue-700 hover:bg-blue-100"><Search size={13} /> Bak</button>
+                    <button type="button" onClick={() => openDetail(p)} className="inline-flex items-center gap-1 rounded-md border border-blue-200 bg-blue-50 px-2.5 py-1.5 text-xs font-medium whitespace-nowrap text-blue-700 hover:bg-blue-100"><Search size={13} /> Bak</button>
                     <Link href={toAdminUrl(`/admin/products/${p.id}`)} className="inline-flex items-center gap-1 rounded-md border border-gray-300 bg-white px-2.5 py-1.5 text-xs font-medium whitespace-nowrap text-gray-700 hover:bg-gray-50"><Pencil size={13} /> Düzenle</Link>
                     <button type="button" onClick={() => handleDelete(p.id)} className="inline-flex items-center gap-1 rounded-md border border-red-200 bg-red-50 px-2.5 py-1.5 text-xs font-medium whitespace-nowrap text-red-700 hover:bg-red-100"><Trash2 size={13} /> Sil</button>
                   </div>
                 </td>
               </tr>
-            ))
+            );
+            })
           }</tbody>
         </table>
         </div>
@@ -560,6 +697,11 @@ export default function AdminProductsPage() {
       {detailOpen && detailProduct && (
         <Modal open={detailOpen} onClose={() => setDetailOpen(false)} title="Ürün Detayı" size="full">
           <div className="max-h-[80vh] space-y-4 overflow-y-auto pr-1">
+            {detailLoading && (
+              <div className="flex items-center gap-2 rounded-xl border border-blue-100 bg-blue-50 px-4 py-3 text-sm text-blue-700">
+                <Loader2 size={14} className="animate-spin" /> Ürün ve varyant detayları yükleniyor...
+              </div>
+            )}
             <div className="flex flex-col gap-4 sm:flex-row sm:gap-6">
               {detailProduct.image ? (
                 <img src={detailProduct.image} alt="" className="max-h-60 w-full shrink-0 rounded-xl border border-gray-200 object-cover sm:h-40 sm:w-40" onError={e=>{(e.target as HTMLImageElement).style.display='none'}} />
@@ -568,19 +710,94 @@ export default function AdminProductsPage() {
               )}
               <div className="min-w-0 flex-1 space-y-2">
                 <h2 className="text-lg font-bold text-gray-900">{detailProduct.name}</h2>
+                <div className="flex flex-wrap gap-1.5">
+                  <span className={`rounded-full border px-2 py-0.5 text-xs ${seoReadiness(detailProduct).className}`}>{seoReadiness(detailProduct).label}</span>
+                  {detailProduct.productType === "digital" && <span className="rounded-full border border-indigo-100 bg-indigo-50 px-2 py-0.5 text-xs text-indigo-700">Dijital ürün</span>}
+                  {(detailProduct._count?.variants || detailVariants.length) > 0 && <span className="rounded-full border border-blue-100 bg-blue-50 px-2 py-0.5 text-xs text-blue-700">{detailProduct._count?.variants || detailVariants.length} varyant</span>}
+                </div>
                 <div className="grid grid-cols-2 gap-2 text-sm sm:grid-cols-3">
                   <div><span className="text-gray-400">Marka:</span> <span className="font-medium text-gray-700">{detailProduct.brand || "-"}</span></div>
-                  <div><span className="text-gray-400">Kategori:</span> <span className="font-medium text-gray-700">{detailProduct.category || "-"}</span></div>
+                  <div><span className="text-gray-400">Kategori:</span> <span className="font-medium text-gray-700">{[detailProduct.category, detailProduct.subcategory].filter(Boolean).join(" / ") || "-"}</span></div>
+                  <div><span className="text-gray-400">Model:</span> <span className="font-mono font-medium text-gray-700">{detailProduct.modelCode || "—"}</span></div>
                   <div><span className="text-gray-400">SKU:</span> <span className="font-mono font-medium text-gray-700">{detailProduct.sku || "—"}</span></div>
                   <div><span className="text-gray-400">Barkod:</span> <span className="font-mono font-medium text-gray-700">{detailProduct.barcode || "—"}</span></div>
                   <div><span className="text-gray-400">Fiyat:</span> <span className="font-bold text-green-700">{formatPrice(detailProduct.price)}</span></div>
                   <div><span className="text-gray-400">Stok:</span> <span className={`font-bold ${detailProduct.stock > 0 ? 'text-green-700' : 'text-red-600'}`}>{detailProduct.stock}</span></div>
+                  {detailProduct.productType === "digital" && (
+                    <div><span className="text-gray-400">Teslim:</span> <span className="font-medium text-indigo-700">{detailProduct.digitalDeliveryMode || "—"}</span></div>
+                  )}
                 </div>
               </div>
             </div>
             {detailProduct.description && (
               <div><span className="text-xs font-semibold uppercase text-gray-500">Açıklama</span>
                 <p className="mt-1 max-h-32 overflow-y-auto whitespace-pre-line text-sm leading-relaxed text-gray-600">{detailProduct.description}</p>
+              </div>
+            )}
+            <div className="grid gap-3 lg:grid-cols-3">
+              <div className="rounded-xl border border-gray-200 bg-white p-4">
+                <div className="mb-2 flex items-center gap-2 text-sm font-semibold text-gray-800">
+                  <Globe2 size={15} /> SEO
+                </div>
+                <div className="space-y-2 text-xs text-gray-600">
+                  <p><span className="font-semibold text-gray-500">Başlık:</span> {detailProduct.seoTitle || "—"}</p>
+                  <p><span className="font-semibold text-gray-500">Açıklama:</span> {detailProduct.seoDescription || "—"}</p>
+                  <p><span className="font-semibold text-gray-500">Kelime:</span> {detailProduct.seoKeywords || "—"}</p>
+                </div>
+              </div>
+              <div className="rounded-xl border border-gray-200 bg-white p-4">
+                <div className="mb-2 flex items-center gap-2 text-sm font-semibold text-gray-800">
+                  <Sparkles size={15} /> GEO / AEO
+                </div>
+                <div className="space-y-2 text-xs text-gray-600">
+                  <p><span className="font-semibold text-gray-500">GEO:</span> {parseJsonList(detailProduct.geoTargetsJson).join(", ") || "—"}</p>
+                  <p><span className="font-semibold text-gray-500">AEO:</span> {detailProduct.aeoAnswerSummary || "—"}</p>
+                  <p><span className="font-semibold text-gray-500">SSS:</span> {parseJsonList(detailProduct.aeoFaqJson).length} kayıt</p>
+                </div>
+              </div>
+              <div className="rounded-xl border border-gray-200 bg-white p-4">
+                <div className="mb-2 flex items-center gap-2 text-sm font-semibold text-gray-800">
+                  <FileText size={15} /> Operasyon
+                </div>
+                <div className="space-y-2 text-xs text-gray-600">
+                  <p><span className="font-semibold text-gray-500">ID:</span> <span className="font-mono">{detailProduct.id}</span></p>
+                  <p><span className="font-semibold text-gray-500">Kısa açıklama:</span> {detailProduct.shortDescription || "—"}</p>
+                  {detailProduct.digitalLicensePoolSummary && (
+                    <p><span className="font-semibold text-gray-500">Lisans:</span> {detailProduct.digitalLicensePoolSummary.available} boş / {detailProduct.digitalLicensePoolSummary.assigned} atanmış</p>
+                  )}
+                </div>
+              </div>
+            </div>
+            {detailVariants.length > 0 && (
+              <div className="overflow-hidden rounded-xl border border-gray-200 bg-white">
+                <div className="border-b border-gray-100 px-4 py-3 text-sm font-semibold text-gray-800">Varyant Kimlikleri</div>
+                <div className="max-h-72 overflow-y-auto">
+                  <table className="w-full text-xs">
+                    <thead className="sticky top-0 bg-gray-50 text-gray-500">
+                      <tr>
+                        <th className="px-3 py-2 text-left">Seçenek</th>
+                        <th className="px-3 py-2 text-left">SKU</th>
+                        <th className="px-3 py-2 text-left">Barkod</th>
+                        <th className="px-3 py-2 text-right">Fiyat</th>
+                        <th className="px-3 py-2 text-right">Stok</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100">
+                      {detailVariants.slice(0, 100).map((variant) => (
+                        <tr key={variant.id}>
+                          <td className="px-3 py-2 text-gray-700">{parseVariantOptions(variant.options) || "—"}</td>
+                          <td className="px-3 py-2 font-mono text-gray-600">{variant.sku || "—"}</td>
+                          <td className="px-3 py-2 font-mono text-gray-500">{variant.barcode || "—"}</td>
+                          <td className="px-3 py-2 text-right text-gray-700">{formatPrice(variant.price)}</td>
+                          <td className="px-3 py-2 text-right text-gray-700">{variant.stock}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                {detailVariants.length > 100 && (
+                  <div className="border-t border-gray-100 px-4 py-2 text-xs text-gray-400">İlk 100 varyant gösteriliyor. Tam düzenleme için ürün düzenleme ekranını aç.</div>
+                )}
               </div>
             )}
             <div className="flex gap-2 border-t border-gray-100 pt-2">

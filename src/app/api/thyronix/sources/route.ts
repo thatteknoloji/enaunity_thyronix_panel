@@ -8,18 +8,25 @@ import {
 } from "@/lib/thyronix/access";
 import { resolveSourceFeedUrls } from "@/lib/thyronix/feed-fetch";
 import { buildSourceMappingSummary } from "@/lib/thyronix/source-mapping-summary";
+import { getThyronixSourceQualitySummaries } from "@/lib/thyronix/source-quality";
+import { validateSourceMappingConfig } from "@/lib/thyronix/mapping-validation";
+import { getTemplate } from "@/lib/thyronix/templates";
 
 export async function GET() {
   try {
     const user = await requireThyronixDealerOrAdmin();
-    const sources = await prisma.thyronixSource.findMany({
-      where: withTenantFilter(user, {}),
-      orderBy: { createdAt: "desc" },
-    });
+    const [sources, qualitySummaries] = await Promise.all([
+      prisma.thyronixSource.findMany({
+        where: withTenantFilter(user, {}),
+        orderBy: { createdAt: "desc" },
+      }),
+      getThyronixSourceQualitySummaries(user),
+    ]);
     const data = sources.map((s) => ({
       ...s,
       feedUrls: resolveSourceFeedUrls(s.xmlUrl, s.fixedValues),
       mappingSummary: buildSourceMappingSummary(s),
+      qualitySummary: qualitySummaries.get(s.id) || null,
     }));
     return NextResponse.json({ success: true, data });
   } catch (e) {
@@ -32,12 +39,25 @@ export async function POST(req: Request) {
     const user = await requireThyronixDealerOrAdmin();
     const owner = tenantOwnerFields(user);
     const body = await req.json();
+    const sourceType = body.type || "xml";
+    const inputFormat = body.inputFormat || "custom_xml";
+    const template = sourceType === "xml" ? getTemplate(inputFormat) : null;
+    const validation = validateSourceMappingConfig({
+      sourceType,
+      fieldMapping: body.fieldMapping,
+      variantMapping: body.variantMapping,
+      fixedValues: body.fixedValues,
+      templateFieldMap: template?.fieldMap as any,
+    });
+    if (!validation.ready) {
+      return NextResponse.json({ success: false, error: validation.errors.join(" · ") }, { status: 400 });
+    }
     const source = await prisma.thyronixSource.create({
       data: {
         name: body.name,
         xmlUrl: body.xmlUrl,
-        type: body.type || "xml",
-        inputFormat: body.inputFormat || "custom_xml",
+        type: sourceType,
+        inputFormat,
         fieldMapping: body.fieldMapping || null,
         variantMapping: body.variantMapping || null,
         fixedValues: body.fixedValues || null,

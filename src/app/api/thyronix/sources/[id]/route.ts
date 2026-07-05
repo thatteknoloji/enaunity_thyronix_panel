@@ -5,6 +5,8 @@ import {
   requireThyronixDealerOrAdmin,
   thyronixErrorResponse,
 } from "@/lib/thyronix/access";
+import { validateSourceMappingConfig } from "@/lib/thyronix/mapping-validation";
+import { getTemplate } from "@/lib/thyronix/templates";
 
 export async function PUT(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -12,13 +14,26 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
     const { id } = await params;
     await assertCanAccessSource(user, id);
     const body = await req.json();
+    const sourceType = body.type || "xml";
+    const inputFormat = body.inputFormat || "custom_xml";
+    const template = sourceType === "xml" ? getTemplate(inputFormat) : null;
+    const validation = validateSourceMappingConfig({
+      sourceType,
+      fieldMapping: body.fieldMapping,
+      variantMapping: body.variantMapping,
+      fixedValues: body.fixedValues,
+      templateFieldMap: template?.fieldMap as any,
+    });
+    if (!validation.ready && body.status !== "paused") {
+      return NextResponse.json({ success: false, error: validation.errors.join(" · ") }, { status: 400 });
+    }
     const source = await prisma.thyronixSource.update({
       where: { id },
       data: {
         name: body.name,
         xmlUrl: body.xmlUrl,
-        type: body.type,
-        inputFormat: body.inputFormat || "custom_xml",
+        type: sourceType,
+        inputFormat,
         fieldMapping: body.fieldMapping || null,
         variantMapping: body.variantMapping || null,
         fixedValues: body.fixedValues || null,

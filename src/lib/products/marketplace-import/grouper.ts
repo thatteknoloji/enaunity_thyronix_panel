@@ -46,6 +46,15 @@ function pickMostCommon(rows: ParsedImportRow[], field: keyof ParsedImportRow): 
   return best;
 }
 
+function pickLongest(rows: ParsedImportRow[], field: keyof ParsedImportRow): string {
+  let best = "";
+  for (const row of rows) {
+    const value = String(row[field] || "").trim();
+    if (value.length > best.length) best = value;
+  }
+  return best;
+}
+
 /** Group rows by Model Kodu → one parent product per model code */
 export function groupByModelCode(rows: ParsedImportRow[]): {
   groups: GroupedProduct[];
@@ -96,6 +105,12 @@ export function groupByModelCode(rows: ParsedImportRow[]): {
       category: pickMostCommon(groupRows, "category"),
       image: allImages[0] || groupRows.find((r) => r.image)?.image || "",
       images: allImages,
+      seoTitle: pickMostCommon(groupRows, "seoTitle"),
+      seoDescription: pickLongest(groupRows, "seoDescription"),
+      seoKeywords: pickMostCommon(groupRows, "seoKeywords"),
+      geoTargets: pickMostCommon(groupRows, "geoTargets"),
+      aeoAnswerSummary: pickLongest(groupRows, "aeoAnswerSummary"),
+      aeoFaq: pickLongest(groupRows, "aeoFaq"),
       price: prices.length ? Math.min(...prices) : 0,
       stock: groupRows.reduce((s, r) => s + r.stock, 0),
       rows: groupRows,

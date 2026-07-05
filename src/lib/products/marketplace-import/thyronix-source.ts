@@ -1,8 +1,9 @@
 import type { ThyronixProduct, ThyronixSource } from "@prisma/client";
 import { prisma } from "@/lib/db";
 import { groupByModelCode, extractCategoryValues } from "./grouper";
+import { applyImportIdentityGeneration } from "./identity-generation";
 import { savePreview } from "./preview-store";
-import type { FieldMapping, GroupedProduct, ParsedImportRow } from "./types";
+import type { FieldMapping, GroupedProduct, ImportIdentityGenerationSettings, ParsedImportRow } from "./types";
 
 type ThyronixProductWithSource = ThyronixProduct & { source: ThyronixSource };
 
@@ -143,7 +144,7 @@ function rowsFromProduct(product: ThyronixProductWithSource, startIndex: number)
   return variants.map((variant, index) => createRow(product, startIndex + index, variant));
 }
 
-export async function createThyronixSourceImportPreview(sourceId: string): Promise<{
+export async function createThyronixSourceImportPreview(sourceId: string, identityGeneration?: ImportIdentityGenerationSettings): Promise<{
   previewJobId: string;
   preset: "generic";
   fileName: string;
@@ -177,7 +178,8 @@ export async function createThyronixSourceImportPreview(sourceId: string): Promi
     rowIndex += productRows.length;
   }
 
-  const { groups, ungroupedRows } = groupByModelCode(rows);
+  const preparedRows = applyImportIdentityGeneration(rows, identityGeneration || {});
+  const { groups, ungroupedRows } = groupByModelCode(preparedRows);
   const categoryValues = extractCategoryValues(groups);
   const previewJob = await prisma.productImportJob.create({
     data: {
@@ -189,7 +191,7 @@ export async function createThyronixSourceImportPreview(sourceId: string): Promi
       reportJson: JSON.stringify({
         source: "thyronix_manual_admin_import",
         sourceId,
-        totalRows: rows.length,
+        totalRows: preparedRows.length,
         ungroupedCount: ungroupedRows.length,
       }),
     },
@@ -200,14 +202,14 @@ export async function createThyronixSourceImportPreview(sourceId: string): Promi
     fileName: `Thyronix: ${source.name}`,
     preset: "generic",
     groups,
-    totalRows: rows.length,
+    totalRows: preparedRows.length,
   });
 
   return {
     previewJobId: previewJob.id,
     preset: "generic",
     fileName: `Thyronix: ${source.name}`,
-    totalRows: rows.length,
+    totalRows: preparedRows.length,
     groupCount: groups.length,
     ungroupedCount: ungroupedRows.length,
     groups,

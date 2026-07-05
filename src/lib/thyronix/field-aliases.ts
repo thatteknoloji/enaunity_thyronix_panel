@@ -29,7 +29,7 @@ export const PRODUCT_FIELD_ALIASES: Record<string, string[]> = {
 
 export const VARIANT_FIELD_ALIASES: Record<string, string[]> = {
   variantGroup: ["variantgroup", "variant_group", "varyantgrup", "varyant_grup", "name", "name1", "specname", "specname1", "attribute_name", "option_name"],
-  variantValue: ["variantvalue", "variant_value", "varyantdeger", "varyant_deger", "value", "value1", "specvalue", "specvalue1", "attribute_value", "option_value", "color", "size", "renk", "beden", "olcu", "ölçü", "ebat", "numara", "desen"],
+  variantValue: ["variantvalue", "variant_value", "varyantdeger", "varyant_deger", "value", "value1", "specvalue", "specvalue1", "attribute_value", "option_value", "eksecenekozellik", "ozellik", "özellik", "color", "size", "renk", "beden", "olcu", "ölçü", "ebat", "numara", "desen"],
   variantBarcode: ["variantbarcode", "variant_barcode", "varyantbarkod", "varyant_barkod", "barcode", "barkod", "ean", "gtin"],
   variantSku: ["variantsku", "variant_sku", "varyantsku", "varyant_sku", "sku", "stockcode", "stokcode", "stokkodu", "stok_kodu", "productcode"],
   variantPrice: ["variantprice", "variant_price", "varyantfiyat", "varyant_fiyat", "price", "fiyat", "satisfiyati", "satis_fiyati", "indirimlifiyat", "indirimli_fiyat"],
