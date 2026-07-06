@@ -9,6 +9,7 @@ import {
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
 type Props = {
+  templateId: string;
   mapping: Record<string, string>;
   variantMapping: Record<string, string>;
   detectedFields: string[];
@@ -64,6 +65,7 @@ function MappingSelect({
 }
 
 export function XmlFeedMappingStep({
+  templateId,
   mapping,
   variantMapping,
   detectedFields,
@@ -73,7 +75,8 @@ export function XmlFeedMappingStep({
   onBack,
   onNext,
 }: Props) {
-  const errors = validateProductMapping(mapping);
+  const errors = validateProductMapping(mapping, templateId);
+  const isIkas = templateId === "ikas";
   const fieldOptions = detectedFields.length ? detectedFields : Object.values(mapping).filter(Boolean);
   const variantOptions = variantFields.length ? variantFields : Object.values(variantMapping).filter(Boolean);
 
@@ -86,6 +89,11 @@ export function XmlFeedMappingStep({
 
   return (
     <div className="space-y-4">
+      {isIkas && (
+        <div className="rounded-xl border border-emerald-100 bg-emerald-50/60 p-4 text-sm text-emerald-900">
+          ikas şablonu alan eşlemesini otomatik yapar. Bu adımı atlayıp kurallara geçebilirsiniz.
+        </div>
+      )}
       <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
         <h3 className="mb-1 text-sm font-semibold">Ürün Alan Eşleme</h3>
         <p className="mb-4 text-xs text-gray-500">ENA alanı → XML tag (feed testinden algılanan alanlar listede)</p>

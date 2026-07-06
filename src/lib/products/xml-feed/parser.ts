@@ -1,5 +1,6 @@
 import { inspectXmlFeed, parseXmlToProducts } from "@/lib/thyronix/xml-parser";
 import type { ParsedImportRow } from "../marketplace-import/types";
+import { inspectIkasXml, parseIkasXmlToRows } from "./ikas-parser";
 import { buildCustomFieldMap, buildVariantFieldMap, getFeedTemplate } from "./templates";
 import type { XmlFeedTestResult } from "./types";
 
@@ -119,6 +120,17 @@ function rowsFromProduct(product: ParsedProductLike, rowIndex: number, priceBase
 }
 
 export function inspectFeedXml(xml: string, templateId: string): Omit<XmlFeedTestResult, "ok"> {
+  if (templateId === "ikas") {
+    const info = inspectIkasXml(xml);
+    return {
+      productCount: info.productCount,
+      detectedFields: info.detectedFields,
+      variantFields: info.variantFields,
+      categoryValues: info.categoryValues,
+      brandValues: info.brandValues,
+      sampleValues: info.sampleValues,
+    };
+  }
   const template = getFeedTemplate(templateId);
   const inspection = inspectXmlFeed(xml, template);
   const products = parseXmlToProducts(xml, template);
@@ -140,6 +152,9 @@ export function parseFeedXmlToRows(
   mappingJson: Record<string, string> = {},
   variantMappingJson: Record<string, string> = {},
 ): { rows: ParsedImportRow[]; categoryValues: string[]; brandValues: string[]; parseErrors: string[] } {
+  if (templateId === "ikas") {
+    return parseIkasXmlToRows(xml);
+  }
   const template = getFeedTemplate(templateId);
   const customMap = buildCustomFieldMap(mappingJson);
   const variantMap = buildVariantFieldMap(variantMappingJson);

@@ -1,4 +1,5 @@
 import type { ParsedImportRow } from "../marketplace-import/types";
+import { applyXmlPriceRule, normalizePriceTiers } from "./price-rules";
 import { DEFAULT_XML_FEED_RULES, type XmlFeedRules } from "./types";
 
 function escapeRegExp(value: string): string {
@@ -90,10 +91,17 @@ export function parseFeedRules(raw: unknown): XmlFeedRules {
   const base = { ...DEFAULT_XML_FEED_RULES };
   if (!raw || typeof raw !== "object") return base;
   const data = raw as Partial<XmlFeedRules>;
+  const priceMode = data.priceMode === "tiered" ? "tiered" : "flat";
   return {
-    fixedBrand: String(data.fixedBrand ?? base.fixedBrand).trim() || base.fixedBrand,
+    fixedBrand:
+      data.fixedBrand !== undefined ? String(data.fixedBrand).trim() : base.fixedBrand,
     priceSource: data.priceSource === "listPrice" || data.priceSource === "price" ? data.priceSource : "realPrice",
+    priceMode,
     priceMultiplier: Number(data.priceMultiplier) > 0 ? Number(data.priceMultiplier) : base.priceMultiplier,
+    priceTiers: normalizePriceTiers(data.priceTiers),
+    fixedPriceAdjustment: Number.isFinite(Number(data.fixedPriceAdjustment))
+      ? Number(data.fixedPriceAdjustment)
+      : base.fixedPriceAdjustment,
     applyMarginPerVariant: data.applyMarginPerVariant ?? base.applyMarginPerVariant,
     stripBrandFromTitle: data.stripBrandFromTitle ?? base.stripBrandFromTitle,
     stripBrandFromDescription: data.stripBrandFromDescription ?? base.stripBrandFromDescription,
@@ -111,8 +119,7 @@ export function parseFeedRules(raw: unknown): XmlFeedRules {
 }
 
 export function applyPriceRule(basePrice: number, rules: XmlFeedRules): number {
-  const raw = basePrice * rules.priceMultiplier;
-  return roundPrice(raw, rules.roundPriceTo);
+  return applyXmlPriceRule(basePrice, rules);
 }
 
 export function transformImportRows(rows: ParsedImportRow[], rules: XmlFeedRules): ParsedImportRow[] {
@@ -134,7 +141,7 @@ export function transformImportRows(rows: ParsedImportRow[], rules: XmlFeedRules
       description: description || name,
       seoTitle,
       seoDescription,
-      brand: rules.fixedBrand,
+      brand: rules.fixedBrand?.trim() ? rules.fixedBrand : row.brand,
       price: salePrice,
       raw: { ...row.raw, costPrice: costBase },
     };

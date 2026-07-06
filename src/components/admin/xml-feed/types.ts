@@ -71,6 +71,7 @@ export interface XmlSyncReport {
 export const FEED_TEMPLATES = [
   { id: "leyna_v2", label: "Leyna v2", desc: "realPrice + varyant name1/value1" },
   { id: "leyna", label: "Leyna (legacy)", desc: "sitePrice formatı" },
+  { id: "ikas", label: "ikas Export", desc: "sellPrice + category_path" },
   { id: "generic", label: "Generic XML", desc: "Standart alan adları" },
   { id: "custom", label: "Özel XML", desc: "Alan eşlemeyi manuel yap" },
 ] as const;

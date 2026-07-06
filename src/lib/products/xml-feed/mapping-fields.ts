@@ -88,7 +88,8 @@ export function getDefaultRules(): XmlFeedRules {
   return { ...DEFAULT_XML_FEED_RULES };
 }
 
-export function validateProductMapping(mapping: Record<string, string>): string[] {
+export function validateProductMapping(mapping: Record<string, string>, templateId?: string): string[] {
+  if (templateId === "ikas") return [];
   const errors: string[] = [];
   for (const key of REQUIRED_PRODUCT_MAPPING_KEYS) {
     if (!String(mapping[key] || "").trim()) {
@@ -115,5 +116,13 @@ export function extraBrandAliasesToText(aliases: string[]): string {
 }
 
 export function formatRulesSummary(rules: XmlFeedRules): string {
-  return `Fiyat ×${rules.priceMultiplier} · Marka: ${rules.fixedBrand}`;
+  if (rules.priceMode === "tiered" && rules.priceTiers.length) {
+    const first = rules.priceTiers[0];
+    const last = rules.priceTiers[rules.priceTiers.length - 1];
+    const adj = rules.fixedPriceAdjustment
+      ? ` ${rules.fixedPriceAdjustment > 0 ? "+" : ""}${rules.fixedPriceAdjustment}₺`
+      : "";
+    return `Kademeli marj ${first.minPrice}-${last.maxPrice ?? "∞"}₺${adj}`;
+  }
+  return `Fiyat ×${rules.priceMultiplier}${rules.fixedPriceAdjustment ? ` ${rules.fixedPriceAdjustment > 0 ? "+" : ""}${rules.fixedPriceAdjustment}₺` : ""} · Marka: ${rules.fixedBrand || "feed"}`;
 }

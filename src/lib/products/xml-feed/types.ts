@@ -1,13 +1,24 @@
 import type { CategoryMapping, GroupedProduct } from "../marketplace-import/types";
 
-export type XmlFeedTemplateId = "leyna_v2" | "leyna" | "generic" | "custom";
+export type XmlFeedTemplateId = "leyna_v2" | "leyna" | "ikas" | "generic" | "custom";
 
 export type XmlFieldMapping = Record<string, string>;
+
+export type XmlPriceMode = "flat" | "tiered";
+
+export type XmlPriceTier = {
+  minPrice: number;
+  maxPrice: number | null;
+  markupPercent: number;
+};
 
 export type XmlFeedRules = {
   fixedBrand: string;
   priceSource: "realPrice" | "price" | "listPrice";
+  priceMode: XmlPriceMode;
   priceMultiplier: number;
+  priceTiers: XmlPriceTier[];
+  fixedPriceAdjustment: number;
   applyMarginPerVariant: boolean;
   stripBrandFromTitle: boolean;
   stripBrandFromDescription: boolean;
@@ -69,7 +80,10 @@ export type FieldLocks = Record<string, boolean>;
 export const DEFAULT_XML_FEED_RULES: XmlFeedRules = {
   fixedBrand: "Ena Unity",
   priceSource: "realPrice",
+  priceMode: "flat",
   priceMultiplier: 1.25,
+  priceTiers: [],
+  fixedPriceAdjustment: 0,
   applyMarginPerVariant: true,
   stripBrandFromTitle: true,
   stripBrandFromDescription: true,

@@ -408,6 +408,7 @@ export function XmlFeedPanel() {
 
       {step === "mapping" && testResult && (
         <XmlFeedMappingStep
+          templateId={templateId}
           mapping={mapping}
           variantMapping={variantMapping}
           detectedFields={testResult.detectedFields}

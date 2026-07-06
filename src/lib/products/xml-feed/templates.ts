@@ -152,6 +152,18 @@ export const DEFAULT_FIELD_MAPPINGS: Record<XmlFeedTemplateId, Record<string, st
     stock: "stock",
     image1: "image",
   },
+  ikas: {
+    externalId: "id",
+    modelCode: "id",
+    name: "name",
+    description: "description",
+    brand: "brand",
+    category: "category_path",
+    barcode: "barcode",
+    priceBase: "sellPrice",
+    stock: "stock",
+    image1: "imageUrl",
+  },
   custom: {},
 };
 
@@ -174,6 +186,13 @@ export const DEFAULT_VARIANT_MAPPINGS: Record<XmlFeedTemplateId, Record<string, 
     variantBarcode: "barcode",
   },
   generic: {},
+  ikas: {
+    variantSku: "sku",
+    variantBarcode: "barcode",
+    variantStock: "stockCount",
+    variantPriceBase: "sellPrice",
+    variantImage: "imageUrl",
+  },
   custom: {},
 };
 
@@ -183,6 +202,8 @@ export function getFeedTemplate(templateId: string): FeedTemplate {
       return LEYNA_V2_TEMPLATE;
     case "leyna":
       return LEYNA_TEMPLATE;
+    case "ikas":
+      return GENERIC_XML_TEMPLATE;
     case "generic":
     case "custom":
     default:

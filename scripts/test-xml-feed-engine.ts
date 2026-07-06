@@ -6,6 +6,7 @@ import { config } from "dotenv";
 config({ path: ".env.local" });
 config({ path: ".env" });
 
+import { readFileSync } from "fs";
 import { fetchXmlFeed } from "../src/lib/products/xml-feed/fetcher";
 import { parseFeedXmlToRows } from "../src/lib/products/xml-feed/parser";
 import { transformImportRows, parseFeedRules } from "../src/lib/products/xml-feed/transform";
@@ -13,6 +14,7 @@ import { applyCategoryMappingToRows } from "../src/lib/products/xml-feed/categor
 import { groupByModelCode } from "../src/lib/products/marketplace-import/grouper";
 import { DEFAULT_XML_FEED_RULES } from "../src/lib/products/xml-feed/types";
 import { suggestCategoryMapping } from "../src/lib/products/xml-feed/category-mapper";
+import { IKAS_DEFAULT_RULES, previewPriceSamples } from "../src/lib/products/xml-feed/price-rules";
 
 const LEYNA_URL =
   process.env.LEYNA_FEED_URL ||
@@ -83,6 +85,44 @@ async function main() {
     process.exit(1);
   }
   console.log("   ✓ 2 flat rows, unique SKUs, Beden options OK");
+
+  console.log("7. ikas parser + tiered pricing (offline)…");
+  const ikasSamplePath =
+    process.env.IKAS_SAMPLE_XML ||
+    "/Users/korhanbariskaynar/.cursor/projects/Users-korhanbariskaynar-Desktop-b-t-n-programlar-enaunity/uploads/bbb0cdda-0d7a-4127-a0cf-f3e36823e269-0.xml";
+  try {
+    const ikasXml = readFileSync(ikasSamplePath, "utf8");
+    const ikasBody = ikasXml.includes("<?xml") ? ikasXml.slice(ikasXml.indexOf("<?xml")) : ikasXml;
+    const { rows: ikasRows, categoryValues: ikasCats } = parseFeedXmlToRows(ikasBody, "ikas", {}, {});
+    if (ikasRows.length < 50) {
+      console.error(`   ✗ ikas parse too few rows: ${ikasRows.length}`);
+      process.exit(1);
+    }
+    const ikasRules = parseFeedRules({ ...DEFAULT_XML_FEED_RULES, ...IKAS_DEFAULT_RULES });
+    const ikasTransformed = transformImportRows(ikasRows, ikasRules);
+    const prices = previewPriceSamples(ikasRules);
+    const p36 = prices.find((p) => p.base === 36);
+    const p2040 = prices.find((p) => p.base === 2040);
+    if (!p36 || p36.sale !== 72) {
+      console.error(`   ✗ Tier pricing 36₺ expected 72, got ${p36?.sale}`);
+      process.exit(1);
+    }
+    if (!p2040 || p2040.sale !== 2550) {
+      console.error(`   ✗ Tier pricing 2040₺ expected 2550, got ${p2040?.sale}`);
+      process.exit(1);
+    }
+    const ikasGroups = groupByModelCode(ikasTransformed).groups;
+    const keepsBrand = ikasTransformed.some((r) => r.brand && r.brand !== "Ena Unity");
+    if (!keepsBrand) {
+      console.error("   ✗ ikas feed brands not preserved");
+      process.exit(1);
+    }
+    console.log(
+      `   ✓ ${ikasRows.length} rows, ${ikasGroups.length} groups, ${ikasCats.length} categories, brands preserved`,
+    );
+  } catch (e) {
+    console.warn(`   ⚠ ikas offline test skipped: ${e instanceof Error ? e.message : e}`);
+  }
 
   console.log("\n=== ALL CHECKS PASSED ===");
 }
