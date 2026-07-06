@@ -1,7 +1,14 @@
 import Link from "next/link";
 import { formatPrice } from "@/lib/utils";
+import { CatalogStockBadge } from "@/components/products/ProductStockStatus";
+import { resolveCatalogStockStatus } from "@/lib/products/stock-status";
 
 export default function ProductCard({ product, campaign }: { product: any; campaign?: { badge: string; badgeColor: string; endsAt: string } | null }) {
+  const stockStatus = resolveCatalogStockStatus({
+    productStock: product.stock,
+    variants: product.variants,
+  });
+
   return (
     <Link
       href={`/products/${product.id}`}
@@ -12,9 +19,7 @@ export default function ProductCard({ product, campaign }: { product: any; campa
           {campaign.badge}
         </span>
       )}
-      {product.stock <= product.minStockLevel && product.stock > 0 && (
-        <span className="absolute top-2 left-2 bg-amber-500 text-white text-[10px] px-2 py-0.5 rounded-full">Sınırlı Stok</span>
-      )}
+      <CatalogStockBadge status={stockStatus} />
       {product.minOrderQuantity > 1 && (
         <span className="absolute bottom-2 left-2 bg-purple-500/80 text-white text-[10px] px-2 py-0.5 rounded-full">Toplu Ürün</span>
       )}

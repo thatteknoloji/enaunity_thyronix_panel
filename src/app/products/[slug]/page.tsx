@@ -13,7 +13,9 @@ import { Play, ChevronLeft, ChevronRight, Building2, Package, Truck, Minus, Plus
 import CountdownTimer from "@/components/CountdownTimer";
 import { VariantSelector } from "@/components/products/VariantSelector";
 import { ProductTrustBadges } from "@/components/products/ProductTrustBadges";
+import { ProductStockStatus } from "@/components/products/ProductStockStatus";
 import { normalizeVariantDisplayMode } from "@/lib/products/variant-display";
+import { resolveProductStockStatus } from "@/lib/products/stock-status";
 import type { ResolvedProductPresentation } from "@/lib/products/presentation";
 
 export default function ProductDetailPage() {
@@ -183,7 +185,12 @@ export default function ProductDetailPage() {
     : hasProductSale
       ? basePrice
       : undefined;
-  const displayStock = matchedVariant ? matchedVariant.stock : product.stock;
+  const stockStatus = resolveProductStockStatus({
+    productStock: product.stock,
+    variants: parsedVariants,
+    selectedVariant: matchedVariant,
+    backorderable: product.backorderable,
+  });
   const minOrderQty = product.minOrderQuantity ?? 1;
   const bulkPrice = effectivePrice * 0.85;
 
@@ -192,8 +199,25 @@ export default function ProductDetailPage() {
     ? tiers.reduce((best, t) => t.minQuantity <= quantity && t.minQuantity > best.minQuantity ? t : best, tiers[0])
     : null;
   const totalPrice = displayPrice * quantity;
-  const stockClass = displayStock > 10 ? "text-green-400" : displayStock > 0 ? "text-yellow-400" : "text-ena-primary";
   const isDigitalProduct = product.productType === "digital";
+
+  const variantAvailability = (() => {
+    const map: Record<string, Record<string, { inStock: boolean; lowStock: boolean }>> = {};
+    for (const [group, values] of Object.entries(variantGroups)) {
+      map[group] = {};
+      for (const value of values) {
+        const matching = parsedVariants.filter((v: { parsedOptions: Array<{ group: string; value: string }> }) =>
+          v.parsedOptions.some((opt) => opt.group === group && opt.value === value),
+        );
+        const maxStock = matching.reduce((max, v: { stock: number }) => Math.max(max, v.stock || 0), 0);
+        map[group][value] = {
+          inStock: maxStock > 0,
+          lowStock: maxStock > 0 && maxStock <= 5,
+        };
+      }
+    }
+    return map;
+  })();
 
   const handleAddToCart = () => {
     if (Object.keys(variantGroups).length > 0 && !matchedVariant) {
@@ -322,6 +346,7 @@ export default function ProductDetailPage() {
                 selectedOptions={selectedOptions}
                 onSelect={(group, v) => setSelectedOptions({ ...selectedOptions, [group]: v })}
                 mode={variantDisplayMode}
+                variantAvailability={variantAvailability}
               />
             )}
             <div className="flex items-baseline gap-3 flex-wrap">
@@ -439,11 +464,11 @@ export default function ProductDetailPage() {
           </motion.div>
 
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} className="flex gap-3">
-            <Button size="lg" className="flex-1 gap-2 font-semibold" disabled={displayStock <= 0 && !product.backorderable} onClick={handleAddToCart}>
+            <Button size="lg" className="flex-1 gap-2 font-semibold" disabled={!stockStatus.canPurchase} onClick={handleAddToCart}>
               <Play size={16} fill="currentColor" />
-              {displayStock <= 0 && product.backorderable ? "Ön Sipariş Ver" : "Sepete Ekle"}
+              {stockStatus.level === "out" && product.backorderable ? "Ön Sipariş Ver" : "Sepete Ekle"}
             </Button>
-            <Button variant="outline" size="lg" className="flex-1" disabled={displayStock <= 0 && !product.backorderable}>Hemen Al</Button>
+            <Button variant="outline" size="lg" className="flex-1" disabled={!stockStatus.canPurchase}>Hemen Al</Button>
             {isDealerUser && (
               <button
                 onClick={toggleFavorite}
@@ -457,13 +482,7 @@ export default function ProductDetailPage() {
 
           {/* Stok + Kargo */}
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.45 }} className="space-y-3 text-sm">
-            <div className="flex items-center gap-2">
-              <Package size={15} className={stockClass} />
-              <span className={stockClass}>
-                {displayStock > 10 ? "Stokta" : displayStock > 0 ? "Sınırlı Stok" : displayStock <= 0 && product.backorderable ? "Ön Sipariş" : "Stokta Yok"}
-                {displayStock > 0 && ` (${displayStock} adet)`}
-              </span>
-            </div>
+            <ProductStockStatus status={stockStatus} />
             {isDigitalProduct && (
               <div className="flex items-center gap-2 text-indigo-300 text-sm">
                 <Download size={14} />
@@ -472,7 +491,7 @@ export default function ProductDetailPage() {
                 </span>
               </div>
             )}
-            {displayStock <= 0 && product.backorderable && product.eta && (
+            {stockStatus.level === "out" && product.backorderable && product.eta && (
               <div className="flex items-center gap-2 text-amber-400 text-xs">
                 <Clock size={13} />
                 Tahmini Teslimat: {product.eta}

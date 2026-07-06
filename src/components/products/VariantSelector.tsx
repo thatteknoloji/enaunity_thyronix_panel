@@ -10,6 +10,7 @@ interface VariantSelectorProps {
   selectedOptions: Record<string, string>;
   onSelect: (group: string, value: string) => void;
   mode?: VariantDisplayMode | string;
+  variantAvailability?: Record<string, Record<string, { inStock: boolean; lowStock: boolean }>>;
 }
 
 function optionClass(active: boolean, surface: "dark" | "light", compact?: boolean) {
@@ -44,6 +45,7 @@ export function VariantSelector({
   selectedOptions,
   onSelect,
   mode = "buttons",
+  variantAvailability,
 }: VariantSelectorProps) {
   const [modalGroup, setModalGroup] = useState<string | null>(null);
   const [popupGroup, setPopupGroup] = useState<string | null>(null);
@@ -68,35 +70,43 @@ export function VariantSelector({
     const compact = values.length > 8;
     const gridClass = compact ? "grid grid-cols-2 sm:grid-cols-3 gap-2" : "flex flex-col gap-2";
 
+    const renderLabel = (value: string) => {
+      const availability = variantAvailability?.[group]?.[value];
+      if (!availability) return value;
+      if (!availability.inStock) return `${value} (stok yok)`;
+      if (availability.lowStock) return `${value} (düşük stok)`;
+      return value;
+    };
+
+    const optionButton = (value: string) => {
+      const availability = variantAvailability?.[group]?.[value];
+      const outOfStock = availability && !availability.inStock;
+      return (
+        <button
+          key={value}
+          type="button"
+          onClick={() => onPick(value)}
+          disabled={outOfStock}
+          className={`${optionClass(selectedOptions[group] === value, surface, compact)} ${
+            outOfStock ? "opacity-50 cursor-not-allowed line-through" : ""
+          }`}
+        >
+          {renderLabel(value)}
+        </button>
+      );
+    };
+
     if (layout === "wrap") {
       return (
         <div className="flex flex-wrap gap-2">
-          {values.map((v) => (
-            <button
-              key={v}
-              type="button"
-              onClick={() => onPick(v)}
-              className={optionClass(selectedOptions[group] === v, surface, compact)}
-            >
-              {v}
-            </button>
-          ))}
+          {values.map((v) => optionButton(v))}
         </div>
       );
     }
 
     return (
       <div className={layout === "grid" || compact ? gridClass : "flex flex-col gap-2"}>
-        {values.map((v) => (
-          <button
-            key={v}
-            type="button"
-            onClick={() => onPick(v)}
-            className={optionClass(selectedOptions[group] === v, surface, compact)}
-          >
-            {v}
-          </button>
-        ))}
+        {values.map((v) => optionButton(v))}
       </div>
     );
   };
@@ -231,20 +241,8 @@ export function VariantSelector({
             </>
           )}
 
-          {normalizedMode === "grid" && (
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-[min(40vh,320px)] overflow-y-auto overscroll-contain pr-1">
-              {values.map((v) => (
-                <button
-                  key={v}
-                  type="button"
-                  onClick={() => onSelect(group, v)}
-                  className={optionClass(selectedOptions[group] === v, "dark", values.length > 8)}
-                >
-                  {v}
-                </button>
-              ))}
-            </div>
-          )}
+          {normalizedMode === "grid" &&
+            renderOptions(group, values, "dark", (v) => onSelect(group, v), "grid")}
 
           {normalizedMode === "buttons" &&
             (values.length > 8 ? (

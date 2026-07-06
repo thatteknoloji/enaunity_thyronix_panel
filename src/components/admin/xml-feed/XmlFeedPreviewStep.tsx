@@ -3,6 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { formatRulesSummary } from "@/lib/products/xml-feed/mapping-fields";
 import type { XmlFeedRules } from "@/lib/products/xml-feed/types";
+import { resolveProductStockStatus } from "@/lib/products/stock-status";
 import { ChevronLeft, ChevronRight, Download, Loader2 } from "lucide-react";
 import type { XmlPreviewState } from "./types";
 
@@ -53,19 +54,42 @@ export function XmlFeedPreviewStep({ preview, rules, loading, onBack, onRefresh,
               <th className="px-3 py-2 text-left">Kategori</th>
               <th className="px-3 py-2 text-right">Fiyat</th>
               <th className="px-3 py-2 text-right">Varyant</th>
+              <th className="px-3 py-2 text-left">Stok</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
-            {preview.groups.map((g) => (
+            {preview.groups.map((g) => {
+              const rows = (g.rows || []) as Array<{ stock?: number; variantOptions?: Array<{ group: string; value: string }> }>;
+              const stockStatus = resolveProductStockStatus({
+                productStock: g.stock ?? rows.reduce((sum, r) => sum + (r.stock || 0), 0),
+                variants: rows.map((r) => ({
+                  stock: r.stock,
+                  options: r.variantOptions,
+                })),
+              });
+              return (
               <tr key={g.modelCode}>
                 <td className="px-3 py-2 font-mono">{g.modelCode}</td>
                 <td className="max-w-[160px] truncate px-3 py-2">{g.name}</td>
                 <td className="px-3 py-2">{g.brand || "—"}</td>
                 <td className="max-w-[120px] truncate px-3 py-2">{g.category}</td>
                 <td className="px-3 py-2 text-right">{g.price != null ? `₺${g.price}` : "—"}</td>
-                <td className="px-3 py-2 text-right">{g.rows?.length ?? g.variantCount ?? 0}</td>
+                <td className="px-3 py-2 text-right">{rows.length || g.variantCount || 0}</td>
+                <td className="max-w-[180px] px-3 py-2">
+                  <p className={`font-medium ${
+                    stockStatus.level === "out" ? "text-red-600" :
+                    stockStatus.level === "low" ? "text-amber-600" :
+                    stockStatus.level === "partial" ? "text-orange-600" : "text-green-700"
+                  }`}>
+                    {stockStatus.headline}
+                  </p>
+                  {stockStatus.warnings.slice(0, 2).map((w) => (
+                    <p key={w} className="truncate text-[10px] text-amber-700">{w}</p>
+                  ))}
+                </td>
               </tr>
-            ))}
+              );
+            })}
           </tbody>
         </table>
       </div>

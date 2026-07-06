@@ -10,7 +10,9 @@ import type { Product } from "@/types";
 import { useCartStore } from "@/lib/cart-store";
 import { Building2 } from "lucide-react";
 import { CampaignCatalogBanner } from "@/components/catalog/CampaignCatalogBanner";
+import { CatalogStockBadge } from "@/components/products/ProductStockStatus";
 import { filterProductsForCampaign } from "@/lib/campaigns/banner-link";
+import { resolveCatalogStockStatus } from "@/lib/products/stock-status";
 
 type CatalogCampaign = {
   id: string;
@@ -133,11 +135,17 @@ function CatalogContent() {
           animate="visible"
           className="grid gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4"
         >
-          {visibleProducts.map((product) => (
+          {visibleProducts.map((product) => {
+            const catalogStock = resolveCatalogStockStatus({
+              productStock: product.stock,
+              variants: (product as { variants?: Array<{ stock: number; options: string }> }).variants,
+            });
+            return (
             <motion.div key={product.id} variants={itemVariants}>
               <div className="group">
                 <Link href={`/products/${product.id}${campaignId ? `?campaign=${campaignId}` : ""}`}>
-                  <motion.div initial="rest" whileHover="hover" style={{ originX: "center", originY: "bottom" }}>
+                  <motion.div initial="rest" whileHover="hover" style={{ originX: "center", originY: "bottom" }} className="relative">
+                    <CatalogStockBadge status={catalogStock} />
                     <motion.div
                       variants={{
                         rest: { y: 0, scale: 1, boxShadow: "0 0 0 rgba(0,0,0,0)" },
@@ -169,14 +177,15 @@ function CatalogContent() {
                   )}
                   <p className="text-sm font-bold text-ena-primary">{formatPrice(product.price)}</p>
                   <div className="flex gap-1 mt-2">
-                    <Button size="sm" className="flex-1 text-xs" onClick={() => addItem(product.id)} disabled={product.stock === 0}>
-                      {product.stock === 0 ? "Stokta Yok" : "Sepete Ekle"}
+                    <Button size="sm" className="flex-1 text-xs" onClick={() => addItem(product.id)} disabled={!catalogStock.canPurchase}>
+                      {catalogStock.level === "out" ? "Stokta Yok" : "Sepete Ekle"}
                     </Button>
                   </div>
                 </div>
               </div>
             </motion.div>
-          ))}
+            );
+          })}
         </motion.div>
       )}
     </div>
