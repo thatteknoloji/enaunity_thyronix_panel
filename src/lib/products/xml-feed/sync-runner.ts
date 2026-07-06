@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/db";
 import { groupByModelCode } from "../marketplace-import/grouper";
-import { applyCategoryMappingToRows, ensureStoreCategories } from "./category-mapper";
+import { applyCategoryMappingToRows, ensureXmlCategoryTree } from "./category-mapper";
 import { fetchXmlFeed } from "./fetcher";
 import { mergeUpsertFeedGroups } from "./merge-upsert";
 import { parseFeedXmlToRows } from "./parser";
@@ -32,19 +32,20 @@ export async function runXmlFeedSync(feedId: string): Promise<XmlFeedSyncReport>
 
   const rules = parseFeedRules(JSON.parse(feed.rulesJson || "{}"));
   const mappingJson = parseJsonObject(feed.mappingJson);
+  const variantMappingJson = parseJsonObject(feed.variantMappingJson);
   const categoryMapping = parseCategoryMapping(feed.categoryMappingJson);
 
   try {
     const xml = await fetchXmlFeed(feed.feedUrl);
-    const { rows } = parseFeedXmlToRows(xml, feed.templateId, mappingJson);
+    const { rows, parseErrors } = parseFeedXmlToRows(xml, feed.templateId, mappingJson, variantMappingJson);
     const transformed = transformImportRows(rows, rules);
-    const { rows: categorized, unmapped } = applyCategoryMappingToRows(
+    const { rows: categorized, unmapped, mappedPaths } = applyCategoryMappingToRows(
       transformed.map((r) => ({ ...r, subcategory: feed.rootCategory })),
       categoryMapping,
       feed.rootCategory,
     );
 
-    const errors: string[] = [];
+    const errors: string[] = [...parseErrors.slice(0, 20)];
     if (unmapped.length) {
       errors.push(`Eşlenmemiş kategoriler: ${unmapped.join(", ")}`);
     }
@@ -53,7 +54,7 @@ export async function runXmlFeedSync(feedId: string): Promise<XmlFeedSyncReport>
     const skippedUnmapped = categorized.length - validRows.length;
 
     if (rules.autoCreateCategories) {
-      await ensureStoreCategories(validRows.map((r) => r.category));
+      await ensureXmlCategoryTree(feed.id, feed.rootCategory, mappedPaths);
     }
 
     const { groups } = groupByModelCode(validRows);
@@ -137,16 +138,22 @@ export async function previewXmlFeedSync(feed: {
   feedUrl: string;
   templateId: string;
   mappingJson: string;
+  variantMappingJson?: string;
   categoryMappingJson: string;
   rootCategory: string;
   rulesJson: string;
 }) {
   const rules = parseFeedRules(JSON.parse(feed.rulesJson || "{}"));
   const mappingJson = parseJsonObject(feed.mappingJson);
+  const variantMappingJson = parseJsonObject(feed.variantMappingJson || "{}");
   const categoryMapping = parseCategoryMapping(feed.categoryMappingJson);
   const xml = await fetchXmlFeed(feed.feedUrl);
-  const { rows, categoryValues, brandValues } = parseFeedXmlToRows(xml, feed.templateId, mappingJson);
-  const { transformImportRows } = await import("./transform");
+  const { rows, categoryValues, brandValues, parseErrors } = parseFeedXmlToRows(
+    xml,
+    feed.templateId,
+    mappingJson,
+    variantMappingJson,
+  );
   const transformed = transformImportRows(rows, rules);
   const { rows: categorized, unmapped } = applyCategoryMappingToRows(
     transformed.map((r) => ({ ...r, subcategory: feed.rootCategory })),
@@ -163,6 +170,13 @@ export async function previewXmlFeedSync(feed: {
     totalRows: rows.length,
     groupCount: groups.length,
     ungroupedCount: ungroupedRows.length,
-    errors: unmapped.map((c) => `Eşlenmemiş kategori: ${c}`),
+    parseErrors: parseErrors.slice(0, 20),
+    appliedRules: rules,
+    appliedMapping: mappingJson,
+    appliedVariantMapping: variantMappingJson,
+    errors: [
+      ...parseErrors.slice(0, 10),
+      ...unmapped.map((c) => `Eşlenmemiş kategori: ${c}`),
+    ],
   };
 }

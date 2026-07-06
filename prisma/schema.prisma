@@ -259,17 +259,21 @@ model Variant {
 }
 
 model Category {
-  id         String     @id @default(cuid())
-  name       String
-  slug       String     @unique
-  parentId   String?
-  parent     Category?  @relation("CategoryChildren", fields: [parentId], references: [id])
-  children   Category[] @relation("CategoryChildren")
-  image      String     @default("")
-  sortOrder  Int        @default(0)
-  active     Boolean    @default(true)
-  createdAt  DateTime   @default(now())
-  updatedAt  DateTime   @updatedAt
+  id           String     @id @default(cuid())
+  name         String
+  slug         String     @unique
+  parentId     String?
+  parent       Category?  @relation("CategoryChildren", fields: [parentId], references: [id])
+  children     Category[] @relation("CategoryChildren")
+  sourceFeedId String?
+  image        String     @default("")
+  sortOrder    Int        @default(0)
+  active       Boolean    @default(true)
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  @@index([parentId])
+  @@index([sourceFeedId])
 }
 
 model ApiKey {

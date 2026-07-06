@@ -29,6 +29,7 @@ export async function GET() {
         productCount: f.productCount,
         linkCount: f._count.productLinks,
         syncLogCount: f._count.syncLogs,
+        hasCustomMapping: f.templateId === "custom" || f.mappingJson !== "{}",
         createdAt: f.createdAt,
       })),
     });

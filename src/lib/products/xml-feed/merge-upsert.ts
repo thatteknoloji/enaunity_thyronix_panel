@@ -2,6 +2,7 @@ import { prisma } from "@/lib/db";
 import { slugify } from "@/lib/utils";
 import type { GroupedProduct } from "../marketplace-import/types";
 import { parseFieldLocks, pickUnlocked, snapshotProductFields } from "./field-lock";
+import { sanitizeDescription, sanitizeTitle } from "./transform";
 import type { XmlFeedRules, XmlFeedSyncReport } from "./types";
 
 function optionsKey(opts: { group: string; value: string }[]): string {
@@ -147,8 +148,8 @@ export async function mergeUpsertFeedGroups(
     const imagesJson = JSON.stringify(group.images);
     const costPrice = Math.min(...group.rows.map((r) => Number(r.raw?.costPrice ?? r.price) || r.price));
     const incomingProduct = {
-      name: group.name,
-      description: group.description || group.name,
+      name: sanitizeTitle(group.name),
+      description: sanitizeDescription(group.description || group.name),
       brand: group.brand,
       category: group.category,
       subcategory: rootCategory,
@@ -159,8 +160,8 @@ export async function mergeUpsertFeedGroups(
       image: group.image || "/placeholder.svg",
       images: imagesJson,
       sku: group.modelCode,
-      seoTitle: group.seoTitle || group.name,
-      seoDescription: group.seoDescription || group.description || group.name,
+      seoTitle: sanitizeTitle(group.seoTitle || group.name),
+      seoDescription: sanitizeDescription(group.seoDescription || group.description || group.name),
     };
 
     let product = await prisma.product.findFirst({ where: { modelCode: group.modelCode } });

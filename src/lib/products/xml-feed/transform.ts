@@ -9,6 +9,58 @@ function normalizeText(value: string): string {
   return value.replace(/\s+/g, " ").trim();
 }
 
+export function stripHtml(input: string): string {
+  if (!input) return "";
+  let text = input
+    .replace(/<script[\s\S]*?<\/script>/gi, "")
+    .replace(/<style[\s\S]*?<\/style>/gi, "")
+    .replace(/<br\s*\/?>/gi, "\n")
+    .replace(/<\/p>/gi, "\n")
+    .replace(/<\/div>/gi, "\n")
+    .replace(/<\/li>/gi, "\n")
+    .replace(/<li[^>]*>/gi, "• ")
+    .replace(/<[^>]+>/g, "");
+
+  text = text.replace(/&#(\d+);/g, (_, code) => {
+    const n = Number(code);
+    return Number.isFinite(n) ? String.fromCharCode(n) : "";
+  });
+  text = text.replace(/&#x([0-9a-f]+);/gi, (_, hex) => {
+    const n = parseInt(hex, 16);
+    return Number.isFinite(n) ? String.fromCharCode(n) : "";
+  });
+
+  return text
+    .replace(/&nbsp;/gi, " ")
+    .replace(/&amp;/gi, "&")
+    .replace(/&lt;/gi, "<")
+    .replace(/&gt;/gi, ">")
+    .replace(/&quot;/gi, '"')
+    .replace(/&#39;/gi, "'")
+    .replace(/&apos;/gi, "'")
+    .replace(/&rsquo;/gi, "'")
+    .replace(/&lsquo;/gi, "'")
+    .replace(/&rdquo;/gi, '"')
+    .replace(/&ldquo;/gi, '"')
+    .replace(/&mdash;/gi, "—")
+    .replace(/&ndash;/gi, "–")
+    .replace(/&hellip;/gi, "…")
+    .replace(/\n{3,}/g, "\n\n")
+    .replace(/[ \t]+\n/g, "\n")
+    .replace(/[ \t]{2,}/g, " ")
+    .trim();
+}
+
+/** Başlık: tek satır, HTML'siz, fazla boşluk yok */
+export function sanitizeTitle(input: string): string {
+  return normalizeText(stripHtml(input).replace(/\n+/g, " "));
+}
+
+/** Açıklama: HTML'siz, paragraf satırları korunur */
+export function sanitizeDescription(input: string): string {
+  return stripHtml(input);
+}
+
 function roundPrice(value: number, step: number): number {
   if (!step || step <= 0) return Math.round(value * 100) / 100;
   return Math.round(value / step) * step;
@@ -68,16 +120,20 @@ export function transformImportRows(rows: ParsedImportRow[], rules: XmlFeedRules
   return rows.map((row) => {
     const costBase = Number(row.raw?.costPrice ?? row.price) || row.price;
     const salePrice = applyPriceRule(costBase, rules);
-    let name = row.name;
-    let description = row.description;
+    let name = sanitizeTitle(row.name);
+    let description = sanitizeDescription(row.description || "");
     if (rules.stripBrandFromTitle) name = stripBrandTerms(name, aliases);
     if (rules.stripBrandFromDescription) description = stripBrandTerms(description, aliases);
     if (rules.titlePrefix) name = normalizeText(`${rules.titlePrefix} ${name}`);
     if (rules.titleSuffix) name = normalizeText(`${name} ${rules.titleSuffix}`);
+    const seoTitle = row.seoTitle ? sanitizeTitle(row.seoTitle) : undefined;
+    const seoDescription = row.seoDescription ? sanitizeDescription(row.seoDescription) : undefined;
     return {
       ...row,
       name: name || row.modelCode,
       description: description || name,
+      seoTitle,
+      seoDescription,
       brand: rules.fixedBrand,
       price: salePrice,
       raw: { ...row.raw, costPrice: costBase },

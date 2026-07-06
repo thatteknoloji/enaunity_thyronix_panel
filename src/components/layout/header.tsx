@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import CartDrawer from "@/components/cart/cart-drawer";
 import SmartSearch from "@/components/ui/smart-search";
 import ThemeSwitcher from "@/components/layout/ThemeSwitcher";
+import { XmlCategoryNav } from "@/components/layout/XmlCategoryNav";
 import { usePathname, useRouter } from "next/navigation";
 
 const locales = Object.entries(LOCALE_LABELS) as [Locale, string][];
@@ -289,6 +290,7 @@ export default function Header() {
               )}
             </div>
           ))}
+          <XmlCategoryNav onNavigate={() => setMenuOpen(false)} />
           <div className="h-px bg-ena-border my-2" />
           <div className="px-3 py-2">
             <p className="text-xs font-semibold uppercase tracking-wider text-ena-light/50 mb-2">Tema</p>

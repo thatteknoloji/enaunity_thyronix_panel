@@ -30,7 +30,6 @@ function row(partial: Partial<ParsedImportRow> & { modelCode: string }): ParsedI
     description: "",
     brand: "ENA",
     category: "Cam Tablo",
-    modelCode: partial.modelCode,
     sku: "",
     barcode: "",
     price: 100,
@@ -42,6 +41,7 @@ function row(partial: Partial<ParsedImportRow> & { modelCode: string }): ParsedI
     errors: ["Stok Kodu eksik", "Barkod eksik"],
     warnings: [],
     ...partial,
+    modelCode: partial.modelCode,
   };
 }
 

@@ -206,11 +206,37 @@ export function buildCustomFieldMap(mapping: Record<string, string>): Record<str
     vatRate: "vatRate",
     currency: "currency",
     image1: "image",
+    image2: "image",
+    image3: "image",
+    image4: "image",
+    image5: "image",
   };
   for (const [internal, xmlTag] of Object.entries(mapping)) {
     if (!xmlTag) continue;
     const thyronixField = internalToThyronix[internal] || internal;
     out[xmlTag] = thyronixField;
+  }
+  return out;
+}
+
+/** XML varyant tag → thyronix parser rolü (variantBarcode, variantGroup, …) */
+export function buildVariantFieldMap(mapping: Record<string, string>): Record<string, string> {
+  const internalToRole: Record<string, string> = {
+    variantOption1Name: "variantGroup",
+    variantOption1Value: "variantValue",
+    variantOption2Name: "variantGroup",
+    variantOption2Value: "variantValue",
+    variantBarcode: "variantBarcode",
+    variantSku: "variantSku",
+    variantStock: "variantStock",
+    variantPriceBase: "variantPrice",
+    variantImage: "variantImage",
+  };
+  const out: Record<string, string> = {};
+  for (const [internal, xmlTag] of Object.entries(mapping)) {
+    if (!xmlTag?.trim()) continue;
+    const role = internalToRole[internal];
+    if (role) out[xmlTag.trim()] = role;
   }
   return out;
 }

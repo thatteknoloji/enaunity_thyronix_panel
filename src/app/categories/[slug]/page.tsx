@@ -1,13 +1,21 @@
 import { prisma } from "@/lib/db";
 import { getSession } from "@/lib/auth";
 import { getDealerPrice } from "@/lib/dealer-pricing";
+import { collectLeafCategoryNames } from "@/lib/categories/tree";
+import { XML_PRODUCTS_ROOT_SLUG } from "@/lib/products/xml-feed/category-mapper";
 import Link from "next/link";
 import { ChevronLeft, Package } from "lucide-react";
 import ProductCard from "@/components/ProductCard";
 
 export default async function CategoryPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const category = await prisma.category.findUnique({ where: { slug }, include: { children: true } });
+  const category = await prisma.category.findUnique({
+    where: { slug },
+    include: {
+      children: { where: { active: true }, orderBy: { sortOrder: "asc" } },
+      parent: true,
+    },
+  });
 
   if (!category) {
     return (
@@ -18,34 +26,78 @@ export default async function CategoryPage({ params }: { params: Promise<{ slug:
     );
   }
 
-  // Get all category names in this tree
-  const catNames = [category.name, ...category.children.map(c => c.name)];
+  const isXmlFeedRoot = Boolean(
+    category.sourceFeedId && category.parent?.slug === XML_PRODUCTS_ROOT_SLUG,
+  );
 
-  let products = await prisma.product.findMany({
-    where: { category: { in: catNames } },
-    orderBy: { createdAt: "desc" },
-  });
+  let products;
+  if (isXmlFeedRoot) {
+    products = await prisma.product.findMany({
+      where: { subcategory: category.name },
+      orderBy: { createdAt: "desc" },
+    });
+  } else if (category.children.length > 0) {
+    const leafNames = await collectLeafCategoryNames(category.id);
+    products = leafNames.length
+      ? await prisma.product.findMany({
+          where: { category: { in: leafNames } },
+          orderBy: { createdAt: "desc" },
+        })
+      : [];
+  } else {
+    products = await prisma.product.findMany({
+      where: { category: category.name },
+      orderBy: { createdAt: "desc" },
+    });
+  }
 
-  // Apply dealer pricing
   const session = await getSession();
   if (session?.dealerId) {
-    const dealer = await prisma.dealer.findUnique({ where: { id: session.dealerId }, select: { id: true, group: true, discountRate: true } });
+    const dealer = await prisma.dealer.findUnique({
+      where: { id: session.dealerId },
+      select: { id: true, group: true, discountRate: true },
+    });
     if (dealer) {
-      const restricted = await prisma.catalogRestriction.findMany({ where: { group: dealer.group }, select: { productId: true } });
-      const restrictedIds = new Set(restricted.map(r => r.productId));
-      products = products.filter(p => !restrictedIds.has(p.id));
+      const restricted = await prisma.catalogRestriction.findMany({
+        where: { group: dealer.group },
+        select: { productId: true },
+      });
+      const restrictedIds = new Set(restricted.map((r) => r.productId));
+      products = products.filter((p) => !restrictedIds.has(p.id));
 
-      products = await Promise.all(products.map(async p => ({
-        ...p,
-        price: await getDealerPrice(p.id, p.price, dealer.group, dealer.discountRate, undefined, dealer.id),
-      } as any)));
+      products = await Promise.all(
+        products.map(
+          async (p) =>
+            ({
+              ...p,
+              price: await getDealerPrice(
+                p.id,
+                p.price,
+                dealer.group,
+                dealer.discountRate,
+                undefined,
+                dealer.id,
+              ),
+            }) as typeof p,
+        ),
+      );
     }
   }
 
+  const parentLink =
+    category.parent?.slug === XML_PRODUCTS_ROOT_SLUG
+      ? { href: "/catalog", label: "Tüm Kategoriler" }
+      : category.parent
+        ? { href: `/categories/${category.parent.slug}`, label: category.parent.name }
+        : { href: "/catalog", label: "Tüm Kategoriler" };
+
   return (
     <div className="mx-auto max-w-7xl px-4 py-8">
-      <Link href="/catalog" className="inline-flex items-center gap-1 text-sm text-ena-light hover:text-ena-text transition-colors mb-6">
-        <ChevronLeft size={16} /> Tüm Kategoriler
+      <Link
+        href={parentLink.href}
+        className="inline-flex items-center gap-1 text-sm text-ena-light hover:text-ena-text transition-colors mb-6"
+      >
+        <ChevronLeft size={16} /> {parentLink.label}
       </Link>
 
       <div className="mb-8">
@@ -53,12 +105,18 @@ export default async function CategoryPage({ params }: { params: Promise<{ slug:
         <p className="mt-2 text-ena-light">{products.length} ürün</p>
         {category.children.length > 0 && (
           <div className="flex flex-wrap gap-2 mt-4">
-            <Link href={`/categories/${category.slug}`} className="px-3 py-1.5 rounded-lg text-xs font-medium bg-ena-primary text-white">
+            <Link
+              href={`/categories/${category.slug}`}
+              className="px-3 py-1.5 rounded-lg text-xs font-medium bg-ena-primary text-white"
+            >
               Tümü
             </Link>
-            {category.children.map(child => (
-              <Link key={child.id} href={`/categories/${child.slug}`}
-                className="px-3 py-1.5 rounded-lg text-xs font-medium text-ena-light border border-ena-border hover:text-white hover:border-white/30 transition-colors">
+            {category.children.map((child) => (
+              <Link
+                key={child.id}
+                href={`/categories/${child.slug}`}
+                className="px-3 py-1.5 rounded-lg text-xs font-medium text-ena-light border border-ena-border hover:text-white hover:border-white/30 transition-colors"
+              >
                 {child.name}
               </Link>
             ))}
@@ -73,7 +131,9 @@ export default async function CategoryPage({ params }: { params: Promise<{ slug:
         </div>
       ) : (
         <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-          {products.map(p => <ProductCard key={p.id} product={p as any} />)}
+          {products.map((p) => (
+            <ProductCard key={p.id} product={p as any} />
+          ))}
         </div>
       )}
     </div>

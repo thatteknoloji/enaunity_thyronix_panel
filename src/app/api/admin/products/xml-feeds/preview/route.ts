@@ -24,6 +24,9 @@ export async function POST(req: Request) {
     const mappingJson = JSON.stringify(
       body.mappingJson ?? DEFAULT_FIELD_MAPPINGS[templateId as keyof typeof DEFAULT_FIELD_MAPPINGS] ?? {},
     );
+    const variantMappingJson = JSON.stringify(
+      body.variantMappingJson ?? DEFAULT_VARIANT_MAPPINGS[templateId as keyof typeof DEFAULT_VARIANT_MAPPINGS] ?? {},
+    );
     const categoryMappingJson = body.categoryMappingJson
       ? JSON.stringify(body.categoryMappingJson)
       : "{}";
@@ -33,6 +36,7 @@ export async function POST(req: Request) {
       feedUrl,
       templateId,
       mappingJson,
+      variantMappingJson,
       categoryMappingJson,
       rootCategory,
       rulesJson,
@@ -52,6 +56,10 @@ export async function POST(req: Request) {
         suggestedCategoryMapping: suggestedMapping,
         storeCategories: storeCategories.map((c) => c.name),
         variantMapping: DEFAULT_VARIANT_MAPPINGS[templateId as keyof typeof DEFAULT_VARIANT_MAPPINGS] ?? {},
+        appliedRules: preview.appliedRules,
+        appliedMapping: preview.appliedMapping,
+        appliedVariantMapping: preview.appliedVariantMapping,
+        parseErrors: preview.parseErrors,
       },
     });
   } catch (e) {

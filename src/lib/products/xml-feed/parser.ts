@@ -1,6 +1,6 @@
 import { inspectXmlFeed, parseXmlToProducts } from "@/lib/thyronix/xml-parser";
 import type { ParsedImportRow } from "../marketplace-import/types";
-import { buildCustomFieldMap, getFeedTemplate } from "./templates";
+import { buildCustomFieldMap, buildVariantFieldMap, getFeedTemplate } from "./templates";
 import type { XmlFeedTestResult } from "./types";
 
 function parseJsonArray(value?: string | null): unknown[] {
@@ -134,31 +134,47 @@ export function parseFeedXmlToRows(
   xml: string,
   templateId: string,
   mappingJson: Record<string, string> = {},
-): { rows: ParsedImportRow[]; categoryValues: string[]; brandValues: string[] } {
+  variantMappingJson: Record<string, string> = {},
+): { rows: ParsedImportRow[]; categoryValues: string[]; brandValues: string[]; parseErrors: string[] } {
   const template = getFeedTemplate(templateId);
   const customMap = buildCustomFieldMap(mappingJson);
-  const products = parseXmlToProducts(xml, template, customMap) as ParsedProductLike[];
+  const variantMap = buildVariantFieldMap(variantMappingJson);
+  const products = parseXmlToProducts(xml, template, customMap, variantMap) as ParsedProductLike[];
 
   const rows: ParsedImportRow[] = [];
+  const parseErrors: string[] = [];
   let rowIndex = 0;
   for (const product of products) {
     const priceBase = product.costPrice ?? product.price;
     const productRows = rowsFromProduct(product, rowIndex, priceBase);
+    for (const row of productRows) {
+      if (row.errors.length) parseErrors.push(...row.errors.map((e) => `${row.modelCode}: ${e}`));
+    }
     rows.push(...productRows);
     rowIndex += productRows.length;
   }
 
   const categoryValues = [...new Set(rows.map((r) => r.category).filter(Boolean))];
   const brandValues = [...new Set(rows.map((r) => r.brand).filter(Boolean))];
-  return { rows, categoryValues, brandValues };
+  return { rows, categoryValues, brandValues, parseErrors };
 }
 
-export async function testFeedUrl(feedUrl: string, templateId: string): Promise<XmlFeedTestResult> {
+export async function testFeedUrl(
+  feedUrl: string,
+  templateId: string,
+  mappingJson: Record<string, string> = {},
+  variantMappingJson: Record<string, string> = {},
+): Promise<XmlFeedTestResult> {
   try {
     const { fetchXmlFeed } = await import("./fetcher");
     const xml = await fetchXmlFeed(feedUrl);
     const result = inspectFeedXml(xml, templateId);
-    return { ok: true, ...result };
+    const parsed = parseFeedXmlToRows(xml, templateId, mappingJson, variantMappingJson);
+    return {
+      ok: true,
+      ...result,
+      productCount: parsed.rows.length > 0 ? result.productCount : 0,
+    };
   } catch (e) {
     return {
       ok: false,
