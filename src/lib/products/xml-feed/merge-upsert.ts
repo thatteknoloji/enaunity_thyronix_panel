@@ -49,23 +49,27 @@ async function mergeUpsertVariant(
   row: GroupedProduct["rows"][0],
   rules: XmlFeedRules,
   errors: string[],
-): Promise<"created" | "updated" | "skipped"> {
+): Promise<{ status: "created" | "updated" | "skipped"; variantId?: string }> {
   const optsStr = JSON.stringify(row.variantOptions);
   if (row.barcode) {
     const byBarcode = await prisma.variant.findFirst({ where: { barcode: row.barcode } });
-    if (byBarcode && byBarcode.productId !== productId && byBarcode.sku !== row.sku) {
+    if (byBarcode && byBarcode.productId !== productId) {
       errors.push(`Barkod ${row.barcode}: çakışma`);
-      return "skipped";
+      return { status: "skipped" };
     }
   }
 
   let variant = null;
-  if (row.variantOptions.length) {
+  if (row.barcode) {
+    variant = await prisma.variant.findFirst({ where: { productId, barcode: row.barcode } });
+  }
+  if (!variant && row.variantOptions.length) {
     const all = await prisma.variant.findMany({ where: { productId } });
     variant = all.find((v) => optionsKey(JSON.parse(v.options || "[]")) === optionsKey(row.variantOptions)) || null;
   }
-  if (!variant && row.sku) variant = await prisma.variant.findFirst({ where: { productId, sku: row.sku } });
-  if (!variant && row.barcode) variant = await prisma.variant.findFirst({ where: { productId, barcode: row.barcode } });
+  if (!variant && row.sku && row.sku !== row.modelCode) {
+    variant = await prisma.variant.findFirst({ where: { productId, sku: row.sku } });
+  }
 
   const incoming = {
     sku: row.sku,
@@ -105,7 +109,7 @@ async function mergeUpsertVariant(
         },
       });
     }
-    return "updated";
+    return { status: "updated", variantId: variant.id };
   }
 
   const created = await prisma.variant.create({ data: { productId, ...incoming } });
@@ -118,7 +122,7 @@ async function mergeUpsertVariant(
       lastFeedSnapshotJson: JSON.stringify(incoming),
     },
   });
-  return "created";
+  return { status: "created", variantId: created.id };
 }
 
 export async function mergeUpsertFeedGroups(
@@ -225,9 +229,24 @@ export async function mergeUpsertFeedGroups(
     });
 
     await syncVariantGroups(product.id, group);
+    const syncedVariantIds: string[] = [];
     for (const row of group.rows) {
       const result = await mergeUpsertVariant(product.id, feedLink.id, row, rules, errors);
-      if (result === "skipped") skipped++;
+      if (result.status === "skipped") skipped++;
+      if (result.variantId) syncedVariantIds.push(result.variantId);
+    }
+
+    if (syncedVariantIds.length > 0) {
+      const feedVariants = await prisma.productFeedVariantLink.findMany({
+        where: { feedLinkId: feedLink.id, variant: { productId: product.id } },
+        select: { variantId: true },
+      });
+      const synced = new Set(syncedVariantIds);
+      for (const link of feedVariants) {
+        if (!synced.has(link.variantId)) {
+          await prisma.variant.update({ where: { id: link.variantId }, data: { active: false } });
+        }
+      }
     }
 
     const variantStock = await prisma.variant.aggregate({

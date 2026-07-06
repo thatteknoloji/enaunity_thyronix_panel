@@ -63,6 +63,27 @@ async function main() {
   const withVariants = groups.filter((g) => g.rows.length > 1).length;
   console.log(`   ✓ ${withVariants} groups with multiple variants`);
 
+  console.log("6. Leyna flat variant snippet (TM0935-style)…");
+  const flatSnippet = `<?xml version="1.0"?><products>
+    <product><productCode>TM0935</productCode><name>Test TM0935</name><detail>x</detail><brand>Leyna</brand><category>Fantazi</category><barcode>111</barcode><realPrice>100</realPrice><quantity>1</quantity><name1>Beden</name1><value1>XS</value1></product>
+    <product><productCode>TM0935</productCode><name>Test TM0935</name><detail>x</detail><brand>Leyna</brand><category>Fantazi</category><barcode>222</barcode><realPrice>100</realPrice><quantity>1</quantity><name1>Beden</name1><value1>S</value1></product>
+  </products>`;
+  const { rows: flatRows } = parseFeedXmlToRows(flatSnippet, "leyna_v2", {}, {});
+  const flatGroup = groupByModelCode(flatRows).groups[0];
+  if (flatRows.length !== 2 || flatGroup?.rows.length !== 2) {
+    console.error(`   ✗ Flat variant parse failed: ${flatRows.length} rows`);
+    process.exit(1);
+  }
+  if (new Set(flatRows.map((r) => r.sku)).size !== 2) {
+    console.error("   ✗ Flat rows share SKU — variant collapse bug");
+    process.exit(1);
+  }
+  if (!flatRows.every((r) => r.variantOptions.some((o) => o.group === "Beden"))) {
+    console.error("   ✗ Missing Beden option on flat rows");
+    process.exit(1);
+  }
+  console.log("   ✓ 2 flat rows, unique SKUs, Beden options OK");
+
   console.log("\n=== ALL CHECKS PASSED ===");
 }
 

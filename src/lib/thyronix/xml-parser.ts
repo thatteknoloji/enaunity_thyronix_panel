@@ -91,6 +91,19 @@ function getNestedRecord(value: unknown, key: string): unknown {
   return (value as Record<string, unknown>)[key];
 }
 
+/** Leyna flat export: name1/value1, name2/value2 on product row (not nested variant). */
+function extractNameValueOptions(item: Record<string, unknown>): Array<{ group: string; value: string }> {
+  const opts: Array<{ group: string; value: string }> = [];
+  let nameIdx = 1;
+  while (item[`name${nameIdx}`] || item[`Name${nameIdx}`]) {
+    const name = extractText(item[`name${nameIdx}`] ?? item[`Name${nameIdx}`]);
+    const value = extractText(item[`value${nameIdx}`] ?? item[`Value${nameIdx}`]);
+    if (name && value) opts.push({ group: name, value });
+    nameIdx++;
+  }
+  return opts;
+}
+
 function normalizeArray(value: unknown): Record<string, unknown>[] {
   const rawItems = Array.isArray(value) ? value : value ? [value] : [];
   return rawItems.filter((item): item is Record<string, unknown> => Boolean(item) && typeof item === "object");
@@ -665,6 +678,23 @@ export function parseXmlToProducts(
 
         return { barcode: variantBarcode, sku: variantSku, price: variantPrice, stock: variantStock || 0, image: variantImage, options: variantOpts };
       });
+    }
+
+    // Leyna-style flat rows: one XML <product> per size, options on product element.
+    if (!product.variants?.length) {
+      const flatOpts = extractNameValueOptions(item);
+      if (flatOpts.length > 0 || product.barcode || product.stockCode) {
+        product.variants = [
+          {
+            barcode: product.barcode,
+            sku: product.stockCode,
+            price: product.costPrice ?? product.price,
+            stock: product.stock ?? 0,
+            image: product.image,
+            options: flatOpts,
+          },
+        ];
+      }
     }
 
     const rawVariants = Array.isArray(product.variants) ? product.variants : [];

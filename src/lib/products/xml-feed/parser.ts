@@ -80,8 +80,12 @@ function rowsFromProduct(product: ParsedProductLike, rowIndex: number, priceBase
 
   const buildRow = (variant: ParsedProductLike["variants"][0] | undefined, idx: number): ParsedImportRow => {
     const variantPrice = variant?.price ?? priceBase ?? product.price ?? product.costPrice ?? 0;
-    const sku = stringValue(variant?.sku || product.stockCode || `${modelCode}-${idx + 1}`);
     const barcode = stringValue(variant?.barcode || product.barcode);
+    let sku = stringValue(variant?.sku || product.stockCode || "");
+    // Leyna: all sizes share productCode — use barcode as unique SKU.
+    if (!sku || sku === modelCode) {
+      sku = barcode || `${modelCode}-${idx + 1}`;
+    }
     const options = (variant?.options || []).filter((o) => o.group && o.value);
     const errors: string[] = [];
     if (!modelCode) errors.push("Model Kodu eksik");
