@@ -176,6 +176,7 @@ model Product {
   savedCartItems    SavedCartItem[]
   digitalAccessGrants DigitalAccessGrant[]
   digitalLicensePoolItems DigitalLicensePoolItem[]
+  feedLink                ProductFeedLink?
 }
 
 model VariantGroup {
@@ -254,6 +255,7 @@ model Variant {
   active     Boolean  @default(true)
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
+  feedVariantLink ProductFeedVariantLink?
 }
 
 model Category {
@@ -4763,4 +4765,83 @@ model ProductionJob {
   @@index([operatorName])
   @@index([productType])
   @@index([createdAt])
+}
+
+// ── ENA XML Feed Motor (Product Import) ──
+
+model ProductXmlFeed {
+  id                   String   @id @default(cuid())
+  name                 String
+  feedUrl              String
+  rootCategory         String   @default("")
+  status               String   @default("ACTIVE")
+  templateId           String   @default("custom")
+  mappingJson          String   @default("{}")
+  variantMappingJson   String   @default("{}")
+  categoryMappingJson  String   @default("{}")
+  rulesJson            String   @default("{}")
+  syncIntervalHours    Int      @default(12)
+  lastSyncAt           DateTime?
+  nextSyncAt           DateTime?
+  lastSyncStatus       String   @default("")
+  lastSyncReportJson   String   @default("{}")
+  productCount         Int      @default(0)
+  createdBy            String   @default("")
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  syncLogs     ProductXmlFeedSyncLog[]
+  productLinks ProductFeedLink[]
+
+  @@index([status])
+  @@index([nextSyncAt])
+}
+
+model ProductFeedLink {
+  id                   String   @id @default(cuid())
+  feedId               String
+  feed                 ProductXmlFeed @relation(fields: [feedId], references: [id], onDelete: Cascade)
+  productId            String   @unique
+  product              Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  externalId           String   @default("")
+  sourceModelCode      String   @default("")
+  lockedFieldsJson     String   @default("{}")
+  lastSyncedAt         DateTime?
+  lastFeedSnapshotJson String   @default("{}")
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  variantLinks ProductFeedVariantLink[]
+
+  @@unique([feedId, externalId])
+  @@index([feedId, sourceModelCode])
+}
+
+model ProductFeedVariantLink {
+  id                   String   @id @default(cuid())
+  feedLinkId           String
+  feedLink             ProductFeedLink @relation(fields: [feedLinkId], references: [id], onDelete: Cascade)
+  variantId            String   @unique
+  variant              Variant  @relation(fields: [variantId], references: [id], onDelete: Cascade)
+  sourceSku            String   @default("")
+  sourceBarcode        String   @default("")
+  lockedFieldsJson     String   @default("{}")
+  lastFeedSnapshotJson String   @default("{}")
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+}
+
+model ProductXmlFeedSyncLog {
+  id         String   @id @default(cuid())
+  feedId     String
+  feed       ProductXmlFeed @relation(fields: [feedId], references: [id], onDelete: Cascade)
+  status     String
+  added      Int      @default(0)
+  updated    Int      @default(0)
+  skipped    Int      @default(0)
+  errorsJson String   @default("[]")
+  durationMs Int      @default(0)
+  createdAt  DateTime @default(now())
+
+  @@index([feedId, createdAt])
 }

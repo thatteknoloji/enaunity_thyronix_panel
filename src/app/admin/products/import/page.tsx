@@ -18,6 +18,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import toast from "react-hot-toast";
+import { XmlFeedPanel } from "@/components/admin/XmlFeedPanel";
 
 type Step = "source" | "preview" | "categories" | "commit" | "done";
 
@@ -118,6 +119,7 @@ function downloadTextReport(filename: string, lines: string[]) {
 }
 
 export default function BulkImportPage() {
+  const [importMode, setImportMode] = useState<"file" | "xml">("file");
   const [step, setStep] = useState<Step>("source");
   const [preset, setPreset] = useState("auto");
   const [file, setFile] = useState<File | null>(null);
@@ -291,10 +293,35 @@ export default function BulkImportPage() {
     <div className="max-w-4xl">
       <ProductsTabs />
       <h1 className="mb-2 text-2xl font-bold text-gray-900">Toplu Ürün Yükle</h1>
-      <p className="mb-6 text-sm text-gray-500">
+      <p className="mb-4 text-sm text-gray-500">
         Model Kodu = parent ürün · Her satır = varyant · Başlık/açıklama upsert ile güncellenir
       </p>
 
+      <div className="mb-6 flex gap-1 border-b border-gray-200">
+        <button
+          type="button"
+          onClick={() => setImportMode("file")}
+          className={`-mb-px border-b-2 px-4 py-2 text-sm font-medium transition-colors ${
+            importMode === "file" ? "border-gray-900 text-gray-900" : "border-transparent text-gray-500 hover:text-gray-700"
+          }`}
+        >
+          Dosya Yükle
+        </button>
+        <button
+          type="button"
+          onClick={() => setImportMode("xml")}
+          className={`-mb-px border-b-2 px-4 py-2 text-sm font-medium transition-colors ${
+            importMode === "xml" ? "border-gray-900 text-gray-900" : "border-transparent text-gray-500 hover:text-gray-700"
+          }`}
+        >
+          XML ile Ürün Ekleme
+        </button>
+      </div>
+
+      {importMode === "xml" ? (
+        <XmlFeedPanel />
+      ) : (
+        <>
       <div className="mb-6 flex items-center gap-2 text-xs text-gray-500">
         {(["source", "preview", "categories", "done"] as Step[]).map((s, i) => (
           <span key={s} className={`flex items-center gap-1 ${step === s || (step === "commit" && s === "categories") ? "font-semibold text-gray-900" : ""}`}>
@@ -676,6 +703,8 @@ export default function BulkImportPage() {
             </Button>
           </div>
         </div>
+      )}
+        </>
       )}
     </div>
   );

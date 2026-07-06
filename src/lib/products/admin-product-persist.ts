@@ -614,6 +614,16 @@ export async function saveAdminProductGraph(
 ) {
   const { productId } = options;
 
+  const beforeProduct = productId
+    ? await prisma.product.findUnique({ where: { id: productId } })
+    : null;
+  const beforeVariants = productId
+    ? await prisma.variant.findMany({
+        where: { productId },
+        include: { feedVariantLink: true },
+      })
+    : [];
+
   return prisma.$transaction(async (tx) => {
     const slug = await ensureProductSlug(tx, payload.name, payload.sku || payload.modelCode, productId);
     const finalStock =
@@ -730,6 +740,11 @@ export async function saveAdminProductGraph(
     }
 
     await syncDigitalLicensePool(tx, product.id, payload);
+
+    if (productId && beforeProduct) {
+      const { applyFeedFieldLocksAfterAdminSave } = await import("@/lib/products/xml-feed/admin-lock-hook");
+      await applyFeedFieldLocksAfterAdminSave(tx, product.id, beforeProduct, product, beforeVariants);
+    }
 
     return product;
   });
