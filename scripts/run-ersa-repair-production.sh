@@ -24,14 +24,20 @@ pkill -f "seed-ersa-gudu-feeds.ts --sync" 2>/dev/null || true
 pkill -f "repair-ersa-gudu.ts" 2>/dev/null || true
 sleep 2
 
+cleanup() {
+  pm2 restart enaunity 2>/dev/null || true
+  pm2 restart enaunity-job-worker 2>/dev/null || true
+}
+trap cleanup EXIT
+
 pm2 stop enaunity 2>/dev/null || true
 pm2 stop enaunity-job-worker 2>/dev/null || true
+sleep 5
+
+npx prisma generate
 
 echo "=== Ersa onarım başlıyor: $(date -Iseconds) ===" | tee "$LOG_FILE"
-npx tsx scripts/repair-ersa-gudu.ts 2>&1 | tee -a "$LOG_FILE"
+npx tsx scripts/repair-ersa-gudu.ts 2>&1 | tee -a "$LOG_FILE" || true
 echo "=== Tamamlandı: $(date -Iseconds) ===" | tee -a "$LOG_FILE"
-
-pm2 restart enaunity 2>/dev/null || true
-pm2 restart enaunity-job-worker 2>/dev/null || true
 
 npx tsx scripts/verify-ersa-gudu-setup.ts --db 2>&1 | tee -a "$LOG_FILE"

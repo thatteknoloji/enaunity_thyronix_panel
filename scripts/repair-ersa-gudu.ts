@@ -15,6 +15,21 @@ import { seedRules, provisionAndPublishOutputs } from "./setup-ersa-gudu-helpers
 
 const SKIP_CODES = new Set(["VHT21"]);
 
+async function withRetry<T>(label: string, fn: () => Promise<T>, tries = 6): Promise<T> {
+  let lastError: unknown;
+  for (let i = 0; i < tries; i++) {
+    try {
+      return await fn();
+    } catch (e) {
+      lastError = e;
+      const waitMs = 1500 * (i + 1);
+      console.log(`⚠ ${label} — tekrar ${i + 1}/${tries} (${waitMs}ms)`);
+      await new Promise((r) => setTimeout(r, waitMs));
+    }
+  }
+  throw lastError;
+}
+
 function parseSupplierCode(fixedValues: string | null | undefined): string | null {
   try {
     return JSON.parse(fixedValues || "{}")._supplierCode || null;
@@ -56,7 +71,7 @@ async function repairSources(dealerId: string) {
   for (const code of targets) {
     if (code === "VHT39") continue;
 
-    const source = await findSourceByCode(dealerId, code);
+    const source = await withRetry(`find ${code}`, () => findSourceByCode(dealerId, code));
     if (!source) {
       results.push({ code, status: "missing", error: "Kaynak bulunamadı" });
       console.log(`✗ ${code} — kaynak yok`);
@@ -98,7 +113,7 @@ async function main() {
   const doSync = process.argv.includes("--sync") || (!process.argv.includes("--publish") && process.argv.length <= 2);
   const publishOnly = process.argv.includes("--publish");
 
-  const dealerId = await resolveVhtTargetDealerId();
+  const dealerId = await withRetry("dealer lookup", () => resolveVhtTargetDealerId());
   if (!dealerId) {
     console.error("✗ Hedef bayi bulunamadı");
     process.exit(1);
