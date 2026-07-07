@@ -8,41 +8,7 @@ import {
   ensureDefaultGlobalProfile,
   updateRulesProfile,
 } from "../src/lib/thyronix/rules/profile-service";
-import type { ThyronixAiRules, ThyronixGateRules, ThyronixPriceRules, ThyronixStockRules } from "../src/lib/thyronix/rules/types";
-
-/** Ersa Güdü başlangıç kuralları — panelden sonra ince ayar yapılabilir. */
-export const ERSA_GUDU_STARTER_RULES = {
-  price: {
-    mode: "flat" as const,
-    multiplier: 2.5,
-    fixedAdjustment: 0,
-    tiers: [],
-    roundTo: 0,
-    baseField: "price" as const,
-  } satisfies ThyronixPriceRules,
-  stock: {
-    hideBelowStock: 3,
-    lowStockWarning: 3,
-  } satisfies ThyronixStockRules,
-  gate: {
-    requireImage: true,
-    requireDescription: true,
-    requireBarcode: true,
-    requireCategory: true,
-    requireVatRate: true,
-    requireVariants: true,
-  } satisfies ThyronixGateRules,
-  ai: {
-    enabled: false,
-    autoOnNewProducts: false,
-    stripBrandFromTitle: true,
-    titlePrefix: "",
-    titleSuffix: "",
-    descriptionPrefix: "",
-    descriptionSuffix: "",
-    bannedWords: ["çakma", "taklit", "replika", "muadil"],
-  } satisfies ThyronixAiRules,
-};
+import { ERSA_GUDU_STARTER_RULES } from "./ersa-gudu-rules-constants";
 
 async function main() {
   const dealerId = await resolveVhtTargetDealerId();
@@ -105,9 +71,13 @@ async function main() {
   console.log("Not: İstersen daha sonra fiyat kademeleri ve ek filtreleri panelden özelleştirebiliriz.");
 }
 
-main()
-  .catch((e) => {
-    console.error(e);
-    process.exit(1);
-  })
-  .finally(() => prisma.$disconnect());
+const isDirectRun = process.argv[1]?.replace(/\\/g, "/").endsWith("seed-ersa-rules.ts");
+
+if (isDirectRun) {
+  main()
+    .catch((e) => {
+      console.error(e);
+      process.exit(1);
+    })
+    .finally(() => prisma.$disconnect());
+}

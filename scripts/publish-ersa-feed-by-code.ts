@@ -8,8 +8,13 @@ import { ERSA_GUDU_VHT_CODES } from "../src/lib/thyronix/connectors/vht-supplier
 import { resolveVhtTargetDealerId } from "../src/lib/thyronix/connectors/vht-seed-service";
 import { warmFeedXmlCache } from "../src/lib/thyronix/feed-cache-warm";
 import { loadMergedFeedProductsForOutput } from "../src/lib/thyronix/feed-output-service";
-import { resolveFeedSourceIds } from "../src/lib/thyronix/source-feed-provision";
+import { resolveFeedSourceIds, upsertSourceFeed } from "../src/lib/thyronix/source-feed-provision";
 import { ensureCombinedOutputFeed } from "./setup-ersa-gudu-helpers";
+
+async function ensureScriptDbReady() {
+  await prisma.$executeRawUnsafe("PRAGMA journal_mode=WAL;");
+  await prisma.$executeRawUnsafe("PRAGMA busy_timeout=30000;");
+}
 
 const code = (process.argv[2] || "").toUpperCase();
 
@@ -40,6 +45,8 @@ async function main() {
     process.exit(1);
   }
 
+  await ensureScriptDbReady();
+
   const dealerId = await resolveVhtTargetDealerId();
   if (!dealerId) process.exit(1);
 
@@ -68,10 +75,10 @@ async function main() {
     process.exit(1);
   }
 
-  const feed = await prisma.thyronixFeed.findFirst({ where: { sourceId: source.id } });
+  let feed = await prisma.thyronixFeed.findFirst({ where: { sourceId: source.id } });
   if (!feed) {
-    console.log(`✗ ${code} — feed kaydı yok`);
-    process.exit(1);
+    feed = await upsertSourceFeed(source);
+    console.log(`ℹ ${code} — feed kaydı oluşturuldu`);
   }
 
   const sourceIds = await resolveFeedSourceIds(feed);

@@ -1,5 +1,5 @@
 import { prisma } from "../src/lib/db";
-import { ERSA_GUDU_STARTER_RULES } from "./seed-ersa-rules";
+import { ERSA_GUDU_STARTER_RULES } from "./ersa-gudu-rules-constants";
 import {
   ensureDefaultGlobalProfile,
   updateRulesProfile,
