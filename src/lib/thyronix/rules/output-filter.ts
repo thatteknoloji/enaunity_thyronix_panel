@@ -25,8 +25,10 @@ type OutputProduct = {
   sourceId?: string;
   name?: string;
   stock?: number;
+  price?: number;
   status?: string;
   image?: string | null;
+  images?: string | null;
   description?: string | null;
   barcode?: string | null;
   category?: string | null;

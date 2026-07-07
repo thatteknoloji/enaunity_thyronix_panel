@@ -90,32 +90,57 @@ export function shouldHideFromOutput(stock: number, rules: ThyronixStockRules): 
   return stock < rules.hideBelowStock;
 }
 
+function hasProductImage(product: {
+  image?: string | null;
+  images?: string | null;
+}): boolean {
+  if (String(product.image || "").trim()) return true;
+  const raw = String(product.images || "").trim();
+  if (!raw) return false;
+  if (raw.startsWith("http")) return true;
+  try {
+    const parsed = JSON.parse(raw) as unknown;
+    if (Array.isArray(parsed)) return parsed.some((v) => String(v || "").trim().startsWith("http"));
+  } catch {
+    /* fall through */
+  }
+  return raw.includes("http");
+}
+
 export function passesQualityGate(product: {
   image?: string | null;
+  images?: string | null;
   description?: string | null;
   barcode?: string | null;
   category?: string | null;
   vatRate?: number | null;
   variantData?: string | null;
+  stock?: number | null;
+  price?: number | null;
 }, rules: ThyronixGateRules): boolean {
   const hasCompleteVariants = (() => {
     if (!rules.requireVariants) return true;
-    if (!String(product.variantData || "").trim()) return false;
+    const raw = String(product.variantData || "").trim();
+    if (!raw) {
+      const barcode = String(product.barcode || "").trim();
+      const stock = Number(product.stock);
+      const price = Number(product.price);
+      return barcode && Number.isFinite(stock) && stock >= 0 && Number.isFinite(price) && price > 0;
+    }
     try {
-      const parsed = JSON.parse(String(product.variantData)) as Array<Record<string, unknown>>;
+      const parsed = JSON.parse(raw) as Array<Record<string, unknown>>;
       if (!Array.isArray(parsed) || parsed.length === 0) return false;
       return parsed.every((variant) => {
-        const barcode = String(variant.barcode || "").trim();
-        const stock = Number(variant.stock);
-        const price = Number(variant.price);
-        const options = String(variant.options || "").trim();
-        return barcode && Number.isFinite(stock) && stock >= 0 && Number.isFinite(price) && price > 0 && options;
+        const barcode = String(variant.barcode || product.barcode || "").trim();
+        const stock = Number(variant.stock ?? product.stock);
+        const price = Number(variant.price ?? product.price);
+        return barcode && Number.isFinite(stock) && stock >= 0 && Number.isFinite(price) && price > 0;
       });
     } catch {
       return false;
     }
   })();
-  if (rules.requireImage && !String(product.image || "").trim()) return false;
+  if (rules.requireImage && !hasProductImage(product)) return false;
   if (rules.requireDescription && !String(product.description || "").trim()) return false;
   if (rules.requireBarcode && !String(product.barcode || "").trim()) return false;
   if (rules.requireCategory && !String(product.category || "").trim()) return false;
