@@ -19,11 +19,17 @@ async function withRetry<T>(label: string, fn: () => Promise<T>, tries = 6): Pro
   let lastError: unknown;
   for (let i = 0; i < tries; i++) {
     try {
+      await prisma.$connect();
       return await fn();
     } catch (e) {
       lastError = e;
       const waitMs = 1500 * (i + 1);
       console.log(`⚠ ${label} — tekrar ${i + 1}/${tries} (${waitMs}ms)`);
+      try {
+        await prisma.$disconnect();
+      } catch {
+        /* ignore */
+      }
       await new Promise((r) => setTimeout(r, waitMs));
     }
   }
