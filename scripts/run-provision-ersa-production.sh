@@ -31,5 +31,16 @@ sleep 5
 npx prisma generate
 
 echo "=== Provision başlıyor: $(date -Iseconds) ===" | tee "$LOG"
-npx tsx scripts/provision-ersa-dealer-feeds.ts --sync 2>&1 | tee -a "$LOG"
+
+echo "--- Aşama 1: Feed kayıtları + çıktı XML (mevcut ürünler) ---" | tee -a "$LOG"
+npx tsx scripts/provision-ersa-dealer-feeds.ts 2>&1 | tee -a "$LOG" || true
+
+echo "--- Aşama 2: Hatalı kaynak sync (tek tek) ---" | tee -a "$LOG"
+for code in VHT18 VHT24 VHT30 VHT41; do
+  echo ">> $code" | tee -a "$LOG"
+  npx tsx scripts/seed-vht-supplier-feeds.ts --bundle=ersa --sync "$code" 2>&1 | tee -a "$LOG" || true
+done
+
+echo "--- Aşama 3: Çıktı XML yenile ---" | tee -a "$LOG"
+npx tsx scripts/provision-ersa-dealer-feeds.ts 2>&1 | tee -a "$LOG" || true
 echo "=== Bitti: $(date -Iseconds) ===" | tee -a "$LOG"
