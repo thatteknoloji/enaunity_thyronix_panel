@@ -1586,6 +1586,29 @@ enum ThyronixOwnerType {
   DEALER
 }
 
+model ThyronixRulesProfile {
+  id               String   @id @default(cuid())
+  name             String
+  scope            String   @default("global") // global | source
+  dealerId         String?
+  tenantScope      ThyronixTenantScope @default(GLOBAL)
+  ownerType        ThyronixOwnerType   @default(ADMIN)
+  priceRulesJson   String   @default("{}")
+  stockRulesJson   String   @default("{}")
+  gateRulesJson    String   @default("{}")
+  aiRulesJson      String   @default("{}")
+  outputFormat     String?
+  isDefault        Boolean  @default(false)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  sources          ThyronixSource[]
+
+  @@index([dealerId])
+  @@index([scope])
+  @@index([isDefault])
+}
+
 model ThyronixSource {
   id           String   @id @default(cuid())
   name         String
@@ -1603,6 +1626,9 @@ model ThyronixSource {
   dealerId     String?
   tenantScope  ThyronixTenantScope @default(GLOBAL)
   ownerType    ThyronixOwnerType   @default(ADMIN)
+  useCustomRules Boolean @default(false)
+  rulesProfileId String?
+  rulesProfile   ThyronixRulesProfile? @relation(fields: [rulesProfileId], references: [id], onDelete: SetNull)
   createdAt   DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -1612,6 +1638,7 @@ model ThyronixSource {
   @@index([name])
   @@index([dealerId])
   @@index([tenantScope])
+  @@index([rulesProfileId])
 }
 
 model ThyronixProduct {

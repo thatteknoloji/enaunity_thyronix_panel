@@ -16,6 +16,7 @@ import {
   productToThyronixRow,
   resolveSourceFeedUrls,
 } from "../feed-fetch";
+import { mergeSourceProducts } from "../product-merge";
 import { getTemplate } from "../templates";
 
 export async function resolveVhtTargetDealerId(): Promise<string | null> {
@@ -119,23 +120,24 @@ export async function syncVhtSourceById(sourceId: string) {
     rows.push(row);
   }
 
-  await prisma.thyronixProduct.deleteMany({ where: { sourceId } });
-  const BATCH = 1000;
-  for (let i = 0; i < rows.length; i += BATCH) {
-    await prisma.thyronixProduct.createMany({ data: rows.slice(i, i + BATCH) });
-  }
+  const mergeResult = await mergeSourceProducts(sourceId, rows, {
+    dealerId: source.dealerId,
+    tenantScope: source.tenantScope,
+    ownerType: source.ownerType,
+  });
+  const dbCount = await prisma.thyronixProduct.count({ where: { sourceId } });
 
   await prisma.thyronixSource.update({
     where: { id: sourceId },
     data: {
-      productCount: rows.length,
+      productCount: dbCount,
       lastSync: new Date(),
       status: "active",
       errorLog: null,
     },
   });
 
-  return rows.length;
+  return mergeResult.total;
 }
 
 export type VhtSeedResult = {

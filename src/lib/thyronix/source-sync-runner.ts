@@ -12,12 +12,25 @@ import { parseExcel, mapExcelToProducts } from "./excel-parser";
 import { parseCsvToProducts } from "./csv-parser";
 import { loadMergedFeedProducts } from "./feed-output-service";
 import { resolveFeedSourceIds } from "./source-feed-provision";
+import { mergeSourceProducts } from "./product-merge";
 import {
   getMissingRequiredMappings,
   mappingErrorLabel,
   parseMappingRecord,
   validateSourceMappingConfig,
 } from "./mapping-validation";
+
+function mergeContextFromSource(source: {
+  dealerId: string | null;
+  tenantScope: string | null;
+  ownerType: string | null;
+}) {
+  return {
+    dealerId: source.dealerId,
+    tenantScope: source.tenantScope,
+    ownerType: source.ownerType,
+  };
+}
 
 export type ThyronixSourceSyncResult = {
   sourceId: string;
@@ -26,6 +39,8 @@ export type ThyronixSourceSyncResult = {
   total: number;
   created: number;
   updated: number;
+  unchanged?: number;
+  missingFromSource?: number;
   invalid?: number;
   duration: number;
   feeds?: Array<{ url: string; count: number; error?: string }>;
@@ -125,7 +140,8 @@ function assertSourceMappingReady(
 }
 
 export function isThyronixSourceDue(source: { lastSync: Date | null; interval: number | null | undefined }, now = new Date()) {
-  const intervalMinutes = 720;
+  const intervalMinutes = Number(source.interval);
+  if (!Number.isFinite(intervalMinutes) || intervalMinutes <= 0) return false;
   if (!source.lastSync) return true;
   return source.lastSync.getTime() + intervalMinutes * 60 * 1000 <= now.getTime();
 }
@@ -182,26 +198,33 @@ export async function syncThyronixSourceById(
         allData.push(ensureUniqueRowExternalId(productToThyronixRow(p, source.id, fixedValues), identity, usedExternalIds));
       }
 
-      await prisma.thyronixProduct.deleteMany({ where: { sourceId: source.id } });
-      const BATCH = 1000;
-      for (let i = 0; i < allData.length; i += BATCH) {
-        await prisma.thyronixProduct.createMany({ data: allData.slice(i, i + BATCH) });
-      }
+      const mergeResult = await mergeSourceProducts(
+        source.id,
+        allData,
+        mergeContextFromSource(source),
+      );
 
-      if (shouldSnapshot) await postSnapshot(source.id, source.name, allData.length);
+      if (shouldSnapshot) await postSnapshot(source.id, source.name, mergeResult.total);
+      const dbCount = await prisma.thyronixProduct.count({ where: { sourceId: source.id } });
       const now = new Date();
       await prisma.thyronixSource.update({
         where: { id: source.id },
-        data: { productCount: allData.length, lastSync: now, status: "active", errorLog: null } as any,
+        data: { productCount: dbCount, lastSync: now, status: "active", errorLog: null } as any,
       });
       if (shouldRefreshFeedTotals) await refreshDealerFeedTotals(source.dealerId || null);
+      const msgParts = [
+        `${mergeResult.created} yeni`,
+        `${mergeResult.updated} güncelleme`,
+        mergeResult.unchanged ? `${mergeResult.unchanged} değişmedi` : null,
+        mergeResult.missingFromSource ? `${mergeResult.missingFromSource} kaynakta yok (stok 0)` : null,
+      ].filter(Boolean);
       await prisma.thyronixSyncLog.create({
         data: {
           type: "source-sync",
           referenceId: source.name,
           status: "success",
-          message: `XML otomatik/manuel sync: ${allData.length} ürün`,
-          productCount: allData.length,
+          message: `XML sync: ${msgParts.join(", ")}`,
+          productCount: dbCount,
           duration: Date.now() - startTime,
         },
       });
@@ -210,9 +233,11 @@ export async function syncThyronixSourceById(
         sourceId: source.id,
         sourceName: source.name,
         type: sourceType,
-        total: allData.length,
-        created: allData.length,
-        updated: 0,
+        total: mergeResult.total,
+        created: mergeResult.created,
+        updated: mergeResult.updated,
+        unchanged: mergeResult.unchanged,
+        missingFromSource: mergeResult.missingFromSource,
         feeds: feedStats,
         duration: Date.now() - startTime,
       };
@@ -230,88 +255,42 @@ export async function syncThyronixSourceById(
       const products = mapExcelToProducts(parsed.allRows, customFieldMap, fixedValues, variantFieldMap);
       const valid = products.filter((p) => p.valid);
       const invalid = products.length - valid.length;
-      const barcodes = valid.filter((p) => p.barcode).map((p) => p.barcode!);
-      const stockCodes = valid.filter((p) => p.stockCode).map((p) => p.stockCode!);
-      const modelCodes = valid.filter((p) => p.modelCode).map((p) => p.modelCode!);
-      const externalIds = valid.filter((p) => p.externalId).map((p) => p.externalId!);
+      const incomingRows = valid.map((p) => ({
+        name: p.productName,
+        description: p.description || null,
+        brand: p.brand || null,
+        category: p.category || null,
+        barcode: p.barcode || null,
+        stockCode: p.stockCode || null,
+        modelCode: p.modelCode || null,
+        externalId: p.externalId || `EXCEL_${p.rowIndex}`,
+        price: p.price,
+        discountedPrice: p.discountedPrice ?? p.salePrice ?? null,
+        costPrice: p.costPrice ?? null,
+        stock: p.stock,
+        currency: p.currency || "TRY",
+        image: p.image || null,
+        images: p.images || null,
+        weight: p.weight ?? null,
+        dimensions: p.dimensions || null,
+        vatRate: p.vatRate ?? null,
+        deliveryTime: p.deliveryTime || null,
+        manufacturer: p.manufacturer || null,
+        warranty: p.warranty || null,
+        shippingCost: p.shippingCost ?? null,
+        productUrl: p.productUrl || null,
+        variantData: p.variantData || null,
+        metadataJson: p.metadataJson || "{}",
+        status: p.status || "active",
+        sourceId: source.id,
+      }));
 
-      const existingProducts = barcodes.length + stockCodes.length + modelCodes.length + externalIds.length > 0
-        ? await prisma.thyronixProduct.findMany({
-            where: {
-              sourceId: source.id,
-              OR: [
-                ...(barcodes.length > 0 ? [{ barcode: { in: barcodes } }] : []),
-                ...(stockCodes.length > 0 ? [{ stockCode: { in: stockCodes } }] : []),
-                ...(modelCodes.length > 0 ? [{ modelCode: { in: modelCodes } }] : []),
-                ...(externalIds.length > 0 ? [{ externalId: { in: externalIds } }] : []),
-              ],
-            },
-            select: { id: true, barcode: true, stockCode: true, modelCode: true, externalId: true },
-          })
-        : [];
-
-      const byBarcode = new Map(existingProducts.filter((e) => e.barcode).map((e) => [e.barcode!, e.id]));
-      const byStockCode = new Map(existingProducts.filter((e) => e.stockCode).map((e) => [e.stockCode!, e.id]));
-      const byModelCode = new Map(existingProducts.filter((e) => e.modelCode).map((e) => [e.modelCode!, e.id]));
-      const byExternalId = new Map(existingProducts.filter((e) => e.externalId).map((e) => [e.externalId!, e.id]));
-
-      const creates: any[] = [];
-      const updates: { id: string; data: any }[] = [];
-      for (const p of valid) {
-        const existingId =
-          (p.barcode && byBarcode.get(p.barcode)) ||
-          (p.stockCode && byStockCode.get(p.stockCode)) ||
-          (p.modelCode && byModelCode.get(p.modelCode)) ||
-          (p.externalId && byExternalId.get(p.externalId)) ||
-          undefined;
-        const data = {
-          name: p.productName,
-          description: p.description || null,
-          brand: p.brand || null,
-          category: p.category || null,
-          barcode: p.barcode || null,
-          stockCode: p.stockCode || null,
-          modelCode: p.modelCode || null,
-          externalId: p.externalId || `EXCEL_${p.rowIndex}`,
-          price: p.price,
-          discountedPrice: p.discountedPrice ?? p.salePrice ?? null,
-          costPrice: p.costPrice ?? null,
-          stock: p.stock,
-          currency: p.currency || "TRY",
-          image: p.image || null,
-          images: p.images || null,
-          weight: p.weight ?? null,
-          dimensions: p.dimensions || null,
-          vatRate: p.vatRate ?? null,
-          deliveryTime: p.deliveryTime || null,
-          manufacturer: p.manufacturer || null,
-          warranty: p.warranty || null,
-          shippingCost: p.shippingCost ?? null,
-          productUrl: p.productUrl || null,
-          variantData: p.variantData || null,
-          metadataJson: p.metadataJson || "{}",
-          status: p.status || "active",
-          sourceId: source.id,
-        };
-
-        if (existingId) updates.push({ id: existingId, data });
-        else creates.push(data);
-      }
-
-      const BATCH = 500;
-      for (let i = 0; i < creates.length; i += BATCH) {
-        await prisma.thyronixProduct.createMany({ data: creates.slice(i, i + BATCH) as any });
-      }
-      for (let i = 0; i < updates.length; i += BATCH) {
-        const batch = updates.slice(i, i + BATCH);
-        await Promise.all(batch.map((u) => prisma.thyronixProduct.update({ where: { id: u.id }, data: u.data as any })));
-      }
-
-      const total = creates.length + updates.length;
-      if (shouldSnapshot) await postSnapshot(source.id, source.name, total, invalid);
+      const mergeResult = await mergeSourceProducts(source.id, incomingRows, mergeContextFromSource(source));
+      const dbCount = await prisma.thyronixProduct.count({ where: { sourceId: source.id } });
+      if (shouldSnapshot) await postSnapshot(source.id, source.name, mergeResult.total, invalid);
       await prisma.thyronixSource.update({
         where: { id: source.id },
-        data: { productCount: total, lastSync: new Date(), status: "active", errorLog: null } as any,
+        data: { productCount: dbCount, lastSync: new Date(), status: "active", errorLog: null } as any,
       });
       if (shouldRefreshFeedTotals) await refreshDealerFeedTotals(source.dealerId || null);
       await prisma.thyronixSyncLog.create({
@@ -319,13 +298,24 @@ export async function syncThyronixSourceById(
           type: "source-sync",
           referenceId: source.name,
           status: "success",
-          message: `Excel otomatik/manuel sync: ${creates.length} yeni, ${updates.length} güncelleme, ${invalid} hatalı`,
-          productCount: total,
+          message: `Excel sync: ${mergeResult.created} yeni, ${mergeResult.updated} güncelleme, ${invalid} hatalı`,
+          productCount: dbCount,
           duration: Date.now() - startTime,
         },
       });
 
-      return { sourceId: source.id, sourceName: source.name, type: sourceType, total, created: creates.length, updated: updates.length, invalid, duration: Date.now() - startTime };
+      return {
+        sourceId: source.id,
+        sourceName: source.name,
+        type: sourceType,
+        total: mergeResult.total,
+        created: mergeResult.created,
+        updated: mergeResult.updated,
+        unchanged: mergeResult.unchanged,
+        missingFromSource: mergeResult.missingFromSource,
+        invalid,
+        duration: Date.now() - startTime,
+      };
     }
 
     if (sourceType === "csv") {
@@ -337,36 +327,9 @@ export async function syncThyronixSourceById(
         hasHeader: fixedValues._hasHeader !== "false",
       });
 
-      const barcodes = parsed.filter((p) => p.barcode).map((p) => p.barcode!);
-      const stockCodes = parsed.filter((p) => p.stockCode).map((p) => p.stockCode!);
-      const externalIds = parsed.filter((p) => p.externalId).map((p) => p.externalId!);
-      const existingProducts = barcodes.length + stockCodes.length + externalIds.length > 0
-        ? await prisma.thyronixProduct.findMany({
-            where: {
-              sourceId: source.id,
-              OR: [
-                ...(barcodes.length > 0 ? [{ barcode: { in: barcodes } }] : []),
-                ...(stockCodes.length > 0 ? [{ stockCode: { in: stockCodes } }] : []),
-                ...(externalIds.length > 0 ? [{ externalId: { in: externalIds } }] : []),
-              ],
-            },
-            select: { id: true, barcode: true, stockCode: true, externalId: true },
-          })
-        : [];
-      const byBarcode = new Map(existingProducts.filter((e) => e.barcode).map((e) => [e.barcode!, e.id]));
-      const byStockCode = new Map(existingProducts.filter((e) => e.stockCode).map((e) => [e.stockCode!, e.id]));
-      const byExternalId = new Map(existingProducts.filter((e) => e.externalId).map((e) => [e.externalId!, e.id]));
-      const creates: any[] = [];
-      const updates: { id: string; data: any }[] = [];
-
-      for (const p of parsed) {
+      const incomingRows = parsed.map((p) => {
         const extId = p.externalId || p.barcode || p.stockCode || `CSV_${Math.random().toString(36).substring(2, 10)}`;
-        const existingId =
-          (p.barcode && byBarcode.get(p.barcode)) ||
-          (p.stockCode && byStockCode.get(p.stockCode)) ||
-          (p.externalId && byExternalId.get(p.externalId)) ||
-          undefined;
-        const data = {
+        return {
           name: p.name || "",
           description: p.description || null,
           brand: fixedValues.brand || p.brand || null,
@@ -394,24 +357,14 @@ export async function syncThyronixSourceById(
           status: fixedValues.status || "active",
           sourceId: source.id,
         };
-        if (existingId) updates.push({ id: existingId, data });
-        else creates.push(data);
-      }
+      });
 
-      const BATCH = 500;
-      for (let i = 0; i < creates.length; i += BATCH) {
-        await prisma.thyronixProduct.createMany({ data: creates.slice(i, i + BATCH) as any });
-      }
-      for (let i = 0; i < updates.length; i += BATCH) {
-        const batch = updates.slice(i, i + BATCH);
-        await Promise.all(batch.map((u) => prisma.thyronixProduct.update({ where: { id: u.id }, data: u.data as any })));
-      }
-
-      const total = creates.length + updates.length;
-      if (shouldSnapshot) await postSnapshot(source.id, source.name, total);
+      const mergeResult = await mergeSourceProducts(source.id, incomingRows, mergeContextFromSource(source));
+      const dbCount = await prisma.thyronixProduct.count({ where: { sourceId: source.id } });
+      if (shouldSnapshot) await postSnapshot(source.id, source.name, mergeResult.total);
       await prisma.thyronixSource.update({
         where: { id: source.id },
-        data: { productCount: total, lastSync: new Date(), status: "active", errorLog: null } as any,
+        data: { productCount: dbCount, lastSync: new Date(), status: "active", errorLog: null } as any,
       });
       if (shouldRefreshFeedTotals) await refreshDealerFeedTotals(source.dealerId || null);
       await prisma.thyronixSyncLog.create({
@@ -419,13 +372,23 @@ export async function syncThyronixSourceById(
           type: "source-sync",
           referenceId: source.name,
           status: "success",
-          message: `CSV otomatik/manuel sync: ${creates.length} yeni, ${updates.length} güncelleme`,
-          productCount: total,
+          message: `CSV sync: ${mergeResult.created} yeni, ${mergeResult.updated} güncelleme`,
+          productCount: dbCount,
           duration: Date.now() - startTime,
         },
       });
 
-      return { sourceId: source.id, sourceName: source.name, type: sourceType, total, created: creates.length, updated: updates.length, duration: Date.now() - startTime };
+      return {
+        sourceId: source.id,
+        sourceName: source.name,
+        type: sourceType,
+        total: mergeResult.total,
+        created: mergeResult.created,
+        updated: mergeResult.updated,
+        unchanged: mergeResult.unchanged,
+        missingFromSource: mergeResult.missingFromSource,
+        duration: Date.now() - startTime,
+      };
     }
 
     throw new Error(`Desteklenmeyen kaynak tipi: ${sourceType}`);
