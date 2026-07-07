@@ -20,8 +20,12 @@ elif [[ ! -f storage/thyronix/ersa-gudu-feeds.json ]]; then
   exit 1
 fi
 
-echo "=== Ersa Güdü kurulum (kurallar + feed + sync) ==="
+echo "=== Ersa Güdü kurulum (kurallar + feed + sync + çıktı XML) ==="
+pm2 stop enaunity 2>/dev/null || true
+pm2 stop enaunity-job-worker 2>/dev/null || true
 npx tsx scripts/setup-ersa-gudu.ts --sync
+pm2 restart enaunity 2>/dev/null || true
+pm2 restart enaunity-job-worker 2>/dev/null || true
 
 echo "=== Doğrulama ==="
 npx tsx scripts/verify-ersa-gudu-setup.ts --db

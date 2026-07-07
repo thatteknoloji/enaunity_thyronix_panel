@@ -217,9 +217,11 @@ export async function seedErsaGuduPackage(options?: { sync?: boolean }) {
     }
 
     try {
+      console.log(`→ ${code} senkronize ediliyor...`);
       const source = await upsertVhtSource(def, url, dealerId);
       const count = await syncSourceIfRequested(source.id, options?.sync);
       results.push({ code, id: source.id, ...(count != null ? { count } : {}) });
+      if (count != null) console.log(`  ✓ ${code}: ${count.toLocaleString("tr-TR")} ürün`);
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
       results.push({ code, id: "", error: msg });
@@ -237,10 +239,12 @@ export async function seedErsaGuduPackage(options?: { sync?: boolean }) {
     }
   } else {
     try {
+      console.log("→ VHT38/39 Bezos birleşik senkronize ediliyor...");
       const source = await upsertErsaBezosSource(dealerId, bezosPrimary, bezosOffset);
       const count = await syncSourceIfRequested(source.id, options?.sync);
       results.push({ code: "VHT38", id: source.id, ...(count != null ? { count } : {}) });
       results.push({ code: "VHT39", id: source.id, ...(count != null ? { count } : {}) });
+      if (count != null) console.log(`  ✓ VHT38/39: ${count.toLocaleString("tr-TR")} ürün`);
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
       results.push({ code: "VHT38", id: "", error: msg });

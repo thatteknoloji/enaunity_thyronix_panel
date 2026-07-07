@@ -24,9 +24,9 @@ export async function GET() {
     const user = await requireThyronixDealerOrAdmin();
     const feedOwnerFilter = user.role === "admin" ? {} : { dealerId: user.dealerId };
     const feeds = await prisma.thyronixFeed.findMany({
-      where: { sourceId: null, ...feedOwnerFilter },
+      where: feedOwnerFilter,
       include: { source: { select: { name: true, type: true } } },
-      orderBy: { createdAt: "desc" },
+      orderBy: [{ sourceId: "asc" }, { createdAt: "desc" }],
     });
     const data = await Promise.all(feeds.map(async (feed) => {
       try {
