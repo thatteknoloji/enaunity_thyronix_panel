@@ -66,7 +66,6 @@ export async function resolveFeedSourceIds(feed: { sourceId?: string | null; dea
     const source = await prisma.thyronixSource.findFirst({
       where: {
         id: feed.sourceId,
-        status: "active",
         ...(feed.dealerId ? { dealerId: feed.dealerId } : {}),
       },
       select: { id: true },
@@ -75,7 +74,8 @@ export async function resolveFeedSourceIds(feed: { sourceId?: string | null; dea
   }
   const sources = await prisma.thyronixSource.findMany({
     where: {
-      status: "active",
+      status: { in: ["active", "error"] },
+      productCount: { gt: 0 },
       ...(feed.dealerId ? { dealerId: feed.dealerId } : {}),
     },
     select: { id: true },

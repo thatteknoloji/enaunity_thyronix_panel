@@ -32,6 +32,7 @@
     "seed:ersa-rules": "tsx scripts/seed-ersa-rules.ts",
     "setup:ersa-gudu": "tsx scripts/setup-ersa-gudu.ts",
     "repair:ersa-gudu": "tsx scripts/repair-ersa-gudu.ts",
+    "provision:ersa-feeds": "tsx scripts/provision-ersa-dealer-feeds.ts",
     "test:ersa-feeds": "tsx scripts/test-ersa-gudu-feeds.ts",
     "deploy:ersa-gudu": "bash scripts/deploy-ersa-gudu-production.sh",
     "verify:ersa-gudu": "tsx scripts/verify-ersa-gudu-setup.ts",

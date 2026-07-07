@@ -8,7 +8,10 @@ import { generateFeedXml } from "./xml-generator";
 import { getTemplate } from "./templates";
 import { writeFeedXmlCache } from "./feed-output-cache";
 
-export async function warmFeedXmlCache(feedId: string): Promise<{
+export async function warmFeedXmlCache(
+  feedId: string,
+  opts?: { sourceIds?: string[] },
+): Promise<{
   feedId: string;
   productCount: number;
   plan: FeedChunkPlan;
@@ -24,7 +27,7 @@ export async function warmFeedXmlCache(feedId: string): Promise<{
     throw new Error(`Template bulunamadı: ${feed.outputFormat}`);
   }
 
-  const sourceIds = await resolveFeedSourceIds(feed);
+  const sourceIds = opts?.sourceIds?.length ? opts.sourceIds : await resolveFeedSourceIds(feed);
   const { products: merged } = await loadMergedFeedProductsForOutput(feed, sourceIds);
   const plan = planFeedChunks(merged.length);
   const transformSettings = await loadFeedTransformSettings(feed.dealerId);
