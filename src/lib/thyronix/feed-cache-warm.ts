@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/db";
 import { resolveFeedSourceIds } from "./source-feed-provision";
-import { loadMergedFeedProducts } from "./feed-output-service";
+import { loadMergedFeedProductsForOutput } from "./feed-output-service";
 import { planFeedChunks, type FeedChunkPlan } from "./feed-chunk";
 import { loadFeedTransformSettings, applyFeedTransformSettings, type FeedProduct } from "./feed-transform";
 import { parseVariantData } from "./source-metadata";
@@ -25,7 +25,7 @@ export async function warmFeedXmlCache(feedId: string): Promise<{
   }
 
   const sourceIds = await resolveFeedSourceIds(feed);
-  const merged = await loadMergedFeedProducts(feed, sourceIds);
+  const { products: merged } = await loadMergedFeedProductsForOutput(feed, sourceIds);
   const plan = planFeedChunks(merged.length);
   const transformSettings = await loadFeedTransformSettings(feed.dealerId);
   const publishedAt = new Date();

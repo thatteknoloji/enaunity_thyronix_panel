@@ -7,6 +7,26 @@ import {
 } from "@/lib/thyronix/access";
 import { validateSourceMappingConfig } from "@/lib/thyronix/mapping-validation";
 import { getTemplate } from "@/lib/thyronix/templates";
+import { DEFAULT_THYRONIX_SYNC_INTERVAL } from "@/lib/thyronix/sync-interval";
+
+export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
+  try {
+    const user = await requireThyronixDealerOrAdmin();
+    const { id } = await params;
+    await assertCanAccessSource(user, id);
+    const body = await req.json();
+    if (typeof body.interval !== "number") {
+      return NextResponse.json({ success: false, error: "interval gerekli" }, { status: 400 });
+    }
+    const source = await prisma.thyronixSource.update({
+      where: { id },
+      data: { interval: body.interval },
+    });
+    return NextResponse.json({ success: true, data: source });
+  } catch (e) {
+    return thyronixErrorResponse(e);
+  }
+}
 
 export async function PUT(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -37,7 +57,7 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
         fieldMapping: body.fieldMapping || null,
         variantMapping: body.variantMapping || null,
         fixedValues: body.fixedValues || null,
-        interval: body.interval ?? 720,
+        interval: body.interval ?? DEFAULT_THYRONIX_SYNC_INTERVAL,
         status: body.status,
       } as any,
     });

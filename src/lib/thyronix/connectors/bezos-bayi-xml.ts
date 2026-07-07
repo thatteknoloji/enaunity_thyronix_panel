@@ -1,4 +1,4 @@
-import type { FeedTemplate } from "../templates";
+import { DEFAULT_THYRONIX_SYNC_INTERVAL } from "../sync-interval";
 import { getTemplate } from "../templates";
 
 /** Bezos BAYİ XML — bayi feed URL'leri ve alan eşleştirme dokümantasyonu */
@@ -78,11 +78,14 @@ export function buildBezosSourcePayload(dealerName?: string) {
     xmlUrl: BEZOS_BAYI_XML.primaryUrl,
     type: "xml",
     inputFormat: BEZOS_BAYI_XML.inputFormat,
-    interval: 120,
+    interval: DEFAULT_THYRONIX_SYNC_INTERVAL,
     status: "active",
     fieldMapping: JSON.stringify(BEZOS_BAYI_XML.fieldMapping),
     variantMapping: JSON.stringify(BEZOS_BAYI_XML.variantMapping),
-    fixedValues: JSON.stringify(BEZOS_BAYI_XML.fixedValues),
+    fixedValues: JSON.stringify({
+      ...BEZOS_BAYI_XML.fixedValues,
+      _supplierCode: "VHT38",
+    }),
   };
 }
 

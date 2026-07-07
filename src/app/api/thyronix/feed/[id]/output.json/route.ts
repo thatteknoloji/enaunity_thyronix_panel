@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { buildFeedOutputUrls, planFeedChunks, parseFeedPartParam } from "@/lib/thyronix/feed-chunk";
-import { loadMergedFeedProducts } from "@/lib/thyronix/feed-output-service";
+import { loadMergedFeedProductsForOutput } from "@/lib/thyronix/feed-output-service";
 import { applyFeedTransformSettings, loadFeedTransformSettings, type FeedProduct } from "@/lib/thyronix/feed-transform";
 import { resolveFeedSourceIds } from "@/lib/thyronix/source-feed-provision";
 
@@ -16,7 +16,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
     if (!feed) return NextResponse.json({ error: "Feed bulunamadı" }, { status: 404 });
 
     const sourceIds = await resolveFeedSourceIds(feed);
-    const merged = await loadMergedFeedProducts(feed, sourceIds);
+    const { products: merged, filterStats } = await loadMergedFeedProductsForOutput(feed, sourceIds);
     const transformSettings = await loadFeedTransformSettings(feed.dealerId);
     const transformed = applyFeedTransformSettings(merged as FeedProduct[], transformSettings);
     const plan = planFeedChunks(transformed.length);
@@ -30,6 +30,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
       generatedAt: new Date().toISOString(),
       productCount: slice.length,
       totalProducts: plan.totalProducts,
+      outputFilter: filterStats,
       part: chunk?.part || 1,
       totalParts: plan.partCount,
       maxPerFile: plan.maxPerFile,

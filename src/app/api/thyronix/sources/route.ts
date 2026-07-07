@@ -11,6 +11,7 @@ import { buildSourceMappingSummary } from "@/lib/thyronix/source-mapping-summary
 import { getThyronixSourceQualitySummaries } from "@/lib/thyronix/source-quality";
 import { validateSourceMappingConfig } from "@/lib/thyronix/mapping-validation";
 import { getTemplate } from "@/lib/thyronix/templates";
+import { DEFAULT_THYRONIX_SYNC_INTERVAL } from "@/lib/thyronix/sync-interval";
 
 export async function GET() {
   try {
@@ -61,7 +62,7 @@ export async function POST(req: Request) {
         fieldMapping: body.fieldMapping || null,
         variantMapping: body.variantMapping || null,
         fixedValues: body.fixedValues || null,
-        interval: body.interval || 720,
+        interval: body.interval ?? DEFAULT_THYRONIX_SYNC_INTERVAL,
         status: body.status || "active",
         dealerId: owner.dealerId,
         tenantScope: owner.tenantScope,

@@ -11,12 +11,29 @@ export type ThyronixIncomingRow = ThyronixProductSnapshot & {
   metadataJson?: string;
 };
 
+export type SyncDiffSample = {
+  id: string;
+  name: string;
+  externalId?: string;
+  before?: number;
+  after?: number;
+};
+
 export type MergeSourceProductsResult = {
   total: number;
   created: number;
   updated: number;
   unchanged: number;
   missingFromSource: number;
+  createdExternalIds: string[];
+  priceChanged: number;
+  stockChanged: number;
+  diff: {
+    newSamples: SyncDiffSample[];
+    missingSamples: SyncDiffSample[];
+    priceSamples: SyncDiffSample[];
+    stockSamples: SyncDiffSample[];
+  };
 };
 
 type MergeContext = {
@@ -84,6 +101,12 @@ export async function mergeSourceProducts(
 
   const creates: Record<string, unknown>[] = [];
   const updates: { id: string; data: Record<string, unknown> }[] = [];
+  const createdExternalIds: string[] = [];
+  const newSamples: SyncDiffSample[] = [];
+  let priceChanged = 0;
+  let stockChanged = 0;
+  const priceSamples: SyncDiffSample[] = [];
+  const stockSamples: SyncDiffSample[] = [];
 
   for (const raw of incomingRows) {
     const incoming = rowToIncoming({ ...raw, sourceId });
@@ -99,6 +122,14 @@ export async function mergeSourceProducts(
         ownerType: ctx.ownerType ?? "ADMIN",
         status: incoming.status || "active",
       });
+      if (incoming.externalId) createdExternalIds.push(incoming.externalId);
+      if (newSamples.length < 8) {
+        newSamples.push({
+          id: "",
+          name: incoming.name,
+          externalId: incoming.externalId,
+        });
+      }
       created++;
       continue;
     }
@@ -116,6 +147,29 @@ export async function mergeSourceProducts(
       continue;
     }
 
+    if (update.price != null && Number(update.price) !== Number(snap.price)) {
+      priceChanged++;
+      if (priceSamples.length < 8) {
+        priceSamples.push({
+          id: existingId,
+          name: snap.name,
+          before: Number(snap.price),
+          after: Number(update.price),
+        });
+      }
+    }
+    if (update.stock != null && Number(update.stock) !== Number(snap.stock)) {
+      stockChanged++;
+      if (stockSamples.length < 8) {
+        stockSamples.push({
+          id: existingId,
+          name: snap.name,
+          before: Number(snap.stock),
+          after: Number(update.stock),
+        });
+      }
+    }
+
     updates.push({ id: existingId, data: update });
     updated++;
   }
@@ -130,6 +184,7 @@ export async function mergeSourceProducts(
   }
 
   let missingFromSource = 0;
+  const missingSamples: SyncDiffSample[] = [];
   const missingUpdates: { id: string; data: Record<string, unknown> }[] = [];
   for (const p of existingProducts) {
     if (seenIds.has(p.id)) continue;
@@ -139,6 +194,9 @@ export async function mergeSourceProducts(
       data: { stock: 0, status: "missing_from_source" },
     });
     missingFromSource++;
+    if (missingSamples.length < 8) {
+      missingSamples.push({ id: p.id, name: p.name, externalId: p.externalId });
+    }
   }
   for (let i = 0; i < missingUpdates.length; i += BATCH) {
     const batch = missingUpdates.slice(i, i + BATCH);
@@ -146,5 +204,15 @@ export async function mergeSourceProducts(
   }
 
   const total = incomingRows.length;
-  return { total, created, updated, unchanged, missingFromSource };
+  return {
+    total,
+    created,
+    updated,
+    unchanged,
+    missingFromSource,
+    createdExternalIds,
+    priceChanged,
+    stockChanged,
+    diff: { newSamples, missingSamples, priceSamples, stockSamples },
+  };
 }

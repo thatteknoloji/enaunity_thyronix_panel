@@ -201,6 +201,21 @@ export const ALL_TEMPLATES: FeedTemplate[] = [
     },
     notes: "xml.ebijuteri.com — Urunler/Urun, fiyat.bayi_fiyati",
   },
+  {
+    id: "teganic", name: "Teganic Giyim XML", group: "Entegrasyon",
+    rootElement: "Urunler", itemElement: "Urun",
+    variantElement: "Variants", variantItemElement: "Variant",
+    xmlHeader: ENCODING,
+    cdataFields: ["Aciklama", "UrunAdi"],
+    fieldMap: {
+      name: "UrunAdi", description: "Aciklama", brand: "Marka", category: "Kategori",
+      barcode: "Barkod", stockCode: "UrunKodu", externalId: "UrunId",
+      price: "IndirimliFiyat", discountedPrice: "Fiyat", costPrice: "BayiAlışFiyatı",
+      stock: "Miktar", currency: "ParaBirimi", image: "Resim1", images: "Resim2",
+      weight: "Desi", vatRate: "VergiOrani", manufacturer: "Uretici",
+    },
+    notes: "teganicgiyim.com.tr — Urunler/Urun, Variants/Variant",
+  },
 
   // ─────────────── PAZAR YERLERİ ───────────────
   {

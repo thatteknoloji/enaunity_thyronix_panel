@@ -95,11 +95,37 @@ export function passesQualityGate(product: {
   description?: string | null;
   barcode?: string | null;
   category?: string | null;
+  vatRate?: number | null;
+  variantData?: string | null;
 }, rules: ThyronixGateRules): boolean {
+  const hasCompleteVariants = (() => {
+    if (!rules.requireVariants) return true;
+    if (!String(product.variantData || "").trim()) return false;
+    try {
+      const parsed = JSON.parse(String(product.variantData)) as Array<Record<string, unknown>>;
+      if (!Array.isArray(parsed) || parsed.length === 0) return false;
+      return parsed.every((variant) => {
+        const barcode = String(variant.barcode || "").trim();
+        const stock = Number(variant.stock);
+        const price = Number(variant.price);
+        const options = String(variant.options || "").trim();
+        return barcode && Number.isFinite(stock) && stock >= 0 && Number.isFinite(price) && price > 0 && options;
+      });
+    } catch {
+      return false;
+    }
+  })();
   if (rules.requireImage && !String(product.image || "").trim()) return false;
   if (rules.requireDescription && !String(product.description || "").trim()) return false;
   if (rules.requireBarcode && !String(product.barcode || "").trim()) return false;
   if (rules.requireCategory && !String(product.category || "").trim()) return false;
+  if (
+    rules.requireVatRate &&
+    (product.vatRate == null || String(product.vatRate).trim() === "" || !Number.isFinite(Number(product.vatRate)))
+  ) {
+    return false;
+  }
+  if (!hasCompleteVariants) return false;
   return true;
 }
 

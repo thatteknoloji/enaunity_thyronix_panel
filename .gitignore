@@ -29,6 +29,8 @@ Thumbs.db
 .data/
 storage/thyronix/vht-supplier-feeds.json
 scripts/data/vht-supplier-feeds.json
+storage/thyronix/ersa-gudu-feeds.json
+scripts/data/ersa-gudu-feeds.json
 
 .nyc_output/
 

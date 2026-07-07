@@ -11,7 +11,7 @@ import { resolveDealerId } from "@/lib/thyronix/workspace";
 import { normalizeTemplateId } from "@/lib/thyronix/templates";
 import { FEED_REFRESH_INTERVALS } from "@/lib/thyronix/commercial";
 import { buildFeedOutputUrls, planFeedChunks } from "@/lib/thyronix/feed-chunk";
-import { loadMergedFeedProducts } from "@/lib/thyronix/feed-output-service";
+import { loadMergedFeedProductsForOutput } from "@/lib/thyronix/feed-output-service";
 import { resolveFeedSourceIds } from "@/lib/thyronix/source-feed-provision";
 
 function normalizeSchedule(value: unknown): 4 | 6 | 12 | 24 {
@@ -31,12 +31,13 @@ export async function GET() {
     const data = await Promise.all(feeds.map(async (feed) => {
       try {
         const sourceIds = await resolveFeedSourceIds(feed as any);
-        const merged = await loadMergedFeedProducts(feed as any, sourceIds);
+        const { products: merged, filterStats } = await loadMergedFeedProductsForOutput(feed as any, sourceIds);
         const chunkPlan = planFeedChunks(merged.length);
         const outputUrls = buildFeedOutputUrls(feed.id, chunkPlan);
         return {
           ...feed,
           liveProductCount: merged.length,
+          outputFilter: filterStats,
           countMismatch: merged.length !== feed.productCount,
           chunkPlan,
           outputUrls: outputUrls.default,

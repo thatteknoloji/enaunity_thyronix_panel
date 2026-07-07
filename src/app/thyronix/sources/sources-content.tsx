@@ -20,6 +20,12 @@ import {
   inferVariantFieldsFromColumns,
   mappingErrorLabel,
 } from "@/lib/thyronix/mapping-validation";
+import {
+  DEFAULT_THYRONIX_SYNC_INTERVAL,
+  THYRONIX_SYNC_INTERVAL_PRESETS,
+  formatThyronixSyncInterval,
+  isKnownThyronixSyncInterval,
+} from "@/lib/thyronix/sync-interval";
 
 function StatusBadge({ status }: { status: string }) {
   const map: Record<string, { bg: string; text: string; dot: string; label: string }> = {
@@ -118,7 +124,7 @@ export default function ThyronixSources() {
   const [search, setSearch] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [editing, setEditing] = useState<Source | null>(null);
-  const [form, setForm] = useState({ name: "", xmlUrl: "", type: "xml", interval: 720, inputFormat: "custom_xml" });
+  const [form, setForm] = useState({ name: "", xmlUrl: "", type: "xml", interval: DEFAULT_THYRONIX_SYNC_INTERVAL, inputFormat: "custom_xml" });
   const [syncing, setSyncing] = useState<string | null>(null);
   const [fieldMapping, setFieldMapping] = useState<Record<string,string>>({});
   const [variantMapping, setVariantMapping] = useState<Record<string,string>>({});
@@ -295,7 +301,7 @@ export default function ThyronixSources() {
 
   const openNew = () => {
     setEditing(null);
-    setForm({ name: "", xmlUrl: "", type: "xml", interval: 720, inputFormat: "custom_xml" });
+    setForm({ name: "", xmlUrl: "", type: "xml", interval: DEFAULT_THYRONIX_SYNC_INTERVAL, inputFormat: "custom_xml" });
     setFieldMapping({});
     setVariantMapping({});
     setFixedValues({});
@@ -454,6 +460,22 @@ export default function ThyronixSources() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ ...s, status: newStatus }),
     });
+    fetchSources();
+  };
+
+  const handleIntervalChange = async (s: Source, interval: number) => {
+    if (s.interval === interval) return;
+    const res = await fetch(`/api/thyronix/sources/${s.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ interval }),
+    });
+    const data = await res.json().catch(() => null);
+    if (!res.ok || data?.success === false) {
+      toast.error(data?.error || "Aralık güncellenemedi");
+      return;
+    }
+    toast.success(`Senkron aralığı: ${formatThyronixSyncInterval(interval)}`);
     fetchSources();
   };
 
@@ -621,7 +643,21 @@ export default function ThyronixSources() {
                     <span className="text-xs font-medium text-nexa-text-secondary uppercase">{s.type}</span>
                   </td>
                   <td className="py-3 px-4 hidden sm:table-cell">
-                    <span className="text-xs text-nexa-text-secondary">{s.interval} dk</span>
+                    <select
+                      value={isKnownThyronixSyncInterval(s.interval) ? s.interval : DEFAULT_THYRONIX_SYNC_INTERVAL}
+                      onChange={(e) => handleIntervalChange(s, Number(e.target.value))}
+                      className="max-w-[140px] rounded-md border border-nexa-border bg-nexa-bg px-2 py-1 text-xs text-nexa-text focus:outline-none focus:border-nexa-primary/50"
+                      title={formatThyronixSyncInterval(s.interval)}
+                    >
+                      {THYRONIX_SYNC_INTERVAL_PRESETS.map((preset) => (
+                        <option key={preset.minutes} value={preset.minutes}>
+                          {preset.label}
+                        </option>
+                      ))}
+                      {!isKnownThyronixSyncInterval(s.interval) && (
+                        <option value={s.interval}>{formatThyronixSyncInterval(s.interval)}</option>
+                      )}
+                    </select>
                   </td>
                   <td className="py-3 px-4 text-right">
                     <span className="text-sm font-semibold text-nexa-text tabular-nums">{s.productCount.toLocaleString("tr-TR")}</span>
@@ -720,18 +756,20 @@ export default function ThyronixSources() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-nexa-text-secondary mb-1.5">Aralık (dk)</label>
+                  <label className="block text-xs font-medium text-nexa-text-secondary mb-1.5">Senkron aralığı</label>
                   <select
-                    value={form.interval}
+                    value={isKnownThyronixSyncInterval(form.interval) ? form.interval : DEFAULT_THYRONIX_SYNC_INTERVAL}
                     onChange={e => setForm({ ...form, interval: Number(e.target.value) })}
                     className="w-full px-3 py-2 bg-nexa-bg border border-nexa-border rounded-lg text-sm text-nexa-text focus:outline-none focus:border-nexa-primary/50"
                   >
-                    <option value={15}>15 dk</option>
-                    <option value={30}>30 dk</option>
-                    <option value={60}>1 saat</option>
-                    <option value={360}>6 saat</option>
-                    <option value={720}>12 saat</option>
-                    <option value={1440}>24 saat</option>
+                    {THYRONIX_SYNC_INTERVAL_PRESETS.map((preset) => (
+                      <option key={preset.minutes} value={preset.minutes}>
+                        {preset.label}
+                      </option>
+                    ))}
+                    {!isKnownThyronixSyncInterval(form.interval) && (
+                      <option value={form.interval}>{formatThyronixSyncInterval(form.interval)}</option>
+                    )}
                   </select>
                 </div>
               </div>

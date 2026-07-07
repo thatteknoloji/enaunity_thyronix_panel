@@ -2,6 +2,7 @@
  * VHT tedarikçi feed kaynaklarını Thyronix'e ekler/günceller.
  * Run: npx tsx scripts/seed-vht-supplier-feeds.ts
  * Import: npx tsx scripts/seed-vht-supplier-feeds.ts --sync
+ * Ersa paketi: npx tsx scripts/seed-vht-supplier-feeds.ts --bundle=ersa --sync
  * Sync one: npx tsx scripts/seed-vht-supplier-feeds.ts --sync VHT1
  */
 import { prisma } from "../src/lib/db";
@@ -10,16 +11,11 @@ import {
   VHT_FEED_DEFINITIONS,
   buildVhtSourcePayload,
   loadVhtFeedUrlMap,
+  resolveVhtFeedCodes,
+  type VhtFeedBundle,
   type VhtFeedDefinition,
 } from "../src/lib/thyronix/connectors/vht-supplier-feeds";
-import {
-  fetchAndParseXmlFeeds,
-  parseFixedValues,
-  productToThyronixRow,
-  resolveSourceFeedUrls,
-  maskFeedUrl,
-} from "../src/lib/thyronix/feed-fetch";
-import { getTemplate } from "../src/lib/thyronix/templates";
+import { maskFeedUrl } from "../src/lib/thyronix/feed-fetch";
 
 async function resolveTargetDealerId(): Promise<string | null> {
   const dealerIdFromEnv = process.env.BEZOS_BAYI_TARGET_DEALER_ID?.trim();
@@ -68,54 +64,18 @@ async function syncSource(sourceId: string) {
   const source = await prisma.thyronixSource.findUnique({ where: { id: sourceId } });
   if (!source) throw new Error(`Kaynak yok: ${sourceId}`);
 
-  const template = getTemplate(source.inputFormat || "custom_xml");
-  if (!template) throw new Error(`Şablon yok: ${source.inputFormat}`);
-
-  let fieldMapping: Record<string, string> | undefined;
-  if (source.fieldMapping) {
-    try {
-      fieldMapping = JSON.parse(source.fieldMapping) as Record<string, string>;
-    } catch {
-      fieldMapping = undefined;
-    }
-  }
-
-  const fixedValues = parseFixedValues(source.fixedValues);
-  const feedUrls = resolveSourceFeedUrls(source.xmlUrl, source.fixedValues);
-  const { products } = await fetchAndParseXmlFeeds(feedUrls, template, fieldMapping);
-
-  const seen = new Set<string>();
-  const rows = [];
-  for (const p of products) {
-    const row = productToThyronixRow(p, sourceId, fixedValues);
-    if (seen.has(row.externalId)) continue;
-    seen.add(row.externalId);
-    rows.push(row);
-  }
-
-  await prisma.thyronixProduct.deleteMany({ where: { sourceId } });
-  const BATCH = 1000;
-  for (let i = 0; i < rows.length; i += BATCH) {
-    await prisma.thyronixProduct.createMany({ data: rows.slice(i, i + BATCH) });
-  }
-
-  await prisma.thyronixSource.update({
-    where: { id: sourceId },
-    data: {
-      productCount: rows.length,
-      lastSync: new Date(),
-      status: "active",
-      errorLog: null,
-    },
-  });
-
-  return rows.length;
+  const { syncThyronixSourceById } = await import("../src/lib/thyronix/source-sync-runner");
+  const result = await syncThyronixSourceById(sourceId, { snapshot: false });
+  return result.total;
 }
 
 async function main() {
   const args = process.argv.slice(2);
   const doSync = args.includes("--sync");
-  const filter = args.filter((a) => !a.startsWith("--")).map((s) => s.toUpperCase());
+  const bundleArg = args.find((a) => a.startsWith("--bundle="));
+  const bundle = (bundleArg?.split("=")[1] === "ersa" ? "ersa" : undefined) as VhtFeedBundle | undefined;
+  const useErsa = args.includes("--ersa") || bundle === "ersa";
+  const filterCodes = args.filter((a) => !a.startsWith("--")).map((s) => s.toUpperCase());
 
   const dealerId = await resolveTargetDealerId();
   if (!dealerId) {
@@ -123,10 +83,16 @@ async function main() {
     process.exit(1);
   }
 
-  const urlMap = loadVhtFeedUrlMap();
-  const defs = VHT_FEED_DEFINITIONS.filter((d) => (filter.length ? filter.includes(d.code) : true));
+  const urlMap = loadVhtFeedUrlMap({ bundle: useErsa ? "ersa" : bundle });
+  const codes = resolveVhtFeedCodes({
+    bundle: useErsa ? "ersa" : bundle,
+    codes: filterCodes.length ? filterCodes : undefined,
+  });
+  const codeSet = new Set(codes);
+  const defs = VHT_FEED_DEFINITIONS.filter((d) => codeSet.has(d.code));
 
   console.log(`Hedef bayi: ${dealerId}`);
+  console.log(`Paket: ${useErsa ? "ersa (18 feed)" : bundle || "tümü"}`);
   console.log(`${defs.length} VHT feed işlenecek\n`);
 
   const created: Array<{ code: string; id: string; count?: number; error?: string }> = [];

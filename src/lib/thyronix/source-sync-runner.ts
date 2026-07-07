@@ -10,9 +10,14 @@ import {
 } from "./feed-fetch";
 import { parseExcel, mapExcelToProducts } from "./excel-parser";
 import { parseCsvToProducts } from "./csv-parser";
-import { loadMergedFeedProducts } from "./feed-output-service";
+import { loadMergedFeedProductsForOutput } from "./feed-output-service";
 import { resolveFeedSourceIds } from "./source-feed-provision";
-import { mergeSourceProducts } from "./product-merge";
+import { mergeSourceProducts, type MergeSourceProductsResult } from "./product-merge";
+import { buildSyncDiffDetails, summarizeSyncDiff } from "./sync-diff";
+import { applyIncomingPriceRulesBatch } from "./rules/apply";
+import { applyContentRulesBatch } from "./rules/content-apply";
+import { applyAiToNewProductsAfterSync } from "./rules/ai-content";
+import { resolveRulesForSource } from "./rules/resolver";
 import {
   getMissingRequiredMappings,
   mappingErrorLabel,
@@ -109,7 +114,7 @@ async function refreshDealerFeedTotals(dealerId: string | null) {
       select: { id: true, mergeStrategy: true, outputFormat: true, dealerId: true, sourceId: true },
     });
     for (const feed of feeds) {
-      const merged = await loadMergedFeedProducts(feed as any, sourceIds);
+      const { products: merged } = await loadMergedFeedProductsForOutput(feed as any, sourceIds);
       await prisma.thyronixFeed.update({
         where: { id: feed.id },
         data: { productCount: merged.length },
@@ -137,6 +142,49 @@ function assertSourceMappingReady(
   if (!validation.ready) {
     throw new Error(validation.errors.join(" · "));
   }
+}
+
+async function applyRulesToIncomingRows(sourceId: string, rows: Record<string, unknown>[]) {
+  const rules = await resolveRulesForSource(sourceId);
+  const priced = applyIncomingPriceRulesBatch(rows, rules.price);
+  return applyContentRulesBatch(priced, rules.ai);
+}
+
+async function runPostSyncAi(
+  sourceId: string,
+  dealerId: string | null,
+  createdExternalIds: string[],
+): Promise<number> {
+  if (!createdExternalIds.length) return 0;
+  try {
+    return await applyAiToNewProductsAfterSync(sourceId, createdExternalIds, dealerId);
+  } catch {
+    return 0;
+  }
+}
+
+async function writeSourceSyncLog(
+  source: { id: string; name: string },
+  mergeResult: MergeSourceProductsResult,
+  startTime: number,
+  dbCount: number,
+  format: string,
+  extras: string[] = [],
+) {
+  const diff = buildSyncDiffDetails(source.id, source.name, mergeResult);
+  const suffix = extras.length ? ` · ${extras.join(", ")}` : "";
+  await prisma.thyronixSyncLog.create({
+    data: {
+      type: "source-sync",
+      referenceId: source.name,
+      sourceId: source.id,
+      status: "success",
+      message: `${format} sync: ${summarizeSyncDiff(diff)}${suffix}`,
+      detailsJson: JSON.stringify(diff),
+      productCount: dbCount,
+      duration: Date.now() - startTime,
+    },
+  });
 }
 
 export function isThyronixSourceDue(source: { lastSync: Date | null; interval: number | null | undefined }, now = new Date()) {
@@ -198,11 +246,14 @@ export async function syncThyronixSourceById(
         allData.push(ensureUniqueRowExternalId(productToThyronixRow(p, source.id, fixedValues), identity, usedExternalIds));
       }
 
+      const pricedData = await applyRulesToIncomingRows(source.id, allData);
+
       const mergeResult = await mergeSourceProducts(
         source.id,
-        allData,
+        pricedData,
         mergeContextFromSource(source),
       );
+      const aiApplied = await runPostSyncAi(source.id, source.dealerId, mergeResult.createdExternalIds);
 
       if (shouldSnapshot) await postSnapshot(source.id, source.name, mergeResult.total);
       const dbCount = await prisma.thyronixProduct.count({ where: { sourceId: source.id } });
@@ -212,22 +263,14 @@ export async function syncThyronixSourceById(
         data: { productCount: dbCount, lastSync: now, status: "active", errorLog: null } as any,
       });
       if (shouldRefreshFeedTotals) await refreshDealerFeedTotals(source.dealerId || null);
-      const msgParts = [
-        `${mergeResult.created} yeni`,
-        `${mergeResult.updated} güncelleme`,
-        mergeResult.unchanged ? `${mergeResult.unchanged} değişmedi` : null,
-        mergeResult.missingFromSource ? `${mergeResult.missingFromSource} kaynakta yok (stok 0)` : null,
-      ].filter(Boolean);
-      await prisma.thyronixSyncLog.create({
-        data: {
-          type: "source-sync",
-          referenceId: source.name,
-          status: "success",
-          message: `XML sync: ${msgParts.join(", ")}`,
-          productCount: dbCount,
-          duration: Date.now() - startTime,
-        },
-      });
+      await writeSourceSyncLog(
+        source,
+        mergeResult,
+        startTime,
+        dbCount,
+        "XML",
+        aiApplied ? [`${aiApplied} yeni ürüne AI`] : [],
+      );
 
       return {
         sourceId: source.id,
@@ -285,7 +328,10 @@ export async function syncThyronixSourceById(
         sourceId: source.id,
       }));
 
-      const mergeResult = await mergeSourceProducts(source.id, incomingRows, mergeContextFromSource(source));
+      const pricedRows = await applyRulesToIncomingRows(source.id, incomingRows);
+
+      const mergeResult = await mergeSourceProducts(source.id, pricedRows, mergeContextFromSource(source));
+      const aiApplied = await runPostSyncAi(source.id, source.dealerId, mergeResult.createdExternalIds);
       const dbCount = await prisma.thyronixProduct.count({ where: { sourceId: source.id } });
       if (shouldSnapshot) await postSnapshot(source.id, source.name, mergeResult.total, invalid);
       await prisma.thyronixSource.update({
@@ -293,16 +339,17 @@ export async function syncThyronixSourceById(
         data: { productCount: dbCount, lastSync: new Date(), status: "active", errorLog: null } as any,
       });
       if (shouldRefreshFeedTotals) await refreshDealerFeedTotals(source.dealerId || null);
-      await prisma.thyronixSyncLog.create({
-        data: {
-          type: "source-sync",
-          referenceId: source.name,
-          status: "success",
-          message: `Excel sync: ${mergeResult.created} yeni, ${mergeResult.updated} güncelleme, ${invalid} hatalı`,
-          productCount: dbCount,
-          duration: Date.now() - startTime,
-        },
-      });
+      await writeSourceSyncLog(
+        source,
+        mergeResult,
+        startTime,
+        dbCount,
+        "Excel",
+        [
+          ...(invalid ? [`${invalid} hatalı satır`] : []),
+          ...(aiApplied ? [`${aiApplied} AI`] : []),
+        ],
+      );
 
       return {
         sourceId: source.id,
@@ -359,7 +406,10 @@ export async function syncThyronixSourceById(
         };
       });
 
-      const mergeResult = await mergeSourceProducts(source.id, incomingRows, mergeContextFromSource(source));
+      const pricedRows = await applyRulesToIncomingRows(source.id, incomingRows);
+
+      const mergeResult = await mergeSourceProducts(source.id, pricedRows, mergeContextFromSource(source));
+      const aiApplied = await runPostSyncAi(source.id, source.dealerId, mergeResult.createdExternalIds);
       const dbCount = await prisma.thyronixProduct.count({ where: { sourceId: source.id } });
       if (shouldSnapshot) await postSnapshot(source.id, source.name, mergeResult.total);
       await prisma.thyronixSource.update({
@@ -367,16 +417,14 @@ export async function syncThyronixSourceById(
         data: { productCount: dbCount, lastSync: new Date(), status: "active", errorLog: null } as any,
       });
       if (shouldRefreshFeedTotals) await refreshDealerFeedTotals(source.dealerId || null);
-      await prisma.thyronixSyncLog.create({
-        data: {
-          type: "source-sync",
-          referenceId: source.name,
-          status: "success",
-          message: `CSV sync: ${mergeResult.created} yeni, ${mergeResult.updated} güncelleme`,
-          productCount: dbCount,
-          duration: Date.now() - startTime,
-        },
-      });
+      await writeSourceSyncLog(
+        source,
+        mergeResult,
+        startTime,
+        dbCount,
+        "CSV",
+        aiApplied ? [`${aiApplied} AI`] : [],
+      );
 
       return {
         sourceId: source.id,

@@ -6,6 +6,7 @@ import {
   planFeedChunks,
   type FeedChunkPlan,
 } from "./feed-chunk";
+import { filterProductsForOutput } from "./rules/output-filter";
 
 const DB_CHUNK = 2000;
 
@@ -187,6 +188,19 @@ export async function loadMergedFeedProducts(
   return [...buckets.values()].map((bucket) => bucket.winner as Record<string, unknown>);
 }
 
+/** Çıktı XML/CSV/JSON — stok ve kalite kurallarını uygular (DB'ye dokunmaz). */
+export async function loadMergedFeedProductsForOutput(
+  feed: FeedRecord,
+  sourceIds: string[],
+): Promise<{
+  products: Record<string, unknown>[];
+  filterStats: Awaited<ReturnType<typeof filterProductsForOutput>>["stats"];
+}> {
+  const merged = await loadMergedFeedProducts(feed, sourceIds);
+  const filtered = await filterProductsForOutput(merged);
+  return { products: filtered.products, filterStats: filtered.stats };
+}
+
 export async function resolveFeedChunkSlice(
   feed: FeedRecord,
   sourceIds: string[],
@@ -196,7 +210,7 @@ export async function resolveFeedChunkSlice(
   plan: FeedChunkPlan;
   partMeta: { part: number; offset: number; limit: number; productCount: number };
 }> {
-  const merged = await loadMergedFeedProducts(feed, sourceIds);
+  const { products: merged, filterStats } = await loadMergedFeedProductsForOutput(feed, sourceIds);
   const plan = planFeedChunks(merged.length);
   const partIndex = Math.min(Math.max(part, 1), Math.max(plan.partCount, 1)) - 1;
   const chunk = plan.parts[partIndex] || { part: 1, offset: 0, limit: FEED_MAX_PRODUCTS_PER_FILE, productCount: 0, label: "Parça 1/1" };
@@ -206,6 +220,7 @@ export async function resolveFeedChunkSlice(
     products,
     plan,
     partMeta: { part: chunk.part, offset: chunk.offset, limit: chunk.limit, productCount: products.length },
+    filterStats,
   };
 }
 

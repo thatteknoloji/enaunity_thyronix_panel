@@ -1603,10 +1603,27 @@ model ThyronixRulesProfile {
   updatedAt        DateTime @updatedAt
 
   sources          ThyronixSource[]
+  pendingChanges   ThyronixRulesPendingChange[]
 
   @@index([dealerId])
   @@index([scope])
   @@index([isDefault])
+}
+
+model ThyronixRulesPendingChange {
+  id           String   @id @default(cuid())
+  profileId    String
+  profile      ThyronixRulesProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  dealerId     String?
+  proposedJson String
+  previewJson  String?
+  status       String   @default("pending") // pending | applied | cancelled
+  createdAt    DateTime @default(now())
+  appliedAt    DateTime?
+
+  @@index([profileId])
+  @@index([dealerId])
+  @@index([status])
 }
 
 model ThyronixSource {
@@ -1754,14 +1771,17 @@ model ThyronixSyncLog {
   id          String   @id @default(cuid())
   type        String
   referenceId String?
+  sourceId    String?
   status      String
   message     String?
+  detailsJson String?
   productCount Int?
   duration    Int?
   createdAt   DateTime @default(now())
   @@index([type])
   @@index([createdAt])
   @@index([type, createdAt])
+  @@index([sourceId])
 }
 
 model ThyronixExclusion {

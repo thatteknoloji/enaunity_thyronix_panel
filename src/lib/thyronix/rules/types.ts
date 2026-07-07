@@ -24,10 +24,14 @@ export type ThyronixGateRules = {
   requireDescription: boolean;
   requireBarcode: boolean;
   requireCategory: boolean;
+  requireVatRate: boolean;
+  requireVariants: boolean;
 };
 
 export type ThyronixAiRules = {
   enabled: boolean;
+  /** Sync sonrası yeni ürünlere AI uygula (sağlayıcı gerekli) */
+  autoOnNewProducts: boolean;
   stripBrandFromTitle: boolean;
   titlePrefix: string;
   titleSuffix: string;
@@ -63,10 +67,13 @@ export const DEFAULT_THYRONIX_GATE_RULES: ThyronixGateRules = {
   requireDescription: false,
   requireBarcode: false,
   requireCategory: false,
+  requireVatRate: false,
+  requireVariants: false,
 };
 
 export const DEFAULT_THYRONIX_AI_RULES: ThyronixAiRules = {
   enabled: false,
+  autoOnNewProducts: false,
   stripBrandFromTitle: true,
   titlePrefix: "",
   titleSuffix: "",

@@ -4,6 +4,7 @@
  */
 import fs from "fs";
 import path from "path";
+import { DEFAULT_THYRONIX_SYNC_INTERVAL } from "../sync-interval";
 
 export type VhtFeedDefinition = {
   code: string;
@@ -19,6 +20,7 @@ export type VhtFeedDefinition = {
 export const VHT_FEED_DEFINITIONS: VhtFeedDefinition[] = [
   { code: "VHT1", name: "Cercici", supplier: "cercici.com.tr", inputFormat: "leyna",
     fieldMapping: { price: "price", listPrice: "costPrice" } },
+  { code: "VHT2", name: "Teganic Giyim", supplier: "teganicgiyim.com.tr", inputFormat: "teganic" },
   { code: "VHT5", name: "Arias Closet", supplier: "ariasclosetx.com", inputFormat: "ticimax" },
   { code: "VHT7", name: "Leyna", supplier: "leyna.com.tr", inputFormat: "leyna" },
   { code: "VHT8", name: "Tahtadan Kale", supplier: "markentegra.com", inputFormat: "markentegra" },
@@ -40,6 +42,8 @@ export const VHT_FEED_DEFINITIONS: VhtFeedDefinition[] = [
   { code: "VHT34", name: "Toptan Budur", supplier: "toptanbudur.com", inputFormat: "leyna" },
   { code: "VHT36", name: "Lisinya Genel", supplier: "lisinya.com", inputFormat: "lisinya" },
   { code: "VHT37", name: "Lisinya Kitap", supplier: "lisinya.com", inputFormat: "lisinya" },
+  { code: "VHT38", name: "Bezos BAYİ XML", supplier: "bezos.com.tr", inputFormat: "bezos" },
+  { code: "VHT39", name: "Bezos BAYİ XML (OFFSET 50000)", supplier: "bezos.com.tr", inputFormat: "bezos" },
   { code: "VHT40", name: "Kargolat", supplier: "kargolat.com", inputFormat: "leyna" },
   {
     code: "VHT41",
@@ -61,6 +65,48 @@ export const VHT_FEED_DEFINITIONS: VhtFeedDefinition[] = [
   },
 ];
 
+/** Ersa Güdü (esraguden840@gmail.com) — ilk müşteri feed paketi (18 kaynak). */
+export const ERSA_GUDU_VHT_CODES = [
+  "VHT1",
+  "VHT2",
+  "VHT7",
+  "VHT8",
+  "VHT9",
+  "VHT10",
+  "VHT18",
+  "VHT21",
+  "VHT22",
+  "VHT24",
+  "VHT28",
+  "VHT30",
+  "VHT36",
+  "VHT37",
+  "VHT38",
+  "VHT39",
+  "VHT40",
+  "VHT41",
+] as const;
+
+/** Bezos VHT38+VHT39 tek kaynakta birleştirilir (çift ürün önlenir). */
+export const ERSA_BEZOS_VHT_CODES = ["VHT38", "VHT39"] as const;
+
+export function resolveErsaVhtSeedCodes(): string[] {
+  const bezos = new Set<string>(ERSA_BEZOS_VHT_CODES);
+  return ERSA_GUDU_VHT_CODES.filter((c) => !bezos.has(c));
+}
+
+export type VhtFeedBundle = "all" | "ersa";
+
+export function resolveVhtFeedCodes(options?: { bundle?: VhtFeedBundle; codes?: string[] }): string[] {
+  if (options?.codes?.length) {
+    return options.codes.map((c) => c.toUpperCase());
+  }
+  if (options?.bundle === "ersa") {
+    return [...ERSA_GUDU_VHT_CODES];
+  }
+  return VHT_FEED_DEFINITIONS.map((d) => d.code);
+}
+
 const ROOT = process.cwd();
 
 function configPaths(): string[] {
@@ -73,7 +119,56 @@ function configPaths(): string[] {
   return paths;
 }
 
-export function loadVhtFeedUrlMap(): Record<string, string> {
+function ersaConfigPaths(): string[] {
+  const fromEnv = process.env.ERSA_GUDU_FEEDS_PATH?.trim();
+  return [
+    fromEnv,
+    path.join(ROOT, "storage/thyronix/ersa-gudu-feeds.json"),
+    path.join(ROOT, "scripts/data/ersa-gudu-feeds.json"),
+  ].filter(Boolean) as string[];
+}
+
+function readFeedUrlFile(filePath: string): Record<string, string> {
+  const map: Record<string, string> = {};
+  if (!fs.existsSync(filePath)) return map;
+  try {
+    const raw = JSON.parse(fs.readFileSync(filePath, "utf8")) as {
+      feeds?: Array<{ code: string; url: string }>;
+    };
+    for (const row of raw.feeds || []) {
+      if (row.code && row.url) map[row.code] = row.url;
+    }
+  } catch {
+    /* ignore */
+  }
+  return map;
+}
+
+/** Ersa Güdü paketi URL'leri — yalnızca 18 feed. */
+export function loadErsaGuduFeedUrlMap(): Record<string, string> {
+  const map: Record<string, string> = {};
+
+  for (const code of ERSA_GUDU_VHT_CODES) {
+    const envUrl = process.env[`VHT_FEED_${code}_URL`]?.trim();
+    if (envUrl) map[code] = envUrl;
+  }
+
+  for (const filePath of ersaConfigPaths()) {
+    const fromFile = readFeedUrlFile(filePath);
+    for (const [code, url] of Object.entries(fromFile)) {
+      if (!map[code]) map[code] = url;
+    }
+    if (Object.keys(fromFile).length > 0) break;
+  }
+
+  return map;
+}
+
+export function loadVhtFeedUrlMap(options?: { bundle?: VhtFeedBundle }): Record<string, string> {
+  if (options?.bundle === "ersa") {
+    return loadErsaGuduFeedUrlMap();
+  }
+
   const map: Record<string, string> = {};
 
   for (const def of VHT_FEED_DEFINITIONS) {
@@ -127,7 +222,7 @@ export function buildVhtSourcePayload(def: VhtFeedDefinition, xmlUrl: string) {
     xmlUrl,
     type: "xml" as const,
     inputFormat: def.inputFormat,
-    interval: 120,
+    interval: DEFAULT_THYRONIX_SYNC_INTERVAL,
     status: "active" as const,
     fieldMapping: def.fieldMapping ? JSON.stringify(def.fieldMapping) : null,
     variantMapping: def.variantMapping ? JSON.stringify(def.variantMapping) : null,
@@ -135,9 +230,10 @@ export function buildVhtSourcePayload(def: VhtFeedDefinition, xmlUrl: string) {
   };
 }
 
-export function listVhtFeedsWithUrls() {
-  const urls = loadVhtFeedUrlMap();
-  return VHT_FEED_DEFINITIONS.map((def) => ({
+export function listVhtFeedsWithUrls(options?: { bundle?: VhtFeedBundle; codes?: string[] }) {
+  const codes = new Set(resolveVhtFeedCodes(options));
+  const urls = loadVhtFeedUrlMap({ bundle: options?.bundle });
+  return VHT_FEED_DEFINITIONS.filter((def) => codes.has(def.code)).map((def) => ({
     ...def,
     url: urls[def.code] || null,
     hasUrl: Boolean(urls[def.code]),

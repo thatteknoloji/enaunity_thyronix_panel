@@ -27,6 +27,12 @@ type Feed = {
   outputFormat: string;
   productCount: number;
   liveProductCount?: number;
+  outputFilter?: {
+    total: number;
+    hiddenByStock: number;
+    hiddenByGate: number;
+    included: number;
+  };
   countMismatch?: boolean;
   chunkPlan?: ReturnType<typeof planFeedChunks>;
   outputUrls?: Record<string, string>;
@@ -242,7 +248,12 @@ export default function FeedCenterPage() {
                       <td className="px-4 py-3 font-medium text-nexa-text">
                         {f.sourceId ? f.name : "Bayi XML"}
                         <div className="text-xs text-nexa-text-secondary">
-                          {effectiveCount.toLocaleString("tr-TR")} ürün
+                          {effectiveCount.toLocaleString("tr-TR")} ürün çıktıda
+                          {f.outputFilter && (f.outputFilter.hiddenByStock > 0 || f.outputFilter.hiddenByGate > 0) && (
+                            <span className="ml-2 text-amber-400">
+                              · {f.outputFilter.hiddenByStock + f.outputFilter.hiddenByGate} kural ile gizli
+                            </span>
+                          )}
                           {feedParts.needsSplit && (
                             <span className="ml-2 text-amber-400">· {feedParts.partCount} parça</span>
                           )}
