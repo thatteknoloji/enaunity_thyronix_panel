@@ -12,8 +12,16 @@ import { resolveFeedSourceIds, upsertSourceFeed } from "../src/lib/thyronix/sour
 import { ensureCombinedOutputFeed } from "./setup-ersa-gudu-helpers";
 
 async function ensureScriptDbReady() {
-  await prisma.$executeRawUnsafe("PRAGMA journal_mode=WAL;");
-  await prisma.$executeRawUnsafe("PRAGMA busy_timeout=30000;");
+  try {
+    await prisma.$queryRawUnsafe("PRAGMA journal_mode=WAL;");
+  } catch {
+    // WAL zaten açıksa veya desteklenmiyorsa devam et
+  }
+  try {
+    await prisma.$executeRawUnsafe("PRAGMA busy_timeout=30000;");
+  } catch {
+    // busy_timeout ayarlanamazsa devam et
+  }
 }
 
 const code = (process.argv[2] || "").toUpperCase();
