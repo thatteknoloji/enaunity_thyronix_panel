@@ -7,11 +7,8 @@ import {
 } from "@/lib/products/xml-feed/category-mapper";
 
 export async function GET() {
-  let root = await prisma.category.findUnique({ where: { slug: XML_PRODUCTS_ROOT_SLUG } });
-  if (!root) {
-    root = await ensureXmlProductsRoot();
-  }
-
-  const tree = await buildCategoryNavTree(root.id);
+  const root = await prisma.category.findUnique({ where: { slug: XML_PRODUCTS_ROOT_SLUG } });
+  const rootId = root?.id || (await ensureXmlProductsRoot()).id;
+  const tree = await buildCategoryNavTree(rootId);
   return NextResponse.json({ success: true, data: tree });
 }
