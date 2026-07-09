@@ -209,6 +209,7 @@ export async function resolveFeedChunkSlice(
   products: Record<string, unknown>[];
   plan: FeedChunkPlan;
   partMeta: { part: number; offset: number; limit: number; productCount: number };
+  filterStats: Awaited<ReturnType<typeof filterProductsForOutput>>["stats"];
 }> {
   const { products: merged, filterStats } = await loadMergedFeedProductsForOutput(feed, sourceIds);
   const plan = planFeedChunks(merged.length);
