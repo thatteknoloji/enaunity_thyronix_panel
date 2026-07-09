@@ -209,7 +209,7 @@ export default function ProductDetailPage() {
         const matching = parsedVariants.filter((v: { parsedOptions: Array<{ group: string; value: string }> }) =>
           v.parsedOptions.some((opt) => opt.group === group && opt.value === value),
         );
-        const maxStock = matching.reduce((max, v: { stock: number }) => Math.max(max, v.stock || 0), 0);
+        const maxStock = matching.reduce((max: number, v: { stock: number }) => Math.max(max, v.stock || 0), 0);
         map[group][value] = {
           inStock: maxStock > 0,
           lowStock: maxStock > 0 && maxStock <= 5,
