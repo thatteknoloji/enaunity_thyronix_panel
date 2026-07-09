@@ -19,6 +19,9 @@ export type OperasyonItemView = {
   barcode: string;
   sku: string;
   imageUrl: string;
+  lineId?: number;
+  matchSource: string;
+  matchScore: number;
 };
 
 export type OperasyonOrderView = {
@@ -43,6 +46,8 @@ export type OperasyonOrderView = {
   cargoCompany: string;
   shippingLabelUrl: string;
   shippingLabelFileName: string;
+  shipmentPackageId?: number;
+  tyPackageStatus: string;
 };
 
 function parseMeta(json: string | null | undefined): Record<string, unknown> {
@@ -78,6 +83,9 @@ function mapItems(items: Array<{
         metaImage: String(meta.imageUrl || meta.productImageUrl || ""),
         productImage: i.product?.image,
       }),
+      lineId: typeof meta.lineId === "number" ? meta.lineId : undefined,
+      matchSource: String(meta.matchSource || ""),
+      matchScore: Number(meta.matchScore || 0),
     };
   });
 }
@@ -163,13 +171,23 @@ function coreToView(order: CoreOrderShape): OperasyonOrderView {
     cargoCompany: shipment?.cargoCompany || order.carrier || String(meta.cargoProviderName || ""),
     shippingLabelUrl: labelAttachment?.fileUrl || String(meta.shippingLabelUrl || ""),
     shippingLabelFileName: labelAttachment?.fileName || "",
+    shipmentPackageId: typeof meta.shipmentPackageId === "number" ? meta.shipmentPackageId : undefined,
+    tyPackageStatus: String(meta.tyPackageStatus || ""),
   };
 }
 
 export function isOperasyonOrder(sourceType: string, marketplace: string) {
+  const normalizedSourceType = String(sourceType || "").toUpperCase();
+
+  // B2B checkout siparişleri platform bilgisi taşısa bile operasyon paneline düşmemeli.
+  if (normalizedSourceType === "B2B") return false;
+
+  if (normalizedSourceType === HUB_MARKETPLACE_SOURCE) return true;
+  if (normalizedSourceType === "MARKETPLACE") return true;
+  if (normalizedSourceType === "MANUAL" || normalizedSourceType === "DEALER_PRODUCT") return true;
+
+  // Legacy / eksik sourceType kayıtları için marketplace alanını yedek sinyal olarak koruyoruz.
   if (marketplace) return true;
-  if (sourceType === HUB_MARKETPLACE_SOURCE || sourceType === "MARKETPLACE") return true;
-  if (sourceType === "MANUAL" || sourceType === "DEALER_PRODUCT") return true;
   return false;
 }
 
@@ -229,6 +247,8 @@ export async function listOperasyonOrders(filters: {
       cargoCompany: o.shipments[0]?.cargoCompany || "",
       shippingLabelUrl: "",
       shippingLabelFileName: "",
+      shipmentPackageId: undefined,
+      tyPackageStatus: "",
     };
   });
 }
@@ -273,6 +293,8 @@ export async function getOperasyonOrderDetail(orderId: string, dealerId?: string
     cargoCompany: legacy.shipments[0]?.cargoCompany || "",
     shippingLabelUrl: "",
     shippingLabelFileName: "",
+    shipmentPackageId: undefined,
+    tyPackageStatus: "",
   };
 }
 

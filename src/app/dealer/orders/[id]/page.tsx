@@ -75,6 +75,8 @@ type OrderDetail = {
     id: string;
     quantity: number;
     price: number;
+    sku?: string;
+    barcode?: string;
     metadataJson?: string | null;
     product?: { name?: string | null; image?: string | null } | null;
     productCatalogItem?: { name?: string | null; imagesJson?: string | null } | null;
@@ -386,6 +388,36 @@ export default function DealerOrderDetailPage() {
         </div>
       </div>
 
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <div className="rounded-xl border border-ena-border bg-ena-card/30 p-5 shadow-sm">
+          <p className="text-xs font-semibold uppercase text-ena-light/50 mb-2">Sipariş Kimliği</p>
+          <div className="space-y-2 text-sm">
+            <MetaRow label="Order ID" value={order.id} />
+            <MetaRow label="Order No" value={String(order.orderNumber || order.id.slice(0, 8).toUpperCase())} />
+            <MetaRow label="Kaynak" value={String(order.sourceType || "Bilinmiyor")} />
+            <MetaRow label="Platform" value={String(order.marketplace || "B2B")} />
+          </div>
+        </div>
+        <div className="rounded-xl border border-ena-border bg-ena-card/30 p-5 shadow-sm">
+          <p className="text-xs font-semibold uppercase text-ena-light/50 mb-2">Müşteri ve Adres</p>
+          <div className="space-y-2 text-sm">
+            <MetaRow label="Müşteri" value={String(metadata.customerName || "Yok")} />
+            <MetaRow label="Telefon" value={String(metadata.customerPhone || "Yok")} />
+            <MetaRow label="Şehir" value={String(metadata.customerCity || "Yok")} />
+            <MetaRow label="Teslimat" value={String(metadata.customerAddress || order.address || "Yok")} />
+          </div>
+        </div>
+        <div className="rounded-xl border border-ena-border bg-ena-card/30 p-5 shadow-sm">
+          <p className="text-xs font-semibold uppercase text-ena-light/50 mb-2">Operasyon Durumu</p>
+          <div className="space-y-2 text-sm">
+            <MetaRow label="Kargo" value={order.carrier || "Yok"} />
+            <MetaRow label="Takip No" value={order.trackingNumber || "Yok"} />
+            <MetaRow label="Fulfillment" value={String(metadata.tyPackageStatus || order.status || "Yok")} />
+            <MetaRow label="Paket ID" value={String(metadata.shipmentPackageId || "Yok")} />
+          </div>
+        </div>
+      </div>
+
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
         <div className="xl:col-span-2 space-y-6">
           <div className="rounded-xl border border-ena-border bg-ena-card/30 shadow-sm overflow-hidden">
@@ -395,8 +427,10 @@ export default function DealerOrderDetailPage() {
             </div>
             <div className="divide-y divide-ena-border">
               {order.items.map((item) => {
-                const name = item.product?.name || item.productCatalogItem?.name || "Ürün";
-                const image = item.product?.image || "/placeholder.svg";
+                const itemMeta = parseMetadata(item.metadataJson);
+                const rawProductName = String(itemMeta.rawProductName || "");
+                const name = item.product?.name || item.productCatalogItem?.name || rawProductName || "Ürün";
+                const image = item.product?.image || String(itemMeta.imageUrl || itemMeta.productImageUrl || "") || "/placeholder.svg";
                 const digitalDelivery = parseDigitalMetadata(item.metadataJson);
                 return (
                   <div key={item.id} className="flex items-center justify-between gap-4 px-5 py-4 hover:bg-ena-card/40 transition-colors">
@@ -405,6 +439,16 @@ export default function DealerOrderDetailPage() {
                       <div className="min-w-0">
                         <p className="text-sm font-medium text-ena-text truncate">{name}</p>
                         <p className="text-xs text-ena-light/50">{item.quantity} adet x {formatPrice(item.price)}</p>
+                        {(item.barcode || item.sku || itemMeta.lineId || rawProductName) && (
+                          <p className="text-[11px] text-ena-light/40 mt-1">
+                            {item.barcode ? `Barkod: ${item.barcode}` : ""}
+                            {item.barcode && item.sku ? " · " : ""}
+                            {item.sku ? `SKU: ${item.sku}` : ""}
+                            {(item.barcode || item.sku) && itemMeta.lineId ? " · " : ""}
+                            {itemMeta.lineId ? `TY satır: ${itemMeta.lineId}` : ""}
+                            {rawProductName && rawProductName !== name ? ` · TY ürün: ${rawProductName}` : ""}
+                          </p>
+                        )}
                         {digitalDelivery ? (
                           <p className="mt-1 inline-flex rounded-full border border-indigo-400/30 bg-indigo-500/10 px-2 py-0.5 text-[11px] font-medium text-indigo-200">
                             {digitalModeLabel(digitalDelivery.mode)}

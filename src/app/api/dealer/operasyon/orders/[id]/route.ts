@@ -1,79 +1,68 @@
 import { NextResponse } from "next/server";
 import { requireDealer } from "@/lib/auth";
 import {
-  getOperasyonOrderDetail,
   advanceOperasyonOrder,
-  setOperasyonTracking,
   attachOperasyonShippingLabel,
   fetchOperasyonLabelFromTrendyol,
+  getOperasyonOrderDetail,
   refreshOperasyonOrderFromTrendyol,
+  setOperasyonTracking,
 } from "@/lib/fulfillment/operasyon-service";
 
-export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
-  try {
-    const dealer = await requireDealer();
-    if (!dealer.dealerId) {
-      return NextResponse.json({ success: false, error: "Bayi hesabı gerekli" }, { status: 403 });
-    }
-    const { id } = await params;
-    const order = await getOperasyonOrderDetail(id, dealer.dealerId);
-    if (!order) return NextResponse.json({ success: false, error: "Sipariş bulunamadı" }, { status: 404 });
-    return NextResponse.json({ success: true, data: order });
-  } catch {
-    return NextResponse.json({ success: false, error: "Yetkisiz erişim" }, { status: 401 });
-  }
-}
+type Params = { params: Promise<{ id: string }> };
 
-export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function PATCH(req: Request, { params }: Params) {
   try {
-    const dealer = await requireDealer();
-    if (!dealer.dealerId) {
-      return NextResponse.json({ success: false, error: "Bayi hesabı gerekli" }, { status: 403 });
-    }
+    const user = await requireDealer();
     const { id } = await params;
-    const existing = await getOperasyonOrderDetail(id, dealer.dealerId);
-    if (!existing) return NextResponse.json({ success: false, error: "Sipariş bulunamadı" }, { status: 404 });
-
     const body = await req.json();
+    const action = String(body.action || "");
 
-    if (body.action === "advance") {
-      const order = await advanceOperasyonOrder(id, dealer.id);
-      return NextResponse.json({ success: true, data: order });
+    const detail = await getOperasyonOrderDetail(id, user.dealerId!);
+    if (!detail) {
+      return NextResponse.json({ success: false, error: "Sipariş bulunamadı" }, { status: 404 });
     }
 
-    if (body.action === "tracking") {
-      const order = await setOperasyonTracking(id, {
-        trackingNumber: body.trackingNumber,
-        cargoCompany: body.cargoCompany,
+    if (action === "advance") {
+      const updated = await advanceOperasyonOrder(id, "dealer");
+      return NextResponse.json({ success: true, data: updated });
+    }
+
+    if (action === "tracking") {
+      const updated = await setOperasyonTracking(id, {
+        trackingNumber: body.trackingNumber ? String(body.trackingNumber) : undefined,
+        cargoCompany: body.cargoCompany ? String(body.cargoCompany) : undefined,
       });
-      return NextResponse.json({ success: true, data: order });
+      return NextResponse.json({ success: true, data: updated });
     }
 
-    if (body.action === "shipping_label") {
-      if (!body.fileUrl) {
-        return NextResponse.json({ success: false, error: "fileUrl gerekli" }, { status: 400 });
+    if (action === "shipping_label") {
+      const fileUrl = String(body.fileUrl || "");
+      const fileName = String(body.fileName || "");
+      if (!fileUrl || !fileName) {
+        return NextResponse.json({ success: false, error: "Dosya URL ve adı zorunlu" }, { status: 400 });
       }
-      const order = await attachOperasyonShippingLabel(id, {
-        fileUrl: body.fileUrl,
-        fileName: body.fileName || "kargo-etiketi.pdf",
-        fileSize: body.fileSize,
+      const updated = await attachOperasyonShippingLabel(id, {
+        fileUrl,
+        fileName,
+        fileSize: Number(body.fileSize || 0) || 0,
       });
-      return NextResponse.json({ success: true, data: order });
+      return NextResponse.json({ success: true, data: updated });
     }
 
-    if (body.action === "fetch_ty_label") {
-      const order = await fetchOperasyonLabelFromTrendyol(id);
-      return NextResponse.json({ success: true, data: order });
+    if (action === "fetch_ty_label") {
+      const updated = await fetchOperasyonLabelFromTrendyol(id);
+      return NextResponse.json({ success: true, data: updated });
     }
 
-    if (body.action === "refresh_ty_order") {
-      const order = await refreshOperasyonOrderFromTrendyol(id);
-      return NextResponse.json({ success: true, data: order });
+    if (action === "refresh_ty_order") {
+      const updated = await refreshOperasyonOrderFromTrendyol(id);
+      return NextResponse.json({ success: true, data: updated });
     }
 
     return NextResponse.json({ success: false, error: "Geçersiz işlem" }, { status: 400 });
   } catch (e) {
-    const msg = e instanceof Error ? e.message : "Hata";
+    const msg = e instanceof Error ? e.message : "İşlem başarısız";
     return NextResponse.json({ success: false, error: msg }, { status: 400 });
   }
 }
