@@ -33,10 +33,11 @@ export function normalizePriceTiers(raw: unknown): XmlPriceTier[] {
       const markupPercent = Number(row.markupPercent);
       if (!Number.isFinite(minPrice) || minPrice < 0) return null;
       if (!Number.isFinite(markupPercent)) return null;
-      const maxRaw = row.maxPrice;
-      const maxPrice = maxRaw === null || maxRaw === undefined || maxRaw === ""
-        ? null
-        : Number(maxRaw);
+      const maxRaw = (row as { maxPrice?: unknown }).maxPrice;
+      const maxPrice =
+        maxRaw === null || maxRaw === undefined || maxRaw === ""
+          ? null
+          : Number(maxRaw);
       return {
         minPrice,
         maxPrice: maxPrice !== null && Number.isFinite(maxPrice) ? maxPrice : null,
