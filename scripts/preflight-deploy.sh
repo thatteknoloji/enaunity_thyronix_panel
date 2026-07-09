@@ -49,17 +49,20 @@ ERR_COUNT="$(printf '%s\n' "$TYPECHECK_OUT" | rg -c 'error TS' || true)"
 ERR_COUNT="${ERR_COUNT:-0}"
 
 if [[ "$TYPECHECK_EXIT" -eq 0 ]]; then
-  echo "  ✓ typecheck temiz"
+  echo "  ✓ typecheck temiz (0 hata)"
 else
-  echo "  ⚠ typecheck: ${ERR_COUNT} hata (production build bunları atlar)"
+  echo "  ⚠ typecheck: ${ERR_COUNT} hata"
   printf '%s\n' "$TYPECHECK_OUT" | rg 'error TS' | head -15 || true
   if [[ "${ERR_COUNT}" -gt 15 ]]; then
     echo "  … ve $((ERR_COUNT - 15)) hata daha (npm run typecheck)"
   fi
-  if [[ "${PREFLIGHT_STRICT:-0}" == "1" ]]; then
-    echo "✗ PREFLIGHT_STRICT=1 — typecheck fail"
+  # Varsayılan: typecheck fail = preflight fail (temizlik sonrası)
+  # Geçici atlamak için: PREFLIGHT_ALLOW_TS=1 npm run preflight
+  if [[ "${PREFLIGHT_ALLOW_TS:-0}" != "1" ]]; then
+    echo "✗ Typecheck fail — düzelt veya PREFLIGHT_ALLOW_TS=1"
     exit 1
   fi
+  echo "  (PREFLIGHT_ALLOW_TS=1 — devam)"
 fi
 
 PORT="${ENAUNITY_PORT:-3333}"

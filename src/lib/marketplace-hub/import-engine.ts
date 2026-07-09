@@ -46,6 +46,12 @@ async function refreshExistingMarketplaceOrder(
   if (payload.tyPackageStatus) {
     meta.tyPackageStatus = payload.tyPackageStatus;
   }
+  if (payload.platform) {
+    meta.platform = payload.platform;
+  }
+  if (payload.customerAddress) {
+    meta.customerAddress = payload.customerAddress;
+  }
 
   if (payload.cargoTrackingNumber) {
     const tracking = String(payload.cargoTrackingNumber);
@@ -106,6 +112,9 @@ async function refreshExistingMarketplaceOrder(
           imageUrl,
           lineId: line.lineId ?? itemMeta.lineId,
           barcode: line.barcode || itemMeta.barcode,
+          sku: line.sku || itemMeta.sku,
+          rawProductName: line.productName || itemMeta.rawProductName,
+          marketplace: payload.platform || itemMeta.marketplace || core.marketplace || "",
         }),
       },
     });
@@ -194,9 +203,12 @@ export async function importMarketplaceOrderToFulfillment(params: {
       sourceType: "MARKETPLACE",
       metadataJson: JSON.stringify({
         imageUrl: line.imageUrl || product?.image || "",
+        lineId: line.lineId,
         rawProductName: line.productName,
         barcode: line.barcode || "",
         sku: line.sku || "",
+        unitPrice: line.unitPrice,
+        quantity: line.quantity,
         marketplace,
         matchSource: match.matchedSource,
         matchScore: match.matchScore,
@@ -233,11 +245,17 @@ export async function importMarketplaceOrderToFulfillment(params: {
         importedAt: new Date().toISOString(),
       }),
       metadataJson: buildOrderMetadata({
+        platform: marketplace,
         marketplaceOrderId,
         connectionId: params.connectionId,
         customerAddress: payload.customerAddress,
+        customerName: payload.customerName || "",
+        customerPhone: payload.customerPhone || "",
+        customerCity: payload.customerCity || "",
         cargoTrackingNumber: payload.cargoTrackingNumber,
         cargoProviderName: payload.cargoProviderName,
+        shipmentPackageId: payload.shipmentPackageId,
+        tyPackageStatus: payload.tyPackageStatus,
       }),
       items: orderItems,
       shippingCost: costs.shippingCost,

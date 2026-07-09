@@ -36,10 +36,9 @@ jobs:
           # prebuild-safe.sh port dinliyorsa fail eder — CI'da port boş
           npm run build
 
-  typecheck-report:
+  typecheck:
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    continue-on-error: true
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -48,11 +47,5 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npx prisma generate
-      - name: Typecheck report (non-blocking)
-        run: |
-          set +e
-          npx tsc -p tsconfig.typecheck.json --noEmit 2>&1 | tee /tmp/tsc.txt
-          COUNT=$(grep -c 'error TS' /tmp/tsc.txt || echo 0)
-          echo "Typecheck errors: ${COUNT}"
-          # Rapor için artifact; fail etme (continue-on-error)
-          exit 0
+      - name: Typecheck src/
+        run: npx tsc -p tsconfig.typecheck.json --noEmit

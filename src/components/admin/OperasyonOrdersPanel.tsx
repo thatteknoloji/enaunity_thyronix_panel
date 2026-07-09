@@ -16,6 +16,7 @@ import {
 import type { OperasyonOrderView } from "@/lib/fulfillment/operasyon-service";
 import { marketplaceImagePlaceholder } from "@/lib/marketplace-hub/marketplace-image";
 import { toAdminUrl } from "@/lib/auth/admin-access";
+import { readSafeJson } from "@/lib/http/safe-json";
 import { SendToProductionButton } from "@/components/production-center/SendToProductionButton";
 
 type Props = {
@@ -64,9 +65,13 @@ function apiBase(scope: "admin" | "dealer") {
 
 async function fetchJson<T>(url: string): Promise<T> {
   const r = await fetch(url);
-  const d = await r.json();
+  const d = await readSafeJson<{ success?: boolean; data?: T; error?: string }>(r, "Operasyon siparişleri");
   if (!r.ok || !d.success) throw new Error(d.error || "Yüklenemedi");
-  return d.data;
+  return d.data as T;
+}
+
+async function readActionJson<T>(response: Response): Promise<{ success?: boolean; data?: T; error?: string }> {
+  return readSafeJson<{ success?: boolean; data?: T; error?: string }>(response, "Operasyon işlemi");
 }
 
 export default function OperasyonOrdersPanel({ scope }: Props) {
@@ -120,7 +125,7 @@ export default function OperasyonOrdersPanel({ scope }: Props) {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ action: "refresh_ty_order" }),
           });
-          const d = await r.json();
+          const d = await readActionJson<OperasyonOrderView>(r);
           if (r.ok && d.success && d.data) {
             detail = d.data as OperasyonOrderView;
             applyDetail(detail);
@@ -144,9 +149,9 @@ export default function OperasyonOrdersPanel({ scope }: Props) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
       });
-      const d = await r.json();
+      const d = await readActionJson<OperasyonOrderView>(r);
       if (!d.success) throw new Error(d.error || "İşlem başarısız");
-      setSelected(d.data);
+      setSelected(d.data ?? null);
       toast.success("Güncellendi");
       load();
       return d.data as OperasyonOrderView;
@@ -165,7 +170,11 @@ export default function OperasyonOrdersPanel({ scope }: Props) {
       const fd = new FormData();
       fd.append("files", file);
       const up = await fetch("/api/upload", { method: "POST", body: fd });
-      const ud = await up.json();
+      const ud = await readSafeJson<{
+        success?: boolean;
+        data?: Array<{ fileUrl: string; fileName: string; fileSize?: number }>;
+        error?: string;
+      }>(up, "Etiket yükleme");
       if (!ud.success || !ud.data?.[0]) throw new Error(ud.error || "Yükleme başarısız");
       const f = ud.data[0];
       await patchOrder(selected.id, {
@@ -293,6 +302,13 @@ export default function OperasyonOrdersPanel({ scope }: Props) {
                 <p className="text-xs text-gray-500 mt-0.5">
                   {selected.marketplace} · #{selected.marketplaceOrderId}
                 </p>
+                {(selected.shipmentPackageId || selected.tyPackageStatus) && (
+                  <p className="text-[10px] text-gray-400 mt-1">
+                    {selected.shipmentPackageId ? `Paket ID: ${selected.shipmentPackageId}` : ""}
+                    {selected.shipmentPackageId && selected.tyPackageStatus ? " · " : ""}
+                    {selected.tyPackageStatus ? `TY durum: ${selected.tyPackageStatus}` : ""}
+                  </p>
+                )}
               </div>
               <span className={`inline-flex px-2 py-1 rounded text-xs font-medium border ${STATUS_COLORS[normalizeOperationStatus(selected.fulfillmentStatus)]}`}>
                 {operationStatusLabel(selected.fulfillmentStatus)}
@@ -340,7 +356,16 @@ export default function OperasyonOrdersPanel({ scope }: Props) {
                     <ProductThumb name={i.name} imageUrl={i.imageUrl} />
                     <div className="min-w-0 flex-1">
                       <p className="text-sm font-medium text-gray-900">{i.name}</p>
-                      <p className="text-[10px] text-gray-400">Barkod: {i.barcode || "—"} · ×{i.quantity}</p>
+                      <p className="text-[10px] text-gray-400">
+                        Barkod: {i.barcode || "—"} · SKU: {i.sku || "—"} · ×{i.quantity}
+                      </p>
+                      {(i.lineId || i.matchSource) && (
+                        <p className="text-[10px] text-gray-400">
+                          {i.lineId ? `TY satır: ${i.lineId}` : ""}
+                          {i.lineId && i.matchSource ? " · " : ""}
+                          {i.matchSource ? `Eşleşme: ${i.matchSource}${i.matchScore ? ` (${i.matchScore})` : ""}` : ""}
+                        </p>
+                      )}
                       <p className="text-xs font-semibold text-gray-700">{formatPrice(i.salePrice * i.quantity)}</p>
                     </div>
                   </div>
