@@ -1,5 +1,5 @@
 import { DEFAULT_THYRONIX_SYNC_INTERVAL } from "../sync-interval";
-import { getTemplate } from "../templates";
+import { getTemplate, type FeedTemplate } from "../templates";
 
 /** Bezos BAYİ XML — bayi feed URL'leri ve alan eşleştirme dokümantasyonu */
 export const BEZOS_BAYI_XML = {
