@@ -124,13 +124,20 @@ function rowsFromProduct(product: ParsedProductLike, rowIndex: number, priceBase
 export function inspectFeedXml(xml: string, templateId: string): Omit<XmlFeedTestResult, "ok"> {
   if (templateId === "ikas") {
     const info = inspectIkasXml(xml);
+    const normalizedSamples = (info.sampleValues || []).map((sample) => ({
+      id: String(sample.id || ""),
+      name: String(sample.name || ""),
+      category: String(sample.category || ""),
+      barcode: String(sample.barcode || ""),
+      price: String(sample.price || ""),
+    }));
     return {
       productCount: info.productCount,
       detectedFields: info.detectedFields,
       variantFields: info.variantFields,
       categoryValues: info.categoryValues,
       brandValues: info.brandValues,
-      sampleValues: info.sampleValues,
+      sampleValues: normalizedSamples,
     };
   }
   const template = getFeedTemplate(templateId);
