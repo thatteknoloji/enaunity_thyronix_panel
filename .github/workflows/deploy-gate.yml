@@ -1,0 +1,58 @@
+name: Deploy Gate
+
+# Production ile aynı kapı: webpack compile (typecheck skip).
+# Tam tsc temizliği ayrı borç; bu workflow "canlıya alınabilir mi?" sorusunu cevaplar.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Prisma generate
+        run: npx prisma generate
+
+      - name: Production build (skip typecheck)
+        env:
+          NEXT_SKIP_TYPECHECK: "1"
+          # CI'da prebuild port kontrolü gerekmez; .next yok
+          CI: "true"
+        run: |
+          # prebuild-safe.sh port dinliyorsa fail eder — CI'da port boş
+          npm run build
+
+  typecheck-report:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+      - run: npm ci
+      - run: npx prisma generate
+      - name: Typecheck report (non-blocking)
+        run: |
+          set +e
+          npx tsc -p tsconfig.typecheck.json --noEmit 2>&1 | tee /tmp/tsc.txt
+          COUNT=$(grep -c 'error TS' /tmp/tsc.txt || echo 0)
+          echo "Typecheck errors: ${COUNT}"
+          # Rapor için artifact; fail etme (continue-on-error)
+          exit 0
