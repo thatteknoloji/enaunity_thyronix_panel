@@ -103,7 +103,7 @@ async function main() {
   if ("status" in primary) {
     report.push(`- HTTP ${primary.status} · ${primary.ms}ms · ${primary.bytes} byte`);
     report.push(`- XML benzeri içerik: ${primary.looksXml ? "evet" : "hayır"}`);
-    if (primary.finalUrl !== configuredUrl) {
+    if (primary.finalUrl && primary.finalUrl !== configuredUrl) {
       report.push(`- Yönlendirme: ${maskFeedUrl(primary.finalUrl)}`);
     }
     if (!primary.ok) {
