@@ -11,16 +11,19 @@ export const ERSA_GUDU_STARTER_RULES = {
     baseField: "price" as const,
   } satisfies ThyronixPriceRules,
   stock: {
-    hideBelowStock: 3,
+    // 0 stok gizlensin; 1+ çıksın (eski 3 eşiği birçok firmayı boşaltıyordu)
+    hideBelowStock: 1,
     lowStockWarning: 3,
   } satisfies ThyronixStockRules,
   gate: {
-    requireImage: true,
-    requireDescription: true,
-    requireBarcode: true,
-    requireCategory: true,
-    requireVatRate: true,
-    requireVariants: true,
+    // Sıkı gate (image+desc+barcode+category+vat+variants) bazı VHT kaynaklarını
+    // tamamen 0 çıktıya düşürüyordu. Panelden istenirse tekrar sıkılaştırılır.
+    requireImage: false,
+    requireDescription: false,
+    requireBarcode: false,
+    requireCategory: false,
+    requireVatRate: false,
+    requireVariants: false,
   } satisfies ThyronixGateRules,
   ai: {
     enabled: false,
