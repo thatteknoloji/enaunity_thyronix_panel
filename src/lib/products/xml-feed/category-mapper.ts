@@ -116,6 +116,7 @@ export async function ensureXmlCategoryTree(
 
   let feedRoot = await prisma.category.findFirst({
     where: { sourceFeedId: feedId, parentId: xmlRoot.id },
+    select: { id: true, slug: true, name: true },
   });
   if (feedRoot) {
     await prisma.category.update({
