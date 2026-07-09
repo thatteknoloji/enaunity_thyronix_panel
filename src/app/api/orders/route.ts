@@ -338,10 +338,15 @@ export async function POST(req: Request) {
         items: {
           create: itemDetails.map((item) => ({
             productId: item.productId,
+            name: item.product.name || "",
+            sku: item.product.sku || "",
+            barcode: item.product.barcode || "",
             quantity: item.quantity,
             price: item.effectivePrice,
+            costPrice: Number(item.product.costPrice) || 0,
             metadataJson: JSON.stringify({
               productType: item.product.productType || "physical",
+              imageUrl: item.product.image || "",
               digitalDelivery: buildDigitalDeliverySnapshot(item.product),
             }),
           })),
