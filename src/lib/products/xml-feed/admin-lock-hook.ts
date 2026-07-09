@@ -28,7 +28,15 @@ function snapshotVariantFields(variant: {
 
 function findMatchingVariant(
   before: { sku: string; barcode: string; options: string },
-  afterVariants: Array<{ id: string; sku: string; barcode: string; options: string }>,
+  afterVariants: Array<{
+    id: string;
+    sku: string;
+    barcode: string;
+    options: string;
+    price: number;
+    stock: number;
+    image: string;
+  }>,
 ) {
   return (
     afterVariants.find((v) => v.sku && v.sku === before.sku) ||
@@ -113,7 +121,18 @@ export async function applyFeedFieldLocksAfterAdminSave(
     });
   }
 
-  const afterVariants = await db.variant.findMany({ where: { productId } });
+  const afterVariants = await db.variant.findMany({
+    where: { productId },
+    select: {
+      id: true,
+      sku: true,
+      barcode: true,
+      options: true,
+      price: true,
+      stock: true,
+      image: true,
+    },
+  });
   for (const beforeV of beforeVariants) {
     if (!beforeV.feedVariantLink) continue;
     const match = findMatchingVariant(beforeV, afterVariants);
