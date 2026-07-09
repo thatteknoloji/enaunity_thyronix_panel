@@ -25,7 +25,7 @@ const prisma = new PrismaClient();
 
 const emptyItems = await prisma.orderItem.findMany({
   where: {
-    OR: [{ name: "" }, { name: null }],
+    name: "",
     productId: { not: null },
   },
   select: { id: true, productId: true, orderId: true, metadataJson: true },
@@ -71,7 +71,7 @@ for (const item of emptyItems) {
 const blankCustomer = await prisma.order.findMany({
   where: {
     sourceType: "B2B",
-    OR: [{ customerName: "" }, { customerName: null }],
+    customerName: "",
     dealerId: { not: null },
   },
   select: { id: true, dealerId: true, address: true },
