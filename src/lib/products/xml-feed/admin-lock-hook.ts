@@ -86,8 +86,20 @@ export async function applyFeedFieldLocksAfterAdminSave(
   if (!feedLink) return;
 
   const productLocks = detectChangedLocks(
-    snapshotProductFields(beforeProduct),
-    snapshotProductFields(afterProduct),
+    snapshotProductFields({
+      ...beforeProduct,
+      seoTitle: beforeProduct.seoTitle ?? undefined,
+      seoDescription: beforeProduct.seoDescription ?? undefined,
+      image: beforeProduct.image ?? undefined,
+      images: beforeProduct.images ?? undefined,
+    }),
+    snapshotProductFields({
+      ...afterProduct,
+      seoTitle: afterProduct.seoTitle ?? undefined,
+      seoDescription: afterProduct.seoDescription ?? undefined,
+      image: afterProduct.image ?? undefined,
+      images: afterProduct.images ?? undefined,
+    }),
     PRODUCT_LOCKABLE_FIELDS,
   );
   if (Object.keys(productLocks).length) {
