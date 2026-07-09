@@ -70,6 +70,8 @@ type ParsedProductLike = {
   }>;
 };
 
+type ParsedVariant = NonNullable<ParsedProductLike["variants"]>[number];
+
 function rowsFromProduct(product: ParsedProductLike, rowIndex: number, priceBase?: number): ParsedImportRow[] {
   const modelCode = stringValue(product.modelCode || product.stockCode || product.externalId);
   const variants = product.variants?.length
@@ -79,7 +81,7 @@ function rowsFromProduct(product: ParsedProductLike, rowIndex: number, priceBase
   const images = collectImages(product as Record<string, unknown>, {});
   const baseImage = stringValue(product.image) || images[0] || "";
 
-  const buildRow = (variant: ParsedProductLike["variants"][0] | undefined, idx: number): ParsedImportRow => {
+  const buildRow = (variant: ParsedVariant | undefined, idx: number): ParsedImportRow => {
     const variantPrice = variant?.price ?? priceBase ?? product.price ?? product.costPrice ?? 0;
     const barcode = stringValue(variant?.barcode || product.barcode);
     let sku = stringValue(variant?.sku || product.stockCode || "");
