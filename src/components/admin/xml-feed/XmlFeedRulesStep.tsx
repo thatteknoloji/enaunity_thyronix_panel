@@ -3,6 +3,7 @@
 import { Button } from "@/components/ui/button";
 import {
   RULES_FIELD_META,
+  type RuleFieldMeta,
   extraBrandAliasesToText,
   rulesFromForm,
 } from "@/lib/products/xml-feed/mapping-fields";
@@ -214,6 +215,8 @@ export function XmlFeedRulesStep({
           {visibleMeta.map((meta) => {
             const key = meta.key;
             const value = rules[key];
+            const numberMeta: Extract<RuleFieldMeta, { type: "number" }> | null =
+              meta.type === "number" ? (meta as Extract<RuleFieldMeta, { type: "number" }>) : null;
 
             if (meta.type === "boolean") {
               return (
@@ -268,9 +271,9 @@ export function XmlFeedRulesStep({
                 <label className="mb-1 block text-[11px] font-semibold uppercase text-gray-500">{meta.label}</label>
                 <input
                   type={meta.type === "number" ? "number" : "text"}
-                  min={meta.type === "number" ? meta.min : undefined}
-                  max={meta.type === "number" ? meta.max : undefined}
-                  step={meta.type === "number" ? meta.step : undefined}
+                  min={numberMeta?.min}
+                  max={numberMeta?.max}
+                  step={numberMeta?.step}
                   className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm"
                   value={value as string | number}
                   onChange={(e) => {
