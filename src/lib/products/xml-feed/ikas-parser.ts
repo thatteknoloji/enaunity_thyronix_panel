@@ -58,7 +58,7 @@ function variantStock(variant: Record<string, unknown>, productStock: number): n
   const stocks = variant.stocks as Record<string, unknown> | undefined;
   const stockNodes = asArray(stocks?.stock);
   if (stockNodes.length) {
-    return stockNodes.reduce(
+    return stockNodes.reduce<number>(
       (sum, s) => sum + Math.max(0, Math.floor(num((s as Record<string, unknown>)?.stockCount))),
       0,
     );
