@@ -42,8 +42,9 @@ export async function GET(req: Request) {
     }
 
     if (searchParams.get("excludeMarketplace") === "true") {
+      // B2B sekmesi: pazaryeri/operasyon hariç tüm B2B siparişler
+      // (waiting_payment dahil — aksi halde ödeme bekleyen B2B siparişler iki taraftan da kaybolur)
       where.sourceType = "B2B";
-      andClauses.push({ status: { not: "waiting_payment" } });
     }
 
     const fulfillmentStatus = searchParams.get("fulfillmentStatus");

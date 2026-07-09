@@ -24,6 +24,7 @@ interface Order {
 
 const STATUS_TABS = [
   { key: "all", label: "Tümü" },
+  { key: "waiting_payment", label: "Ödeme Bekliyor" },
   { key: "pending_approval", label: "Onay Bekliyor" },
   { key: "approved", label: "Onaylandı" },
   { key: "pending", label: "Beklemede" },
@@ -33,6 +34,7 @@ const STATUS_TABS = [
 ];
 
 const statusColors: Record<string, string> = {
+  waiting_payment: "text-orange-700 bg-orange-50 border-orange-200",
   pending_approval: "text-amber-700 bg-amber-50 border-amber-200",
   approved: "text-blue-700 bg-blue-50 border-blue-200",
   pending: "text-yellow-700 bg-yellow-50 border-yellow-200",
@@ -42,6 +44,7 @@ const statusColors: Record<string, string> = {
 };
 
 const statusLabels: Record<string, string> = {
+  waiting_payment: "Ödeme Bekliyor",
   pending_approval: "Onay Bekliyor",
   approved: "Onaylandı",
   pending: "Beklemede",
