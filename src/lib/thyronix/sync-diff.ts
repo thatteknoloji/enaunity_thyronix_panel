@@ -1,4 +1,4 @@
-import type { MergeSourceProductsResult } from "../product-merge";
+import type { MergeSourceProductsResult } from "./product-merge";
 
 export type ThyronixSyncDiffDetails = {
   sourceId: string;
