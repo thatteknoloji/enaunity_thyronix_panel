@@ -93,13 +93,17 @@ export function parseIkasXmlToRows(xml: string): {
     parseTagValue: false,
     parseAttributeValue: false,
     trimValues: true,
-    isArray: (_name, jpath) =>
-      jpath.endsWith(".products.product") ||
-      jpath.endsWith(".variants.variant") ||
-      jpath.endsWith(".images.image") ||
-      jpath.endsWith(".barcode") ||
-      jpath.endsWith(".stock") ||
-      jpath.endsWith(".price"),
+    isArray: (_name, jpath) => {
+      const path = String(jpath || "");
+      return (
+        path.endsWith(".products.product") ||
+        path.endsWith(".variants.variant") ||
+        path.endsWith(".images.image") ||
+        path.endsWith(".barcode") ||
+        path.endsWith(".stock") ||
+        path.endsWith(".price")
+      );
+    },
   });
 
   const parsed = parser.parse(xml) as Record<string, unknown>;
