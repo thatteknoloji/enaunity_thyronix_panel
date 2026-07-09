@@ -5,12 +5,22 @@ import { requireAdmin } from "@/lib/auth";
 export async function GET() {
   try {
     await requireAdmin();
+    // Firma bazlı (sourceId dolu) + genel (sourceId null) birlikte listelenir.
     const feeds = await prisma.thyronixFeed.findMany({
-      where: { sourceId: null },
-      include: { source: { select: { name: true, type: true } } },
-      orderBy: { createdAt: "desc" },
+      include: {
+        source: { select: { id: true, name: true, type: true, productCount: true } },
+      },
+      orderBy: [{ sourceId: "asc" }, { createdAt: "desc" }],
     });
-    return NextResponse.json({ success: true, data: feeds });
+    return NextResponse.json({
+      success: true,
+      data: feeds,
+      meta: {
+        total: feeds.length,
+        firma: feeds.filter((f) => f.sourceId).length,
+        genel: feeds.filter((f) => !f.sourceId).length,
+      },
+    });
   } catch {
     return NextResponse.json({ success: false, error: "Yetkisiz" }, { status: 401 });
   }
