@@ -72,6 +72,8 @@ NEXT_SKIP_TYPECHECK=1 npm run build
 echo "→ pm2 restart…"
 if command -v pm2 >/dev/null 2>&1 && pm2 describe enaunity >/dev/null 2>&1; then
   pm2 restart enaunity
+  pm2 restart enaunity-job-worker 2>/dev/null || true
+  pm2 save 2>/dev/null || true
 elif systemctl is-active --quiet enaunity 2>/dev/null; then
   systemctl restart enaunity
 else
@@ -79,3 +81,4 @@ else
 fi
 
 echo "✓ Production post-deploy tamam."
+echo "  Günlük deploy için tercih: bash scripts/deploy-production-quick.sh"

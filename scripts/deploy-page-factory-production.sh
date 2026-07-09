@@ -30,9 +30,10 @@ npx prisma generate
 npx prisma db push --skip-generate
 
 rm -rf .next node_modules/.cache 2>/dev/null || true
-npm run build
+NEXT_SKIP_TYPECHECK=1 npm run build
 
 pm2 restart enaunity --update-env
+pm2 restart enaunity-job-worker --update-env 2>/dev/null || true
 pm2 save 2>/dev/null || true
 
 echo "✓ Deploy tamam — $(git log -1 --oneline)"

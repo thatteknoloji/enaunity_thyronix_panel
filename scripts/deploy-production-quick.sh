@@ -52,4 +52,13 @@ else
   echo "⚠ pm2 yok — manuel restart gerekli"
 fi
 
+echo "→ smoke…"
+sleep 2
+CODE="$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:3333/ || true)"
+if [[ "$CODE" == "200" || "$CODE" == "301" || "$CODE" == "302" || "$CODE" == "307" || "$CODE" == "308" ]]; then
+  echo "  ✓ HTTP ${CODE}"
+else
+  echo "  ⚠ HTTP ${CODE:-?} — log: pm2 logs enaunity --lines 40"
+fi
+
 echo "✓ Deploy tamam — $(git log -1 --oneline)"
