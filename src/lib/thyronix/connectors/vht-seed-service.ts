@@ -32,12 +32,13 @@ export async function resolveVhtTargetDealerId(): Promise<string | null> {
     if (user?.dealerId) return user.dealerId;
   }
 
-  const licensed = await prisma.moduleLicense.findFirst({
-    where: { moduleKey: "THYRONIX", status: "ACTIVE", dealerId: { not: null } },
+  const licensed = await prisma.moduleLicense.findMany({
+    where: { moduleKey: "THYRONIX", status: "ACTIVE" },
     select: { dealerId: true },
     orderBy: { updatedAt: "desc" },
+    take: 20,
   });
-  return licensed?.dealerId ?? null;
+  return licensed.find((l) => l.dealerId)?.dealerId ?? null;
 }
 
 /** API seed: oturum açmış bayinin hesabına ekler. */
