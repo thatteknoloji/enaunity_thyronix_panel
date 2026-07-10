@@ -8,7 +8,7 @@ import {
   ensureDefaultGlobalProfile,
   updateRulesProfile,
 } from "../src/lib/thyronix/rules/profile-service";
-import { ERSA_GUDU_STARTER_RULES } from "./ersa-gudu-rules-constants";
+import { STARTER_PACKAGE_RULES } from "./ersa-gudu-rules-constants";
 
 async function main() {
   const dealerId = await resolveVhtTargetDealerId();
@@ -22,8 +22,8 @@ async function main() {
 
   const profile = await ensureDefaultGlobalProfile(dealerId);
   const updated = await updateRulesProfile(profile.id, dealerId, {
-    name: "Genel Kurallar — Ersa Güdü",
-    ...ERSA_GUDU_STARTER_RULES,
+    name: "Genel Kurallar",
+    ...STARTER_PACKAGE_RULES,
   });
 
   // Workspace feed transform (çıktı marka / yasaklı kelimeler)

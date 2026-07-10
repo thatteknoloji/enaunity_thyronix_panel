@@ -1,10 +1,10 @@
 import type { ThyronixAiRules, ThyronixGateRules, ThyronixPriceRules, ThyronixStockRules } from "../src/lib/thyronix/rules/types";
 
-/** Ersa Güdü başlangıç kuralları — panelden sonra ince ayar yapılabilir. */
-export const ERSA_GUDU_STARTER_RULES = {
+/** Önerilen başlangıç kuralları — fiyat XML ile aynı (×1); panelden özelleştirilir. */
+export const STARTER_PACKAGE_RULES = {
   price: {
     mode: "flat" as const,
-    multiplier: 2.5,
+    multiplier: 1,
     fixedAdjustment: 0,
     tiers: [],
     roundTo: 0,
@@ -36,3 +36,6 @@ export const ERSA_GUDU_STARTER_RULES = {
     bannedWords: ["çakma", "taklit", "replika", "muadil"],
   } satisfies ThyronixAiRules,
 };
+
+/** @deprecated STARTER_PACKAGE_RULES kullanın */
+export const ERSA_GUDU_STARTER_RULES = STARTER_PACKAGE_RULES;

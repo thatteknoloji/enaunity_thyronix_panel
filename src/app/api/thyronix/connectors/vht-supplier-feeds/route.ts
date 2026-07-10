@@ -1,15 +1,16 @@
 import { NextResponse } from "next/server";
-import { requireThyronixDealerOrAdmin, thyronixErrorResponse } from "@/lib/thyronix/access";
+import { isThyronixAdmin, requireThyronixDealerOrAdmin, thyronixErrorResponse } from "@/lib/thyronix/access";
 import { canAccessBezosConnector } from "@/lib/thyronix/connectors/bezos-bayi-access";
 import {
   getVhtFeedStatus,
-  seedErsaGuduPackage,
+  requireDealerIdForSeed,
+  seedStarterSupplierPackage,
   seedVhtSupplierFeeds,
 } from "@/lib/thyronix/connectors/vht-seed-service";
 import type { VhtFeedBundle } from "@/lib/thyronix/connectors/vht-supplier-feeds";
 
 function parseBundle(value: unknown): VhtFeedBundle | undefined {
-  if (value === "ersa" || value === "all") return value;
+  if (value === "starter" || value === "ersa" || value === "all") return value === "ersa" ? "starter" : value;
   return undefined;
 }
 
@@ -17,7 +18,7 @@ export async function GET(req: Request) {
   try {
     const user = await requireThyronixDealerOrAdmin();
     if (!canAccessBezosConnector(user)) {
-      return NextResponse.json({ success: false, error: "Bu entegrasyon yalnızca yetkili bayi için açıktır" }, { status: 403 });
+      return NextResponse.json({ success: false, error: "THYRONIX lisansı gerekli" }, { status: 403 });
     }
 
     const { searchParams } = new URL(req.url);
@@ -33,16 +34,21 @@ export async function POST(req: Request) {
   try {
     const user = await requireThyronixDealerOrAdmin();
     if (!canAccessBezosConnector(user)) {
-      return NextResponse.json({ success: false, error: "Bu entegrasyon yalnızca yetkili bayi için açıktır" }, { status: 403 });
+      return NextResponse.json({ success: false, error: "THYRONIX lisansı gerekli" }, { status: 403 });
     }
 
     const body = await req.json().catch(() => ({}));
     const action = body.action || "seed";
     const codes = Array.isArray(body.codes) ? body.codes.map(String) : undefined;
     const bundle = parseBundle(body.bundle);
+    const dealerId = requireDealerIdForSeed(
+      user,
+      isThyronixAdmin(user) && body.dealerId ? String(body.dealerId) : null
+    );
 
     if (action === "seed" || action === "seed-sync") {
       const data = await seedVhtSupplierFeeds({
+        dealerId,
         sync: action === "seed-sync",
         codes,
         bundle,
@@ -50,8 +56,14 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: true, data });
     }
 
-    if (action === "seed-ersa" || action === "seed-ersa-sync") {
-      const data = await seedErsaGuduPackage({ sync: action === "seed-ersa-sync" });
+    if (
+      action === "seed-starter" ||
+      action === "seed-starter-sync" ||
+      action === "seed-ersa" ||
+      action === "seed-ersa-sync"
+    ) {
+      const sync = action === "seed-starter-sync" || action === "seed-ersa-sync";
+      const data = await seedStarterSupplierPackage({ dealerId, sync });
       return NextResponse.json({ success: true, data });
     }
 

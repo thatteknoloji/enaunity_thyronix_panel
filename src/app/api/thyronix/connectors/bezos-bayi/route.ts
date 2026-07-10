@@ -6,6 +6,7 @@ import {
   requireThyronixDealerOrAdmin,
   thyronixErrorResponse,
 } from "@/lib/thyronix/access";
+import { resolveDealerId } from "@/lib/thyronix/workspace";
 import {
   getWorkspaceSettingsByDealerId,
   updateWorkspaceSettingsByDealerId,
@@ -17,7 +18,6 @@ import {
 } from "@/lib/thyronix/connectors/bezos-bayi-xml";
 import {
   canAccessBezosConnector,
-  getBezosAllowedEmails,
 } from "@/lib/thyronix/connectors/bezos-bayi-access";
 import { getTemplate } from "@/lib/thyronix/templates";
 import { parseXmlToProducts } from "@/lib/thyronix/xml-parser";
@@ -30,31 +30,15 @@ import {
 
 const CONNECTOR_SLUG = "bezos-bayi-xml";
 
-async function resolveTargetDealer() {
-  const dealerIdFromEnv = process.env.BEZOS_BAYI_TARGET_DEALER_ID?.trim();
-  if (dealerIdFromEnv) {
-    const dealer = await prisma.dealer.findUnique({
-      where: { id: dealerIdFromEnv },
-      select: { id: true, name: true, company: true },
-    });
-    if (dealer) return dealer;
+async function resolveDealerForConnector(user: Awaited<ReturnType<typeof requireThyronixDealerOrAdmin>>) {
+  const dealerId = await resolveDealerId(user);
+  if (!dealerId) {
+    return null;
   }
-
-  const allowedEmails = getBezosAllowedEmails();
-  for (const email of allowedEmails) {
-    const user = await prisma.user.findFirst({
-      where: { email, dealerId: { not: null } },
-      select: { dealerId: true },
-    });
-    if (user?.dealerId) {
-      const dealer = await prisma.dealer.findUnique({
-        where: { id: user.dealerId },
-        select: { id: true, name: true, company: true },
-      });
-      if (dealer) return dealer;
-    }
-  }
-  return null;
+  return prisma.dealer.findUnique({
+    where: { id: dealerId },
+    select: { id: true, name: true, company: true },
+  });
 }
 
 function loadSampleXml() {
@@ -88,11 +72,11 @@ export async function GET() {
   try {
     const user = await requireThyronixDealerOrAdmin();
     if (!canAccessBezosConnector(user)) {
-      return NextResponse.json({ success: false, error: "Bu entegrasyon yalnızca yetkili bayi için açıktır" }, { status: 403 });
+      return NextResponse.json({ success: false, error: "THYRONIX lisansı gerekli" }, { status: 403 });
     }
-    const targetDealer = await resolveTargetDealer();
+    const targetDealer = await resolveDealerForConnector(user);
     if (!targetDealer) {
-      return NextResponse.json({ success: false, error: "Hedef bayi bulunamadı (BEZOS_BAYI_TARGET_DEALER_ID/EMAILS kontrol edin)" }, { status: 500 });
+      return NextResponse.json({ success: false, error: "Bayi hesabı gerekli" }, { status: 400 });
     }
 
     const savedSource = await prisma.thyronixSource.findFirst({
@@ -191,11 +175,11 @@ export async function POST(req: Request) {
   try {
     const user = await requireThyronixDealerOrAdmin();
     if (!canAccessBezosConnector(user)) {
-      return NextResponse.json({ success: false, error: "Bu entegrasyon yalnızca yetkili bayi için açıktır" }, { status: 403 });
+      return NextResponse.json({ success: false, error: "THYRONIX lisansı gerekli" }, { status: 403 });
     }
-    const targetDealer = await resolveTargetDealer();
+    const targetDealer = await resolveDealerForConnector(user);
     if (!targetDealer) {
-      return NextResponse.json({ success: false, error: "Hedef bayi bulunamadı (BEZOS_BAYI_TARGET_DEALER_ID/EMAILS kontrol edin)" }, { status: 500 });
+      return NextResponse.json({ success: false, error: "Bayi hesabı gerekli" }, { status: 400 });
     }
     const body = await req.json().catch(() => ({}));
     const action = body.action || "save";

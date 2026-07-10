@@ -65,8 +65,8 @@ export const VHT_FEED_DEFINITIONS: VhtFeedDefinition[] = [
   },
 ];
 
-/** Ersa Güdü (esraguden840@gmail.com) — ilk müşteri feed paketi (18 kaynak). */
-export const ERSA_GUDU_VHT_CODES = [
+/** Önerilen başlangıç tedarikçi paketi (18 kaynak). */
+export const STARTER_VHT_CODES = [
   "VHT1",
   "VHT2",
   "VHT7",
@@ -87,22 +87,35 @@ export const ERSA_GUDU_VHT_CODES = [
   "VHT41",
 ] as const;
 
+/** @deprecated STARTER_VHT_CODES */
+export const ERSA_GUDU_VHT_CODES = STARTER_VHT_CODES;
+
 /** Bezos VHT38+VHT39 tek kaynakta birleştirilir (çift ürün önlenir). */
 export const ERSA_BEZOS_VHT_CODES = ["VHT38", "VHT39"] as const;
+export const STARTER_BEZOS_VHT_CODES = ERSA_BEZOS_VHT_CODES;
 
-export function resolveErsaVhtSeedCodes(): string[] {
-  const bezos = new Set<string>(ERSA_BEZOS_VHT_CODES);
-  return ERSA_GUDU_VHT_CODES.filter((c) => !bezos.has(c));
+export function resolveStarterVhtSeedCodes(): string[] {
+  const bezos = new Set<string>(STARTER_BEZOS_VHT_CODES);
+  return STARTER_VHT_CODES.filter((c) => !bezos.has(c));
 }
 
-export type VhtFeedBundle = "all" | "ersa";
+/** @deprecated resolveStarterVhtSeedCodes */
+export function resolveErsaVhtSeedCodes(): string[] {
+  return resolveStarterVhtSeedCodes();
+}
+
+export type VhtFeedBundle = "all" | "starter" | "ersa";
+
+function isStarterBundle(bundle?: VhtFeedBundle): boolean {
+  return bundle === "starter" || bundle === "ersa";
+}
 
 export function resolveVhtFeedCodes(options?: { bundle?: VhtFeedBundle; codes?: string[] }): string[] {
   if (options?.codes?.length) {
     return options.codes.map((c) => c.toUpperCase());
   }
-  if (options?.bundle === "ersa") {
-    return [...ERSA_GUDU_VHT_CODES];
+  if (isStarterBundle(options?.bundle)) {
+    return [...STARTER_VHT_CODES];
   }
   return VHT_FEED_DEFINITIONS.map((d) => d.code);
 }
@@ -165,7 +178,7 @@ export function loadErsaGuduFeedUrlMap(): Record<string, string> {
 }
 
 export function loadVhtFeedUrlMap(options?: { bundle?: VhtFeedBundle }): Record<string, string> {
-  if (options?.bundle === "ersa") {
+  if (options?.bundle === "starter" || options?.bundle === "ersa") {
     return loadErsaGuduFeedUrlMap();
   }
 

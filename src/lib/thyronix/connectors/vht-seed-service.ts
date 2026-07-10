@@ -1,4 +1,6 @@
 import { prisma } from "@/lib/db";
+import type { User } from "@/types";
+import { isThyronixPlatformAdmin } from "@/lib/thyronix/tenant-access";
 import { getBezosAllowedEmails } from "./bezos-bayi-access";
 import { buildBezosSourcePayload } from "./bezos-bayi-xml";
 import {
@@ -7,9 +9,9 @@ import {
   loadErsaGuduFeedUrlMap,
   loadVhtFeedUrlMap,
   listVhtFeedsWithUrls,
-  resolveErsaVhtSeedCodes,
+  resolveStarterVhtSeedCodes,
   resolveVhtFeedCodes,
-  ERSA_BEZOS_VHT_CODES,
+  STARTER_BEZOS_VHT_CODES,
   type VhtFeedBundle,
   type VhtFeedDefinition,
 } from "./vht-supplier-feeds";
@@ -17,6 +19,7 @@ import { maskFeedUrl } from "../feed-fetch";
 import { syncThyronixSourceById } from "../source-sync-runner";
 import { DEFAULT_THYRONIX_SYNC_INTERVAL } from "../sync-interval";
 
+/** CLI / migration script'leri — env veya ops e-posta listesi. API seed bunu kullanmaz. */
 export async function resolveVhtTargetDealerId(): Promise<string | null> {
   const dealerIdFromEnv = process.env.BEZOS_BAYI_TARGET_DEALER_ID?.trim();
   if (dealerIdFromEnv) return dealerIdFromEnv;
@@ -28,14 +31,34 @@ export async function resolveVhtTargetDealerId(): Promise<string | null> {
     });
     if (user?.dealerId) return user.dealerId;
   }
-  return null;
+
+  const licensed = await prisma.moduleLicense.findFirst({
+    where: { moduleKey: "THYRONIX", status: "ACTIVE", dealerId: { not: null } },
+    select: { dealerId: true },
+    orderBy: { updatedAt: "desc" },
+  });
+  return licensed?.dealerId ?? null;
+}
+
+/** API seed: oturum açmış bayinin hesabına ekler. */
+export function requireDealerIdForSeed(
+  user: Pick<User, "dealerId" | "role">,
+  overrideDealerId?: string | null
+): string {
+  if (overrideDealerId && isThyronixPlatformAdmin(user as User)) {
+    return overrideDealerId;
+  }
+  if (user.dealerId) return user.dealerId;
+  throw new Error("Bayi hesabı gerekli — tedarikçiler oturum açmış bayinin hesabına eklenir");
 }
 
 export function getVhtFeedStatus(options?: { bundle?: VhtFeedBundle; codes?: string[] }) {
   const feeds = listVhtFeedsWithUrls(options);
   const withUrl = feeds.filter((f) => f.hasUrl);
+  const bundle = options?.bundle || (options?.codes?.length ? "custom" : "all");
+  const normalizedBundle = bundle === "ersa" ? "starter" : bundle;
   return {
-    bundle: options?.bundle || (options?.codes?.length ? "custom" : "all"),
+    bundle: normalizedBundle,
     total: feeds.length,
     configured: withUrl.length,
     missing: feeds.filter((f) => !f.hasUrl).map((f) => f.code),
@@ -79,9 +102,15 @@ async function upsertVhtSource(def: VhtFeedDefinition, url: string, dealerId: st
   });
 }
 
-async function upsertErsaBezosSource(dealerId: string, primaryUrl: string, offsetUrl: string) {
+async function upsertBezosBayiSource(
+  dealerId: string,
+  primaryUrl: string,
+  offsetUrl: string,
+  dealerLabel?: string
+) {
   const dealer = await prisma.dealer.findUnique({ where: { id: dealerId } });
-  const base = buildBezosSourcePayload(dealer?.name || dealer?.company || "Ersa Güdü");
+  const label = dealerLabel || dealer?.company || dealer?.name || "Bayi";
+  const base = buildBezosSourcePayload(label);
   const fixed = {
     ...JSON.parse(base.fixedValues || "{}"),
     _supplierCode: "VHT38",
@@ -136,17 +165,14 @@ export type VhtSeedResult = {
   error?: string;
 };
 
-export async function seedVhtSupplierFeeds(options?: {
+export async function seedVhtSupplierFeeds(options: {
+  dealerId: string;
   sync?: boolean;
   codes?: string[];
   bundle?: VhtFeedBundle;
 }) {
-  const dealerId = await resolveVhtTargetDealerId();
-  if (!dealerId) {
-    throw new Error("Hedef bayi bulunamadı (BEZOS_BAYI_TARGET_DEALER_ID veya BEZOS_BAYI_ALLOWED_EMAILS)");
-  }
-
-  const urlMap = loadVhtFeedUrlMap({ bundle: options?.bundle });
+  const { dealerId } = options;
+  const urlMap = loadVhtFeedUrlMap({ bundle: options.bundle });
   const filter = new Set(resolveVhtFeedCodes(options));
   const defs = VHT_FEED_DEFINITIONS.filter((d) => filter.has(d.code));
 
@@ -164,7 +190,7 @@ export async function seedVhtSupplierFeeds(options?: {
 
     try {
       const source = await upsertVhtSource(def, url, dealerId);
-      const count = await syncSourceIfRequested(source.id, options?.sync);
+      const count = await syncSourceIfRequested(source.id, options.sync);
       results.push({ code: def.code, id: source.id, ...(count != null ? { count } : {}) });
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
@@ -173,7 +199,8 @@ export async function seedVhtSupplierFeeds(options?: {
     }
   }
 
-  return { dealerId, bundle: options?.bundle || (options?.codes?.length ? "custom" : "all"), results };
+  const bundle = options.bundle === "ersa" ? "starter" : options.bundle || (options.codes?.length ? "custom" : "all");
+  return { dealerId, bundle, results };
 }
 
 async function markSourceError(dealerId: string, def: VhtFeedDefinition, msg: string) {
@@ -194,17 +221,13 @@ async function markSourceError(dealerId: string, def: VhtFeedDefinition, msg: st
   }
 }
 
-/** Ersa Güdü — 18 feed (16 VHT + Bezos birleşik VHT38/39). */
-export async function seedErsaGuduPackage(options?: { sync?: boolean }) {
-  const dealerId = await resolveVhtTargetDealerId();
-  if (!dealerId) {
-    throw new Error("Hedef bayi bulunamadı (BEZOS_BAYI_TARGET_DEALER_ID veya BEZOS_BAYI_ALLOWED_EMAILS)");
-  }
-
+/** Önerilen başlangıç paketi (18 feed) — giriş yapan bayinin hesabına eklenir. */
+export async function seedStarterSupplierPackage(options: { dealerId: string; sync?: boolean }) {
+  const { dealerId } = options;
   const urlMap = loadErsaGuduFeedUrlMap();
   const results: VhtSeedResult[] = [];
 
-  for (const code of resolveErsaVhtSeedCodes()) {
+  for (const code of resolveStarterVhtSeedCodes()) {
     const def = VHT_FEED_DEFINITIONS.find((d) => d.code === code);
     if (!def) {
       results.push({ code, id: "", error: "Tanım bulunamadı" });
@@ -217,11 +240,9 @@ export async function seedErsaGuduPackage(options?: { sync?: boolean }) {
     }
 
     try {
-      console.log(`→ ${code} senkronize ediliyor...`);
       const source = await upsertVhtSource(def, url, dealerId);
-      const count = await syncSourceIfRequested(source.id, options?.sync);
+      const count = await syncSourceIfRequested(source.id, options.sync);
       results.push({ code, id: source.id, ...(count != null ? { count } : {}) });
-      if (count != null) console.log(`  ✓ ${code}: ${count.toLocaleString("tr-TR")} ürün`);
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
       results.push({ code, id: "", error: msg });
@@ -229,22 +250,20 @@ export async function seedErsaGuduPackage(options?: { sync?: boolean }) {
     }
   }
 
-  const bezosPrimary = urlMap[ERSA_BEZOS_VHT_CODES[0]];
-  const bezosOffset = urlMap[ERSA_BEZOS_VHT_CODES[1]];
+  const bezosPrimary = urlMap[STARTER_BEZOS_VHT_CODES[0]];
+  const bezosOffset = urlMap[STARTER_BEZOS_VHT_CODES[1]];
   if (!bezosPrimary || !bezosOffset) {
-    for (const code of ERSA_BEZOS_VHT_CODES) {
+    for (const code of STARTER_BEZOS_VHT_CODES) {
       if (!urlMap[code]) {
         results.push({ code, id: "", error: "Bezos URL yapılandırması yok" });
       }
     }
   } else {
     try {
-      console.log("→ VHT38/39 Bezos birleşik senkronize ediliyor...");
-      const source = await upsertErsaBezosSource(dealerId, bezosPrimary, bezosOffset);
-      const count = await syncSourceIfRequested(source.id, options?.sync);
+      const source = await upsertBezosBayiSource(dealerId, bezosPrimary, bezosOffset);
+      const count = await syncSourceIfRequested(source.id, options.sync);
       results.push({ code: "VHT38", id: source.id, ...(count != null ? { count } : {}) });
       results.push({ code: "VHT39", id: source.id, ...(count != null ? { count } : {}) });
-      if (count != null) console.log(`  ✓ VHT38/39: ${count.toLocaleString("tr-TR")} ürün`);
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
       results.push({ code: "VHT38", id: "", error: msg });
@@ -257,10 +276,19 @@ export async function seedErsaGuduPackage(options?: { sync?: boolean }) {
 
   return {
     dealerId,
-    bundle: "ersa" as const,
+    bundle: "starter" as const,
     totalFeeds: 18,
     configuredResults: ok,
     uniqueSources,
     results,
   };
+}
+
+/** CLI uyumluluğu */
+export async function seedErsaGuduPackage(options?: { sync?: boolean }) {
+  const dealerId = await resolveVhtTargetDealerId();
+  if (!dealerId) {
+    throw new Error("Hedef bayi bulunamadı (BEZOS_BAYI_TARGET_DEALER_ID veya THYRONIX lisanslı bayi)");
+  }
+  return seedStarterSupplierPackage({ dealerId, sync: options?.sync });
 }

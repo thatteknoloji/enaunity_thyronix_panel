@@ -42,25 +42,25 @@ export default function VhtSupplierFeedsPage() {
   const [loading, setLoading] = useState(true);
   const [seeding, setSeeding] = useState(false);
   const [syncing, setSyncing] = useState(false);
-  const [ersaSeeding, setErsaSeeding] = useState(false);
-  const [ersaSyncing, setErsaSyncing] = useState(false);
+  const [starterSeeding, setStarterSeeding] = useState(false);
+  const [starterSyncing, setStarterSyncing] = useState(false);
   const [status, setStatus] = useState<FeedStatus | null>(null);
-  const [ersaStatus, setErsaStatus] = useState<FeedStatus | null>(null);
+  const [starterStatus, setStarterStatus] = useState<FeedStatus | null>(null);
   const [lastSeed, setLastSeed] = useState<SeedResult[] | null>(null);
 
   const load = async () => {
     setLoading(true);
     try {
-      const [allRes, ersaRes] = await Promise.all([
+      const [allRes, starterRes] = await Promise.all([
         fetch("/api/thyronix/connectors/vht-supplier-feeds"),
-        fetch("/api/thyronix/connectors/vht-supplier-feeds?bundle=ersa"),
+        fetch("/api/thyronix/connectors/vht-supplier-feeds?bundle=starter"),
       ]);
       const allData = await allRes.json();
-      const ersaData = await ersaRes.json();
+      const starterData = await starterRes.json();
       if (!allData.success) throw new Error(allData.error || "Yüklenemedi");
-      if (!ersaData.success) throw new Error(ersaData.error || "Ersa paketi yüklenemedi");
+      if (!starterData.success) throw new Error(starterData.error || "Başlangıç paketi yüklenemedi");
       setStatus(allData.data);
-      setErsaStatus(ersaData.data);
+      setStarterStatus(starterData.data);
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Bağlantı hatası");
     } finally {
@@ -72,10 +72,10 @@ export default function VhtSupplierFeedsPage() {
     load();
   }, []);
 
-  const runSeed = async (withSync: boolean, bundle?: "ersa") => {
-    if (bundle === "ersa") {
-      if (withSync) setErsaSyncing(true);
-      else setErsaSeeding(true);
+  const runSeed = async (withSync: boolean, bundle?: "starter") => {
+    if (bundle === "starter") {
+      if (withSync) setStarterSyncing(true);
+      else setStarterSeeding(true);
     } else {
       if (withSync) setSyncing(true);
       else setSeeding(true);
@@ -85,10 +85,9 @@ export default function VhtSupplierFeedsPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          action: bundle === "ersa"
-            ? (withSync ? "seed-ersa-sync" : "seed-ersa")
+          action: bundle === "starter"
+            ? (withSync ? "seed-starter-sync" : "seed-starter")
             : (withSync ? "seed-sync" : "seed"),
-          ...(bundle && bundle !== "ersa" ? { bundle } : {}),
         }),
       });
       const d = await res.json();
@@ -96,7 +95,7 @@ export default function VhtSupplierFeedsPage() {
       setLastSeed(d.data.results || []);
       const ok = (d.data.results || []).filter((r: SeedResult) => r.id && !r.error).length;
       const fail = (d.data.results || []).filter((r: SeedResult) => r.error).length;
-      const label = bundle === "ersa" ? "Ersa paketi" : "Tüm feedler";
+      const label = bundle === "starter" ? "Önerilen paket" : "Tüm feedler";
       toast.success(`${label}: ${ok} kaynak ${withSync ? "eklendi ve senkronize edildi" : "kaydedildi"}${fail ? `, ${fail} hata` : ""}`);
       await load();
     } catch (e) {
@@ -104,8 +103,8 @@ export default function VhtSupplierFeedsPage() {
     } finally {
       setSeeding(false);
       setSyncing(false);
-      setErsaSeeding(false);
-      setErsaSyncing(false);
+      setStarterSeeding(false);
+      setStarterSyncing(false);
     }
   };
 
@@ -147,55 +146,55 @@ export default function VhtSupplierFeedsPage() {
         </div>
       </div>
 
-      {ersaStatus && (
+      {starterStatus && (
         <div className="rounded-xl border border-sky-500/30 bg-sky-500/5 p-4 space-y-3">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
               <div className="flex items-center gap-2 text-sm font-semibold text-nexa-text">
                 <Users size={16} className="text-sky-400" />
-                Ersa Güdü paketi (18 feed)
+                Önerilen başlangıç paketi (18 tedarikçi)
               </div>
               <p className="text-xs text-nexa-text-secondary mt-1">
-                İlk müşteri kaynak paketi — yalnızca VHT1, VHT2, VHT7–VHT10, VHT18, VHT21–VHT22, VHT24, VHT28, VHT30, VHT36–VHT41.
+                Hesabınıza eklenir — başka bayinin verisi kopyalanmaz. VHT1, VHT2, VHT7–VHT10, VHT18, VHT21–VHT22, VHT24, VHT28, VHT30, VHT36–VHT41.
               </p>
             </div>
             <div className="flex flex-wrap gap-2">
               <button
                 type="button"
-                onClick={() => runSeed(false, "ersa")}
-                disabled={ersaSeeding || ersaSyncing || !ersaStatus.configured}
+                onClick={() => runSeed(false, "starter")}
+                disabled={starterSeeding || starterSyncing || !starterStatus.configured}
                 className="inline-flex items-center gap-1.5 rounded-lg bg-sky-600 px-3 py-2 text-xs font-medium text-white hover:bg-sky-500 disabled:opacity-50"
               >
-                <Database size={14} /> {ersaSeeding ? "Kaydediliyor…" : "Ersa Paketini Ekle"}
+                <Database size={14} /> {starterSeeding ? "Kaydediliyor…" : "Paketi Ekle"}
               </button>
               <button
                 type="button"
-                onClick={() => runSeed(true, "ersa")}
-                disabled={ersaSeeding || ersaSyncing || !ersaStatus.configured}
+                onClick={() => runSeed(true, "starter")}
+                disabled={starterSeeding || starterSyncing || !starterStatus.configured}
                 className="inline-flex items-center gap-1.5 rounded-lg border border-sky-500/40 bg-sky-500/10 px-3 py-2 text-xs font-medium text-sky-300 hover:bg-sky-500/20 disabled:opacity-50"
               >
-                <Play size={14} className={ersaSyncing ? "animate-pulse" : ""} />
-                {ersaSyncing ? "Senkronize…" : "Ersa Ekle + Senkronize"}
+                <Play size={14} className={starterSyncing ? "animate-pulse" : ""} />
+                {starterSyncing ? "Senkronize…" : "Ekle + Senkronize"}
               </button>
             </div>
           </div>
           <div className="grid gap-3 sm:grid-cols-3 text-xs">
             <div>
               <span className="text-nexa-text-secondary">Paket feed</span>
-              <p className="text-lg font-bold text-nexa-text">{ersaStatus.total}</p>
+              <p className="text-lg font-bold text-nexa-text">{starterStatus.total}</p>
             </div>
             <div>
               <span className="text-nexa-text-secondary">URL hazır</span>
-              <p className="text-lg font-bold text-emerald-400">{ersaStatus.configured}</p>
+              <p className="text-lg font-bold text-emerald-400">{starterStatus.configured}</p>
             </div>
             <div>
               <span className="text-nexa-text-secondary">Eksik URL</span>
-              <p className="text-lg font-bold text-amber-400">{ersaStatus.missing.length}</p>
+              <p className="text-lg font-bold text-amber-400">{starterStatus.missing.length}</p>
             </div>
           </div>
-          {ersaStatus.missing.length > 0 && (
+          {starterStatus.missing.length > 0 && (
             <p className="text-xs text-amber-200">
-              Eksik: <span className="font-mono">{ersaStatus.missing.join(", ")}</span>
+              Eksik: <span className="font-mono">{starterStatus.missing.join(", ")}</span>
             </p>
           )}
         </div>
@@ -279,8 +278,7 @@ export default function VhtSupplierFeedsPage() {
       </div>
 
       <p className="text-xs text-nexa-text-secondary">
-        CLI: <code>npm run seed:ersa-gudu</code> · <code>npm run seed:ersa-gudu -- --sync</code> ·{" "}
-        <code>npm run seed:vht-feeds -- --bundle=ersa --sync</code> · Test: <code>npm run test:ersa-feeds</code>
+        CLI: <code>npm run seed:ersa-gudu</code> · <code>npm run seed:vht-feeds -- --bundle=starter --sync</code>
       </p>
     </div>
   );
