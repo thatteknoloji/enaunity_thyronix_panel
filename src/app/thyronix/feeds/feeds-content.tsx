@@ -27,6 +27,7 @@ type Feed = {
   outputFormat: string;
   productCount: number;
   liveProductCount?: number;
+  feedKind?: "combined" | "source";
   outputFilter?: {
     total: number;
     hiddenByStock: number;
@@ -44,6 +45,137 @@ type Feed = {
   source?: { name?: string | null; type?: string | null } | null;
 };
 
+function FeedTableRows({
+  feeds,
+  publishFeed,
+  copyToClipboard,
+  onEdit,
+  onDelete,
+  xmlLinkPrefix,
+}: {
+  feeds: Feed[];
+  publishFeed: (id: string) => void;
+  copyToClipboard: (value: string, label?: string) => void;
+  onEdit: (feed: Feed) => void;
+  onDelete: (id: string) => void;
+  xmlLinkPrefix: string;
+}) {
+  return (
+    <>
+      {feeds.map((f) => {
+        const effectiveCount = f.liveProductCount ?? f.productCount ?? 0;
+        const feedParts = f.chunkPlan || planFeedChunks(effectiveCount);
+        const outputParts = f.outputParts?.length
+          ? f.outputParts
+          : [
+              {
+                part: 1,
+                productCount: effectiveCount,
+                label: "Parça 1/1",
+                urls: f.outputUrls || { xml: `/api/thyronix/feed/${f.id}/output.xml` },
+              },
+            ];
+        return (
+          <tr key={f.id} className="hover:bg-nexa-hover">
+            <td className="px-4 py-3 font-medium text-nexa-text">
+              {f.name}
+              <div className="text-xs text-nexa-text-secondary">
+                {effectiveCount.toLocaleString("tr-TR")} ürün çıktıda
+                {f.outputFilter && (f.outputFilter.hiddenByStock > 0 || f.outputFilter.hiddenByGate > 0) && (
+                  <span className="ml-2 text-amber-400">
+                    · {f.outputFilter.hiddenByStock + f.outputFilter.hiddenByGate} kural ile gizli
+                  </span>
+                )}
+                {feedParts.needsSplit && (
+                  <span className="ml-2 text-amber-400">· {feedParts.partCount} parça</span>
+                )}
+                {f.countMismatch && (
+                  <span className="ml-2 text-nexa-warning">· sayı yenilenecek</span>
+                )}
+                {f.liveError && <span className="ml-2 text-nexa-danger">· sayı alınamadı</span>}
+              </div>
+            </td>
+            <td className="px-4 py-3 text-nexa-text-secondary text-xs">
+              {f.sourceId ? (
+                <div className="flex flex-col">
+                  <span className="font-medium text-nexa-text">{f.source?.name || "Kaynak"}</span>
+                  <span className="text-[11px] text-nexa-text-secondary">{f.source?.type || "xml"} · kaynak çıktısı</span>
+                </div>
+              ) : (
+                <span className="text-[11px] text-emerald-300/90 font-medium">Tüm kaynaklar birleşik</span>
+              )}
+            </td>
+            <td className="px-4 py-3 text-nexa-text-secondary">{f.outputFormat}</td>
+            <td className="px-4 py-3 text-nexa-text-secondary">{f.channel}</td>
+            <td className="px-4 py-3 text-nexa-text-secondary text-xs">
+              {f.lastPublished ? new Date(f.lastPublished).toLocaleString("tr-TR") : "—"}
+            </td>
+            <td className="px-4 py-3">
+              <span className={`text-xs ${f.status === "active" ? "text-nexa-success" : "text-nexa-warning"}`}>
+                {f.status === "active" ? "aktif" : f.status}
+              </span>
+            </td>
+            <td className="px-4 py-3 text-nexa-text-secondary text-xs">{f.schedule || 24} saat</td>
+            <td className="px-4 py-3">
+              <div className="flex justify-end gap-1 flex-wrap max-w-[420px] ml-auto">
+                <button
+                  onClick={() => publishFeed(f.id)}
+                  className="p-2 rounded-lg hover:bg-nexa-primary/10 text-nexa-primary"
+                  title="Yeniden yayınla"
+                >
+                  <Play size={14} />
+                </button>
+                {outputParts.map((p) => (
+                  <div
+                    key={p.part}
+                    className="inline-flex items-center rounded-lg border border-nexa-border bg-nexa-bg overflow-hidden"
+                  >
+                    <a
+                      href={p.urls.xml}
+                      target="_blank"
+                      className="px-2 py-1 text-[10px] text-nexa-text-secondary hover:text-nexa-primary whitespace-nowrap"
+                      title={`${p.label || `Parça ${p.part}`} — ${(p.productCount || 0).toLocaleString("tr-TR")} ürün`}
+                    >
+                      {xmlLinkPrefix} {p.part}
+                    </a>
+                    <button
+                      type="button"
+                      onClick={() => copyToClipboard(p.urls.xml, `${xmlLinkPrefix} ${p.part}`)}
+                      className="px-1.5 py-1 text-nexa-text-secondary hover:text-nexa-primary border-l border-nexa-border"
+                      title="Linki kopyala"
+                    >
+                      <Link2 size={11} />
+                    </button>
+                  </div>
+                ))}
+                {f.outputUrls?.csv && (
+                  <a
+                    href={f.outputUrls.csv}
+                    target="_blank"
+                    className="p-2 rounded-lg hover:bg-nexa-hover text-nexa-text-secondary"
+                    title="CSV"
+                  >
+                    <ExternalLink size={14} />
+                  </a>
+                )}
+                <button
+                  onClick={() => onEdit(f)}
+                  className="p-2 rounded-lg hover:bg-nexa-hover text-nexa-text-secondary"
+                >
+                  <Copy size={14} />
+                </button>
+                <button onClick={() => onDelete(f.id)} className="p-2 rounded-lg hover:bg-nexa-danger/10 text-nexa-danger">
+                  <Trash2 size={14} />
+                </button>
+              </div>
+            </td>
+          </tr>
+        );
+      })}
+    </>
+  );
+}
+
 export default function FeedCenterPage() {
   const [activeTab, setActiveTab] = useState("feeds");
   const [feeds, setFeeds] = useState<Feed[]>([]);
@@ -54,6 +186,20 @@ export default function FeedCenterPage() {
   const [plan, setPlan] = useState<{ key: string; limits: { maxFeeds: number } } | null>(null);
   const [activeProducts, setActiveProducts] = useState(0);
   const [defaultSchedule, setDefaultSchedule] = useState(24);
+  const [publishingAll, setPublishingAll] = useState(false);
+
+  const combinedFeeds = useMemo(
+    () => feeds.filter((f) => !f.sourceId && f.status === "active"),
+    [feeds],
+  );
+  const sourceFeeds = useMemo(
+    () => feeds.filter((f) => f.sourceId && f.status === "active").sort((a, b) => a.name.localeCompare(b.name, "tr")),
+    [feeds],
+  );
+  const pausedFeeds = useMemo(
+    () => feeds.filter((f) => f.status !== "active"),
+    [feeds],
+  );
 
   const catalogChunkPlan = useMemo(
     () => planFeedChunks(activeProducts),
@@ -125,6 +271,31 @@ export default function FeedCenterPage() {
     } else toast.error(d.error || "Yayın hatası");
   };
 
+  const publishAllFeeds = async () => {
+    if (!confirm("Tüm aktif feedler kurallarla yeniden üretilecek. Devam?")) return;
+    setPublishingAll(true);
+    toast.loading("Feedler yenileniyor…");
+    const res = await fetch("/api/thyronix/feeds/publish-all", { method: "POST" });
+    const d = await res.json();
+    toast.dismiss();
+    setPublishingAll(false);
+    if (d.success) {
+      toast.success(
+        `${d.data.published}/${d.data.total} feed yayınlandı — birleşik: ${d.data.combined?.[0]?.productCount?.toLocaleString("tr-TR") || 0} ürün`,
+        { duration: 7000 },
+      );
+      load();
+    } else {
+      toast.error(d.error || "Toplu yayın hatası");
+    }
+  };
+
+  const openEdit = (f: Feed) => {
+    setEditing(f);
+    setForm({ name: f.name, channel: f.channel, outputFormat: f.outputFormat, schedule: f.schedule || 24 });
+    setShowForm(true);
+  };
+
   const copyToClipboard = async (value: string, label = "Link") => {
     const absolute = value.startsWith("http") ? value : `${window.location.origin}${value}`;
     await navigator.clipboard.writeText(absolute);
@@ -146,12 +317,21 @@ export default function FeedCenterPage() {
           </p>
         </div>
         {activeTab === "feeds" && (
-          <button
-            onClick={() => { setEditing(null); setForm({ name: "", channel: "trendyol", outputFormat: "jetteknoloji", schedule: defaultSchedule }); setShowForm(true); }}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-nexa-primary text-white text-sm font-semibold"
-          >
-            <Plus size={16} /> Yeni Feed
-          </button>
+          <div className="flex gap-2 shrink-0">
+            <button
+              onClick={publishAllFeeds}
+              disabled={publishingAll || loading}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-nexa-primary/40 text-nexa-primary text-sm font-semibold disabled:opacity-50"
+            >
+              <Play size={16} /> {publishingAll ? "Yenileniyor…" : "Tümünü Yenile"}
+            </button>
+            <button
+              onClick={() => { setEditing(null); setForm({ name: "", channel: "trendyol", outputFormat: "jetteknoloji", schedule: defaultSchedule }); setShowForm(true); }}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-nexa-primary text-white text-sm font-semibold"
+            >
+              <Plus size={16} /> Yeni Feed
+            </button>
+          </div>
         )}
       </div>
 
@@ -219,102 +399,113 @@ export default function FeedCenterPage() {
               <p className="text-sm text-nexa-text-secondary mt-1">15 dakikada ilk feedinizi oluşturmak için sihirbazı kullanın.</p>
             </div>
           ) : (
-            <div className="rounded-xl border border-nexa-border overflow-hidden">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-nexa-border bg-nexa-bg/50 text-nexa-text-secondary text-left">
-                    <th className="px-4 py-3">Feed</th>
-                    <th className="px-4 py-3">Kaynak</th>
-                    <th className="px-4 py-3">Format</th>
-                    <th className="px-4 py-3">Kanal</th>
-                    <th className="px-4 py-3">Son Yayın</th>
-                    <th className="px-4 py-3">Durum</th>
-                    <th className="px-4 py-3">Aralık</th>
-                    <th className="px-4 py-3 text-right">İşlem</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-nexa-border">
-                  {feeds.map((f) => {
-                    const effectiveCount = f.liveProductCount ?? f.productCount ?? 0;
-                    const feedParts = f.chunkPlan || planFeedChunks(effectiveCount);
-                    const outputParts = f.outputParts?.length ? f.outputParts : [{
-                      part: 1,
-                      productCount: effectiveCount,
-                      label: "Parça 1/1",
-                      urls: f.outputUrls || { xml: `/api/thyronix/feed/${f.id}/output.xml` },
-                    }];
-                    return (
-                    <tr key={f.id} className="hover:bg-nexa-hover">
-                      <td className="px-4 py-3 font-medium text-nexa-text">
-                        {f.sourceId ? f.name : "Bayi XML"}
-                        <div className="text-xs text-nexa-text-secondary">
-                          {effectiveCount.toLocaleString("tr-TR")} ürün çıktıda
-                          {f.outputFilter && (f.outputFilter.hiddenByStock > 0 || f.outputFilter.hiddenByGate > 0) && (
-                            <span className="ml-2 text-amber-400">
-                              · {f.outputFilter.hiddenByStock + f.outputFilter.hiddenByGate} kural ile gizli
-                            </span>
-                          )}
-                          {feedParts.needsSplit && (
-                            <span className="ml-2 text-amber-400">· {feedParts.partCount} parça</span>
-                          )}
-                          {f.countMismatch && (
-                            <span className="ml-2 text-nexa-warning">· kayıt sayısı yenilenecek</span>
-                          )}
-                          {f.liveError && (
-                            <span className="ml-2 text-nexa-danger">· canlı sayı alınamadı</span>
-                          )}
-                        </div>
-                      </td>
-                      <td className="px-4 py-3 text-nexa-text-secondary text-xs">
-                        {f.sourceId ? (
-                          <div className="flex flex-col">
-                            <span className="font-medium text-nexa-text">{f.source?.name || "Kaynak feedi"}</span>
-                            <span className="text-[11px] text-nexa-text-secondary">{f.source?.type || "source"} · bağlı</span>
-                          </div>
-                        ) : (
-                          <span className="text-[11px] text-nexa-text-secondary">Tüm kaynaklar</span>
-                        )}
-                      </td>
-                      <td className="px-4 py-3 text-nexa-text-secondary">{f.outputFormat}</td>
-                      <td className="px-4 py-3 text-nexa-text-secondary">{f.channel}</td>
-                      <td className="px-4 py-3 text-nexa-text-secondary text-xs">{f.lastPublished ? new Date(f.lastPublished).toLocaleString("tr-TR") : "—"}</td>
-                      <td className="px-4 py-3"><span className={`text-xs ${f.status === "active" ? "text-nexa-success" : "text-nexa-warning"}`}>{f.status}</span></td>
-                      <td className="px-4 py-3 text-nexa-text-secondary text-xs">{f.schedule || 24} saat</td>
-                      <td className="px-4 py-3">
-                        <div className="flex justify-end gap-1 flex-wrap max-w-[420px] ml-auto">
-                          <button onClick={() => publishFeed(f.id)} className="p-2 rounded-lg hover:bg-nexa-primary/10 text-nexa-primary" title="Yayınla"><Play size={14} /></button>
-                          {outputParts.map((p) => (
-                            <div key={p.part} className="inline-flex items-center rounded-lg border border-nexa-border bg-nexa-bg overflow-hidden">
-                              <a
-                                href={p.urls.xml}
-                                target="_blank"
-                                className="px-2 py-1 text-[10px] text-nexa-text-secondary hover:text-nexa-primary whitespace-nowrap"
-                                title={`${p.label || `Parça ${p.part}`} — ${(p.productCount || 0).toLocaleString("tr-TR")} ürün`}
-                              >
-                                Bayi XML {p.part}
-                              </a>
-                              <button
-                                type="button"
-                                onClick={() => copyToClipboard(p.urls.xml, `Bayi XML ${p.part}`)}
-                                className="px-1.5 py-1 text-nexa-text-secondary hover:text-nexa-primary border-l border-nexa-border"
-                                title="Linki kopyala"
-                              >
-                                <Link2 size={11} />
-                              </button>
-                            </div>
-                          ))}
-                          {f.outputUrls?.csv && (
-                            <a href={f.outputUrls.csv} target="_blank" className="p-2 rounded-lg hover:bg-nexa-hover text-nexa-text-secondary" title="CSV"><ExternalLink size={14} /></a>
-                          )}
-                          <button onClick={() => { setEditing(f); setForm({ name: f.name, channel: f.channel, outputFormat: f.outputFormat, schedule: f.schedule || 24 }); setShowForm(true); }} className="p-2 rounded-lg hover:bg-nexa-hover text-nexa-text-secondary"><Copy size={14} /></button>
-                          <button onClick={() => deleteFeed(f.id)} className="p-2 rounded-lg hover:bg-nexa-danger/10 text-nexa-danger"><Trash2 size={14} /></button>
-                        </div>
-                      </td>
-                    </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
+            <div className="space-y-8">
+              <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/5 p-4 text-sm text-nexa-text-secondary">
+                <p className="font-medium text-emerald-200">İki tür çıktı feed&apos;i</p>
+                <p className="mt-1">
+                  <strong className="text-nexa-text">Birleşik (toplu):</strong> tüm kaynaklar tek XML&apos;de merge edilir.
+                  {" "}
+                  <strong className="text-nexa-text">Kaynak bazlı:</strong> her yüklenen XML&apos;in kendi çıktısı — kurallar (fiyat, marka, stok) uygulanmış.
+                </p>
+              </div>
+
+              {combinedFeeds.length > 0 && (
+                <div className="space-y-3">
+                  <div>
+                    <h3 className="font-semibold text-nexa-text flex items-center gap-2">
+                      <Layers size={16} className="text-emerald-400" />
+                      Birleşik Feed (Toplu XML)
+                      <span className="text-xs font-normal text-nexa-text-secondary">({combinedFeeds.length})</span>
+                    </h3>
+                    <p className="text-xs text-nexa-text-secondary mt-1">Eski sistem — tüm tedarikçiler tek çıktıda birleştirilir.</p>
+                  </div>
+                  <div className="rounded-xl border border-nexa-border overflow-hidden">
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="border-b border-nexa-border bg-nexa-bg/50 text-nexa-text-secondary text-left">
+                          <th className="px-4 py-3">Feed</th>
+                          <th className="px-4 py-3">Kaynak</th>
+                          <th className="px-4 py-3">Format</th>
+                          <th className="px-4 py-3">Kanal</th>
+                          <th className="px-4 py-3">Son Yayın</th>
+                          <th className="px-4 py-3">Durum</th>
+                          <th className="px-4 py-3">Aralık</th>
+                          <th className="px-4 py-3 text-right">İşlem</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-nexa-border">
+                        <FeedTableRows
+                          feeds={combinedFeeds}
+                          publishFeed={publishFeed}
+                          copyToClipboard={copyToClipboard}
+                          onEdit={openEdit}
+                          onDelete={deleteFeed}
+                          xmlLinkPrefix="Birleşik XML"
+                        />
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+
+              {sourceFeeds.length > 0 && (
+                <div className="space-y-3">
+                  <div>
+                    <h3 className="font-semibold text-nexa-text flex items-center gap-2">
+                      <Radio size={16} className="text-nexa-primary" />
+                      Kaynak Bazlı Feedler
+                      <span className="text-xs font-normal text-nexa-text-secondary">({sourceFeeds.length})</span>
+                    </h3>
+                    <p className="text-xs text-nexa-text-secondary mt-1">Her XML kaynağının kurallarla düzenlenmiş ayrı çıktısı.</p>
+                  </div>
+                  <div className="rounded-xl border border-nexa-border overflow-hidden">
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="border-b border-nexa-border bg-nexa-bg/50 text-nexa-text-secondary text-left">
+                          <th className="px-4 py-3">Feed</th>
+                          <th className="px-4 py-3">Kaynak</th>
+                          <th className="px-4 py-3">Format</th>
+                          <th className="px-4 py-3">Kanal</th>
+                          <th className="px-4 py-3">Son Yayın</th>
+                          <th className="px-4 py-3">Durum</th>
+                          <th className="px-4 py-3">Aralık</th>
+                          <th className="px-4 py-3 text-right">İşlem</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-nexa-border">
+                        <FeedTableRows
+                          feeds={sourceFeeds}
+                          publishFeed={publishFeed}
+                          copyToClipboard={copyToClipboard}
+                          onEdit={openEdit}
+                          onDelete={deleteFeed}
+                          xmlLinkPrefix="XML"
+                        />
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+
+              {pausedFeeds.length > 0 && (
+                <div className="space-y-3 opacity-70">
+                  <h3 className="text-sm font-medium text-nexa-text-secondary">Duraklatılmış ({pausedFeeds.length})</h3>
+                  <div className="rounded-xl border border-nexa-border overflow-hidden">
+                    <table className="w-full text-sm">
+                      <tbody className="divide-y divide-nexa-border">
+                        <FeedTableRows
+                          feeds={pausedFeeds}
+                          publishFeed={publishFeed}
+                          copyToClipboard={copyToClipboard}
+                          onEdit={openEdit}
+                          onDelete={deleteFeed}
+                          xmlLinkPrefix="XML"
+                        />
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
             </div>
           )
         )}
