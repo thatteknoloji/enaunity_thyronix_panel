@@ -1,4 +1,5 @@
 import type { User } from "@/types";
+import { isAdminRole } from "@/lib/auth/admin-access";
 
 export type ThyronixTenantScope = "GLOBAL" | "DEALER";
 export type ThyronixOwnerType = "ADMIN" | "DEALER";
@@ -17,12 +18,16 @@ export function isDealerThyronixResource(resource: ThyronixTenantResource): bool
   return resource.tenantScope === "DEALER";
 }
 
+export function isThyronixPlatformAdmin(user: User): boolean {
+  return isAdminRole(user.role) || user.role === "admin";
+}
+
 export function resolveThyronixOwner(user: User): {
   ownerType: ThyronixOwnerType;
   dealerId: string | null;
   tenantScope: ThyronixTenantScope;
 } {
-  if (user.role === "admin") {
+  if (isThyronixPlatformAdmin(user)) {
     return { ownerType: "ADMIN", dealerId: null, tenantScope: "GLOBAL" };
   }
   return {
@@ -34,7 +39,7 @@ export function resolveThyronixOwner(user: User): {
 
 /** Prisma where-clause fragment for tenant-scoped queries. */
 export function getThyronixTenantFilter(user: User): Record<string, unknown> {
-  if (user.role === "admin") {
+  if (isThyronixPlatformAdmin(user)) {
     return {};
   }
   if (!user.dealerId) {
@@ -49,7 +54,7 @@ export function getThyronixTenantFilter(user: User): Record<string, unknown> {
 }
 
 export function canAccessThyronixResource(user: User, resource: ThyronixTenantResource): boolean {
-  if (user.role === "admin") return true;
+  if (isThyronixPlatformAdmin(user)) return true;
   if (isGlobalThyronixResource(resource)) return true;
   if (!user.dealerId) return false;
   return resource.dealerId === user.dealerId;

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { requireThyronixDealerOrAdmin, thyronixErrorResponse, withTenantFilter } from "@/lib/thyronix/access";
+import { requireThyronixDealerOrAdmin, thyronixErrorResponse, withTenantFilter, getAccessibleSourceIds } from "@/lib/thyronix/access";
 
 export async function GET(req: Request) {
   try {
@@ -23,7 +23,22 @@ export async function GET(req: Request) {
     const stockMax = searchParams.get("stockMax") || "";
 
     const filters: any = {};
-    if (sourceId) filters.sourceId = sourceId;
+    const accessibleSourceIds = await getAccessibleSourceIds(user);
+    if (accessibleSourceIds !== null) {
+      if (accessibleSourceIds.length === 0) {
+        return NextResponse.json({
+          success: true,
+          data: { items: [], total: 0, page, size, totalPages: 0 },
+        });
+      }
+      filters.sourceId = sourceId
+        ? accessibleSourceIds.includes(sourceId)
+          ? sourceId
+          : "__none__"
+        : { in: accessibleSourceIds };
+    } else if (sourceId) {
+      filters.sourceId = sourceId;
+    }
 
     // Smart search: parse advanced syntax from search query
     let cleanSearch = search;
