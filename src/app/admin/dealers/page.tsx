@@ -2,6 +2,7 @@
 
 import { Fragment } from "react";
 import { useEffect, useState, useCallback } from "react";
+import toast from "react-hot-toast";
 import { formatDate } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -24,6 +25,7 @@ const FORM_DEFAULTS = {
   companySize: "", markets: "", discountRate: "0", creditLimit: "0", group: "bronze",
   openingBalance: "0", balance: "0", allowNegative: false,
   taxNumber: "", taxOffice: "", billingAddress: "", shippingAddress: "",
+  loginPassword: "",
 };
 
 const FIELD = ({ label, children }: { label: string; children: React.ReactNode }) => (
@@ -56,16 +58,25 @@ export default function AdminDealersPage() {
   useEffect(() => { fetchDealers(); fetchGroups(); }, [fetchDealers, fetchGroups]);
 
   const updateStatus = async (id: string, status: string) => {
-    await fetch(`/api/admin/dealers/${id}`, {
+    const res = await fetch(`/api/admin/dealers/${id}`, {
       method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ status }),
     });
-    fetchDealers();
+    const d = await res.json();
+    if (d.success) {
+      toast.success(status === "active" ? "Bayi aktifleştirildi" : "Bayi askıya alındı");
+      fetchDealers();
+    } else toast.error(d.error || "Durum güncellenemedi");
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Bu bayi silinsin mi?")) return;
-    await fetch(`/api/admin/dealers/${id}`, { method: "DELETE" });
-    fetchDealers();
+    if (!confirm("Bu bayi kalıcı olarak silinsin mi?")) return;
+    const res = await fetch(`/api/admin/dealers/${id}`, { method: "DELETE" });
+    const d = await res.json();
+    if (d.success) {
+      toast.success("Bayi silindi");
+      if (expanded === id) setExpanded(null);
+      fetchDealers();
+    } else toast.error(d.error || "Bayi silinemedi");
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -79,16 +90,25 @@ export default function AdminDealersPage() {
       balance: parseFloat(form.balance) || 0,
     };
 
+    let res: Response;
     if (editing) {
-      await fetch(`/api/admin/dealers/${editing.id}`, {
-        method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body),
+      const { loginPassword: _pw, ...editBody } = body;
+      res = await fetch(`/api/admin/dealers/${editing.id}`, {
+        method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(editBody),
       });
     } else {
-      await fetch("/api/admin/dealers", {
+      res = await fetch("/api/admin/dealers", {
         method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body),
       });
     }
-    setSubmitting(false); setShowForm(false); setEditing(null);
+    const d = await res.json();
+    setSubmitting(false);
+    if (!d.success) {
+      toast.error(d.error || "Kayıt başarısız");
+      return;
+    }
+    toast.success(editing ? "Bayi güncellendi" : "Bayi eklendi");
+    setShowForm(false); setEditing(null);
     setForm({ ...FORM_DEFAULTS });
     fetchDealers();
   };
@@ -104,6 +124,7 @@ export default function AdminDealersPage() {
       balance: String(dealer.balance), allowNegative: dealer.allowNegative,
       taxNumber: dealer.taxNumber || "", taxOffice: dealer.taxOffice || "",
       billingAddress: dealer.billingAddress || "", shippingAddress: dealer.shippingAddress || "",
+      loginPassword: "",
     });
     setShowForm(true);
   };
@@ -115,7 +136,7 @@ export default function AdminDealersPage() {
   );
 
   return (
-    <div>
+    <div className="min-w-0 w-full max-w-full">
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Bayiler</h1>
@@ -201,6 +222,26 @@ export default function AdminDealersPage() {
               </div>
             </div>
 
+            {/* Giriş Hesabı */}
+            {!editing && (
+              <div>
+                <p className="text-xs font-semibold uppercase text-gray-400 mb-3 tracking-wider">Giriş Hesabı</p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <FIELD label="Giriş Şifresi (opsiyonel)">
+                    <input
+                      type="password"
+                      className={inputClass}
+                      placeholder="Min 6 karakter — bayi paneline giriş için"
+                      value={form.loginPassword}
+                      onChange={(e) => setForm({ ...form, loginPassword: e.target.value })}
+                      minLength={6}
+                    />
+                  </FIELD>
+                </div>
+                <p className="text-xs text-gray-400 mt-1">Şifre girersen e-posta ile bayi giriş hesabı otomatik oluşturulur. Şifre değişikliği için listeden Hesap panelini kullan.</p>
+              </div>
+            )}
+
             <div className="flex gap-2">
               <Button type="submit" disabled={submitting}>{submitting ? "Kaydediliyor..." : editing ? "Güncelle" : "Ekle"}</Button>
               <Button type="button" variant="outline" onClick={() => { setShowForm(false); setEditing(null); }}>İptal</Button>
@@ -221,7 +262,8 @@ export default function AdminDealersPage() {
         </div>
       ) : (
         <div className="rounded-xl border border-gray-200 bg-white overflow-hidden shadow-sm">
-          <table className="w-full text-sm">
+          <div className="overflow-x-auto">
+          <table className="w-full text-sm min-w-[960px]">
             <thead>
               <tr className="border-b border-gray-100 bg-gray-50/50">
                 <th className="px-4 py-3.5 text-left font-semibold text-gray-600">Bayi</th>
@@ -285,13 +327,13 @@ export default function AdminDealersPage() {
                         <KeyRound size={14} />
                         <span className="ml-1 hidden sm:inline text-xs">Hesap</span>
                       </Button>
-                      <Button variant="ghost" size="sm" onClick={() => startEdit(dealer)} className="text-gray-500"><Pencil size={14} /></Button>
+                      <Button variant="ghost" size="sm" onClick={() => startEdit(dealer)} className="text-gray-500" title="Düzenle"><Pencil size={14} /></Button>
                       {dealer.status === "active" ? (
                         <Button variant="ghost" size="sm" onClick={() => updateStatus(dealer.id, "suspended")} className="text-amber-600 hover:text-amber-700 hover:bg-amber-50"><X size={14} /></Button>
                       ) : (
                         <Button variant="ghost" size="sm" onClick={() => updateStatus(dealer.id, "active")} className="text-green-600 hover:text-green-700 hover:bg-green-50"><Check size={14} /></Button>
                       )}
-                      <Button variant="ghost" size="sm" onClick={() => handleDelete(dealer.id)} className="text-gray-500 hover:text-ena-primary"><Trash2 size={14} /></Button>
+                      <Button variant="ghost" size="sm" onClick={() => handleDelete(dealer.id)} className="text-gray-500 hover:text-ena-primary" title="Sil"><Trash2 size={14} /></Button>
                     </div>
                   </td>
                 </tr>
@@ -306,6 +348,7 @@ export default function AdminDealersPage() {
               ))}
             </tbody>
           </table>
+          </div>
         </div>
       )}
     </div>

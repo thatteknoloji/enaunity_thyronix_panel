@@ -11,6 +11,41 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     const dealer = await prisma.dealer.findUnique({ where: { id: dealerId } });
     if (!dealer) return NextResponse.json({ success: false, error: "Bayi bulunamadı" }, { status: 404 });
 
+    if (body.action === "create_user_login") {
+      const password = String(body.password || "");
+      if (password.length < 6) {
+        return NextResponse.json({ success: false, error: "En az 6 karakter şifre gerekli" }, { status: 400 });
+      }
+      const existing = await prisma.user.findFirst({ where: { dealerId } });
+      if (existing) {
+        return NextResponse.json({ success: false, error: "Bu bayinin zaten giriş hesabı var" }, { status: 409 });
+      }
+      const emailClash = await prisma.user.findUnique({ where: { email: dealer.email } });
+      if (emailClash) {
+        return NextResponse.json({ success: false, error: "Bu e-posta başka bir hesapta kullanılıyor" }, { status: 409 });
+      }
+      const now = new Date();
+      const user = await prisma.user.create({
+        data: {
+          email: dealer.email,
+          name: dealer.name,
+          password: await hashPassword(password),
+          role: "dealer",
+          status: dealer.status === "active" ? "active" : "pending",
+          phone: dealer.phone || "",
+          company: dealer.company,
+          taxNumber: dealer.taxNumber || "",
+          taxOffice: dealer.taxOffice || "",
+          dealerId,
+          kvkkAcceptedAt: now,
+          approvedAt: dealer.status === "active" ? now : null,
+          reviewedBy: "admin-credentials",
+        },
+      });
+      await logAdminAction(admin.id, admin.name, "dealer_user_create", user.email, dealerId);
+      return NextResponse.json({ success: true, data: { userId: user.id } });
+    }
+
     if (body.action === "update_dealer_email") {
       const email = String(body.email || "").trim().toLowerCase();
       if (!email) return NextResponse.json({ success: false, error: "E-posta gerekli" }, { status: 400 });

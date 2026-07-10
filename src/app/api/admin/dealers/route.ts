@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db";
-import { requireAdmin } from "@/lib/auth";
+import { hashPassword, requireAdmin } from "@/lib/auth";
 import { normalizeDealerAdminInput } from "@/lib/admin/dealer-admin-input";
 
 export async function GET() {
@@ -28,9 +28,38 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: false, error: "Bu e-posta ile kayıtlı bayi var" }, { status: 409 });
     }
 
-    const dealer = await prisma.dealer.create({
-      data,
-    });
+    const loginPassword = String(body.loginPassword || "").trim();
+    if (loginPassword && loginPassword.length < 6) {
+      return NextResponse.json({ success: false, error: "Giriş şifresi en az 6 karakter olmalı" }, { status: 400 });
+    }
+
+    const existingUser = await prisma.user.findUnique({ where: { email: String(data.email) } });
+    if (existingUser) {
+      return NextResponse.json({ success: false, error: "Bu e-posta ile kayıtlı kullanıcı var" }, { status: 409 });
+    }
+
+    const dealer = await prisma.dealer.create({ data });
+
+    if (loginPassword) {
+      const now = new Date();
+      await prisma.user.create({
+        data: {
+          email: String(data.email),
+          name: String(data.name),
+          password: await hashPassword(loginPassword),
+          role: "dealer",
+          status: "active",
+          phone: String(data.phone || ""),
+          company: String(data.company),
+          taxNumber: String(data.taxNumber || ""),
+          taxOffice: String(data.taxOffice || ""),
+          dealerId: dealer.id,
+          kvkkAcceptedAt: now,
+          approvedAt: now,
+          reviewedBy: "admin-dealer-create",
+        },
+      });
+    }
 
     return NextResponse.json({ success: true, data: dealer }, { status: 201 });
   } catch (error) {

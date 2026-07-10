@@ -49,9 +49,20 @@ export async function DELETE(_req: Request, { params }: { params: Promise<{ id: 
   try {
     await requireAdmin();
     const { id } = await params;
+
+    const orderCount = await prisma.order.count({ where: { dealerId: id } });
+    if (orderCount > 0) {
+      return NextResponse.json(
+        { success: false, error: `Bu bayinin ${orderCount} siparişi var. Önce askıya alın veya siparişleri taşıyın.` },
+        { status: 409 }
+      );
+    }
+
+    await prisma.user.updateMany({ where: { dealerId: id }, data: { dealerId: null } });
     await prisma.dealer.delete({ where: { id } });
     return NextResponse.json({ success: true });
-  } catch {
-    return NextResponse.json({ success: false, error: "Sunucu hatası" }, { status: 500 });
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : "Sunucu hatası";
+    return NextResponse.json({ success: false, error: msg.includes("Foreign") ? "Bayi silinemedi — bağlı kayıtlar var" : msg }, { status: 500 });
   }
 }

@@ -78,9 +78,26 @@ export function DealerCredentialsPanel({ dealerId }: { dealerId: string }) {
       </div>
 
       {data.users.length === 0 && (
-        <p className="text-xs text-amber-700 bg-amber-50 border border-amber-100 rounded-lg px-3 py-2">
-          Bu bayiye bağlı giriş hesabı yok. Bayi üye onayından sonra User kaydı oluşur; gerekirse üye kaydından yeniden onaylayın.
-        </p>
+        <div className="rounded-lg border border-amber-100 bg-amber-50/50 p-3 space-y-2">
+          <p className="text-xs text-amber-800">
+            Bu bayiye bağlı giriş hesabı yok. Aşağıdan şifre belirleyerek hesap oluşturabilirsin.
+          </p>
+          <div className="flex flex-wrap gap-2">
+            <input
+              type="password"
+              placeholder="Yeni giriş şifresi (min 6)"
+              className="rounded border px-2 py-1 text-sm flex-1 min-w-[160px]"
+              value={passwords.create || ""}
+              onChange={(e) => setPasswords({ ...passwords, create: e.target.value })}
+            />
+            <Button
+              size="sm"
+              onClick={() => patch({ action: "create_user_login", password: passwords.create })}
+            >
+              Giriş Hesabı Oluştur
+            </Button>
+          </div>
+        </div>
       )}
 
       {data.users.map((u) => (

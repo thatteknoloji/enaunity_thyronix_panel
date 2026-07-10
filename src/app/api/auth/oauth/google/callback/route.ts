@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { signToken } from "@/lib/auth";
+import { getAdminSecretPath, isAdminRole } from "@/lib/auth/admin-access";
+import type { User } from "@prisma/client";
 
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
@@ -14,6 +16,16 @@ function setAuthCookie(response: NextResponse, token: string) {
     maxAge: 60 * 60 * 24 * 7,
     path: "/",
   });
+}
+
+function getPostLoginPath(user: Pick<User, "role" | "status" | "dealerId">): string {
+  if (isAdminRole(user.role)) return getAdminSecretPath();
+  if (user.role === "dealer" && user.status === "active" && user.dealerId) return "/dealer";
+  if (user.role === "user" && (user.status === "pending" || user.status === "rejected")) {
+    return "/account/application";
+  }
+  if (user.role === "user" && user.status === "active") return "/";
+  return "/account";
 }
 
 function decodeIdToken(idToken: string): { sub: string; email: string; name: string } | null {
@@ -99,7 +111,8 @@ export async function GET(req: Request) {
     }
 
     const token = signToken(user);
-    const response = NextResponse.redirect(new URL("/account/application", process.env.NEXT_PUBLIC_APP_URL!));
+    const redirectPath = getPostLoginPath(user);
+    const response = NextResponse.redirect(new URL(redirectPath, process.env.NEXT_PUBLIC_APP_URL!));
     setAuthCookie(response, token);
     return response;
 
