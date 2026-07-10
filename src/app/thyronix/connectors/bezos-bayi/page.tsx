@@ -249,7 +249,7 @@ export default function BezosBayiConnectorPage() {
               className="mt-1 w-full rounded-lg border border-nexa-border bg-nexa-bg px-3 py-2 text-sm text-nexa-text"
               value={transformSettings.targetBrand}
               onChange={(e) => setTransformSettings({ ...transformSettings, targetBrand: e.target.value })}
-              placeholder="Esra'nın Dünyası"
+              placeholder="Mağaza markanız"
             />
           </label>
           <label className="block text-xs text-nexa-text-secondary">

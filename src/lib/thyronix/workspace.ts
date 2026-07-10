@@ -3,11 +3,13 @@ import type { User } from "@/types";
 import { getDealerModuleLicense } from "@/lib/modules/access";
 import {
   DEFAULT_AUTOMATION,
+  DEFAULT_FEED_TRANSFORM,
   getPlanLimits,
   normalizePlanKey,
   type ThyronixAutomationSettings,
   type ThyronixTeamMember,
 } from "./commercial";
+import { normalizeFeedTransformSettings } from "./feed-transform";
 import { isThyronixAdmin } from "./access";
 
 export async function resolveDealerId(user: User): Promise<string | null> {
@@ -69,7 +71,7 @@ export async function getWorkspaceSettingsByDealerId(dealerId: string | null) {
     onboardingCompleted: row.onboardingCompleted,
     onboardingStep: row.onboardingStep,
     onboarding: safeJson(row.onboardingJson, {}),
-    automation: { ...DEFAULT_AUTOMATION, ...safeJson(row.automationJson, {}) } as ThyronixAutomationSettings,
+    automation: mergeAutomationSettings(safeJson(row.automationJson, {})),
     team: safeJson<ThyronixTeamMember[]>(row.teamJson, []),
     checklist: safeJson(row.checklistJson, {}),
     planKey: normalizePlanKey(planKey),
@@ -110,6 +112,14 @@ function safeJson<T>(raw: string, fallback: T): T {
   } catch {
     return fallback;
   }
+}
+
+function mergeAutomationSettings(raw: Partial<ThyronixAutomationSettings>): ThyronixAutomationSettings {
+  return {
+    ...DEFAULT_AUTOMATION,
+    ...raw,
+    feedTransform: normalizeFeedTransformSettings(raw.feedTransform ?? DEFAULT_FEED_TRANSFORM),
+  };
 }
 
 export async function checkPlanLimit(

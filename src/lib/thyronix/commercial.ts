@@ -79,7 +79,7 @@ export const FEED_REFRESH_INTERVALS = [4, 6, 12, 24] as const;
 
 export const DEFAULT_FEED_TRANSFORM: ThyronixFeedTransformSettings = {
   enabled: false,
-  targetBrand: "Esra'nın Dünyası",
+  targetBrand: "",
   sourceBrandAliases: [],
   bannedWords: ["çakma", "taklit", "replika", "muadil"],
   titlePrefix: "",

@@ -102,7 +102,8 @@ export function applyFeedTransformSettings<T extends FeedProduct>(
   settings: ThyronixFeedTransformSettings,
 ): T[] {
   if (!settings.enabled) return products;
-  const targetBrand = normalizeText(settings.targetBrand || DEFAULT_FEED_TRANSFORM.targetBrand);
+  const targetBrand = normalizeText(settings.targetBrand || "");
+  if (!targetBrand) return products;
 
   return products.map((product) => {
     const aliases = buildReplacements(product, settings);

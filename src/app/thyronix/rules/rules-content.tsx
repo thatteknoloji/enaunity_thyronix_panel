@@ -1,8 +1,14 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
-import { Plus, Save, Trash2, Eye, Layers, Package, ShieldCheck, Sparkles, CheckCircle, XCircle } from "lucide-react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { Plus, Save, Trash2, Eye, Layers, Package, ShieldCheck, Sparkles, CheckCircle, XCircle, Tag, Info, AlertTriangle } from "lucide-react";
 import toast from "react-hot-toast";
+import {
+  DEFAULT_FEED_TRANSFORM,
+  DEFAULT_AUTOMATION,
+  type ThyronixAutomationSettings,
+  type ThyronixFeedTransformSettings,
+} from "@/lib/thyronix/commercial";
 import type {
   ThyronixAiRules,
   ThyronixGateRules,
@@ -66,6 +72,17 @@ const inputClass =
   "mt-1 w-full rounded-lg border border-nexa-border bg-nexa-bg/50 px-3 py-2 text-sm text-nexa-text focus:outline-none focus:border-nexa-primary/50";
 const labelClass = "text-xs text-nexa-text-secondary block";
 
+function stockFilterLabel(hideBelowStock: number | null): string {
+  if (hideBelowStock == null) return "Kapalı — stok 0 dahil tüm ürünler çıktı XML'de";
+  if (hideBelowStock === 1) return "Açık — stok 0 olan ürünler çıktıdan gizlenir";
+  return `Açık — stok ${hideBelowStock} altındaki ürünler çıktıdan gizlenir`;
+}
+
+function priceRuleLabel(multiplier: number): string {
+  if (multiplier === 1) return "Orijinal — kaynak XML fiyatı aynen çıkar";
+  return `Çarpan ${multiplier} — fiyat kaynağın ${multiplier} katı`;
+}
+
 export default function ThyronixRulesContent() {
   const [dealerId, setDealerId] = useState("");
   const [dealerInput, setDealerInput] = useState("");
@@ -82,6 +99,29 @@ export default function ThyronixRulesContent() {
   const [preview, setPreview] = useState<PreviewData | null>(null);
   const [pendingChange, setPendingChange] = useState<PendingChange | null>(null);
   const [approving, setApproving] = useState(false);
+  const [workspaceAutomation, setWorkspaceAutomation] = useState<ThyronixAutomationSettings>({ ...DEFAULT_AUTOMATION });
+  const [feedTransform, setFeedTransform] = useState<ThyronixFeedTransformSettings>({ ...DEFAULT_FEED_TRANSFORM });
+  const [savingBrand, setSavingBrand] = useState(false);
+  const rulesNotifiedRef = useRef<string | null>(null);
+  const stockInputBaselineRef = useRef<number | null | undefined>(undefined);
+
+  const notifyStockFilterChange = (next: number | null, source: "preset" | "input" = "preset") => {
+    if (source === "preset") {
+      setStock((prev) => ({ ...prev, hideBelowStock: next }));
+    }
+    if (next == null) {
+      toast(
+        "Stok filtresi KAPALI — stok 0 dahil tüm ürünler çıktı XML'de görünür. Kaydetmek için «Onaya Gönder».",
+        { duration: 6000, icon: "✓" },
+      );
+      return;
+    }
+    const msg =
+      next === 1
+        ? "Stok filtresi AÇILDI — stok 0 olan ürünler çıktı XML'den gizlenecek. Kaydetmek için «Onaya Gönder»."
+        : `Stok filtresi AÇILDI — stok ${next} altındaki ürünler çıktıdan gizlenecek. Kaydetmek için «Onaya Gönder».`;
+    toast(msg, { duration: 6000, icon: "⚠" });
+  };
 
   const applyFormFromProfile = (profile: RulesProfile) => {
     setPrice(profile.price);
@@ -137,7 +177,16 @@ export default function ThyronixRulesContent() {
 
   const loadWorkspace = useCallback(async () => {
     const ws = await fetch("/api/thyronix/workspace").then((r) => r.json());
-    if (ws.success && ws.data?.dealerId) setDealerId(ws.data.dealerId);
+    if (ws.success && ws.data?.dealerId) {
+      setDealerId(ws.data.dealerId);
+      if (ws.data.automation) {
+        setWorkspaceAutomation(ws.data.automation);
+        setFeedTransform({
+          ...DEFAULT_FEED_TRANSFORM,
+          ...(ws.data.automation.feedTransform || {}),
+        });
+      }
+    }
   }, []);
 
   useEffect(() => {
@@ -147,6 +196,30 @@ export default function ThyronixRulesContent() {
   useEffect(() => {
     loadRules();
   }, [loadRules]);
+
+  useEffect(() => {
+    if (loading || !dealerId || pendingChange) return;
+    if (rulesNotifiedRef.current === dealerId) return;
+    rulesNotifiedRef.current = dealerId;
+
+    const stockMsg = stockFilterLabel(stock.hideBelowStock);
+    const priceMsg = priceRuleLabel(price.multiplier);
+    const brandMsg = feedTransform.enabled && feedTransform.targetBrand.trim()
+      ? `Marka dönüşümü: «${feedTransform.targetBrand.trim()}»`
+      : "Marka dönüşümü kapalı — kaynak markalar aynen";
+
+    toast(
+      (t) => (
+        <div className="text-sm leading-snug max-w-sm">
+          <p className="font-semibold mb-1">Aktif çıktı kuralları</p>
+          <p>• Fiyat: {priceMsg}</p>
+          <p>• Stok: {stockMsg}</p>
+          <p>• {brandMsg}</p>
+        </div>
+      ),
+      { duration: 8000, id: `thyronix-rules-status-${dealerId}` },
+    );
+  }, [loading, dealerId, pendingChange, stock.hideBelowStock, price.multiplier, feedTransform.enabled, feedTransform.targetBrand]);
 
   const handleProposeChange = async () => {
     if (!globalProfile) return;
@@ -181,6 +254,10 @@ export default function ThyronixRulesContent() {
     if (data.success) {
       const r = data.data.applyResult;
       toast.success(`Uygulandı: ${r.priceUpdated} fiyat, ${r.contentUpdated} içerik güncellendi`);
+      toast(stockFilterLabel(data.data.profile.stock.hideBelowStock), {
+        duration: 6000,
+        icon: data.data.profile.stock.hideBelowStock == null ? "✓" : "⚠",
+      });
       setGlobalProfile(data.data.profile);
       setPendingChange(null);
       applyFormFromProfile(data.data.profile);
@@ -205,6 +282,36 @@ export default function ThyronixRulesContent() {
   };
 
   const handleSaveGlobal = handleProposeChange;
+
+  const handleSaveFeedTransform = async () => {
+    if (!dealerId) return;
+    if (feedTransform.enabled && !feedTransform.targetBrand.trim()) {
+      toast.error("Çıktı markası etkinse hedef marka adı gerekli");
+      return;
+    }
+    setSavingBrand(true);
+    const res = await fetch("/api/thyronix/workspace", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        automation: {
+          ...workspaceAutomation,
+          feedTransform,
+        },
+      }),
+    });
+    const data = await res.json();
+    setSavingBrand(false);
+    if (data.success) {
+      if (data.data?.automation) {
+        setWorkspaceAutomation(data.data.automation);
+        setFeedTransform({ ...DEFAULT_FEED_TRANSFORM, ...(data.data.automation.feedTransform || {}) });
+      }
+      toast.success("Çıktı markası kaydedildi — bir sonraki feed üretiminde geçerli olur");
+    } else {
+      toast.error(data.error || "Marka ayarı kaydedilemedi");
+    }
+  };
 
   const handlePreview = async () => {
     if (!dealerId) return;
@@ -404,13 +511,72 @@ export default function ThyronixRulesContent() {
         <p className="text-nexa-text-secondary text-sm">Yükleniyor...</p>
       ) : (
         <>
+          {/* Aktif kurallar özeti — her zaman görünür */}
+          <div
+            className={`rounded-xl border-2 p-4 space-y-3 ${
+              stock.hideBelowStock == null
+                ? "border-emerald-500/50 bg-emerald-500/10"
+                : "border-amber-500/50 bg-amber-500/10"
+            }`}
+          >
+            <div className="flex items-start gap-3">
+              {stock.hideBelowStock == null ? (
+                <Info size={20} className="text-emerald-400 shrink-0 mt-0.5" />
+              ) : (
+                <AlertTriangle size={20} className="text-amber-400 shrink-0 mt-0.5" />
+              )}
+              <div className="space-y-2 flex-1 min-w-0">
+                <p className="font-semibold text-nexa-text text-sm">Şu an çıktı XML&apos;de geçerli kurallar</p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                  <div className="rounded-lg bg-nexa-bg/60 border border-nexa-border px-3 py-2">
+                    <span className="text-nexa-text-secondary block mb-0.5">Fiyat</span>
+                    <span className="text-nexa-text font-medium">{priceRuleLabel(price.multiplier)}</span>
+                  </div>
+                  <div
+                    className={`rounded-lg border px-3 py-2 ${
+                      stock.hideBelowStock == null
+                        ? "bg-emerald-500/10 border-emerald-500/30"
+                        : "bg-amber-500/10 border-amber-500/30"
+                    }`}
+                  >
+                    <span className="text-nexa-text-secondary block mb-0.5">Stok filtresi</span>
+                    <span className={`font-medium ${stock.hideBelowStock == null ? "text-emerald-300" : "text-amber-200"}`}>
+                      {stockFilterLabel(stock.hideBelowStock)}
+                    </span>
+                  </div>
+                  <div className="rounded-lg bg-nexa-bg/60 border border-nexa-border px-3 py-2">
+                    <span className="text-nexa-text-secondary block mb-0.5">Kalite kapısı</span>
+                    <span className="text-nexa-text font-medium">
+                      {Object.values(gate).some(Boolean) ? "Bazı kontroller açık" : "Kapalı — eksik alanlı ürünler de çıkar"}
+                    </span>
+                  </div>
+                  <div className="rounded-lg bg-nexa-bg/60 border border-nexa-border px-3 py-2">
+                    <span className="text-nexa-text-secondary block mb-0.5">Çıktı markası</span>
+                    <span className="text-nexa-text font-medium">
+                      {feedTransform.enabled && feedTransform.targetBrand.trim()
+                        ? `«${feedTransform.targetBrand.trim()}» olarak yayınlanır`
+                        : "Kapalı — kaynak marka aynen"}
+                    </span>
+                  </div>
+                </div>
+                {stock.hideBelowStock != null && (
+                  <p className="text-[11px] text-amber-200/90">
+                    Stok filtresi açıkken çıktı XML&apos;deki ürün sayısı kaynak XML&apos;den az olabilir. Tüm ürünlerin çıkması için stok filtresini kapatın.
+                  </p>
+                )}
+              </div>
+            </div>
+          </div>
+
           {/* Fiyat */}
           <div className="rounded-xl border border-nexa-border bg-nexa-card p-6 space-y-4">
             <div className="flex items-center gap-2">
               <Layers size={16} className="text-nexa-primary" />
               <div>
                 <h2 className="font-semibold text-nexa-text">Fiyat Motoru</h2>
-                <p className="text-xs text-nexa-text-secondary">Her sync&apos;te feed fiyatına uygulanır</p>
+                <p className="text-xs text-nexa-text-secondary">
+                  Çarpan <strong className="font-medium text-nexa-text">1</strong> = kaynak XML fiyatı aynen çıkar. Zam veya indirim için çarpanı değiştirin.
+                </p>
               </div>
             </div>
 
@@ -504,34 +670,84 @@ export default function ThyronixRulesContent() {
           </div>
 
           {/* Stok */}
-          <div className="rounded-xl border border-nexa-border bg-nexa-card p-6 space-y-4">
+          <div
+            className={`rounded-xl border p-6 space-y-4 ${
+              stock.hideBelowStock == null
+                ? "border-emerald-500/30 bg-nexa-card"
+                : "border-amber-500/40 bg-amber-500/5"
+            }`}
+          >
             <div className="flex items-center gap-2">
               <Package size={16} className="text-amber-500" />
-              <div>
+              <div className="flex-1">
                 <h2 className="font-semibold text-nexa-text">Stok / Yayın Motoru</h2>
                 <p className="text-xs text-nexa-text-secondary">
-                  Düşük stoklu ürünler çıktı XML&apos;inden gizlenir. Veritabanında gerçek stok korunur.
+                  Bu ayar çıktı XML&apos;de hangi ürünlerin görüneceğini belirler. Veritabanındaki gerçek stok değişmez.
                 </p>
               </div>
+              <span
+                className={`shrink-0 text-[10px] font-bold uppercase tracking-wide px-2.5 py-1 rounded-full ${
+                  stock.hideBelowStock == null
+                    ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/40"
+                    : "bg-amber-500/20 text-amber-200 border border-amber-500/40"
+                }`}
+              >
+                {stock.hideBelowStock == null ? "Filtre kapalı" : "Filtre açık"}
+              </span>
             </div>
+
+            <div className="flex flex-col sm:flex-row gap-2">
+              <button
+                type="button"
+                onClick={() => notifyStockFilterChange(null)}
+                className={`flex-1 text-left px-4 py-3 rounded-lg border text-sm transition-colors ${
+                  stock.hideBelowStock == null
+                    ? "border-emerald-500 bg-emerald-500/15 text-emerald-100 ring-1 ring-emerald-500/50"
+                    : "border-nexa-border hover:bg-nexa-hover text-nexa-text"
+                }`}
+              >
+                <span className="font-medium block">Stok filtresi kapalı</span>
+                <span className="text-[11px] opacity-80 mt-0.5 block">Stok 0 dahil — kaynak XML ile aynı ürün seti çıkar</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => notifyStockFilterChange(1)}
+                className={`flex-1 text-left px-4 py-3 rounded-lg border text-sm transition-colors ${
+                  stock.hideBelowStock === 1
+                    ? "border-amber-500 bg-amber-500/15 text-amber-100 ring-1 ring-amber-500/50"
+                    : "border-nexa-border hover:bg-nexa-hover text-nexa-text"
+                }`}
+              >
+                <span className="font-medium block">Stok 0 gizle</span>
+                <span className="text-[11px] opacity-80 mt-0.5 block">Sadece stoksuz ürünler çıktıdan çıkarılır</span>
+              </button>
+            </div>
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <label className={labelClass}>
-                Çıktıdan gizle — stok şunun altındaysa
+                Özel eşik (isteğe bağlı)
                 <input
                   type="number"
                   min="0"
                   placeholder="Kapalı (boş bırakın)"
                   value={stock.hideBelowStock ?? ""}
-                  onChange={(e) =>
-                    setStock({
-                      ...stock,
-                      hideBelowStock: e.target.value === "" ? null : Number(e.target.value),
-                    })
-                  }
+                  onFocus={() => {
+                    stockInputBaselineRef.current = stock.hideBelowStock;
+                  }}
+                  onChange={(e) => {
+                    const next = e.target.value === "" ? null : Number(e.target.value);
+                    setStock({ ...stock, hideBelowStock: next });
+                  }}
+                  onBlur={(e) => {
+                    const next = e.target.value === "" ? null : Number(e.target.value);
+                    if (next !== stockInputBaselineRef.current) {
+                      notifyStockFilterChange(next, "input");
+                    }
+                  }}
                   className={inputClass}
                 />
                 <span className="text-[10px] text-nexa-text-secondary mt-1 block">
-                  Örnek: 9 yazarsanız stok &lt; 9 olanlar XML&apos;de görünmez
+                  Örnek: 9 yazarsanız stok 8 ve altı gizlenir · boş = filtre kapalı
                 </span>
               </label>
               <label className={labelClass}>
@@ -550,6 +766,67 @@ export default function ThyronixRulesContent() {
                   className={inputClass}
                 />
               </label>
+            </div>
+          </div>
+
+          {/* Çıktı markası — bayi bazlı */}
+          <div className="rounded-xl border border-nexa-border bg-nexa-card p-6 space-y-4">
+            <div className="flex items-center gap-2">
+              <Tag size={16} className="text-violet-400" />
+              <div>
+                <h2 className="font-semibold text-nexa-text">Çıktı Markası (Private Label)</h2>
+                <p className="text-xs text-nexa-text-secondary">
+                  Her bayi kendi markasını girer. Kaynak XML&apos;deki tedarikçi markaları çıktıda sizin markanıza dönüşür.
+                </p>
+              </div>
+            </div>
+
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={feedTransform.enabled}
+                onChange={(e) => setFeedTransform({ ...feedTransform, enabled: e.target.checked })}
+                className="rounded border-nexa-border"
+              />
+              <span className="text-sm text-nexa-text">Çıktı XML&apos;de marka dönüşümünü uygula</span>
+            </label>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <label className={labelClass}>
+                Yayınlanacak marka (sizin markanız)
+                <input
+                  value={feedTransform.targetBrand}
+                  onChange={(e) => setFeedTransform({ ...feedTransform, targetBrand: e.target.value })}
+                  className={inputClass}
+                  placeholder="örn: Mağaza Adınız"
+                  disabled={!feedTransform.enabled}
+                />
+              </label>
+              <label className={labelClass}>
+                Kaynak marka adları (virgülle)
+                <input
+                  value={feedTransform.sourceBrandAliases.join(", ")}
+                  onChange={(e) =>
+                    setFeedTransform({
+                      ...feedTransform,
+                      sourceBrandAliases: e.target.value.split(/[,;\n]+/).map((s) => s.trim()).filter(Boolean),
+                    })
+                  }
+                  className={inputClass}
+                  placeholder="örn: BEZOS, BEZOS HOME, Bayi Markası"
+                  disabled={!feedTransform.enabled}
+                />
+              </label>
+            </div>
+
+            <div className="flex justify-end">
+              <button
+                onClick={handleSaveFeedTransform}
+                disabled={savingBrand}
+                className="flex items-center gap-2 px-4 py-2 bg-violet-600 text-white text-sm rounded-lg hover:bg-violet-500 disabled:opacity-50"
+              >
+                <Save size={14} /> {savingBrand ? "Kaydediliyor..." : "Marka Ayarını Kaydet"}
+              </button>
             </div>
           </div>
 

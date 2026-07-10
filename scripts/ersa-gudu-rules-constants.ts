@@ -11,8 +11,9 @@ export const STARTER_PACKAGE_RULES = {
     baseField: "price" as const,
   } satisfies ThyronixPriceRules,
   stock: {
-    // 0 stok gizlensin; 1+ çıksın (eski 3 eşiği birçok firmayı boşaltıyordu)
-    hideBelowStock: 1,
+    // Varsayılan: stok filtresi kapalı — kaynak XML ile aynı ürün seti çıkar.
+    // Bayi panelden isterse stok 0 veya özel eşik açabilir.
+    hideBelowStock: null,
     lowStockWarning: 3,
   } satisfies ThyronixStockRules,
   gate: {
