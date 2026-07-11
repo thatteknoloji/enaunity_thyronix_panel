@@ -7,15 +7,16 @@ import {
   ClipboardList, BarChart3, Store,
 } from "lucide-react";
 import { toAdminUrl } from "@/lib/auth/admin-access";
+import { readSafeJson } from "@/lib/http/safe-json";
 import { UI, statusLabel } from "@/lib/ui/turkish-labels";
 
 type Tab = "connections" | "orders" | "products" | "sync-logs" | "webhooks" | "pick-list" | "reports";
 
 async function api<T>(url: string, init?: RequestInit): Promise<T> {
   const r = await fetch(url, init);
-  const d = await r.json();
+  const d = await readSafeJson<{ success?: boolean; data?: T; error?: string }>(r, "Marketplace Hub");
   if (!r.ok || !d.success) throw new Error(d.error || `HTTP ${r.status}`);
-  return d.data;
+  return d.data as T;
 }
 
 const PLATFORMS = ["TRENDYOL", "HEPSIBURADA", "N11", "AMAZON", "PAZARAMA", "CICEKSEPETI"];

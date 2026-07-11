@@ -1,7 +1,0 @@
-<?xml version='1.0' encoding='utf-8'?>
-<resources>
-    <string name="app_name">LinkSlash</string>
-    <string name="title_activity_main">LinkSlash</string>
-    <string name="package_name">com.enaunity.linkslash</string>
-    <string name="custom_url_scheme">com.enaunity.linkslash</string>
-</resources>

@@ -92,13 +92,26 @@ async function main() {
       platformOrderId,
       customerName: "Test Müşteri",
       customerCity: "İstanbul",
-      items: [{ productName: "Test Ürün", barcode: "TEST001", quantity: 2, unitPrice: 150 }],
+      customerAddress: "Test Mah. No:1",
+      cargoTrackingNumber: "TY-CARGO-1",
+      cargoProviderName: "Trendyol Express",
+      shipmentPackageId: 123456,
+      tyPackageStatus: "Created",
+      items: [{ productName: "Test Ürün", barcode: "TEST001", sku: "SKU-TEST001", lineId: 777, quantity: 2, unitPrice: 150 }],
     },
   });
   assert(!imported.duplicate, "First import not duplicate");
-  assert(imported.order?.fulfillmentStatus === "WAITING_FOR_PACKING", "fulfillmentStatus WAITING_FOR_PACKING");
+  assert(imported.order?.fulfillmentStatus === "NEW", "fulfillmentStatus NEW");
   const saleTotal = imported.order!.totalAmount ?? (imported.order as any).total;
   assert(saleTotal === 300, "Sale total correct");
+  const importedMeta = JSON.parse((imported.order as any).metadataJson || "{}");
+  assert(importedMeta.shipmentPackageId === 123456, "Shipment package metadata stored");
+  assert(importedMeta.tyPackageStatus === "Created", "TY package status metadata stored");
+  const importedLineMeta = JSON.parse((imported.order as any).items?.[0]?.metadataJson || "{}");
+  assert(importedLineMeta.lineId === 777, "Line id metadata stored");
+  assert(importedLineMeta.sku === "SKU-TEST001", "Line SKU metadata stored");
+  const importedShipment = await prisma.dealerShipment.findFirst({ where: { coreOrderId: imported.order!.id } });
+  assert(importedShipment?.trackingNumber === "TY-CARGO-1", "Shipment tracking stored on create");
 
   // 3) Duplicate protection
   console.log("\n3) Duplicate protection");

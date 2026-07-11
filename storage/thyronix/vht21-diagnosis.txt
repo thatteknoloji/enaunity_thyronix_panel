@@ -1,0 +1,25 @@
+# VHT21 (FTA Ticaret) Teşhis Raporu
+Tarih: 2026-07-07T06:35:11.511Z
+
+## Yapılandırılmış URL
+- Maskeli: https://www.ftaticaret.com/export/***
+- Host: www.ftaticaret.com
+- Path uzunluğu: 60 karakter
+
+## DNS çözümlemesi
+- ✗ www.ftaticaret.com → ENOTFOUND: queryA ENOTFOUND www.ftaticaret.com
+- ✗ ftaticaret.com → ENOTFOUND: queryA ENOTFOUND ftaticaret.com
+
+## HTTP probe (yapılandırılmış URL)
+- ✗ FETCH_ERROR: fetch failed
+
+## fetchXmlText (Thyronix motoru)
+- ✗ fetch failed — ENOTFOUND getaddrinfo ENOTFOUND www.ftaticaret.com — https://www.ftaticaret.com/export/*** | fallback: fetch failed — ENOTFOUND getaddrinfo ENOTFOUND ftaticaret.com — https://ftaticaret.com/export/***
+
+## Özet ve olası nedenler
+- **Durum: DNS HATASI (ENOTFOUND / NXDOMAIN)**
+- Domain adı bu ortamda çözülemiyor. Olası nedenler:
+  1. Yanlış domain yazımı (ftaticaret vs ftaticaret)
+  2. Domain süresi dolmuş veya DNS kaydı kaldırılmış
+  3. Yerel DNS / ağ kısıtı (production sunucudan tekrar denenmeli)
+- **Öneri:** FTA Ticaret'ten güncel XML export linkini isteyin veya bayilik panelinden yeni token alın.

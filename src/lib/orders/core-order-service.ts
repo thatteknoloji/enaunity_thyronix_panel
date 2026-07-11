@@ -150,6 +150,8 @@ export async function createCoreOrder(input: CreateCoreOrderInput) {
     data: {
       coreOrderId: order.id,
       status: "WAITING_FOR_PACKING",
+      trackingNumber: input.cargoTrackingNumber || "",
+      cargoCompany: input.cargoProviderName || "",
       shippingCost: input.shippingCost || 0,
     },
   });

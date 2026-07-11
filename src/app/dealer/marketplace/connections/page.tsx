@@ -10,14 +10,15 @@ import {
   dealerInputClass,
   dealerSelectClass,
 } from "@/components/dealer/DealerSubPage";
+import { readSafeJson } from "@/lib/http/safe-json";
 
 const PLATFORMS = ["TRENDYOL", "HEPSIBURADA", "N11", "AMAZON", "PAZARAMA", "CICEKSEPETI"];
 
 async function api<T>(url: string, init?: RequestInit): Promise<T> {
   const r = await fetch(url, init);
-  const d = await r.json();
+  const d = await readSafeJson<{ success?: boolean; data?: T; error?: string }>(r, "Pazaryeri bağlantıları");
   if (!r.ok || !d.success) throw new Error(d.error || `HTTP ${r.status}`);
-  return d.data;
+  return d.data as T;
 }
 
 export default function DealerMarketplaceConnectionsPage() {

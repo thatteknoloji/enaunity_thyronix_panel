@@ -59,6 +59,8 @@ type DetailOrder = {
     id: string;
     quantity: number;
     price: number;
+    sku?: string;
+    barcode?: string;
     metadataJson?: string | null;
     product?: { name?: string; image?: string } | null;
     productCatalogItem?: { name?: string; imagesJson?: string } | null;
@@ -316,8 +318,14 @@ export default function AdminOrderDetailPage() {
             </div>
             <div className="divide-y divide-gray-100">
               {order.items.map((item) => {
-                const productName = item.product?.name || item.productCatalogItem?.name || "Ürün";
-                const image = item.product?.image || getCatalogImage(item.productCatalogItem?.imagesJson) || "/placeholder.svg";
+                const itemMeta = parseMetadata(item.metadataJson);
+                const rawProductName = String(itemMeta.rawProductName || "");
+                const productName = item.product?.name || item.productCatalogItem?.name || rawProductName || "Ürün";
+                const image =
+                  item.product?.image ||
+                  getCatalogImage(item.productCatalogItem?.imagesJson) ||
+                  String(itemMeta.imageUrl || itemMeta.productImageUrl || "") ||
+                  "/placeholder.svg";
                 const digitalDelivery = parseDigitalMetadata(item.metadataJson);
                 return (
                   <div key={item.id} className="flex items-center gap-4 px-5 py-4">
@@ -325,6 +333,16 @@ export default function AdminOrderDetailPage() {
                     <div className="min-w-0 flex-1">
                       <p className="font-medium text-gray-900 truncate">{productName}</p>
                       <p className="text-xs text-gray-500 mt-1">Adet: {item.quantity} • Birim: {formatPrice(item.price)}</p>
+                      {(item.barcode || item.sku || itemMeta.lineId || rawProductName) && (
+                        <p className="text-[11px] text-gray-400 mt-1">
+                          {item.barcode ? `Barkod: ${item.barcode}` : ""}
+                          {item.barcode && item.sku ? " · " : ""}
+                          {item.sku ? `SKU: ${item.sku}` : ""}
+                          {(item.barcode || item.sku) && itemMeta.lineId ? " · " : ""}
+                          {itemMeta.lineId ? `TY satır: ${itemMeta.lineId}` : ""}
+                          {rawProductName && rawProductName !== productName ? ` · TY ürün: ${rawProductName}` : ""}
+                        </p>
+                      )}
                       {digitalDelivery ? (
                         <p className="mt-1 inline-flex rounded-full border border-indigo-200 bg-indigo-50 px-2 py-0.5 text-[11px] font-medium text-indigo-700">
                           {digitalModeLabel(digitalDelivery.mode)}
