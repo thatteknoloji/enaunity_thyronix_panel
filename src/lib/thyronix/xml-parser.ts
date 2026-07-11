@@ -64,9 +64,20 @@ function pickString(...values: unknown[]): string | undefined {
 
 function extractText(value: unknown): string {
   if (value === null || value === undefined) return "";
-  if (typeof value === "object" && value !== null && "#text" in value) {
-    const text = (value as Record<string, unknown>)["#text"];
-    return text === null || text === undefined ? "" : String(text).trim();
+  if (typeof value === "object") {
+    const record = value as Record<string, unknown>;
+    if ("#text" in record) return extractText(record["#text"]);
+    if ("value" in record) return extractText(record.value);
+    if ("Value" in record) return extractText(record.Value);
+    if ("Deger" in record) return extractText(record.Deger);
+    if ("deger" in record) return extractText(record.deger);
+    if ("Tanim" in record) return extractText(record.Tanim);
+    if ("@_Deger" in record) return extractText(record["@_Deger"]);
+    if ("@_Tanim" in record) return extractText(record["@_Tanim"]);
+    if (Array.isArray(value)) {
+      return value.map(extractText).filter(Boolean).join(", ");
+    }
+    return "";
   }
   return String(value).trim();
 }
@@ -627,9 +638,9 @@ export function parseXmlToProducts(
           for (const opt of optItems) {
             const g = opt["group"] || opt["Group"] || opt["name"] || opt["Name"] || opt["key"];
             const va = opt["value"] || opt["Value"] || opt["val"] || opt["#text"];
-            const gn = typeof g === "object" && g?.["#text"] ? g["#text"] : String(g || "");
-            const vl = typeof va === "object" && va?.["#text"] ? va["#text"] : String(va || "");
-            if (gn) variantOpts.push({ group: gn, value: vl });
+            const gn = extractText(g);
+            const vl = extractText(va);
+            if (gn && vl) variantOpts.push({ group: gn, value: vl });
           }
         }
 
@@ -671,8 +682,8 @@ export function parseXmlToProducts(
             if (k === "#text") continue;
             if (/^(name|value|Name|Value|spec|Spec|attr|Attr)\d*$/.test(k)) continue;
             if (v == null) continue;
-            const val = typeof v === "object" && (v as any)["#text"] ? (v as any)["#text"] : String(v);
-            if (val) variantOpts.push({ group: k, value: val });
+            const val = extractText(v);
+            if (val && !val.includes("[object Object]")) variantOpts.push({ group: k, value: val });
           }
         }
 

@@ -51,14 +51,22 @@ export async function GET() {
     const qualitySummaries = await getThyronixSourceQualitySummaries(user);
     const sourceWarnings = Array.from(qualitySummaries.values())
       .filter((summary) => summary.warnings.length > 0)
-      .sort((a, b) => (b.invalidPriceCount + b.missingVatCount) - (a.invalidPriceCount + a.missingVatCount))
+      .sort(
+        (a, b) =>
+          (b.invalidPriceCount + b.missingVatCount + b.brokenVariantCount) -
+          (a.invalidPriceCount + a.missingVatCount + a.brokenVariantCount),
+      )
       .slice(0, 12);
+    const brokenVariants = Array.from(qualitySummaries.values()).reduce(
+      (sum, summary) => sum + summary.brokenVariantCount,
+      0,
+    );
 
     return NextResponse.json({
       success: true,
       data: {
         missingBarcode, missingBrand, missingCategory, missingDescription,
-        missingIdentity, missingVat, feedCountMismatch,
+        missingIdentity, missingVat, feedCountMismatch, brokenVariants,
         zeroPrice, zeroStock, negativePrice, negativeStock, totalActive, totalAll,
         sourceWarnings,
       },

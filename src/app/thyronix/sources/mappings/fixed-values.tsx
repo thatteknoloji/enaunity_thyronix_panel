@@ -1,6 +1,6 @@
 "use client";
 
-import { Settings } from "lucide-react";
+import { AlertTriangle, Settings } from "lucide-react";
 
 const FIXED_FIELDS = [
   { v:"brand", l:"Varsayılan Marka" },
@@ -40,8 +40,25 @@ interface Props {
 }
 
 export default function FixedValuesUI({ fixedValues, setFixedValues, mode = "default" }: Props) {
+  const vatMissingInSource = fixedValues.vatFieldDetected === "no";
+  const vatConfigured = Boolean(
+    String(fixedValues.vatRate || fixedValues.vatRateOverride || "").trim(),
+  );
+
   return (
     <div className="p-4 rounded-xl bg-nexa-card border border-nexa-border space-y-4">
+      {vatMissingInSource && !vatConfigured && (
+        <div className="flex items-start gap-2 rounded-lg border border-nexa-warning/30 bg-nexa-warning/10 p-3">
+          <AlertTriangle size={16} className="mt-0.5 shrink-0 text-nexa-warning" />
+          <div className="text-xs text-nexa-text">
+            <p className="font-semibold text-nexa-warning">Kaynakta KDV alanı bulunamadı</p>
+            <p className="mt-1 text-nexa-text-secondary">
+              Bu kaynak XML&apos;inde KDV etiketi yok. Sistem otomatik KDV atamaz; aşağıdan{" "}
+              <strong>KDV Oranı</strong> veya <strong>KDV Override</strong> girerek tüm ürünlere uygulayın.
+            </p>
+          </div>
+        </div>
+      )}
       <div className="flex items-center gap-2">
         <Settings size={16} className="text-nexa-text-secondary"/>
         <h3 className="text-sm font-semibold text-nexa-text">Sabit Değerler</h3>

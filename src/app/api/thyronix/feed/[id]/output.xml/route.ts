@@ -10,7 +10,8 @@ import { planFeedChunks } from "@/lib/thyronix/feed-chunk";
 import { isFeedXmlCacheFresh, readFeedXmlCache, writeFeedXmlCache } from "@/lib/thyronix/feed-output-cache";
 import { applyFeedTransformSettings, loadFeedTransformSettings, type FeedProduct } from "@/lib/thyronix/feed-transform";
 import { resolveFeedSourceIds } from "@/lib/thyronix/source-feed-provision";
-import { parseVariantData } from "@/lib/thyronix/source-metadata";
+import { prepareProductsForFeedOutput, applySourceFixedVat } from "@/lib/thyronix/feed-output-prep";
+import { loadSourceVatDefaults } from "@/lib/thyronix/source-vat-detection";
 
 export const dynamic = "force-dynamic";
 
@@ -45,12 +46,13 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
     const sourceIds = await resolveFeedSourceIds(feed);
     const { products, plan, partMeta } = await resolveFeedChunkSlice(feed, sourceIds, part);
     const transformSettings = await loadFeedTransformSettings(feed.dealerId);
+    const sourceVatDefaults = await loadSourceVatDefaults(sourceIds);
     const transformedProducts = applyFeedTransformSettings(products as FeedProduct[], transformSettings);
 
-    const productsWithVariants = transformedProducts.map((p) => ({
-      ...p,
-      variants: parseVariantData((p as { variantData?: string | null }).variantData),
-    }));
+    const productsWithVariants = prepareProductsForFeedOutput(
+      applySourceFixedVat(transformedProducts as FeedProduct[], sourceVatDefaults),
+      template,
+    );
 
     const generatedAt = new Date();
     const xml = generateFeedXml(productsWithVariants as never, template);

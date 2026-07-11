@@ -1,4 +1,5 @@
 import type { FeedTemplate } from "./templates";
+import type { FeedOutputVariant } from "./feed-output-prep";
 
 interface ThyronixProduct {
   id: string; externalId?: string | null; name: string; description?: string | null; brand?: string | null;
@@ -12,10 +13,7 @@ interface ThyronixProduct {
   shippingCost?: number | null; productUrl?: string | null;
 }
 
-interface ThyronixVariant {
-  id: string; sku?: string; barcode?: string; price?: number;
-  stock: number; options: string | Array<{ group: string; value: string }>; image?: string;
-}
+const ALWAYS_EMIT_FIELDS = new Set(["stock", "vatRate"]);
 
 function escapeXml(str: string): string {
   return str
@@ -53,12 +51,80 @@ function getField(product: ThyronixProduct, fieldName: string): unknown {
   return map[fieldName];
 }
 
-export function generateFeedXml(
-  products: (ThyronixProduct & { variants?: ThyronixVariant[] })[],
+function variantFieldTags(template: FeedTemplate) {
+  if (template.id === "jetteknoloji" || template.id === "ticimax") {
+    return {
+      barcode: "barkod",
+      sku: "stokKodu",
+      price: "fiyat",
+      stock: "stokAdedi",
+      image: "resim",
+    };
+  }
+  if (template.id === "bezos") {
+    return {
+      barcode: "barkod",
+      sku: "stok_kodu",
+      price: "fiyat",
+      stock: "stok",
+      image: "resim",
+    };
+  }
+  return {
+    barcode: "barcode",
+    sku: "sku",
+    price: "price",
+    stock: "stock",
+    image: "image",
+  };
+}
+
+function optionTagName(group: string): string {
+  const normalized = group
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9ğüşıöç]/gi, "");
+  if (normalized.includes("renk") || normalized === "color") return "renk";
+  if (normalized.includes("beden") || normalized.includes("size")) return "beden";
+  return group.replace(/[^a-zA-Z0-9ğüşıöçĞÜŞİÖÇ]/g, "_").toLowerCase() || "secenek";
+}
+
+function writeVariantBlock(
+  parts: string[],
   template: FeedTemplate,
-  inlineStock?: boolean,
+  variants: FeedOutputVariant[],
+) {
+  const { variantElement, variantItemElement } = template;
+  if (!variantElement || variants.length === 0) return;
+
+  const tags = variantFieldTags(template);
+  parts.push(`    <${variantElement}>`);
+  for (const variant of variants) {
+    parts.push(`      <${variantItemElement || "variant"}>`);
+    if (variant.barcode) parts.push(`        <${tags.barcode}>${escapeXml(variant.barcode)}</${tags.barcode}>`);
+    if (variant.sku) parts.push(`        <${tags.sku}>${escapeXml(variant.sku)}</${tags.sku}>`);
+    if (variant.price !== undefined && Number.isFinite(variant.price)) {
+      parts.push(`        <${tags.price}>${variant.price}</${tags.price}>`);
+    }
+    parts.push(`        <${tags.stock}>${variant.stock ?? 0}</${tags.stock}>`);
+    if (variant.image) parts.push(`        <${tags.image}>${escapeXml(variant.image)}</${tags.image}>`);
+    if (variant.options.length > 0) {
+      parts.push(`        <options>${escapeXml(JSON.stringify(variant.options))}</options>`);
+      for (const opt of variant.options) {
+        const tag = optionTagName(opt.group);
+        parts.push(`        <${tag}>${escapeXml(opt.value)}</${tag}>`);
+      }
+    }
+    parts.push(`      </${variantItemElement || "variant"}>`);
+  }
+  parts.push(`    </${variantElement}>`);
+}
+
+export function generateFeedXml(
+  products: (ThyronixProduct & { variants?: FeedOutputVariant[] })[],
+  template: FeedTemplate,
 ): string {
-  const { rootElement, itemElement, fieldMap, cdataFields, xmlHeader, variantElement, variantItemElement } = template;
+  const { rootElement, itemElement, fieldMap, cdataFields, xmlHeader, variantElement } = template;
   const parts: string[] = [];
 
   if (xmlHeader) parts.push(xmlHeader);
@@ -71,7 +137,6 @@ export function generateFeedXml(
       if (!xmlTag) continue;
       const value = getField(product, internalField);
 
-      // Google Shopping / Facebook: special handling
       if (template.id === "googleshopping" && internalField === "stock") {
         parts.push(`    <${xmlTag}>${value ? "in_stock" : "out_of_stock"}</${xmlTag}>`);
         continue;
@@ -82,38 +147,25 @@ export function generateFeedXml(
         continue;
       }
 
+      if (ALWAYS_EMIT_FIELDS.has(internalField)) {
+        const outValue =
+          value === null || value === undefined || value === ""
+            ? internalField === "stock"
+              ? 0
+              : 0
+            : value;
+        parts.push(`    <${xmlTag}>${formatField(outValue, internalField, cdataFields)}</${xmlTag}>`);
+        continue;
+      }
+
       if (value !== null && value !== undefined && value !== "") {
         const formatted = formatField(value, internalField, cdataFields);
         parts.push(`    <${xmlTag}>${formatted}</${xmlTag}>`);
       }
     }
 
-    // Variants
     if (variantElement && product.variants && product.variants.length > 0) {
-      parts.push(`    <${variantElement}>`);
-      for (const v of product.variants) {
-        let variantOpts: Array<{ group: string; value: string }> = [];
-        if (Array.isArray(v.options)) {
-          variantOpts = v.options;
-        } else {
-          try { variantOpts = JSON.parse(v.options || "[]"); } catch {}
-        }
-        parts.push(`      <${variantItemElement || "variant"}>`);
-        if (v.barcode) parts.push(`        <barcode>${escapeXml(v.barcode)}</barcode>`);
-        if (v.sku) parts.push(`        <sku>${escapeXml(v.sku)}</sku>`);
-        if (v.price !== undefined) parts.push(`        <price>${v.price}</price>`);
-        parts.push(`        <stock>${v.stock}</stock>`);
-        if (v.image) parts.push(`        <image>${escapeXml(v.image)}</image>`);
-        if (variantOpts.length > 0) {
-          parts.push(`        <options>${escapeXml(JSON.stringify(variantOpts))}</options>`);
-          for (const opt of variantOpts) {
-            const groupTag = (opt.group || "group").replace(/[^a-zA-Z0-9]/g, "_").toLowerCase();
-            parts.push(`        <${groupTag}>${escapeXml(opt.value)}</${groupTag}>`);
-          }
-        }
-        parts.push(`      </${variantItemElement || "variant"}>`);
-      }
-      parts.push(`    </${variantElement}>`);
+      writeVariantBlock(parts, template, product.variants);
     }
 
     parts.push(`  </${itemElement}>`);
@@ -124,7 +176,7 @@ export function generateFeedXml(
 }
 
 export function generateFeedXmlResponse(
-  products: (ThyronixProduct & { variants?: ThyronixVariant[] })[],
+  products: (ThyronixProduct & { variants?: FeedOutputVariant[] })[],
   template: FeedTemplate,
 ): Response {
   const xml = generateFeedXml(products, template);

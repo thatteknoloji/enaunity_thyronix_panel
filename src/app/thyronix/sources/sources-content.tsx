@@ -414,6 +414,9 @@ export default function ThyronixSources() {
     const persistedFixedValues = {
       ...fixedValues,
       ...lastTestMeta,
+      vatUserConfigured: String(fixedValues.vatRate || fixedValues.vatRateOverride || "").trim()
+        ? "yes"
+        : fixedValues.vatUserConfigured || "no",
       _mappedFieldCount: String(Object.keys(fieldMapping).filter((key) => fieldMapping[key]).length),
       _mappedVariantCount: String(Object.keys(variantMapping).filter((key) => variantMapping[key] && variantMapping[key] !== "variantIgnore").length),
       _requiredMappingReady: String(!missingMappings.includes("name") && !missingMappings.includes("price")),

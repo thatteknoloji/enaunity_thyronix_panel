@@ -9,7 +9,10 @@ type SourceWarning = {
   sourceName: string;
   missingVatCount: number;
   invalidPriceCount: number;
+  brokenVariantCount: number;
   productCount: number;
+  vatFieldDetected: boolean;
+  vatUserConfigured: boolean;
   warnings: string[];
 };
 
@@ -31,6 +34,7 @@ export default function ThyronixHealthPage() {
     { label: "Kimlik Eksik", count: s.missingIdentity||0, severity: "error" },
     { label: "Barkod Eksik", count: s.missingBarcode||0, severity: "error" },
     { label: "KDV Eksik", count: s.missingVat||0, severity: "warning" },
+    { label: "Bozuk Varyant", count: s.brokenVariants||0, severity: "error" },
     { label: "Marka Eksik", count: s.missingBrand||0, severity: "info" },
     { label: "Kategori Eksik", count: s.missingCategory||0, severity: "info" },
     { label: "Açıklama Eksik", count: s.missingDescription||0, severity: "warning" },
@@ -65,7 +69,7 @@ export default function ThyronixHealthPage() {
             <div className="min-w-0 flex-1">
               <h2 className="text-sm font-semibold text-nexa-text">Kaynak veri uyarıları</h2>
               <p className="mt-1 text-xs text-nexa-text-secondary">
-                Aşağıdaki kaynak XML/feeds içinde KDV veya fiyat alanı boş/0 geliyor. Sistem veriyi uydurmaz; kaynaktan ne geliyorsa onu gösterir.
+                Aşağıdaki kaynaklarda KDV, fiyat veya varyant verisi eksik/bozuk. KDV için Sabit Değerler&apos;den oran girin; sistem kaynak dışı varsayılan atamaz.
               </p>
               <div className="mt-3 grid gap-2 md:grid-cols-2">
                 {sourceWarnings.map((source) => (

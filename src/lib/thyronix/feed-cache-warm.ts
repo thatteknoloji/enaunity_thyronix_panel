@@ -3,7 +3,8 @@ import { resolveFeedSourceIds } from "./source-feed-provision";
 import { loadMergedFeedProductsForOutput } from "./feed-output-service";
 import { planFeedChunks, type FeedChunkPlan } from "./feed-chunk";
 import { loadFeedTransformSettings, applyFeedTransformSettings, type FeedProduct } from "./feed-transform";
-import { parseVariantData } from "./source-metadata";
+import { prepareProductsForFeedOutput, applySourceFixedVat } from "./feed-output-prep";
+import { loadSourceVatDefaults } from "./source-vat-detection";
 import { generateFeedXml } from "./xml-generator";
 import { getTemplate } from "./templates";
 import { writeFeedXmlCache } from "./feed-output-cache";
@@ -28,6 +29,7 @@ export async function warmFeedXmlCache(
   }
 
   const sourceIds = opts?.sourceIds?.length ? opts.sourceIds : await resolveFeedSourceIds(feed);
+  const sourceVatDefaults = await loadSourceVatDefaults(sourceIds);
   const { products: merged } = await loadMergedFeedProductsForOutput(feed, sourceIds);
   const plan = planFeedChunks(merged.length);
   const transformSettings = await loadFeedTransformSettings(feed.dealerId);
@@ -46,10 +48,10 @@ export async function warmFeedXmlCache(
   for (const part of plan.parts) {
     const products = merged.slice(part.offset, part.offset + part.limit);
     const transformedProducts = applyFeedTransformSettings(products as FeedProduct[], transformSettings);
-    const productsWithVariants = transformedProducts.map((product) => ({
-      ...product,
-      variants: parseVariantData((product as { variantData?: string | null }).variantData),
-    }));
+    const productsWithVariants = prepareProductsForFeedOutput(
+      applySourceFixedVat(transformedProducts as FeedProduct[], sourceVatDefaults),
+      template,
+    );
 
     const xml = generateFeedXml(productsWithVariants as never, template);
     const filePath = await writeFeedXmlCache(feed.id, part.part, xml);

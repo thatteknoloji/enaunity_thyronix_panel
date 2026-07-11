@@ -18,6 +18,7 @@ import { applyIncomingPriceRulesBatch } from "./rules/apply";
 import { applyContentRulesBatch } from "./rules/content-apply";
 import { applyAiToNewProductsAfterSync } from "./rules/ai-content";
 import { resolveRulesForSource } from "./rules/resolver";
+import { updateSourceVatFieldDetection } from "./source-vat-detection";
 import {
   getMissingRequiredMappings,
   mappingErrorLabel,
@@ -236,6 +237,7 @@ export async function syncThyronixSourceById(
         variantFieldMap,
         fetchTimeoutMs,
       );
+      await updateSourceVatFieldDetection(source.id, products, fixedValues);
       const seen = new Set<string>();
       const usedExternalIds = new Set<string>();
       const allData: any[] = [];
