@@ -300,6 +300,13 @@ function AdminOrdersContent() {
                       </div>
                     </div>
                     <div className="text-right space-y-1.5 shrink-0">
+                      <Link
+                        href={`/admin/orders/${order.id}`}
+                        className="inline-flex items-center gap-1 rounded-lg bg-slate-900 px-3 py-1.5 text-[11px] font-semibold text-white hover:bg-slate-800"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        Tam Detay <ChevronRight size={12} />
+                      </Link>
                       <span className={`inline-flex px-2 py-0.5 rounded text-[11px] font-medium border ${statusColors[order.status] || "text-gray-600 bg-gray-50 border-gray-200"}`}>
                         {statusLabels[order.status] || order.status}
                       </span>
@@ -376,6 +383,12 @@ function AdminOrdersContent() {
                       {expandedId === order.id ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
                       {order.items.length} ürün
                     </button>
+                    <Link
+                      href={`/admin/orders/${order.id}`}
+                      className="flex items-center gap-1 text-[11px] px-2.5 py-1.5 rounded-lg bg-slate-900 text-white hover:bg-slate-800"
+                    >
+                      Tam detay sayfası <ChevronRight size={12} />
+                    </Link>
                   </div>
                 </div>
 

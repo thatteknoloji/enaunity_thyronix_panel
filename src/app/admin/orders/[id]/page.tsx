@@ -28,6 +28,7 @@ import {
   Wallet,
 } from "lucide-react";
 import { getOrderPaymentInfo } from "@/lib/orders/payment-metadata";
+import { toAdminUrl } from "@/lib/auth/admin-access";
 import {
   canUnlockDigitalDelivery,
   digitalModeLabel,
@@ -182,19 +183,35 @@ function parseDigitalMetadata(value?: string | null) {
   return parseDigitalDeliverySnapshot((metadata as { digitalDelivery?: unknown }).digitalDelivery);
 }
 
+const B2B_PIPELINE = [
+  "waiting_payment",
+  "pending_approval",
+  "approved",
+  "pending",
+  "shipped",
+  "delivered",
+] as const;
+
 export default function AdminOrderDetailPage() {
   const router = useRouter();
   const { id } = useParams<{ id: string }>();
   const [order, setOrder] = useState<DetailOrder | null>(null);
   const [loading, setLoading] = useState(true);
   const [actioningId, setActioningId] = useState("");
+  const [updatingStatus, setUpdatingStatus] = useState(false);
+  const [trackingNumber, setTrackingNumber] = useState("");
+  const [carrier, setCarrier] = useState("");
 
   const loadOrder = () => {
     if (!id) return;
     fetch(`/api/admin/orders/${id}`)
       .then((r) => r.json())
       .then((d) => {
-        if (d.success) setOrder(d.data);
+        if (d.success) {
+          setOrder(d.data);
+          setTrackingNumber(d.data.trackingNumber || "");
+          setCarrier(d.data.carrier || "");
+        }
       })
       .finally(() => setLoading(false));
   };
@@ -208,6 +225,55 @@ export default function AdminOrderDetailPage() {
   const platform = String(metadata.platform || order?.marketplace || "").trim();
   const shippingCost = Number(metadata.shippingCost || 0) || 0;
   const installmentCount = Number(metadata.installmentCount || 1) || 1;
+
+  const updateStatus = async (status: string) => {
+    if (!order) return;
+    setUpdatingStatus(true);
+    try {
+      const res = await fetch(`/api/admin/orders/${order.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status }),
+      });
+      const data = await res.json();
+      if (!data.success) throw new Error(data.error || "Güncellenemedi");
+      toast.success("Durum güncellendi");
+      loadOrder();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Hata");
+    } finally {
+      setUpdatingStatus(false);
+    }
+  };
+
+  const saveTracking = async () => {
+    if (!order) return;
+    setUpdatingStatus(true);
+    try {
+      const res = await fetch(`/api/admin/orders/${order.id}/tracking`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ trackingNumber, carrier }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || data.success === false) throw new Error(data.error || "Kargo kaydedilemedi");
+      toast.success("Kargo bilgisi kaydedildi");
+      loadOrder();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Kargo kaydedilemedi");
+    } finally {
+      setUpdatingStatus(false);
+    }
+  };
+
+  const copyText = async (text: string, label: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      toast.success(`${label} kopyalandı`);
+    } catch {
+      toast.error("Kopyalanamadı");
+    }
+  };
 
   if (loading) {
     return (
@@ -271,34 +337,77 @@ export default function AdminOrderDetailPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div className="space-y-2">
-          <Link href="/admin/orders" className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-900">
-            <ArrowLeft size={16} /> Siparişlere dön
-          </Link>
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">Sipariş Detayı</h1>
-            <p className="text-sm text-gray-500 mt-1 font-mono">#{order.id}</p>
+      <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div className="space-y-2 min-w-0">
+            <Link href={toAdminUrl("/admin/orders")} className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-900">
+              <ArrowLeft size={16} /> B2B sipariş listesine dön
+            </Link>
+            <div>
+              <h1 className="text-2xl md:text-3xl font-bold text-gray-900 tracking-tight">
+                Sipariş #{order.orderNumber || order.id.slice(0, 8)}
+              </h1>
+              <p className="text-sm text-gray-500 mt-1 font-mono">#{order.id}</p>
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              <Badge variant={statusVariant[order.status] || "default"}>{statusText[order.status] || order.status}</Badge>
+              {paymentInfo.method && <Badge variant="default">{paymentInfo.label}</Badge>}
+              {platform && <Badge variant="default">{platform}</Badge>}
+              {order.marketplace && <Badge variant="default">{order.marketplace}</Badge>}
+            </div>
           </div>
-          <div className="flex flex-wrap items-center gap-2">
-            <Badge variant={statusVariant[order.status] || "default"}>{statusText[order.status] || order.status}</Badge>
-            {paymentInfo.method && <Badge variant="default">{paymentInfo.label}</Badge>}
-            {platform && <Badge variant="default">{platform}</Badge>}
-            {order.marketplace && <Badge variant="default">{order.marketplace}</Badge>}
+
+          <div className="flex flex-wrap gap-2">
+            <Button variant="outline" onClick={() => copyText(order.id, "Sipariş ID")} className="gap-2">
+              <Copy size={16} /> ID kopyala
+            </Button>
+            <select
+              value={order.status === "pending_approval" ? "pending_approval" : order.status}
+              disabled={updatingStatus || order.status === "cancelled" || order.status === "delivered"}
+              onChange={(e) => {
+                if (e.target.value !== "pending_approval") updateStatus(e.target.value);
+              }}
+              className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium"
+            >
+              {order.status === "pending_approval" && <option value="pending_approval">Onay Bekliyor</option>}
+              {order.status === "waiting_payment" && <option value="waiting_payment">Ödeme Bekliyor</option>}
+              <option value="approved">Onaylandı</option>
+              <option value="pending">Beklemede</option>
+              <option value="shipped">Kargoda</option>
+              <option value="delivered">Teslim Edildi</option>
+              <option value="cancelled">İptal</option>
+            </select>
+            <Button variant="outline" onClick={() => router.push(toAdminUrl("/admin/orders?tab=operasyon"))} className="gap-2">
+              <Truck size={16} /> Operasyon
+            </Button>
           </div>
         </div>
 
-        <div className="flex flex-wrap gap-2">
-          <Button
-            variant="outline"
-            onClick={() => navigator.clipboard?.writeText(order.id)}
-            className="gap-2"
-          >
-            <Copy size={16} /> Kopyala
-          </Button>
-          <Button variant="outline" onClick={() => router.push(`/admin/orders?tab=operasyon`)} className="gap-2">
-            <Truck size={16} /> Operasyon
-          </Button>
+        <div className="mt-5 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
+          {B2B_PIPELINE.map((step) => {
+            const idx = B2B_PIPELINE.indexOf(step);
+            const currentIdx = B2B_PIPELINE.includes(order.status as typeof B2B_PIPELINE[number])
+              ? B2B_PIPELINE.indexOf(order.status as typeof B2B_PIPELINE[number])
+              : order.status === "cancelled"
+                ? -1
+                : 2;
+            const done = currentIdx >= 0 && idx <= currentIdx;
+            const current = order.status === step;
+            return (
+              <div
+                key={step}
+                className={`rounded-xl border px-2.5 py-2 text-center text-[10px] font-semibold uppercase tracking-wide ${
+                  current
+                    ? "border-emerald-300 bg-emerald-50 text-emerald-800"
+                    : done
+                      ? "border-slate-200 bg-white text-slate-600"
+                      : "border-slate-100 bg-slate-50 text-slate-400"
+                }`}
+              >
+                {statusText[step]}
+              </div>
+            );
+          })}
         </div>
       </div>
 
@@ -311,9 +420,51 @@ export default function AdminOrderDetailPage() {
 
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
         <div className="xl:col-span-2 space-y-6">
+          <section className="rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden">
+            <div className="flex items-center justify-between border-b border-gray-200 px-5 py-4 bg-slate-50/70">
+              <h2 className="font-semibold text-gray-900 flex items-center gap-2"><Paperclip size={16} /> Sipariş Belgeleri</h2>
+              <span className="text-xs text-gray-500">{order.attachments?.length || 0} dosya</span>
+            </div>
+            <div className="p-5">
+              {order.attachments?.length ? (
+                <div className="grid sm:grid-cols-2 gap-3">
+                  {order.attachments.map((att) => {
+                    const kind = getFileKind(att.fileType, att.fileName);
+                    return (
+                      <a
+                        key={att.id}
+                        href={att.fileUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-3 rounded-xl border border-gray-200 px-3 py-3 hover:bg-gray-50 transition-colors"
+                      >
+                        {kind === "image" ? (
+                          <img src={att.fileUrl} alt={att.fileName} className="h-14 w-14 rounded-lg object-cover bg-gray-100" />
+                        ) : (
+                          <div className="flex h-14 w-14 items-center justify-center rounded-lg bg-amber-50">
+                            <FileText size={20} className="text-amber-500" />
+                          </div>
+                        )}
+                        <div className="min-w-0 flex-1">
+                          <p className="text-sm font-medium text-gray-900 truncate">{att.fileName}</p>
+                          <p className="text-xs text-gray-500">{kind === "image" ? "Görsel" : "PDF / Belge"}</p>
+                        </div>
+                        <ExternalLink size={14} className="text-gray-400" />
+                      </a>
+                    );
+                  })}
+                </div>
+              ) : (
+                <p className="text-sm text-amber-700 bg-amber-50 border border-amber-100 rounded-xl px-4 py-3">
+                  Bu siparişte henüz görsel veya PDF yok.
+                </p>
+              )}
+            </div>
+          </section>
+
           <section className="rounded-xl border border-gray-200 bg-white shadow-sm">
             <div className="flex items-center justify-between border-b border-gray-200 px-5 py-4">
-              <h2 className="font-semibold text-gray-900">Sipariş Kalemi</h2>
+              <h2 className="font-semibold text-gray-900">Sipariş Kalemleri</h2>
               <span className="text-xs text-gray-500">{order.items.length} satır</span>
             </div>
             <div className="divide-y divide-gray-100">
@@ -321,17 +472,24 @@ export default function AdminOrderDetailPage() {
                 const itemMeta = parseMetadata(item.metadataJson);
                 const rawProductName = String(itemMeta.rawProductName || "");
                 const productName = item.product?.name || item.productCatalogItem?.name || rawProductName || "Ürün";
+                const orderImageUrl = String(itemMeta.orderImageUrl || "");
+                const orderPdfUrl = String(itemMeta.orderPdfUrl || itemMeta.specPdfUrl || "");
+                const variantLabel = String(itemMeta.variantLabel || itemMeta.variantName || "");
                 const image =
+                  orderImageUrl ||
                   item.product?.image ||
                   getCatalogImage(item.productCatalogItem?.imagesJson) ||
                   String(itemMeta.imageUrl || itemMeta.productImageUrl || "") ||
                   "/placeholder.svg";
                 const digitalDelivery = parseDigitalMetadata(item.metadataJson);
                 return (
-                  <div key={item.id} className="flex items-center gap-4 px-5 py-4">
+                  <div key={item.id} className="flex items-start gap-4 px-5 py-4">
                     <img src={image || "/placeholder.svg"} alt={productName} className="h-16 w-16 rounded-lg object-cover bg-gray-100" />
                     <div className="min-w-0 flex-1">
                       <p className="font-medium text-gray-900 truncate">{productName}</p>
+                      {variantLabel ? (
+                        <p className="text-xs font-medium text-indigo-700 mt-0.5">Varyant: {variantLabel}</p>
+                      ) : null}
                       <p className="text-xs text-gray-500 mt-1">Adet: {item.quantity} • Birim: {formatPrice(item.price)}</p>
                       {(item.barcode || item.sku || itemMeta.lineId || rawProductName) && (
                         <p className="text-[11px] text-gray-400 mt-1">
@@ -343,6 +501,14 @@ export default function AdminOrderDetailPage() {
                           {rawProductName && rawProductName !== productName ? ` · TY ürün: ${rawProductName}` : ""}
                         </p>
                       )}
+                      <div className="mt-2 flex flex-wrap gap-3">
+                        {orderImageUrl ? (
+                          <a href={orderImageUrl} target="_blank" rel="noreferrer" className="text-xs text-blue-600 hover:underline">Ürün görseli</a>
+                        ) : null}
+                        {orderPdfUrl ? (
+                          <a href={orderPdfUrl} target="_blank" rel="noreferrer" className="text-xs text-amber-700 hover:underline">Üretim PDF</a>
+                        ) : null}
+                      </div>
                       {digitalDelivery ? (
                         <p className="mt-1 inline-flex rounded-full border border-indigo-200 bg-indigo-50 px-2 py-0.5 text-[11px] font-medium text-indigo-700">
                           {digitalModeLabel(digitalDelivery.mode)}
@@ -502,7 +668,18 @@ export default function AdminOrderDetailPage() {
           </section>
 
           <section className="rounded-xl border border-gray-200 bg-white shadow-sm p-5">
-            <h2 className="font-semibold text-gray-900 mb-4 flex items-center gap-2"><MapPin size={16} /> Adres ve Not</h2>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="font-semibold text-gray-900 flex items-center gap-2"><MapPin size={16} /> Adres ve Not</h2>
+              {order.address ? (
+                <button
+                  type="button"
+                  onClick={() => copyText(order.address, "Adres")}
+                  className="inline-flex items-center gap-1 text-xs text-blue-700 hover:underline"
+                >
+                  <Copy size={12} /> Kopyala
+                </button>
+              ) : null}
+            </div>
             <div className="space-y-4 text-sm">
               <div>
                 <p className="text-xs font-semibold uppercase text-gray-500 mb-1">Adres</p>
@@ -516,38 +693,24 @@ export default function AdminOrderDetailPage() {
           </section>
 
           <section className="rounded-xl border border-gray-200 bg-white shadow-sm p-5">
-            <h2 className="font-semibold text-gray-900 mb-4 flex items-center gap-2"><Paperclip size={16} /> Ekler</h2>
-            {order.attachments?.length ? (
-              <div className="space-y-2">
-                {order.attachments.map((att) => {
-                  const kind = getFileKind(att.fileType, att.fileName);
-                  return (
-                    <a
-                      key={att.id}
-                      href={att.fileUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-3 rounded-lg border border-gray-200 px-3 py-2 hover:bg-gray-50 transition-colors"
-                    >
-                      {kind === "image" ? (
-                        <img src={att.fileUrl} alt={att.fileName} className="h-10 w-10 rounded object-cover bg-gray-100" />
-                      ) : (
-                        <div className="flex h-10 w-10 items-center justify-center rounded bg-amber-50">
-                          <FileText size={16} className="text-amber-500" />
-                        </div>
-                      )}
-                      <div className="min-w-0 flex-1">
-                        <p className="text-sm font-medium text-gray-900 truncate">{att.fileName}</p>
-                        <p className="text-xs text-gray-500">{kind === "image" ? "Görsel" : "PDF / Belge"}</p>
-                      </div>
-                      <ExternalLink size={14} className="text-gray-400" />
-                    </a>
-                  );
-                })}
-              </div>
-            ) : (
-              <p className="text-sm text-gray-500">Ek dosya yok.</p>
-            )}
+            <h2 className="font-semibold text-gray-900 mb-4 flex items-center gap-2"><Truck size={16} /> Kargo</h2>
+            <div className="space-y-3">
+              <input
+                placeholder="Kargo firması"
+                value={carrier}
+                onChange={(e) => setCarrier(e.target.value)}
+                className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm"
+              />
+              <input
+                placeholder="Takip numarası"
+                value={trackingNumber}
+                onChange={(e) => setTrackingNumber(e.target.value)}
+                className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm"
+              />
+              <Button onClick={saveTracking} disabled={updatingStatus} className="w-full">
+                Kargo bilgilerini kaydet
+              </Button>
+            </div>
           </section>
 
           <section className="rounded-xl border border-gray-200 bg-white shadow-sm p-5">
