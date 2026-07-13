@@ -430,7 +430,10 @@ export default function DealerOrderDetailPage() {
                 const itemMeta = parseMetadata(item.metadataJson);
                 const rawProductName = String(itemMeta.rawProductName || "");
                 const name = item.product?.name || item.productCatalogItem?.name || rawProductName || "Ürün";
-                const image = item.product?.image || String(itemMeta.imageUrl || itemMeta.productImageUrl || "") || "/placeholder.svg";
+                const image = item.product?.image || String(itemMeta.orderImageUrl || itemMeta.imageUrl || itemMeta.productImageUrl || "") || "/placeholder.svg";
+                const orderImageUrl = String(itemMeta.orderImageUrl || "");
+                const orderPdfUrl = String(itemMeta.orderPdfUrl || itemMeta.specPdfUrl || "");
+                const variantLabel = String(itemMeta.variantLabel || itemMeta.variantName || "");
                 const digitalDelivery = parseDigitalMetadata(item.metadataJson);
                 return (
                   <div key={item.id} className="flex items-center justify-between gap-4 px-5 py-4 hover:bg-ena-card/40 transition-colors">
@@ -438,6 +441,9 @@ export default function DealerOrderDetailPage() {
                       <img src={image} alt={name} className="h-12 w-12 rounded object-cover shrink-0 bg-black/10" />
                       <div className="min-w-0">
                         <p className="text-sm font-medium text-ena-text truncate">{name}</p>
+                        {variantLabel ? (
+                          <p className="text-[11px] text-indigo-300 mt-0.5">Varyant: {variantLabel}</p>
+                        ) : null}
                         <p className="text-xs text-ena-light/50">{item.quantity} adet x {formatPrice(item.price)}</p>
                         {(item.barcode || item.sku || itemMeta.lineId || rawProductName) && (
                           <p className="text-[11px] text-ena-light/40 mt-1">
@@ -448,6 +454,20 @@ export default function DealerOrderDetailPage() {
                             {itemMeta.lineId ? `TY satır: ${itemMeta.lineId}` : ""}
                             {rawProductName && rawProductName !== name ? ` · TY ürün: ${rawProductName}` : ""}
                           </p>
+                        )}
+                        {(orderImageUrl || orderPdfUrl) && (
+                          <div className="mt-1.5 flex flex-wrap gap-2">
+                            {orderImageUrl ? (
+                              <a href={orderImageUrl} target="_blank" rel="noopener noreferrer" className="text-[11px] text-blue-300 hover:underline">
+                                Ürün görseli
+                              </a>
+                            ) : null}
+                            {orderPdfUrl ? (
+                              <a href={orderPdfUrl} target="_blank" rel="noopener noreferrer" className="text-[11px] text-amber-300 hover:underline">
+                                Üretim PDF
+                              </a>
+                            ) : null}
+                          </div>
                         )}
                         {digitalDelivery ? (
                           <p className="mt-1 inline-flex rounded-full border border-indigo-400/30 bg-indigo-500/10 px-2 py-0.5 text-[11px] font-medium text-indigo-200">

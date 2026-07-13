@@ -5,6 +5,7 @@ import { getDealerPrice } from "@/lib/dealer-pricing";
 import { applyCampaigns } from "@/lib/campaign-engine";
 import { formatPrice } from "@/lib/utils";
 import { recordCartActivity } from "@/lib/cart/cart-observer-service";
+import { productRequiresVariant } from "@/lib/products/variant-requirement";
 
 export async function GET() {
   try {
@@ -101,6 +102,14 @@ export async function POST(req: Request) {
       return NextResponse.json({
         success: false,
         error: `Bu ürün için minimum sipariş adedi ${product.minOrderQuantity}`,
+      }, { status: 400 });
+    }
+
+    if (await productRequiresVariant(productId) && !String(variantId || "").trim()) {
+      return NextResponse.json({
+        success: false,
+        error: `${product.name} için varyant seçimi zorunludur`,
+        code: "VARIANT_REQUIRED",
       }, { status: 400 });
     }
 

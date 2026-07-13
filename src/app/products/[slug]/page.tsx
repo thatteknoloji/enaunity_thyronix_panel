@@ -219,13 +219,17 @@ export default function ProductDetailPage() {
     return map;
   })();
 
-  const handleAddToCart = () => {
+  const handleAddToCart = async () => {
     if (Object.keys(variantGroups).length > 0 && !matchedVariant) {
       toast.error("Lütfen tüm varyant seçeneklerini belirleyin");
       return;
     }
-    for (let i = 0; i < quantity; i++) addItem(product.id, 1, matchedVariant?.id || "");
-    toast.success(`${quantity} adet sepete eklendi`);
+    try {
+      await addItem(product.id, quantity, matchedVariant?.id || "");
+      toast.success(`${quantity} adet sepete eklendi`);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Sepete eklenemedi");
+    }
   };
 
   const submitReview = async () => {

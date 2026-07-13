@@ -30,7 +30,12 @@ export function normalizeImageUrl(url?: string): string {
 
 export function isUsableImageUrl(url?: string): boolean {
   const u = normalizeImageUrl(url);
-  return u.startsWith("http://") || u.startsWith("https://");
+  if (!u) return false;
+  if (u.startsWith("http://") || u.startsWith("https://")) return true;
+  // Bayi yüklemeleri relative path olarak kaydedilir: /uploads/{userId}/...
+  if (u.startsWith("/uploads/")) return true;
+  if (u.startsWith("/")) return true;
+  return false;
 }
 
 export function resolveMarketplaceItemImageUrl(input: {

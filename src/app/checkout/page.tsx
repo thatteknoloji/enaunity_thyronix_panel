@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { formatPrice } from "@/lib/utils";
 import { useCartStore } from "@/lib/cart-store";
 import type { User } from "@/types";
-import { ChevronLeft, Building2, Tag, AlertTriangle, Paperclip, X, FileText, ImageIcon, ArrowRight, MapPinned, Sparkles, BadgeCheck, CreditCard } from "lucide-react";
+import { ChevronLeft, Building2, Tag, AlertTriangle, Paperclip, X, FileText, ImageIcon, ArrowRight, MapPinned, Sparkles, BadgeCheck, CreditCard, Copy } from "lucide-react";
 import Link from "next/link";
 import { PaymentCheckoutPanel } from "@/components/payments/PaymentCheckoutPanel";
 import { DealerCheckoutPaymentPanel } from "@/components/payments/DealerCheckoutPaymentPanel";
@@ -61,6 +61,9 @@ export default function CheckoutPage() {
   const [deliveryAddress, setDeliveryAddress] = useState("");
   const [uploading, setUploading] = useState(false);
   const [attachments, setAttachments] = useState<Array<{ fileName: string; fileUrl: string; fileType: string }>>([]);
+  type LineDoc = { imageUrl?: string; pdfUrl?: string; imageName?: string; pdfName?: string };
+  const [lineDocs, setLineDocs] = useState<Record<string, LineDoc>>({});
+  const [lineUploading, setLineUploading] = useState<string | null>(null);
   const [campaignDiscount, setCampaignDiscount] = useState(0);
   const [campaignFreeShip, setCampaignFreeShip] = useState(false);
   const [campaignLabel, setCampaignLabel] = useState("");
@@ -313,6 +316,18 @@ export default function CheckoutPage() {
       };
       if (paymentTerm) { body.paymentTermDays = paymentTerm.days; body.paymentTermRate = paymentTerm.rate; }
       if (attachments.length > 0) body.attachments = attachments;
+      const lineAttachmentPayload = items.map((item) => {
+        const doc = lineDocs[item.id] || {};
+        return {
+          cartItemId: item.id,
+          productId: item.productId,
+          imageUrl: doc.imageUrl || "",
+          pdfUrl: doc.pdfUrl || "",
+          imageName: doc.imageName || "",
+          pdfName: doc.pdfName || "",
+        };
+      }).filter((row) => row.imageUrl || row.pdfUrl);
+      if (lineAttachmentPayload.length > 0) body.lineAttachments = lineAttachmentPayload;
       if (paymentMethod) {
         body.paymentMethod = paymentMethod;
         body.installmentCount = installmentCount;
@@ -422,6 +437,56 @@ export default function CheckoutPage() {
   };
 
   const removeAttachment = (i:number) => setAttachments(attachments.filter((_,j)=>j!==i));
+
+  const uploadLineFile = async (cartItemId: string, kind: "image" | "pdf", file: File) => {
+    setLineUploading(`${cartItemId}:${kind}`);
+    try {
+      const fd = new FormData();
+      fd.append("files", file);
+      const res = await fetch("/api/upload", { method: "POST", body: fd });
+      const data = await res.json();
+      if (!res.ok || !data?.data?.[0]) throw new Error(data?.error || "Yükleme başarısız");
+      const uploaded = data.data[0] as { fileUrl: string; fileName?: string; fileType?: string };
+      setLineDocs((prev) => ({
+        ...prev,
+        [cartItemId]: {
+          ...prev[cartItemId],
+          ...(kind === "image"
+            ? { imageUrl: uploaded.fileUrl, imageName: uploaded.fileName || file.name }
+            : { pdfUrl: uploaded.fileUrl, pdfName: uploaded.fileName || file.name }),
+        },
+      }));
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Dosya yüklenemedi");
+    } finally {
+      setLineUploading(null);
+    }
+  };
+
+  const applyPdfToAllLines = () => {
+    const source = items.map((item) => lineDocs[item.id]).find((doc) => doc?.pdfUrl);
+    if (!source?.pdfUrl) {
+      setError("Önce bir kaleme PDF yükleyin; ardından tüm kalemlere uygulayabilirsiniz.");
+      return;
+    }
+    setLineDocs((prev) => {
+      const next = { ...prev };
+      for (const item of items) {
+        next[item.id] = {
+          ...next[item.id],
+          pdfUrl: source.pdfUrl,
+          pdfName: source.pdfName || "ortak-kargo.pdf",
+        };
+      }
+      return next;
+    });
+  };
+
+  const missingLineDocCount = items.filter((item) => {
+    const doc = lineDocs[item.id];
+    return !(doc?.imageUrl && doc?.pdfUrl);
+  }).length;
+  const showMultiDocWarning = items.length > 1;
 
   if (loading) return <div className="mx-auto max-w-2xl px-4 py-12 animate-pulse space-y-4"><div className="h-8 w-1/3 rounded bg-ena-gray" /><div className="h-64 rounded bg-ena-gray" /></div>;
 
@@ -561,23 +626,102 @@ export default function CheckoutPage() {
             const itemTotal = itemPrice * item.quantity;
             const vatRate = item.product.vatRate ?? 20;
             const vatIncluded = item.product.vatIncluded ?? true;
+            const lineDoc = lineDocs[item.id] || {};
+            const lineMissing = !(lineDoc.imageUrl && lineDoc.pdfUrl);
             return (
-              <div key={item.id} className="flex items-center justify-between border-b border-ena-border pb-3">
-                <div className="flex items-center gap-3 min-w-0">
-                  <img src={item.product.image} alt={item.product.name} className="h-12 w-12 rounded object-cover shrink-0" />
-                  <div className="truncate">
-                    <p className="text-sm font-medium text-ena-text truncate">{item.product.name}</p>
-                    <p className="text-xs text-ena-light">
-                      Adet: {item.quantity} × {formatPrice(itemPrice)}
-                      {vatIncluded ? ` (KDV dahil %${vatRate})` : ` (KDV hariç %${vatRate})`}
-                    </p>
+              <div key={item.id} className="rounded-2xl border border-ena-border bg-black/10 p-3 space-y-3">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <img src={item.product.image} alt={item.product.name} className="h-12 w-12 rounded object-cover shrink-0" />
+                    <div className="truncate">
+                      <p className="text-sm font-medium text-ena-text truncate">{item.product.name}</p>
+                      <p className="text-xs text-ena-light">
+                        Adet: {item.quantity} × {formatPrice(itemPrice)}
+                        {vatIncluded ? ` (KDV dahil %${vatRate})` : ` (KDV hariç %${vatRate})`}
+                      </p>
+                    </div>
+                  </div>
+                  <p className="text-sm font-bold text-ena-primary shrink-0">{formatPrice(itemTotal)}</p>
+                </div>
+
+                <div className={`rounded-xl border px-3 py-2 ${lineMissing && showMultiDocWarning ? "border-amber-400/30 bg-amber-400/10" : "border-ena-border/70 bg-ena-card/20"}`}>
+                  <div className="flex items-center justify-between gap-2 mb-2">
+                    <p className="text-[11px] font-semibold uppercase tracking-wide text-ena-light/70">Kalem belgeleri</p>
+                    {lineMissing && showMultiDocWarning ? (
+                      <span className="text-[10px] text-amber-300">Görsel/PDF önerilir</span>
+                    ) : null}
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    <label className="inline-flex items-center gap-1.5 rounded-lg border border-ena-border px-2.5 py-1.5 text-[11px] text-ena-light hover:text-ena-text cursor-pointer">
+                      <ImageIcon size={12} />
+                      {lineUploading === `${item.id}:image` ? "Yükleniyor..." : lineDoc.imageUrl ? "Görseli değiştir" : "Ürün görseli"}
+                      <input
+                        type="file"
+                        accept=".jpg,.jpeg,.png,.webp,image/*"
+                        className="hidden"
+                        disabled={!!lineUploading}
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) uploadLineFile(item.id, "image", file);
+                          e.currentTarget.value = "";
+                        }}
+                      />
+                    </label>
+                    <label className="inline-flex items-center gap-1.5 rounded-lg border border-ena-border px-2.5 py-1.5 text-[11px] text-ena-light hover:text-ena-text cursor-pointer">
+                      <FileText size={12} />
+                      {lineUploading === `${item.id}:pdf` ? "Yükleniyor..." : lineDoc.pdfUrl ? "PDF değiştir" : "Üretim / kargo PDF"}
+                      <input
+                        type="file"
+                        accept=".pdf,application/pdf"
+                        className="hidden"
+                        disabled={!!lineUploading}
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) uploadLineFile(item.id, "pdf", file);
+                          e.currentTarget.value = "";
+                        }}
+                      />
+                    </label>
+                    {lineDoc.imageUrl ? (
+                      <a href={lineDoc.imageUrl} target="_blank" rel="noreferrer" className="text-[11px] text-blue-300 hover:underline">Görseli aç</a>
+                    ) : null}
+                    {lineDoc.pdfUrl ? (
+                      <a href={lineDoc.pdfUrl} target="_blank" rel="noreferrer" className="text-[11px] text-amber-300 hover:underline">PDF aç</a>
+                    ) : null}
                   </div>
                 </div>
-                <p className="text-sm font-bold text-ena-primary shrink-0">{formatPrice(itemTotal)}</p>
               </div>
             );
           })}
         </div>
+
+        {showMultiDocWarning && (
+          <div className="mt-4 rounded-2xl border border-amber-400/25 bg-amber-400/10 p-4 text-sm text-amber-100">
+            <div className="flex items-start gap-2">
+              <AlertTriangle size={16} className="mt-0.5 shrink-0 text-amber-300" />
+              <div className="space-y-2">
+                <p className="font-semibold text-amber-50">Sepetinizde birden fazla ürün var</p>
+                <p className="text-amber-100/85 leading-relaxed">
+                  Üretim ve kargo sürecinin aksamaması için her kaleme tasarım görseli ve üretim PDF&apos;i eklemenizi öneririz.
+                  Tek bir kargo PDF&apos;i birden fazla ürünü kapsıyorsa, önce bir kaleme yükleyip ardından tüm kalemlere uygulayabilirsiniz.
+                  Belgeler zorunlu değildir; eksik dosyalar operasyonu geciktirebilir.
+                </p>
+                {missingLineDocCount > 0 ? (
+                  <p className="text-xs text-amber-200/90">{missingLineDocCount} kalemde görsel veya PDF eksik görünüyor.</p>
+                ) : (
+                  <p className="text-xs text-emerald-200">Tüm kalemlerde görsel ve PDF mevcut.</p>
+                )}
+                <button
+                  type="button"
+                  onClick={applyPdfToAllLines}
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-amber-300/30 bg-black/20 px-3 py-1.5 text-xs font-medium text-amber-50 hover:bg-black/30"
+                >
+                  <Copy size={12} /> Aynı PDF&apos;i tüm kalemlere uygula
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Coupon */}
         <div className="mt-4">
@@ -737,11 +881,14 @@ export default function CheckoutPage() {
           </div>
         )}
 
-        {/* Dosya Ekleme */}
+        {/* Sipariş geneli ek belgeler */}
         <div className="rounded-[26px] border border-dashed border-ena-border p-4 space-y-3 bg-ena-card/30">
           <div className="flex items-center gap-2 text-sm text-ena-light">
-            <Paperclip size={16} /> <span>Belge/Görsel Ekle (opsiyonel)</span>
+            <Paperclip size={16} /> <span>Sipariş geneli ek belge (opsiyonel)</span>
           </div>
+          <p className="text-[11px] text-ena-light/60">
+            Kalem bazlı görsel/PDF yukarıdaki satırlardan yüklenir. Buraya yalnızca siparişin tamamını ilgilendiren ek dosyaları ekleyin.
+          </p>
           {attachments.length > 0 && (
             <div className="flex flex-wrap gap-2">
               {attachments.map((att, i) => (

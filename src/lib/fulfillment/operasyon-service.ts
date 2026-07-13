@@ -19,9 +19,18 @@ export type OperasyonItemView = {
   barcode: string;
   sku: string;
   imageUrl: string;
+  orderImageUrl: string;
+  orderPdfUrl: string;
+  variantLabel: string;
   lineId?: number;
   matchSource: string;
   matchScore: number;
+};
+
+export type OperasyonDocumentView = {
+  fileUrl: string;
+  fileName: string;
+  fileType: string;
 };
 
 export type OperasyonOrderView = {
@@ -37,10 +46,12 @@ export type OperasyonOrderView = {
   customerPhone: string;
   customerCity: string;
   customerAddress: string;
+  notes: string;
   createdAt: string;
   engine: string;
   dealer?: { id?: string; name?: string; company?: string };
   items: OperasyonItemView[];
+  documents: OperasyonDocumentView[];
   trackingNumber: string;
   cargoTrackingNumber: string;
   cargoCompany: string;
@@ -71,6 +82,8 @@ function mapItems(items: Array<{
 }>): OperasyonItemView[] {
   return items.map((i) => {
     const meta = parseMeta(i.metadataJson);
+    const orderImageUrl = String(meta.orderImageUrl || meta.imageUrl || meta.productImageUrl || "");
+    const orderPdfUrl = String(meta.orderPdfUrl || meta.specPdfUrl || "");
     return {
       id: i.id,
       name: i.name,
@@ -80,14 +93,48 @@ function mapItems(items: Array<{
       sku: i.sku || "",
       imageUrl: resolveMarketplaceItemImageUrl({
         name: i.name,
-        metaImage: String(meta.imageUrl || meta.productImageUrl || ""),
+        metaImage: orderImageUrl || String(meta.imageUrl || meta.productImageUrl || ""),
         productImage: i.product?.image,
       }),
+      orderImageUrl,
+      orderPdfUrl,
+      variantLabel: String(meta.variantLabel || meta.variantName || ""),
       lineId: typeof meta.lineId === "number" ? meta.lineId : undefined,
       matchSource: String(meta.matchSource || ""),
       matchScore: Number(meta.matchScore || 0),
     };
   });
+}
+
+function mapDocuments(
+  attachments: Array<{ fileUrl: string; fileName: string; fileType: string }> | undefined,
+  meta: Record<string, unknown>,
+  items: OperasyonItemView[],
+): OperasyonDocumentView[] {
+  const docs: OperasyonDocumentView[] = [];
+  const seen = new Set<string>();
+
+  const push = (fileUrl: string, fileName: string, fileType: string) => {
+    const url = String(fileUrl || "").trim();
+    if (!url || seen.has(url)) return;
+    seen.add(url);
+    docs.push({ fileUrl: url, fileName: fileName || "belge", fileType: fileType || "file" });
+  };
+
+  for (const att of attachments || []) {
+    push(att.fileUrl, att.fileName, att.fileType);
+  }
+
+  push(String(meta.orderImageUrl || ""), "siparis-gorseli", "image");
+  push(String(meta.orderPdfUrl || ""), "siparis-belgesi.pdf", "order_spec");
+  push(String(meta.shippingLabelUrl || ""), "kargo-etiketi", "shipping_label");
+
+  for (const item of items) {
+    if (item.orderImageUrl) push(item.orderImageUrl, `${item.name}-gorsel`, "image");
+    if (item.orderPdfUrl) push(item.orderPdfUrl, `${item.name}.pdf`, "order_spec");
+  }
+
+  return docs;
 }
 
 type CoreOrderShape = {
@@ -148,6 +195,7 @@ function coreToView(order: CoreOrderShape): OperasyonOrderView {
   );
   const shipment = order.shipments?.[0];
   const cargoTrackingNumber = resolveCargoTrackingNumber(order);
+  const items = mapItems(order.items || []);
 
   return {
     id: order.id,
@@ -162,10 +210,12 @@ function coreToView(order: CoreOrderShape): OperasyonOrderView {
     customerPhone: order.customerPhone,
     customerCity: order.customerCity,
     customerAddress: String(meta.customerAddress || order.address || ""),
+    notes: String(meta.notes || ""),
     createdAt: order.createdAt.toISOString(),
     engine: "core",
     dealer: order.dealer || undefined,
-    items: mapItems(order.items || []),
+    items,
+    documents: mapDocuments(order.attachments, meta, items),
     trackingNumber: shipment?.trackingNumber || order.trackingNumber || cargoTrackingNumber,
     cargoTrackingNumber,
     cargoCompany: shipment?.cargoCompany || order.carrier || String(meta.cargoProviderName || ""),
@@ -225,6 +275,7 @@ export async function listOperasyonOrders(filters: {
 
   return legacy.map((o) => {
     const unified = dealerOrderToUnified(o);
+    const items = mapItems((o.items || []) as Parameters<typeof mapItems>[0]);
     return {
       id: unified.id,
       orderNumber: unified.orderNumber,
@@ -238,10 +289,12 @@ export async function listOperasyonOrders(filters: {
       customerPhone: unified.customerPhone,
       customerCity: unified.customerCity,
       customerAddress: "",
+      notes: "",
       createdAt: unified.createdAt.toISOString(),
       engine: unified.engine,
       dealer: unified.dealer as OperasyonOrderView["dealer"],
-      items: mapItems((o.items || []) as Parameters<typeof mapItems>[0]),
+      items,
+      documents: mapDocuments(undefined, {}, items),
       trackingNumber: o.shipments[0]?.trackingNumber || "",
       cargoTrackingNumber: "",
       cargoCompany: o.shipments[0]?.cargoCompany || "",
@@ -271,6 +324,7 @@ export async function getOperasyonOrderDetail(orderId: string, dealerId?: string
   if (!legacy) return null;
 
   const unified = dealerOrderToUnified(legacy);
+  const items = mapItems((legacy.items || []) as Parameters<typeof mapItems>[0]);
   return {
     id: unified.id,
     orderNumber: unified.orderNumber,
@@ -284,10 +338,12 @@ export async function getOperasyonOrderDetail(orderId: string, dealerId?: string
     customerPhone: unified.customerPhone,
     customerCity: unified.customerCity,
     customerAddress: "",
+    notes: "",
     createdAt: unified.createdAt.toISOString(),
     engine: unified.engine,
     dealer: unified.dealer as OperasyonOrderView["dealer"],
-    items: mapItems((legacy.items || []) as Parameters<typeof mapItems>[0]),
+    items,
+    documents: mapDocuments(undefined, {}, items),
     trackingNumber: legacy.shipments[0]?.trackingNumber || "",
     cargoTrackingNumber: "",
     cargoCompany: legacy.shipments[0]?.cargoCompany || "",

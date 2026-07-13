@@ -21,9 +21,23 @@ export async function GET(req: Request) {
       },
       take: 20,
       orderBy: { name: "asc" },
+      include: {
+        variants: {
+          where: { active: true },
+          select: { id: true },
+        },
+      },
     });
 
-    return NextResponse.json({ success: true, data: products });
+    return NextResponse.json({
+      success: true,
+      data: products.map((p) => ({
+        ...p,
+        variantCount: p.variants.length,
+        hasVariants: p.variants.length > 0,
+        variants: undefined,
+      })),
+    });
   } catch {
     return NextResponse.json({ success: false, error: "Sunucu hatası" }, { status: 500 });
   }

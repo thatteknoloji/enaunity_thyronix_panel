@@ -17,6 +17,9 @@ interface LookupProduct {
   image: string;
   stock: number;
   minOrderQuantity: number;
+  slug?: string;
+  hasVariants?: boolean;
+  variantCount?: number;
 }
 
 interface CartEntry {
@@ -55,6 +58,13 @@ export default function QuickOrderPage() {
   }, [query]);
 
   const addProduct = (product: LookupProduct, quantity?: number) => {
+    if (product.hasVariants || (product.variantCount || 0) > 0) {
+      toast.error(`${product.name} varyantlı. Ürün sayfasından ebat/varyant seçerek ekleyin.`);
+      if (product.slug) {
+        window.open(`/products/${product.slug}`, "_blank");
+      }
+      return;
+    }
     setEntries((prev) => {
       const existing = prev.find((e) => e.productId === product.id);
       if (existing) {
@@ -91,6 +101,7 @@ export default function QuickOrderPage() {
     setAdding(true);
     let success = 0;
     let errors = 0;
+    const errorMessages: string[] = [];
     for (const entry of entries) {
       try {
         const res = await fetch("/api/cart", {
@@ -98,8 +109,14 @@ export default function QuickOrderPage() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ productId: entry.productId, quantity: entry.quantity }),
         });
+        const data = await res.json().catch(() => null);
         if (res.ok) success++;
-        else errors++;
+        else {
+          errors++;
+          if (data?.code === "VARIANT_REQUIRED" || data?.error) {
+            errorMessages.push(data.error || `${entry.product.name}: varyant gerekli`);
+          }
+        }
       } catch {
         errors++;
       }
@@ -108,7 +125,9 @@ export default function QuickOrderPage() {
       toast.success(`${success} ürün sepete eklendi`);
       setEntries([]);
     }
-    if (errors > 0) toast.error(`${errors} ürün eklenemedi`);
+    if (errors > 0) {
+      toast.error(errorMessages[0] || `${errors} ürün eklenemedi`);
+    }
     setAdding(false);
   };
 

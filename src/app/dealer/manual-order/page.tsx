@@ -73,6 +73,10 @@ function ManualOrderForm() {
       toast.error("Sipariş fotoğrafı ve PDF zorunlu");
       return;
     }
+    if (variants.length > 0 && !form.variantLabel) {
+      toast.error("Bu ürün için ebat / varyant seçimi zorunludur");
+      return;
+    }
     setSubmitting(true);
     try {
       const r = await fetch("/api/dealer/manual-orders", {
@@ -132,11 +136,12 @@ function ManualOrderForm() {
           {variants.length > 0 && (
             <DealerField label="Ebat / varyant">
               <select
+                required
                 value={form.variantLabel}
                 onChange={(e) => setForm({ ...form, variantLabel: e.target.value })}
                 className={dealerSelectClass}
               >
-                <option value="">Seçin</option>
+                <option value="">Seçin (zorunlu)</option>
                 {variants.map((v) => (
                   <option key={v.label} value={v.label}>
                     {v.label}

@@ -31,6 +31,7 @@ import {
 import { recordCartActivity } from "@/lib/cart/cart-observer-service";
 import { buildDigitalDeliverySnapshot, isDigitalProduct } from "@/lib/products/digital-delivery";
 import { syncDigitalAccessGrants } from "@/lib/products/digital-access";
+import { assertCartVariantSelection } from "@/lib/products/variant-requirement";
 
 export async function GET() {
   try {
@@ -73,6 +74,7 @@ export async function POST(req: Request) {
       paymentTermDays,
       paymentTermRate,
       attachments,
+      lineAttachments,
       platform,
       shippingCost = 0,
       paymentMethod,
@@ -87,6 +89,16 @@ export async function POST(req: Request) {
 
     if (!cart || cart.items.length === 0) {
       return NextResponse.json({ success: false, error: "Sepetin boş" }, { status: 400 });
+    }
+
+    try {
+      await assertCartVariantSelection(cart.items);
+    } catch (variantError) {
+      return NextResponse.json({
+        success: false,
+        error: variantError instanceof Error ? variantError.message : "Varyant seçimi zorunlu",
+        code: "VARIANT_REQUIRED",
+      }, { status: 400 });
     }
 
     const dealer = user.dealerId
@@ -314,6 +326,52 @@ export async function POST(req: Request) {
 
     const paymentDeadlineAt = useGatewayPayment && gatewayMethod === "BANK_TRANSFER" ? paymentDeadlineFromNow() : null;
 
+    const lineAttachmentList = Array.isArray(lineAttachments) ? lineAttachments : [];
+    const lineDocByCartItemId = new Map<string, { imageUrl?: string; pdfUrl?: string; imageName?: string; pdfName?: string }>();
+    const lineDocByProductId = new Map<string, { imageUrl?: string; pdfUrl?: string; imageName?: string; pdfName?: string }>();
+    for (const row of lineAttachmentList) {
+      if (!row || typeof row !== "object") continue;
+      const doc = {
+        imageUrl: String(row.imageUrl || "").trim() || undefined,
+        pdfUrl: String(row.pdfUrl || "").trim() || undefined,
+        imageName: String(row.imageName || "").trim() || undefined,
+        pdfName: String(row.pdfName || "").trim() || undefined,
+      };
+      if (row.cartItemId) lineDocByCartItemId.set(String(row.cartItemId), doc);
+      if (row.productId) lineDocByProductId.set(String(row.productId), doc);
+    }
+
+    const orderAttachments = [
+      ...(attachments?.length > 0
+        ? attachments.map((att: { fileName: string; fileUrl: string; fileType: string; fileSize?: number }) => ({
+            fileName: att.fileName,
+            fileUrl: att.fileUrl,
+            fileType: att.fileType,
+            fileSize: att.fileSize || 0,
+          }))
+        : []),
+    ];
+
+    for (const item of itemDetails) {
+      const lineDoc = lineDocByCartItemId.get(item.id) || lineDocByProductId.get(item.productId);
+      if (lineDoc?.imageUrl) {
+        orderAttachments.push({
+          fileName: lineDoc.imageName || `${item.product.name}-gorsel`,
+          fileUrl: lineDoc.imageUrl,
+          fileType: "image",
+          fileSize: 0,
+        });
+      }
+      if (lineDoc?.pdfUrl) {
+        orderAttachments.push({
+          fileName: lineDoc.pdfName || `${item.product.name}.pdf`,
+          fileUrl: lineDoc.pdfUrl,
+          fileType: "order_spec",
+          fileSize: 0,
+        });
+      }
+    }
+
     const order = await prisma.order.create({
       data: {
         userId: user.id,
@@ -330,25 +388,45 @@ export async function POST(req: Request) {
         metadataJson,
         status: orderStatus,
         paymentDeadlineAt,
-        attachments: attachments?.length > 0 ? {
-          create: attachments.map((att: { fileName: string; fileUrl: string; fileType: string; fileSize?: number }) => ({
-            fileName: att.fileName, fileUrl: att.fileUrl, fileType: att.fileType, fileSize: att.fileSize || 0,
-          })),
+        attachments: orderAttachments.length > 0 ? {
+          create: orderAttachments,
         } : undefined,
         items: {
-          create: itemDetails.map((item) => ({
-            productId: item.productId,
-            name: item.product.name || "",
-            sku: item.product.sku || "",
-            barcode: item.product.barcode || "",
-            quantity: item.quantity,
-            price: item.effectivePrice,
-            costPrice: Number(item.product.costPrice) || 0,
-            metadataJson: JSON.stringify({
-              productType: item.product.productType || "physical",
-              imageUrl: item.product.image || "",
-              digitalDelivery: buildDigitalDeliverySnapshot(item.product),
-            }),
+          create: await Promise.all(itemDetails.map(async (item) => {
+            const lineDoc = lineDocByCartItemId.get(item.id) || lineDocByProductId.get(item.productId);
+            let variantLabel = "";
+            if (item.variantId) {
+              const variant = await prisma.variant.findUnique({
+                where: { id: item.variantId },
+                select: { options: true, sku: true },
+              });
+              if (variant) {
+                try {
+                  const opts = JSON.parse(variant.options || "[]") as Array<{ name?: string; value?: string }>;
+                  variantLabel = opts.map((o) => o.value || o.name).filter(Boolean).join(" / ") || variant.sku || item.variantId;
+                } catch {
+                  variantLabel = variant.sku || item.variantId;
+                }
+              }
+            }
+            return {
+              productId: item.productId,
+              name: item.product.name || "",
+              sku: item.product.sku || "",
+              barcode: item.product.barcode || "",
+              quantity: item.quantity,
+              price: item.effectivePrice,
+              costPrice: Number(item.product.costPrice) || 0,
+              metadataJson: JSON.stringify({
+                productType: item.product.productType || "physical",
+                imageUrl: lineDoc?.imageUrl || item.product.image || "",
+                orderImageUrl: lineDoc?.imageUrl || "",
+                orderPdfUrl: lineDoc?.pdfUrl || "",
+                variantId: item.variantId || "",
+                variantLabel,
+                digitalDelivery: buildDigitalDeliverySnapshot(item.product),
+              }),
+            };
           })),
         },
         statusHistory: {

@@ -13,7 +13,7 @@ export default function DealerMarketplaceOrdersPage() {
         </Link>
         <div>
           <h1 className="text-lg font-bold text-gray-900">Pazaryeri Operasyon</h1>
-          <p className="text-xs text-gray-500">Trendyol ve diğer pazaryeri siparişleriniz</p>
+          <p className="text-xs text-gray-500">Satıra tıklayınca tam sipariş detay sayfası açılır</p>
         </div>
       </div>
       <div className="max-w-4xl mx-auto p-6">

@@ -85,7 +85,16 @@ export const useCartStore = create<CartStore>((set, get) => ({
         set({ items: data.data?.items || [], isOpen: true });
         return;
       }
-    } catch { /* fallback */ }
+      const data = await res.json().catch(() => null);
+      if (data?.code === "VARIANT_REQUIRED" || res.status === 400) {
+        throw new Error(data?.error || "Varyant seçimi zorunludur");
+      }
+    } catch (error) {
+      if (error instanceof Error && /varyant/i.test(error.message)) {
+        throw error;
+      }
+      /* fallback for offline/local */
+    }
 
     // Local fallback: add to localStorage
     const local = getLocalCart();

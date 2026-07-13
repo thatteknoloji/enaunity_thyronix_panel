@@ -115,7 +115,13 @@ export async function createManualOperasyonOrder(
     if (!dp) throw new Error("Bayi ürünü bulunamadı");
 
     const variants = parseVariants(dp.variantsJson);
-    const variant = variants.find((v) => v.label === input.variantLabel) || variants[0];
+    if (variants.length > 0 && !String(input.variantLabel || "").trim()) {
+      throw new Error("Bu ürün için ebat / varyant seçimi zorunludur");
+    }
+    const variant = variants.find((v) => v.label === input.variantLabel);
+    if (variants.length > 0 && !variant) {
+      throw new Error("Seçilen varyant bulunamadı");
+    }
     productName = `${dp.name}${variant?.label ? ` — ${variant.label}` : ""}`;
     unitPrice = variant?.price ?? dp.basePrice ?? unitPrice;
     imageUrl = dp.imageUrl;
