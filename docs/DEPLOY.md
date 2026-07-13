@@ -15,7 +15,9 @@ npm run preflight
 git push origin main
 
 # 3) Canlıya al (laptop'tan)
-ENAUNITY_SSH_PASS='…' npm run deploy:live
+# Şifre .env.local içindeyse ekstra vermene gerek yok:
+npm run deploy:live
+# veya: ENAUNITY_SSH_PASS='…' npm run deploy:live
 
 # veya sunucuda:
 cd /opt/enaunity && git pull && bash scripts/deploy-production-quick.sh

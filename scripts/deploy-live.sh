@@ -15,12 +15,37 @@
 # Ortam:
 #   ENAUNITY_SSH_HOST  default 13.140.138.135
 #   ENAUNITY_SSH_USER  default root
-#   ENAUNITY_SSH_PASS  sshpass şifresi (opsiyonel)
+#   ENAUNITY_SSH_PASS  sshpass şifresi (.env.local / .env veya env)
 #   ENAUNITY_APP_DIR   default /opt/enaunity
+#
+# Şifreyi bir kez .env.local içine yaz:
+#   ENAUNITY_SSH_PASS=…
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
+
+# Lokal env (gitignore) — export edilmemiş ENAUNITY_* değerlerini yükle
+load_env_file() {
+  local file="$1"
+  [[ -f "$file" ]] || return 0
+  while IFS= read -r line || [[ -n "$line" ]]; do
+    [[ "$line" =~ ^[[:space:]]*# ]] && continue
+    [[ -z "${line//[[:space:]]/}" ]] && continue
+    [[ "$line" == ENAUNITY_* ]] || continue
+    local key="${line%%=*}"
+    local val="${line#*=}"
+    val="${val%$'\r'}"
+    # Strip surrounding quotes
+    if [[ "$val" =~ ^\".*\"$ ]]; then val="${val:1:${#val}-2}"; fi
+    if [[ "$val" =~ ^\'.*\'$ ]]; then val="${val:1:${#val}-2}"; fi
+    if [[ -z "${!key:-}" ]]; then
+      export "$key=$val"
+    fi
+  done < "$file"
+}
+load_env_file "$ROOT/.env"
+load_env_file "$ROOT/.env.local"
 
 HOST="${ENAUNITY_SSH_HOST:-13.140.138.135}"
 USER="${ENAUNITY_SSH_USER:-root}"
